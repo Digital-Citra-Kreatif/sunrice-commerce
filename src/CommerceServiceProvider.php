@@ -104,6 +104,7 @@ class CommerceServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
+        self::mapGoogleConfig();
         $this->registerCommands();
         $this->registerAdminAssets();
         $this->registerFeatureGates();
@@ -398,6 +399,15 @@ class CommerceServiceProvider extends PackageServiceProvider
      * The prebuilt admin bundle (dist/), published to public/vendor/commerce
      * and loaded on every admin page after Sunrice's own.
      */
+    /** Socialite reads services.google (and needs a redirect key; the controller sets the real URL); the app's own values win. */
+    public static function mapGoogleConfig(): void
+    {
+        config(['services.google' => [
+            'client_id' => config('commerce.google.client_id'), 'client_secret' => config('commerce.google.client_secret'), 'redirect' => null,
+            ...array_filter((array) config('services.google', []), fn ($v) => $v !== null && $v !== ''),
+        ]]);
+    }
+
     /** Store tools on Sunrice's MCP server (ARCHITECTURE.md §23); each hides itself unless allowed. */
     protected function registerMcpTools(): void
     {

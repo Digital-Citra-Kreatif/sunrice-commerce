@@ -3,12 +3,14 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Event;
+use Illuminate\Validation\ValidationException;
 use Spatie\Permission\PermissionRegistrar;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\StockMovement;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Contracts\Inventory;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
+use Sunrice\Commerce\Inventory\Actions\AdjustStock;
 use Sunrice\Commerce\Inventory\DatabaseInventory;
 use Sunrice\Commerce\Inventory\Events\StockBackIn;
 use Sunrice\Commerce\Inventory\Events\StockLow;
@@ -92,4 +94,13 @@ it('needs the inventory permission and module', function () {
     actingAsSuperAdmin();
     app(ToggleFeature::class)->handle('inventory', false);
     $this->get('/cms/commerce/inventory')->assertNotFound();
+});
+
+it('refuses to adjust a variant whose stock is not tracked', function () {
+    publishProduct(['variants' => [['id' => 'free', 'sku' => 'FREE', 'price' => 1000, 'track_stock' => false]]], title: 'Untracked');
+    $variant = Variant::query()->where('sku', 'FREE')->firstOrFail();
+
+    expect(fn () => app(AdjustStock::class)->handle($variant, 5))
+        ->toThrow(ValidationException::class)
+        ->and($variant->fresh()->track_stock)->toBeFalse();
 });

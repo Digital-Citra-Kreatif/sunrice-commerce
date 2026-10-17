@@ -21,6 +21,10 @@ class AdjustStock
         if (! in_array($reason, self::REASONS, true)) {
             throw ValidationException::withMessages(['reason' => 'Choose a reason.']);
         }
+        // Tracking is part of the product's data (the entry): switching it on here would be undone by the next save.
+        if (! $variant->track_stock) {
+            throw ValidationException::withMessages(['quantity' => 'Stock isn\'t tracked for this variant: switch on "Track stock" in the product first.']);
+        }
         if ($set && $quantity < 0) {
             throw ValidationException::withMessages(['quantity' => 'Stock can\'t be set below 0.']);
         }

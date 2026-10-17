@@ -34,6 +34,13 @@ Publish the file with `php artisan vendor:publish --tag=commerce-config` (the in
 | `catalog.max_options` | `3` | Options per variable product |
 | `catalog.max_variants` | `100` | Variants per product |
 
+### google
+
+| Key | Default | |
+| --- | --- | --- |
+| `google.client_id` | `env('GOOGLE_CLIENT_ID')` | Sign in with Google; copied to `services.google` unless your app sets it there |
+| `google.client_secret` | `env('GOOGLE_CLIENT_SECRET')` | |
+
 ### auth
 
 | Key | Default | |

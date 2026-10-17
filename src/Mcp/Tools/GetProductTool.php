@@ -21,11 +21,12 @@ class GetProductTool extends ProductTool
 {
     protected string $name = 'get_product';
 
-    public const EDITING = 'Send the whole object back as fields.product in update_entry. Keys: type (simple | variable | bundle | digital), purchase_mode (default | inquiry | whatsapp | external), '
-        .'external_links [{preset, label, url}], requires_shipping, downloadable, featured, tax_class, options [{id, name, values [{id, label}]}] (variable products), '
-        .'variants [{id (keep existing ids), options {optionId: valueId}, sku, barcode, price, compare_at_price, cost (integers, smallest currency unit), weight (grams), length/width/height (cm), '
-        .'track_stock, initial_stock (only for new variants; change stock with adjust_stock), backorders (no | notify | yes), low_stock_threshold, stock_status, min_qty, max_qty, qty_step, active}], '
-        .'bundle {items [{variant_id, quantity}], pricing}, tiers [{min_qty, type (percent_off | amount_off | fixed_price), value}].';
+    public const EDITING = 'Send the whole object back as fields.product in update_entry. Keys: type (simple | variable | bundle), purchase_mode (default | cart | inquiry | whatsapp | external | none), '
+        .'external_links [{preset, label, url}], requires_shipping, downloadable (digital products: downloadable true, requires_shipping false, downloads [{type: url, url, name}]), featured, tax_class, '
+        .'options [{id, name, taxonomy, values [{id, label, term_id}]}] (variable products), '
+        .'variants [{id (keep existing ids), options {optionId: valueId}, sku, barcode, price, compare_at_price, cost (integers, smallest currency unit), weight (grams), length/width/height (mm), '
+        .'track_stock, initial_stock (only for new variants; change stock with adjust_stock), backorders (no | allow | notify), low_stock_threshold, stock_status, min_qty, max_qty, qty_step, active}], '
+        .'bundle {items [{variant_id, quantity}], pricing (fixed | percent_off | amount_off), value}, tiers [{min_qty, type (percent_off | amount_off | fixed_price), value}].';
 
     protected function run(Request $request): Response
     {

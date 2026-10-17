@@ -154,19 +154,10 @@ The code length, the try limit and the same-browser rule are the package's own s
    GOOGLE_CLIENT_SECRET=…
    ```
 
-3. Map them in `config/services.php` (commerce reads `services.google.client_id` and
-   `services.google.client_secret`; Socialite also expects a `redirect` key, which commerce
-   replaces with the callback above):
+   Commerce reads them through `commerce.google` and fills `services.google` for Socialite. If
+   your app already has a `google` block in `config/services.php`, its values win.
 
-   ```php
-   'google' => [
-       'client_id' => env('GOOGLE_CLIENT_ID'),
-       'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-       'redirect' => '/account/login/google/callback',
-   ],
-   ```
-
-4. Switch on **Sign in with Google** in Settings → Store → Features.
+3. Switch on **Sign in with Google** in Settings → Store → Features.
 
 Without both keys the button is hidden, the routes answer 404 and the dashboard warns.
 

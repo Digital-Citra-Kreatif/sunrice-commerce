@@ -25,6 +25,9 @@ class GrantDownloads
 
     public function handle(OrderPaid|OrderCompleted $event): void
     {
+        if (! commerce_feature('digital')) {
+            return;
+        }
         $on = (string) $this->settings->get('digital.grant_on', 'paid');
         if (($on === 'completed') !== ($event instanceof OrderCompleted)) {
             return;

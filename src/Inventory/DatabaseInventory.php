@@ -84,7 +84,7 @@ class DatabaseInventory implements Inventory
             $current = (int) DB::table('commerce_variants')->where('id', $variant->id)->lockForUpdate()->value('stock_quantity');
             $delta = $set ? $quantity - $current : $quantity;
             DB::table('commerce_variants')->where('id', $variant->id)->update([
-                'stock_quantity' => DB::raw('COALESCE(stock_quantity, 0) + '.$delta), 'track_stock' => true, 'updated_at' => now(),
+                'stock_quantity' => DB::raw('COALESCE(stock_quantity, 0) + '.$delta), 'updated_at' => now(),
             ]);
 
             return $this->record($variant, $delta, $reason, null, $note, $userId);

@@ -6,7 +6,9 @@ use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\GoogleProvider;
 use Laravel\Socialite\Two\User as GoogleUser;
 use Spatie\Permission\Models\Role;
+use Sunrice\Commerce\CommerceServiceProvider;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
+use Sunrice\Commerce\Http\Controllers\Account\GoogleController;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Workbench\App\Models\User;
 
@@ -66,4 +68,13 @@ it('refuses staff in shared-guard mode', function () {
     fakeGoogle('g-4', 'ana@example.com');
 
     $this->get('/account/login/google/callback')->assertRedirect('/account/login')->assertSessionHas('commerce.error');
+});
+
+it('takes the Google keys from GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET through commerce.google', function () {
+    config(['services.google' => null, 'commerce.google' => ['client_id' => 'env-id', 'client_secret' => 'env-secret']]);
+    CommerceServiceProvider::mapGoogleConfig();
+
+    expect(config('services.google'))->toMatchArray(['client_id' => 'env-id', 'client_secret' => 'env-secret'])
+        ->and(array_key_exists('redirect', config('services.google')))->toBeTrue()
+        ->and(GoogleController::configured())->toBeTrue();
 });

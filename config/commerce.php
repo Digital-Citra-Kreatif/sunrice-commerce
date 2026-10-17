@@ -41,6 +41,12 @@ return [
     |
     */
 
+    // Sign in with Google: used when config/services.php has no `google` block of its own.
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+    ],
+
     'auth' => [
         'guard' => 'commerce',
         'passwords' => 'users',
