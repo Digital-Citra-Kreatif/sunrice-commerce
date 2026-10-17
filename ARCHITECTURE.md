@@ -866,11 +866,14 @@ Stages run in order of priority. Extensions insert stages with
 | --- | --- | --- |
 | 10 | `ResolveLines` | Loads variants and products; checks purchasability (§7.3); removes and notes lines that can't be bought |
 | 20 | `UnitPrices` | Asks every `PriceCandidateProvider` for candidates; the lowest wins (§8.3) |
+| 25 | `StaffPrices` | Staff channels only (manual orders, edits, quotes): unit prices set by staff replace the candidates |
 | 30 | `Subtotals` | Line subtotal = unit price × quantity |
 | 40 | `Discounts` | `DiscountProvider`s in priority order (automatic discounts, then codes, then extensions); each returns adjustments with per-line allocations |
+| 45 | `StaffDiscount` | Staff channels only: a hand-set discount |
 | 50 | `Shipping` | When any line needs shipping: rates for the destination from `ShippingManager`; the chosen rate's cost |
+| 55 | `StaffShipping` | Staff channels only: a hand-set shipping cost replaces the rate |
 | 60 | `ShippingDiscounts` | Free-shipping vouchers and others |
-| 70 | `Fees` | Payment method fee; the unique code (only when placing an order); extension fees |
+| 70 | `Fees` | Payment method fee and extension fees (the unique transfer code is added by `PlaceOrder` and the pay page) |
 | 80 | `Taxes` | `TaxCalculator` |
 | 90 | `Totals` | Sums; clamps the total at zero; checks that the lines sum to the totals |
 
@@ -1558,31 +1561,36 @@ interface BooksShipments  { public function book(Order $order, Shipment $shipmen
 | `routes/api.php` | JSON for `commerce.js`: `/commerce/api/*`; `web` group (session + CSRF); throttled |
 | `routes/webhooks.php` | `/commerce/webhooks/{method}`; stateless (§13.3) |
 
-- `Commerce::localizedRoutes()` registers each storefront and account group twice: unprefixed with
-  names `commerce.*`, and under `{locale}` (only non-main available locales) with names
+- `StorefrontRoutes::localized()` registers each storefront and account group twice: unprefixed
+  with names `commerce.*`, and under `{locale}` (only non-main available locales) with names
   `commerce.*.locale`. `Sunrice::frontendRoutes()` (U12) replaces it when available.
-- `commerce_url('cart', [...])` picks the right name for the current language.
+- `commerce_url('commerce.cart', [...])` takes the full route name and picks the right one for the
+  current language.
 - The routes are registered in `boot()`, so they win over Sunrice's `Route::fallback`. Paths come
   from `commerce.storefront.paths` and can be changed per site:
   - `cart`, `checkout`, `order/{key}`, `order/{key}/pay`, `confirm-payment`, `track-order`,
     `quote/{key}`;
-  - `account/…`, `wishlist`, `wishlist/{share}`, `compare`, `brands`, `flash-sale/{slug?}`;
-  - `downloads/{token}`, `go/{type}/{product}`.
+  - `account/…`, `wishlist`, `wishlist/shared/{token}`, `compare`, `brands`, `flash-sale` and
+    `flash-sale/{sale}`;
+  - `downloads/{token}`, `go/{type}/{entry}`.
 
 ### 22.2 Controllers, views and components
 
 - Controllers are thin: they call actions and view models. Views resolve app-first:
   `view()->first(['commerce.cart', 'commerce::storefront.cart'])`.
-- Private pages (cart, checkout, order, account, wishlist, compare) get `X-Robots-Tag: noindex` and
-  pass `:noindex="true"` to `<x-sunrice::seo>`.
+- Private pages (cart, checkout, order, account, wishlist, compare) get `X-Robots-Tag: noindex,
+  nofollow` (the `commerce.noindex` middleware); commerce's own layout also passes `:noindex` to
+  `<x-sunrice::seo>`.
 - Body classes through `Sunrice::bodyClassUsing()`: `page-commerce commerce-{page}`.
 - **Components**: logic only, data on `$component` like Sunrice's components (each listed in SPEC §
   Storefront).
-  - `<x-commerce::products>` takes `collection`, `category`, `brand`, `tag`, `featured`,
-    `on-sale`, `per-page`, `limit`, `order-by` and `ids`.
-  - `<x-commerce::product-filter>` takes `filters`, `sorts` and `per-page`, mirroring
-    `<x-sunrice::entry-filter>`'s shape (`$component->entries`, `filters`, `sorts`, `active`,
-    `clearUrl`).
+  - `<x-commerce::products>` takes `category`, `brand`, `tag`, `sort`, `featured`, `on-sale`,
+    `limit`, `paginate` (false: a fixed block of the first products), `filters` and a `query`
+    (`Catalog\ProductQuery`). Paginated, it follows the request's filters and page.
+  - `<x-commerce::product-filter>` takes a `query` and `without` (a facet to leave out, e.g. on a
+    brand page) and shows the facets (`$component->facets`: terms per taxonomy with counts,
+    price range, stock, sale).
+  - Every component and attribute is in `docs/blade-components.md`.
 - **Slots**: `<x-commerce::slot name="checkout.before_submit" :order="$order" />` renders the
   partials registered with `Commerce::registerStorefrontSlot()`. The published templates include
   slots at:
@@ -1596,7 +1604,7 @@ interface BooksShipments  { public function book(Order $order, Shipment $shipmen
 
 ### 22.3 Published templates and theme
 
-`php artisan vendor:publish --tag=commerce-templates` copies:
+`php artisan vendor:publish --tag=commerce-templates` (or `commerce:install --templates`) copies:
 
 ```
 resources/views/sunrice/products/show.blade.php            product page
@@ -1604,17 +1612,24 @@ resources/views/sunrice/products/index.blade.php           Shop page (collection
 resources/views/sunrice/taxonomies/product_categories/show.blade.php
 resources/views/sunrice/taxonomies/brands/show.blade.php
 resources/views/sunrice/taxonomies/product_tags/show.blade.php
-resources/views/commerce/{cart,checkout,order,pay,confirm-payment,track-order,quote,
-                          brands,flash-sale,wishlist,compare}.blade.php
-resources/views/commerce/account/{overview,orders,order,downloads,addresses,profile,
-                                  login,register,forgot-password,reset-password,link,code}.blade.php
-resources/views/commerce/partials/{product-card,price,add-to-cart,variant-picker,stock,
-                                   mini-cart,cart-lines,totals,filters,address-form,
-                                   region-select,flash-sale,tier-table,wishlist-button,
-                                   compare-button,account-nav,structured-data,…}.blade.php
+resources/views/commerce/{cart,checkout,order,pay,confirm-payment,track-order,brands,
+                          flash-sale,flash-sales,wishlist,compare}.blade.php
+                          (quotes use order.blade.php)
+resources/views/commerce/account/{layout,overview,orders,quotes,order,downloads,addresses,
+                                  profile,login,register,code,forgot-password,
+                                  reset-password}.blade.php
+resources/views/commerce/partials/{product-card,products,price,buy,variant-picker,stock,
+                                   badges,cta,inquiry-form,mini-cart,cart,totals,filters,
+                                   address-fields,checkout-field,checkout-summary,
+                                   shipping-methods,payment-methods,order-items,downloads,
+                                   flash-sale,countdown,wishlist-button,compare-button,
+                                   structured-data,assets,…}.blade.php
+resources/views/commerce/payments/{bank-transfer,instructions,cod,confirm-link}.blade.php
 public/commerce-theme/commerce.css · commerce.js
 ```
 
+- Without publishing, the theme is served from `public/vendor/commerce/theme` (published with the
+  admin assets); a published copy in `public/commerce-theme` wins.
 - Each file starts with a comment listing the variables and components it uses, as in Sunrice's
   starter templates.
 - Templates extend `sunrice.layouts.app` when it exists, else commerce's minimal layout.
@@ -1767,9 +1782,9 @@ small value objects):
     flash sales, price rules, automatic vouchers and tiers once each);
   - placing an order: no N+1 per line.
   (`tests/Feature/Storefront/QueryBudgetTest.php`.)
-- **Full-page cache**: commerce registers a U11 hook that excludes product, product-taxonomy and
-  store pages, and any request with a commerce session or cart cookie. Without U11, store health
-  warns when `sunrice.cache.full_page` is on.
+- **Full-page cache**: once Sunrice has U11, commerce will register a hook that excludes product,
+  product-taxonomy and store pages, and any request with a commerce session or cart cookie. Until
+  then, store health warns when `sunrice.cache.full_page` is on (`FullPageCacheCheck`).
 - **Regions** are cached forever per dataset version; the JSON endpoint sends long-lived cache
   headers.
 
