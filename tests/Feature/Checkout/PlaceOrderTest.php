@@ -188,3 +188,9 @@ it('links guest orders once the email is verified', function () {
     expect(app(LinkGuestOrders::class)->handle($user))->toBe(1)
         ->and(Order::query()->sole()->user_id)->toBe($user->id);
 });
+
+it('finds open quotes by their quote number on the track page', function () {
+    $quote = makeOrder(['type' => 'quote', 'status' => 'requested', 'number' => null, 'quote_number' => 'Q-TRACK-1', 'email' => 'pt@example.com']);
+
+    $this->post('/track-order', ['number' => 'Q-TRACK-1', 'email' => 'pt@example.com'])->assertRedirect($quote->url());
+});

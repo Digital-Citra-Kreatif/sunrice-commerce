@@ -160,7 +160,7 @@ final class BuiltinSections
             ['handle' => 'village_level', 'type' => 'toggle', 'label' => 'Ask for the village (kelurahan/desa)'],
             ['handle' => 'order_notes', 'type' => 'toggle', 'label' => 'Order notes'],
             ['handle' => 'dropshipper', 'type' => 'toggle', 'label' => 'Dropshipper details (sender name and phone)'],
-            ['handle' => 'minimum_order', 'type' => 'commerce_money', 'label' => 'Minimum order', 'instructions' => 'Subtotal before discounts; 0 for none.', 'config' => ['allow_null' => false]],
+            ['handle' => 'minimum_order', 'type' => 'commerce_money', 'label' => 'Minimum order', 'instructions' => 'Compared with the subtotal after discounts (before shipping); 0 for none.', 'config' => ['allow_null' => false]],
             ['handle' => 'terms_page', 'type' => 'entries', 'label' => 'Terms page', 'instructions' => 'Customers must accept it to check out.', 'config' => ['max' => 1]],
             ['handle' => 'customer_cancel', 'type' => 'toggle', 'label' => 'Customers can cancel unpaid orders'],
             ['handle' => 'order_number_format', 'type' => 'text', 'label' => 'Order number', 'required' => true, 'translatable' => false,

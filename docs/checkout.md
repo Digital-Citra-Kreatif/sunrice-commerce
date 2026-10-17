@@ -104,7 +104,7 @@ Settings → Store → Checkout (section `checkout`, permission `commerce.settin
 The same section holds order settings: customer cancelling, order and quote numbers, quote
 validity and auto-complete. They are described in [orders.md](orders.md).
 
-**Minimum order.** Checkout refuses a cart whose subtotal minus line discounts is below
+**Minimum order.** Checkout refuses a cart whose subtotal minus discounts (vouchers included) is below
 `minimum_order`. Shipping and fees don't count. `0` turns it off.
 
 ## Guests and accounts

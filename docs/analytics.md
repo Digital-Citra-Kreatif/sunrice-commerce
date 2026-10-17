@@ -20,8 +20,9 @@ is the `analytics` feature (on by default); see [features.md](features.md).
 
 **Shop → Dashboard** (`/cms/commerce`) needs `commerce.dashboard.view`. From top to bottom:
 
-**Setup checklist.** Steps with a link to where each is done, ticked off as you go. The built-in steps
-are the store details (name and email) and the store address (Settings → Store → General).
+**Setup checklist.** Steps with a link to where each is done, ticked off as you go, shown until all
+are done: the store details (name and email), the store address, products, a payment method, shipping,
+the terms page for checkout and a test order. Steps of switched-off modules are left out.
 
 **Health.** Warnings about things that stop the store working, each with how to fix it. The same
 checks run in `php artisan commerce:doctor` ([commands.md](commands.md)):
@@ -33,6 +34,8 @@ checks run in `php artisan commerce:doctor` ([commands.md](commands.md)):
 | Scheduler | `commerce:tick` hasn't run in the last 5 minutes |
 | Full-page cache | Sunrice's full-page cache is on |
 | Customer sign-in | Emailed codes are on without the `HasOneTimePasswords` trait, or Google sign-in is on without its keys |
+| Ordering | The online store has no active payment method, WhatsApp mode has no number, or there are products to ship but no active shipping method (errors) |
+| Products and regions | Product data couldn't be synced, regions aren't imported, or checkout asks for the village without village data |
 
 Extensions add checks with `Commerce::registerHealthCheck()` ([extending.md](extending.md#dashboard-widgets-reports-and-health-checks)).
 

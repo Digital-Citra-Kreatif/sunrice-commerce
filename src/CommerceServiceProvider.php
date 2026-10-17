@@ -356,7 +356,7 @@ class CommerceServiceProvider extends PackageServiceProvider
     {
         Admin\Dashboard\StoreCard::register();
         $health = $this->app->make(Health\HealthRegistry::class);
-        foreach ([Health\Checks\MailCheck::class, Health\Checks\QueueCheck::class, Health\Checks\SchedulerCheck::class, Health\Checks\FullPageCacheCheck::class] as $check) {
+        foreach ([Health\Checks\MailCheck::class, Health\Checks\QueueCheck::class, Health\Checks\SchedulerCheck::class, Health\Checks\FullPageCacheCheck::class, Health\Checks\StoreReadinessCheck::class, Health\Checks\CatalogDataCheck::class] as $check) {
             $health->register($check);
         }
 

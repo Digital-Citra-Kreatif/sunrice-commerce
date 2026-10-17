@@ -101,6 +101,7 @@ Open the admin → **Shop → Dashboard**. Until everything is done, a checklist
 - products (Shop → Products);
 - payment methods (Settings → Store → Payments);
 - shipping zones (Settings → Store → Shipping);
+- the terms page for checkout (Settings → Store → Checkout);
 - a test order.
 
 Choose the **selling mode** in Settings → Store → General: an online store with checkout, quotation

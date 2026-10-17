@@ -72,7 +72,8 @@ class OrderController
     {
         $data = $request->validate(['number' => ['required', 'string', 'max:60'], 'email' => ['required', 'string', 'email', 'max:190']]);
         Throttle::check('commerce-track', $request, mb_strtolower($data['email']), 10, 20, 600, 'number');
-        $order = Order::query()->where('type', 'order')->where(fn ($q) => $q->where('number', trim($data['number']))->orWhere('quote_number', trim($data['number'])))
+        // Orders by number, quotes (open or accepted) by quote number.
+        $order = Order::query()->where(fn ($q) => $q->where('number', trim($data['number']))->orWhere('quote_number', trim($data['number'])))
             ->where('email', mb_strtolower(trim($data['email'])))->first();
         if ($order === null) {
             Throttle::hit('commerce-track', $request, mb_strtolower($data['email']), 600);

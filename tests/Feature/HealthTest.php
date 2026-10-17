@@ -3,10 +3,14 @@
 declare(strict_types=1);
 
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\DB;
+use Sunrice\Commerce\Admin\Setup\SetupChecklist;
 use Sunrice\Commerce\Facades\Commerce;
 use Sunrice\Commerce\Health\HealthCheck;
 use Sunrice\Commerce\Health\HealthRegistry;
 use Sunrice\Commerce\Health\HealthResult;
+use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Commerce\Shipping\Models\ShippingMethod;
 
 class FailingCheck implements HealthCheck
 {
@@ -38,6 +42,7 @@ it('reports the scheduler stale until commerce:tick runs', function () {
 });
 
 it('fails commerce:doctor on an error', function () {
+    checkoutStore(); // a store that can take orders
     $this->artisan('commerce:tick');
     config(['mail.default' => 'smtp', 'mail.mailers.smtp.transport' => 'smtp']);
     $this->artisan('commerce:doctor')->assertSuccessful();
@@ -82,4 +87,29 @@ it('clears old IP addresses when pruning', function () {
 
     expect($old->fresh()->ip_address)->toBeNull()->and($old->fresh()->user_agent)->toBeNull()
         ->and($recent->fresh()->ip_address)->toBe('10.0.0.2');
+});
+
+it('tells when customers can\'t order, and when product or region data is missing', function () {
+    $status = fn (string $key) => app(HealthRegistry::class)->run()[$key]['result']->status;
+
+    expect($status('store_readiness'))->toBe(HealthResult::ERROR)   // no payment method yet
+        ->and($status('catalog_data'))->toBe(HealthResult::WARNING); // no regions
+
+    checkoutStore();
+    expect($status('store_readiness'))->toBe(HealthResult::OK)->and($status('catalog_data'))->toBe(HealthResult::OK);
+
+    ShippingMethod::query()->update(['active' => false]);
+    expect($status('store_readiness'))->toBe(HealthResult::ERROR);   // products to ship, nowhere to ship them
+
+    app(StoreSettings::class)->saveSection('checkout', ['village_level' => true]);
+    DB::table('commerce_regions')->where('level', 4)->delete();
+    expect($status('catalog_data'))->toBe(HealthResult::ERROR);
+});
+
+it('lists the setup steps until they are done', function () {
+    $steps = fn () => collect(app(SetupChecklist::class)->evaluate())->pluck('done', 'key')->all();
+
+    expect($steps())->toBe(['details' => false, 'address' => false, 'products' => false, 'payments' => false, 'shipping' => false, 'terms' => false, 'test_order' => false]);
+    checkoutStore();
+    expect($steps())->toMatchArray(['products' => true, 'payments' => true, 'shipping' => true, 'test_order' => false]);
 });
