@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce;
 
+use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Event;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Sunrice\Facades\Sunrice;
@@ -24,12 +27,31 @@ class CommerceServiceProvider extends PackageServiceProvider
     public function packageRegistered(): void
     {
         $this->app->singleton(Commerce::class);
+        $this->app->singleton(Features\FeatureRegistry::class);
+        $this->app->singleton(Settings\SettingsRegistry::class);
+        // Per request (and per queued job): settings and module states.
+        $this->app->scoped(Settings\StoreSettings::class);
+        $this->app->scoped(Features\Features::class);
+        $this->app->scoped(Support\MoneyFormatter::class);
     }
 
     public function packageBooted(): void
     {
         $this->registerCommands();
         $this->registerAdminAssets();
+        $this->registerFeatureGates();
+        Permissions\CommercePermissions::register();
+        Event::listen(JobProcessing::class, function (): void {
+            $this->app->forgetScopedInstances();
+        });
+    }
+
+    /** `commerce.feature:<key>` route middleware and @commerceFeature('<key>') … @endcommerceFeature. */
+    protected function registerFeatureGates(): void
+    {
+        $this->app['router']->aliasMiddleware('commerce.feature', Features\Http\EnsureFeatureActive::class);
+        Blade::if('commerceFeature', fn (string $feature) => $this->app->make(Features\Features::class)->active($feature));
+        Event::listen(Events\StoreSettingsSaved::class, fn () => $this->app->make(Features\Features::class)->flush());
     }
 
     protected function registerCommands(): void
@@ -40,6 +62,7 @@ class CommerceServiceProvider extends PackageServiceProvider
 
         $this->commands([
             Console\PublishAssetsCommand::class,
+            Console\SeedRolesCommand::class,
         ]);
     }
 
