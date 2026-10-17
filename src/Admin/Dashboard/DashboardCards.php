@@ -19,6 +19,35 @@ class DashboardCards
     /** @var array<string, Closure(mixed): ?array<string, mixed>> */
     protected array $todo = [];
 
+    /** @var array<string, array{props: Closure(mixed, Period): array<string, mixed>, can: string|null, feature: string|null}> */
+    protected array $widgets = [];
+
+    /**
+     * A widget: a React component registered in the admin bundle with
+     * window.SunriceCommerce.registerDashboardWidget(name, Component),
+     * rendered with these props (computed after the page shows) for users
+     * with the permission while the module is on.
+     *
+     * @param  Closure(mixed, Period): array<string, mixed>  $props
+     */
+    public function widget(string $name, Closure $props, ?string $can = null, ?string $feature = null): void
+    {
+        $this->widgets[$name] = ['props' => $props, 'can' => $can, 'feature' => $feature];
+    }
+
+    /** @return array<string, array<string, mixed>> name => props, for the widgets this user may see */
+    public function widgets(mixed $user, ?Period $period = null): array
+    {
+        $out = [];
+        foreach ($this->widgets as $name => $widget) {
+            if (($widget['feature'] === null || commerce_feature($widget['feature'])) && ($widget['can'] === null || $user->can($widget['can']))) {
+                $out[$name] = ($widget['props'])($user, $period ?? Period::preset('7d'));
+            }
+        }
+
+        return $out;
+    }
+
     /**
      * A figure: the closure gets the user and the dashboard's Period and
      * returns {label, value, hint?, href?, change?} or null to hide it.

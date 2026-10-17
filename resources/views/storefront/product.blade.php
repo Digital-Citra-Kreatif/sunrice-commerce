@@ -28,12 +28,14 @@
             @if (filled($entry->get('excerpt')))
                 <p class="commerce-product__excerpt">{{ $entry->get('excerpt') }}</p>
             @endif
+            <x-commerce::slot name="product.after_summary" :entry="$entry" />
+            <x-commerce::slot name="product.before_add_to_cart" :entry="$entry" />
             <x-commerce::product :entry="$entry" />
+            <x-commerce::slot name="product.after_add_to_cart" :entry="$entry" />
             <div class="commerce-product__actions">
                 <x-commerce::wishlist-button :entry="$entry" />
                 <x-commerce::compare-button :entry="$entry" />
             </div>
-            <x-commerce::slot name="product.after-buy" :entry="$entry" />
         </div>
         <div class="commerce-product__details">
             @if (filled($entry->get('description')))

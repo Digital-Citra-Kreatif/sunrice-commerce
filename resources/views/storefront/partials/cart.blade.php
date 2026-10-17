@@ -47,6 +47,7 @@
                 @endforeach
             </tbody>
         </table>
+        <x-commerce::slot name="cart.after_items" :cart="$cart" />
 
         @if (commerce_feature('vouchers'))
             <div class="commerce-cart__vouchers">
@@ -68,6 +69,7 @@
         @endif
 
         @include(\Sunrice\Commerce\Storefront\Layout::view('partials.totals'), ['state' => $cart->state])
+        <x-commerce::slot name="cart.totals_after" :cart="$cart" />
 
         @if (\Illuminate\Support\Facades\Route::has('commerce.checkout') && commerce_feature('checkout'))
             <a class="commerce-button commerce-cart__checkout" href="{{ commerce_url('commerce.checkout') }}">{{ __('commerce::storefront.cart.checkout') }}</a>

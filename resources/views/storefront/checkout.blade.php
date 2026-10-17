@@ -62,6 +62,7 @@
                     @include($L::view('partials.checkout-field'), ['field' => $field])
                 @endforeach
             </fieldset>
+            <x-commerce::slot name="checkout.after_contact" :state="$state" />
 
             @if ($needsAddress)
                 <fieldset class="commerce-checkout__section" id="shipping">
@@ -101,6 +102,7 @@
                     @include($L::view('partials.shipping-methods'))
                     <button type="submit" name="action" value="update" class="commerce-button commerce-button--secondary" data-commerce-update>{{ __('commerce::checkout.update_shipping') }}</button>
                 </fieldset>
+                <x-commerce::slot name="checkout.after_shipping" :state="$state" />
             @else
                 <input type="hidden" name="billing_same" value="1">
             @endif
@@ -110,6 +112,7 @@
                     <legend>{{ __('commerce::checkout.sections.payment') }}</legend>
                     @include($L::view('partials.payment-methods'))
                 </fieldset>
+                <x-commerce::slot name="checkout.after_payment" :state="$state" />
             @endif
 
             @if ($settings->get('checkout.order_notes', true) || $settings->get('checkout.dropshipper', false) || collect($extraFields)->where('section', 'extra')->isNotEmpty())

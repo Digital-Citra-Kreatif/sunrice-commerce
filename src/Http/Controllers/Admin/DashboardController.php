@@ -50,6 +50,7 @@ class DashboardController extends Controller
             'sales' => Inertia::defer(fn () => $analytics ? $this->sales($stats, $period) : [], 'figures'),
             'topProducts' => Inertia::defer(fn () => $analytics ? $stats->topProducts($period->from, $period->to) : [], 'figures'),
             'todo' => Inertia::defer(fn () => $cards->todo($user), 'lists'),
+            'widgets' => Inertia::defer(fn () => $cards->widgets($user, $period), 'lists'),
             'recentOrders' => Inertia::defer(fn () => $features->active('orders') && $user->can('commerce.orders.view') ? $this->recentOrders() : [], 'lists'),
         ]);
     }

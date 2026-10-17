@@ -19,6 +19,7 @@ interface Props {
     sales?: Array<{ date: string; total: number; orders: number; previous: number | null }>;
     topProducts?: Array<{ product_id: number; title: string; href: string | null; units: number; revenue: string }>;
     todo?: Array<{ key: string; label: string; count: number; href: string }>;
+    widgets?: Record<string, Record<string, unknown>>;
     recentOrders?: Array<{ id: number; number: string; customer: string | null; total: string; status: string; status_key: string; placed_at: string | null; href: string }>;
 }
 
@@ -26,13 +27,14 @@ const statusTone: Record<string, string> = { pending: 'warning', on_hold: 'warni
 
 const shortDate = (value: string) => new Date(`${value}T00:00:00`).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 
-export default function Dashboard({ mode, setup, health, period, analytics, canReports, kpis, sales, topProducts, todo, recentOrders }: Props) {
+export default function Dashboard({ mode, setup, health, period, analytics, canReports, kpis, sales, topProducts, todo, widgets: widgetProps, recentOrders }: Props) {
     const { Card, CardContent, CardHeader, CardTitle, CardDescription, Button } = ui;
     const { Link } = inertia;
     useCommerceShared();
     const remaining = setup.filter((s) => !s.done);
     const problems = health.filter((h) => h.status !== 'ok');
-    const widgets = Object.entries(api.dashboardWidgets());
+    // Widgets render once their props arrive, and only those the server allows (permission, module).
+    const widgets = Object.entries(api.dashboardWidgets()).filter(([name]) => widgetProps !== undefined && name in widgetProps);
 
     return (
         <div className="cm:mx-auto cm:grid cm:w-full cm:max-w-6xl cm:gap-6 cm:p-4 cm:md:p-6">
@@ -185,7 +187,7 @@ export default function Dashboard({ mode, setup, health, period, analytics, canR
             )}
 
             {widgets.map(([name, Widget]) => (
-                <Widget key={name} />
+                <Widget key={name} {...widgetProps?.[name]} />
             ))}
         </div>
     );

@@ -19,6 +19,7 @@
             @if (\Illuminate\Support\Facades\Route::has('commerce.checkout'))
                 <a class="commerce-button commerce-button--primary" href="{{ commerce_url('commerce.checkout') }}">{{ __('commerce::storefront.cart.checkout') }}</a>
             @endif
+            <x-commerce::slot name="mini_cart.footer" />
         </div>
     </dialog>
 @endonce

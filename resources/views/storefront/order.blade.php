@@ -69,6 +69,7 @@
 
         <h2>{{ __('commerce::checkout.order.items') }}</h2>
         @include($L::view('partials.order-items'), ['order' => $order])
+        <x-commerce::slot name="order.after_summary" :order="$order" />
         @if ($invoiceUrl ?? null)
             <p><a href="{{ $invoiceUrl }}" target="_blank" rel="noopener">{{ __('commerce::documents.download') }}</a></p>
         @endif

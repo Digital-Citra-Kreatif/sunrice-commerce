@@ -248,6 +248,30 @@ class Commerce
         app(Shipping\Couriers::class)->register($key, $name, $trackingUrl);
     }
 
+    /**
+     * A widget on the store dashboard: the component comes from the admin
+     * bundle (window.SunriceCommerce.registerDashboardWidget), the props
+     * from here.
+     *
+     * @param  Closure(mixed, Analytics\Period): array<string, mixed>  $props  gets the user and the dashboard's period
+     */
+    public function registerDashboardWidget(string $name, Closure $props, ?string $can = null, ?string $feature = null): void
+    {
+        app(Admin\Dashboard\DashboardCards::class)->widget($name, $props, $can, $feature);
+    }
+
+    /** The visitor's cart (null when they have none yet). */
+    public function cart(): ?Cart\Models\Cart
+    {
+        return app(Cart\CartManager::class)->current();
+    }
+
+    /** The signed-in customer (null for guests and staff without a customer record). */
+    public function customer(): ?Customers\Models\Customer
+    {
+        return app(Cart\CartManager::class)->customer();
+    }
+
     public function money(int $amount): Money
     {
         return Money::of($amount);

@@ -22,7 +22,7 @@ const te = {
   dashboardWidgets: {},
   settingsSections: {},
   productTabs: {}
-}, ie = {
+}, ne = {
   version: 1,
   registerOrderPanel: (c, n) => {
     te.orderPanels[c] = n;
@@ -45,18 +45,18 @@ const te = {
   components: {}
 };
 function Ue() {
-  window.SunriceCommerce = ie;
+  window.SunriceCommerce = ne;
   const c = window.SunriceCommerceQueue ?? [];
   (() => {
     for (; c.length > 0; ) {
       const a = c.shift();
       try {
-        a?.(ie);
+        a?.(ne);
       } catch (r) {
         console.error("SunriceCommerceQueue call failed", r);
       }
     }
-  })(), c.push = ((...a) => (a.forEach((r) => r(ie)), c.length)), window.SunriceCommerceQueue = c;
+  })(), c.push = ((...a) => (a.forEach((r) => r(ne)), c.length)), window.SunriceCommerceQueue = c;
 }
 const z = window.Sunrice, { React: T, ui: j, components: me, inertia: P, fetchJson: X, toast: He } = z;
 function C(c = "") {
@@ -117,73 +117,73 @@ function W() {
   return Me(n.currency), n;
 }
 function We({ status: c, confirmations: n }) {
-  const { Card: a, CardContent: r, Button: s, Input: l, Dialog: d, DialogContent: u, DialogFooter: x, DialogHeader: o, DialogTitle: N } = j, { Link: b, router: h } = P;
+  const { Card: a, CardContent: r, Button: s, Input: l, Dialog: d, DialogContent: u, DialogFooter: x, DialogHeader: o, DialogTitle: N } = j, { Link: y, router: h } = P;
   W(), z.useBreadcrumbs([{ label: "Shop", href: C("commerce") }, { label: "Payments to verify" }]);
-  const [p, _] = T.useState(null), [g, i] = T.useState(""), v = (y) => {
-    const w = y.expected_amount !== null && y.amount_value < y.expected_amount;
-    w && !window.confirm(`${y.amount} is less than the ${y.expected} expected. Approve anyway?`) || h.post(C(`commerce/confirmations/${y.id}/approve`), { anyway: w }, { preserveScroll: !0 });
+  const [p, _] = T.useState(null), [g, i] = T.useState(""), v = (f) => {
+    const w = f.expected_amount !== null && f.amount_value < f.expected_amount;
+    w && !window.confirm(`${f.amount} is less than the ${f.expected} expected. Approve anyway?`) || h.post(C(`commerce/confirmations/${f.id}/approve`), { anyway: w }, { preserveScroll: !0 });
   };
   return /* @__PURE__ */ t("div", { className: "cm:mx-auto cm:grid cm:w-full cm:max-w-5xl cm:gap-6 cm:p-4 cm:md:p-6", children: [
     /* @__PURE__ */ e(G, { title: "Payments to verify", description: "Customers' transfer confirmations. Compare the proof with the amount expected, then approve or reject." }),
-    /* @__PURE__ */ e("div", { className: "cm:flex cm:gap-2", children: ["submitted", "approved", "rejected"].map((y) => /* @__PURE__ */ e(s, { size: "sm", variant: y === c ? "default" : "outline", asChild: !0, children: /* @__PURE__ */ e(b, { href: C(`commerce/confirmations?status=${y}`), children: y === "submitted" ? "Waiting" : y[0].toUpperCase() + y.slice(1) }) }, y)) }),
+    /* @__PURE__ */ e("div", { className: "cm:flex cm:gap-2", children: ["submitted", "approved", "rejected"].map((f) => /* @__PURE__ */ e(s, { size: "sm", variant: f === c ? "default" : "outline", asChild: !0, children: /* @__PURE__ */ e(y, { href: C(`commerce/confirmations?status=${f}`), children: f === "submitted" ? "Waiting" : f[0].toUpperCase() + f.slice(1) }) }, f)) }),
     n.length === 0 && /* @__PURE__ */ e(de, { title: c === "submitted" ? "Nothing to verify" : "None yet" }),
-    n.map((y) => /* @__PURE__ */ e(a, { children: /* @__PURE__ */ t(r, { className: "cm:grid cm:gap-4 cm:pt-6 cm:md:grid-cols-[1fr_16rem]", children: [
+    n.map((f) => /* @__PURE__ */ e(a, { children: /* @__PURE__ */ t(r, { className: "cm:grid cm:gap-4 cm:pt-6 cm:md:grid-cols-[1fr_16rem]", children: [
       /* @__PURE__ */ t("div", { className: "cm:grid cm:content-start cm:gap-1 cm:text-sm", children: [
         /* @__PURE__ */ t("p", { className: "cm:text-base cm:font-medium", children: [
-          /* @__PURE__ */ e(b, { href: C(y.order.href), className: "cm:hover:underline", children: y.order.number }),
+          /* @__PURE__ */ e(y, { href: C(f.order.href), className: "cm:hover:underline", children: f.order.number }),
           " · ",
-          y.order.customer
+          f.order.customer
         ] }),
         /* @__PURE__ */ t("p", { children: [
           "Sent ",
-          /* @__PURE__ */ e("strong", { children: y.amount }),
-          y.expected && /* @__PURE__ */ t(A, { children: [
+          /* @__PURE__ */ e("strong", { children: f.amount }),
+          f.expected && /* @__PURE__ */ t(A, { children: [
             " · expected ",
-            /* @__PURE__ */ e("strong", { children: y.expected })
+            /* @__PURE__ */ e("strong", { children: f.expected })
           ] }),
-          y.expected_amount !== null && y.amount_value < y.expected_amount && /* @__PURE__ */ t(A, { children: [
+          f.expected_amount !== null && f.amount_value < f.expected_amount && /* @__PURE__ */ t(A, { children: [
             " ",
             /* @__PURE__ */ e(R, { tone: "warning", children: "Less than expected" })
           ] })
         ] }),
         /* @__PURE__ */ t("p", { children: [
           "From ",
-          y.sender_name,
-          y.sender_bank ? ` (${y.sender_bank})` : "",
+          f.sender_name,
+          f.sender_bank ? ` (${f.sender_bank})` : "",
           " on ",
-          y.transferred_at ?? "—"
+          f.transferred_at ?? "—"
         ] }),
-        y.destination && /* @__PURE__ */ t("p", { children: [
+        f.destination && /* @__PURE__ */ t("p", { children: [
           "Into ",
-          y.destination.bank,
+          f.destination.bank,
           " ",
-          y.destination.number,
+          f.destination.number,
           " · ",
-          y.destination.holder
+          f.destination.holder
         ] }),
-        y.method && /* @__PURE__ */ e("p", { className: "cm:text-muted-foreground", children: y.method }),
-        y.note && /* @__PURE__ */ t("p", { className: "cm:whitespace-pre-line cm:text-muted-foreground", children: [
+        f.method && /* @__PURE__ */ e("p", { className: "cm:text-muted-foreground", children: f.method }),
+        f.note && /* @__PURE__ */ t("p", { className: "cm:whitespace-pre-line cm:text-muted-foreground", children: [
           "“",
-          y.note,
+          f.note,
           "”"
         ] }),
-        y.review_note && /* @__PURE__ */ t("p", { className: "cm:text-muted-foreground", children: [
+        f.review_note && /* @__PURE__ */ t("p", { className: "cm:text-muted-foreground", children: [
           "Rejected: ",
-          y.review_note
+          f.review_note
         ] }),
-        y.status === "submitted" && /* @__PURE__ */ t("div", { className: "cm:mt-2 cm:flex cm:gap-2", children: [
-          /* @__PURE__ */ e(s, { size: "sm", onClick: () => v(y), children: "Approve" }),
+        f.status === "submitted" && /* @__PURE__ */ t("div", { className: "cm:mt-2 cm:flex cm:gap-2", children: [
+          /* @__PURE__ */ e(s, { size: "sm", onClick: () => v(f), children: "Approve" }),
           /* @__PURE__ */ e(s, { size: "sm", variant: "outline", onClick: () => {
-            _(y), i("");
+            _(f), i("");
           }, children: "Reject" })
         ] })
       ] }),
-      /* @__PURE__ */ e("div", { children: y.proof_url ? y.proof_is_pdf ? /* @__PURE__ */ e("a", { href: y.proof_url, target: "_blank", rel: "noreferrer", className: "cm:underline", children: "Open the PDF proof" }) : /* @__PURE__ */ e("a", { href: y.proof_url, target: "_blank", rel: "noreferrer", children: /* @__PURE__ */ e("img", { src: y.proof_url, alt: `Proof for ${y.order.number}`, className: "cm:max-h-72 cm:w-full cm:rounded-md cm:border cm:object-contain" }) }) : /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-muted-foreground", children: "No proof attached." }) })
-    ] }) }, y.id)),
-    /* @__PURE__ */ e(d, { open: p !== null, onOpenChange: (y) => !y && _(null), children: /* @__PURE__ */ t(u, { children: [
+      /* @__PURE__ */ e("div", { children: f.proof_url ? f.proof_is_pdf ? /* @__PURE__ */ e("a", { href: f.proof_url, target: "_blank", rel: "noreferrer", className: "cm:underline", children: "Open the PDF proof" }) : /* @__PURE__ */ e("a", { href: f.proof_url, target: "_blank", rel: "noreferrer", children: /* @__PURE__ */ e("img", { src: f.proof_url, alt: `Proof for ${f.order.number}`, className: "cm:max-h-72 cm:w-full cm:rounded-md cm:border cm:object-contain" }) }) : /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-muted-foreground", children: "No proof attached." }) })
+    ] }) }, f.id)),
+    /* @__PURE__ */ e(d, { open: p !== null, onOpenChange: (f) => !f && _(null), children: /* @__PURE__ */ t(u, { children: [
       /* @__PURE__ */ e(o, { children: /* @__PURE__ */ e(N, { children: "Reject this confirmation?" }) }),
       /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-muted-foreground", children: "The customer is emailed the reason and can confirm again; the payment deadline resumes." }),
-      /* @__PURE__ */ e(l, { "aria-label": "Reason", placeholder: "e.g. We haven't received the transfer yet", value: g, onChange: (y) => i(y.target.value) }),
+      /* @__PURE__ */ e(l, { "aria-label": "Reason", placeholder: "e.g. We haven't received the transfer yet", value: g, onChange: (f) => i(f.target.value) }),
       /* @__PURE__ */ t(x, { children: [
         /* @__PURE__ */ e(s, { variant: "outline", onClick: () => _(null), children: "Back" }),
         /* @__PURE__ */ e(s, { disabled: g.trim() === "", onClick: () => p && h.post(C(`commerce/confirmations/${p.id}/reject`), { reason: g }, { preserveScroll: !0, onSuccess: () => _(null) }), children: "Reject" })
@@ -193,9 +193,9 @@ function We({ status: c, confirmations: n }) {
 }
 const be = (c) => c ? new Date(c).toLocaleDateString(void 0, { dateStyle: "medium" }) : "—";
 function Qe({ customer: c, account: n, roleOptions: a, orders: r, can: s }) {
-  const { Card: l, CardContent: d, CardHeader: u, CardTitle: x, Button: o, Input: N, Label: b, Textarea: h, Switch: p, Checkbox: _ } = j, { Link: g, router: i } = P;
+  const { Card: l, CardContent: d, CardHeader: u, CardTitle: x, Button: o, Input: N, Label: y, Textarea: h, Switch: p, Checkbox: _ } = j, { Link: g, router: i } = P;
   W(), z.useBreadcrumbs([{ label: "Shop", href: C("commerce") }, { label: "Customers", href: C("commerce/customers") }, { label: c.name ?? c.email }]);
-  const v = P.useForm({ name: c.name ?? "", phone: c.phone ?? "", note: c.note ?? "", accepts_marketing: c.accepts_marketing, roles: n?.roles ?? [] }), [y, w] = T.useState(!1), S = (f) => i.post(C(`commerce/customers/${c.id}/${f}`), {}, { preserveScroll: !0 });
+  const v = P.useForm({ name: c.name ?? "", phone: c.phone ?? "", note: c.note ?? "", accepts_marketing: c.accepts_marketing, roles: n?.roles ?? [] }), [f, w] = T.useState(!1), $ = (S) => i.post(C(`commerce/customers/${c.id}/${S}`), {}, { preserveScroll: !0 });
   return /* @__PURE__ */ t("div", { className: "cm:mx-auto cm:grid cm:w-full cm:max-w-5xl cm:gap-6 cm:p-4 cm:md:p-6", children: [
     /* @__PURE__ */ e(
       G,
@@ -214,74 +214,74 @@ function Qe({ customer: c, account: n, roleOptions: a, orders: r, can: s }) {
         ] })
       }
     ),
-    /* @__PURE__ */ e("div", { className: "cm:grid cm:gap-4 cm:sm:grid-cols-3", children: [["Orders", String(c.orders_count)], ["Spent", c.total_spent], ["Last order", be(c.last_order_at)]].map(([f, F]) => /* @__PURE__ */ e(l, { children: /* @__PURE__ */ t(d, { className: "cm:grid cm:gap-1 cm:pt-6", children: [
-      /* @__PURE__ */ e("span", { className: "cm:text-sm cm:text-muted-foreground", children: f }),
-      /* @__PURE__ */ e("span", { className: "cm:text-xl cm:font-semibold", children: F })
-    ] }) }, f)) }),
+    /* @__PURE__ */ e("div", { className: "cm:grid cm:gap-4 cm:sm:grid-cols-3", children: [["Orders", String(c.orders_count)], ["Spent", c.total_spent], ["Last order", be(c.last_order_at)]].map(([S, b]) => /* @__PURE__ */ e(l, { children: /* @__PURE__ */ t(d, { className: "cm:grid cm:gap-1 cm:pt-6", children: [
+      /* @__PURE__ */ e("span", { className: "cm:text-sm cm:text-muted-foreground", children: S }),
+      /* @__PURE__ */ e("span", { className: "cm:text-xl cm:font-semibold", children: b })
+    ] }) }, S)) }),
     /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-6 cm:lg:grid-cols-[2fr_1fr]", children: [
       /* @__PURE__ */ t("div", { className: "cm:grid cm:content-start cm:gap-6", children: [
         /* @__PURE__ */ t(l, { children: [
           /* @__PURE__ */ e(u, { children: /* @__PURE__ */ e(x, { children: "Orders" }) }),
-          /* @__PURE__ */ e(d, { children: r.length === 0 ? /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-muted-foreground", children: "No orders yet." }) : /* @__PURE__ */ e("ul", { className: "cm:grid cm:gap-1", children: r.map((f) => /* @__PURE__ */ e("li", { children: /* @__PURE__ */ t(g, { href: C(f.href), className: "cm:flex cm:justify-between cm:rounded cm:p-2 cm:hover:bg-muted", children: [
+          /* @__PURE__ */ e(d, { children: r.length === 0 ? /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-muted-foreground", children: "No orders yet." }) : /* @__PURE__ */ e("ul", { className: "cm:grid cm:gap-1", children: r.map((S) => /* @__PURE__ */ e("li", { children: /* @__PURE__ */ t(g, { href: C(S.href), className: "cm:flex cm:justify-between cm:rounded cm:p-2 cm:hover:bg-muted", children: [
             /* @__PURE__ */ t("span", { children: [
-              f.number,
+              S.number,
               " · ",
-              be(f.date)
+              be(S.date)
             ] }),
             /* @__PURE__ */ t("span", { children: [
-              /* @__PURE__ */ e(R, { children: f.status }),
+              /* @__PURE__ */ e(R, { children: S.status }),
               " ",
-              f.total
+              S.total
             ] })
-          ] }) }, f.id)) }) })
+          ] }) }, S.id)) }) })
         ] }),
         /* @__PURE__ */ t(l, { children: [
           /* @__PURE__ */ e(u, { children: /* @__PURE__ */ e(x, { children: "Addresses" }) }),
-          /* @__PURE__ */ e(d, { className: "cm:grid cm:gap-3 cm:sm:grid-cols-2", children: c.addresses.length === 0 ? /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-muted-foreground", children: "No saved addresses." }) : c.addresses.map((f) => /* @__PURE__ */ t("div", { className: "cm:rounded-md cm:border cm:p-3 cm:text-sm", children: [
-            f.label && /* @__PURE__ */ e("p", { className: "cm:font-medium", children: f.label }),
-            /* @__PURE__ */ e("p", { className: "cm:whitespace-pre-line", children: f.text }),
+          /* @__PURE__ */ e(d, { className: "cm:grid cm:gap-3 cm:sm:grid-cols-2", children: c.addresses.length === 0 ? /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-muted-foreground", children: "No saved addresses." }) : c.addresses.map((S) => /* @__PURE__ */ t("div", { className: "cm:rounded-md cm:border cm:p-3 cm:text-sm", children: [
+            S.label && /* @__PURE__ */ e("p", { className: "cm:font-medium", children: S.label }),
+            /* @__PURE__ */ e("p", { className: "cm:whitespace-pre-line", children: S.text }),
             /* @__PURE__ */ t("div", { className: "cm:mt-1 cm:flex cm:gap-1", children: [
-              f.default_shipping && /* @__PURE__ */ e(R, { children: "Shipping" }),
-              f.default_billing && /* @__PURE__ */ e(R, { children: "Billing" })
+              S.default_shipping && /* @__PURE__ */ e(R, { children: "Shipping" }),
+              S.default_billing && /* @__PURE__ */ e(R, { children: "Billing" })
             ] })
-          ] }, f.id)) })
+          ] }, S.id)) })
         ] })
       ] }),
       /* @__PURE__ */ t("div", { className: "cm:grid cm:content-start cm:gap-6", children: [
         /* @__PURE__ */ t(l, { children: [
           /* @__PURE__ */ e(u, { children: /* @__PURE__ */ e(x, { children: "Details" }) }),
-          /* @__PURE__ */ e(d, { children: /* @__PURE__ */ t("form", { className: "cm:grid cm:gap-3", onSubmit: (f) => {
-            f.preventDefault(), v.put(C(`commerce/customers/${c.id}`), { preserveScroll: !0 });
+          /* @__PURE__ */ e(d, { children: /* @__PURE__ */ t("form", { className: "cm:grid cm:gap-3", onSubmit: (S) => {
+            S.preventDefault(), v.put(C(`commerce/customers/${c.id}`), { preserveScroll: !0 });
           }, children: [
             /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
-              /* @__PURE__ */ e(b, { htmlFor: "c-name", children: "Name" }),
-              /* @__PURE__ */ e(N, { id: "c-name", disabled: !s.edit, value: v.data.name, onChange: (f) => v.setData("name", f.target.value) })
+              /* @__PURE__ */ e(y, { htmlFor: "c-name", children: "Name" }),
+              /* @__PURE__ */ e(N, { id: "c-name", disabled: !s.edit, value: v.data.name, onChange: (S) => v.setData("name", S.target.value) })
             ] }),
             /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
-              /* @__PURE__ */ e(b, { htmlFor: "c-phone", children: "Phone" }),
-              /* @__PURE__ */ e(N, { id: "c-phone", disabled: !s.edit, value: v.data.phone, onChange: (f) => v.setData("phone", f.target.value) })
+              /* @__PURE__ */ e(y, { htmlFor: "c-phone", children: "Phone" }),
+              /* @__PURE__ */ e(N, { id: "c-phone", disabled: !s.edit, value: v.data.phone, onChange: (S) => v.setData("phone", S.target.value) })
             ] }),
             /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
-              /* @__PURE__ */ e(b, { htmlFor: "c-note", children: "Note (staff only)" }),
-              /* @__PURE__ */ e(h, { id: "c-note", disabled: !s.edit, value: v.data.note, onChange: (f) => v.setData("note", f.target.value) })
+              /* @__PURE__ */ e(y, { htmlFor: "c-note", children: "Note (staff only)" }),
+              /* @__PURE__ */ e(h, { id: "c-note", disabled: !s.edit, value: v.data.note, onChange: (S) => v.setData("note", S.target.value) })
             ] }),
             /* @__PURE__ */ t("div", { className: "cm:flex cm:items-center cm:gap-2", children: [
-              /* @__PURE__ */ e(p, { id: "c-marketing", disabled: !s.edit, checked: v.data.accepts_marketing, onCheckedChange: (f) => v.setData("accepts_marketing", f) }),
-              /* @__PURE__ */ e(b, { htmlFor: "c-marketing", children: "Accepts marketing" })
+              /* @__PURE__ */ e(p, { id: "c-marketing", disabled: !s.edit, checked: v.data.accepts_marketing, onCheckedChange: (S) => v.setData("accepts_marketing", S) }),
+              /* @__PURE__ */ e(y, { htmlFor: "c-marketing", children: "Accepts marketing" })
             ] }),
             n && /* @__PURE__ */ t("fieldset", { className: "cm:grid cm:gap-1.5", children: [
               /* @__PURE__ */ e("legend", { className: "cm:mb-1 cm:text-sm cm:font-medium", children: "Roles" }),
-              a.map((f) => /* @__PURE__ */ t("label", { className: "cm:flex cm:items-center cm:gap-2 cm:text-sm", children: [
+              a.map((S) => /* @__PURE__ */ t("label", { className: "cm:flex cm:items-center cm:gap-2 cm:text-sm", children: [
                 /* @__PURE__ */ e(
                   _,
                   {
                     disabled: !s.edit,
-                    checked: v.data.roles.includes(f),
-                    onCheckedChange: (F) => v.setData("roles", F ? [...v.data.roles, f] : v.data.roles.filter((D) => D !== f))
+                    checked: v.data.roles.includes(S),
+                    onCheckedChange: (b) => v.setData("roles", b ? [...v.data.roles, S] : v.data.roles.filter((F) => F !== S))
                   }
                 ),
-                f
-              ] }, f))
+                S
+              ] }, S))
             ] }),
             s.edit && /* @__PURE__ */ e(o, { type: "submit", disabled: v.processing, children: "Save" })
           ] }) })
@@ -297,16 +297,16 @@ function Qe({ customer: c, account: n, roleOptions: a, orders: r, can: s }) {
               "Google: ",
               n.google
             ] }),
-            s.edit && /* @__PURE__ */ e(o, { variant: "outline", size: "sm", onClick: () => S("password-reset"), children: "Send a password reset link" }),
-            s.edit && !n.email_verified && /* @__PURE__ */ e(o, { variant: "outline", size: "sm", onClick: () => S("verify"), children: "Mark email verified" })
+            s.edit && /* @__PURE__ */ e(o, { variant: "outline", size: "sm", onClick: () => $("password-reset"), children: "Send a password reset link" }),
+            s.edit && !n.email_verified && /* @__PURE__ */ e(o, { variant: "outline", size: "sm", onClick: () => $("verify"), children: "Mark email verified" })
           ] })
         ] }),
         s.delete && !c.anonymized && /* @__PURE__ */ t(l, { children: [
           /* @__PURE__ */ e(u, { children: /* @__PURE__ */ e(x, { children: "Remove personal data" }) }),
           /* @__PURE__ */ t(d, { className: "cm:grid cm:gap-2 cm:text-sm", children: [
             /* @__PURE__ */ e("p", { className: "cm:text-muted-foreground", children: "Name, email, phone and addresses are deleted; orders keep their amounts." }),
-            y ? /* @__PURE__ */ t("div", { className: "cm:flex cm:gap-2", children: [
-              /* @__PURE__ */ e(o, { variant: "destructive", size: "sm", onClick: () => S("anonymize"), children: "Remove for good" }),
+            f ? /* @__PURE__ */ t("div", { className: "cm:flex cm:gap-2", children: [
+              /* @__PURE__ */ e(o, { variant: "destructive", size: "sm", onClick: () => $("anonymize"), children: "Remove for good" }),
               /* @__PURE__ */ e(o, { variant: "outline", size: "sm", onClick: () => w(!1), children: "Cancel" })
             ] }) : /* @__PURE__ */ e(o, { variant: "outline", size: "sm", onClick: () => w(!0), children: "Anonymize" })
           ] })
@@ -315,7 +315,7 @@ function Qe({ customer: c, account: n, roleOptions: a, orders: r, can: s }) {
     ] })
   ] });
 }
-const Ge = T.lazy(() => import("./ChartImpl-DrvgPsfU.js"));
+const Ge = T.lazy(() => import("./ChartImpl-BvtD9Q-M.js"));
 function ke(c) {
   const n = /* @__PURE__ */ e("div", { className: "cm:animate-pulse cm:rounded-md cm:bg-muted", style: { height: c.height ?? 260 } });
   return /* @__PURE__ */ e(T.Suspense, { fallback: n, children: /* @__PURE__ */ e(Ge, { ...c }) });
@@ -346,111 +346,111 @@ function _e({ kpi: c }) {
   return /* @__PURE__ */ e(n, { children: c.href ? /* @__PURE__ */ e(r, { href: C(c.href), className: "cm:block", children: l }) : l });
 }
 const Ve = { pending: "warning", on_hold: "warning", processing: "info", completed: "ok", cancelled: "neutral", refunded: "neutral", failed: "error" }, Xe = (c) => (/* @__PURE__ */ new Date(`${c}T00:00:00`)).toLocaleDateString(void 0, { day: "numeric", month: "short" });
-function Je({ mode: c, setup: n, health: a, period: r, analytics: s, canReports: l, kpis: d, sales: u, topProducts: x, todo: o, recentOrders: N }) {
-  const { Card: b, CardContent: h, CardHeader: p, CardTitle: _, CardDescription: g, Button: i } = j, { Link: v } = P;
+function Je({ mode: c, setup: n, health: a, period: r, analytics: s, canReports: l, kpis: d, sales: u, topProducts: x, todo: o, widgets: N, recentOrders: y }) {
+  const { Card: h, CardContent: p, CardHeader: _, CardTitle: g, CardDescription: i, Button: v } = j, { Link: f } = P;
   W();
-  const y = n.filter((f) => !f.done), w = a.filter((f) => f.status !== "ok"), S = Object.entries(ie.dashboardWidgets());
+  const w = n.filter((b) => !b.done), $ = a.filter((b) => b.status !== "ok"), S = Object.entries(ne.dashboardWidgets()).filter(([b]) => N !== void 0 && b in N);
   return /* @__PURE__ */ t("div", { className: "cm:mx-auto cm:grid cm:w-full cm:max-w-6xl cm:gap-6 cm:p-4 cm:md:p-6", children: [
     /* @__PURE__ */ e(G, { title: "Store", description: /* @__PURE__ */ t(A, { children: [
       "Selling mode: ",
       c.label
     ] }) }),
-    y.length > 0 && /* @__PURE__ */ t(b, { children: [
-      /* @__PURE__ */ t(p, { children: [
-        /* @__PURE__ */ e(_, { children: "Set up your store" }),
-        /* @__PURE__ */ t(g, { children: [
-          n.length - y.length,
+    w.length > 0 && /* @__PURE__ */ t(h, { children: [
+      /* @__PURE__ */ t(_, { children: [
+        /* @__PURE__ */ e(g, { children: "Set up your store" }),
+        /* @__PURE__ */ t(i, { children: [
+          n.length - w.length,
           " of ",
           n.length,
           " done"
         ] })
       ] }),
-      /* @__PURE__ */ e(h, { className: "cm:grid cm:gap-2", children: n.map((f) => /* @__PURE__ */ t(v, { href: C(f.href), className: "cm:flex cm:items-start cm:gap-3 cm:rounded-md cm:p-2 cm:hover:bg-muted", children: [
-        /* @__PURE__ */ e("span", { "aria-hidden": !0, className: f.done ? "cm:text-emerald-600" : "cm:text-muted-foreground", children: f.done ? "✓" : "○" }),
+      /* @__PURE__ */ e(p, { className: "cm:grid cm:gap-2", children: n.map((b) => /* @__PURE__ */ t(f, { href: C(b.href), className: "cm:flex cm:items-start cm:gap-3 cm:rounded-md cm:p-2 cm:hover:bg-muted", children: [
+        /* @__PURE__ */ e("span", { "aria-hidden": !0, className: b.done ? "cm:text-emerald-600" : "cm:text-muted-foreground", children: b.done ? "✓" : "○" }),
         /* @__PURE__ */ t("span", { className: "cm:grid", children: [
-          /* @__PURE__ */ e("span", { className: f.done ? "cm:text-muted-foreground cm:line-through" : "cm:font-medium", children: f.label }),
-          f.description && /* @__PURE__ */ e("span", { className: "cm:text-sm cm:text-muted-foreground", children: f.description })
+          /* @__PURE__ */ e("span", { className: b.done ? "cm:text-muted-foreground cm:line-through" : "cm:font-medium", children: b.label }),
+          b.description && /* @__PURE__ */ e("span", { className: "cm:text-sm cm:text-muted-foreground", children: b.description })
         ] })
-      ] }, f.key)) })
+      ] }, b.key)) })
     ] }),
-    w.length > 0 && /* @__PURE__ */ t(b, { children: [
-      /* @__PURE__ */ e(p, { children: /* @__PURE__ */ e(_, { children: "Needs attention" }) }),
-      /* @__PURE__ */ e(h, { className: "cm:grid cm:gap-3", children: w.map((f) => /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
+    $.length > 0 && /* @__PURE__ */ t(h, { children: [
+      /* @__PURE__ */ e(_, { children: /* @__PURE__ */ e(g, { children: "Needs attention" }) }),
+      /* @__PURE__ */ e(p, { className: "cm:grid cm:gap-3", children: $.map((b) => /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
         /* @__PURE__ */ t("div", { className: "cm:flex cm:items-center cm:gap-2", children: [
-          /* @__PURE__ */ e(R, { tone: f.status, children: f.status === "error" ? "Problem" : "Warning" }),
-          /* @__PURE__ */ e("span", { className: "cm:font-medium", children: f.label })
+          /* @__PURE__ */ e(R, { tone: b.status, children: b.status === "error" ? "Problem" : "Warning" }),
+          /* @__PURE__ */ e("span", { className: "cm:font-medium", children: b.label })
         ] }),
-        /* @__PURE__ */ e("p", { className: "cm:text-sm", children: f.message }),
-        f.fix && /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-muted-foreground", children: f.fix })
-      ] }, f.key)) })
+        /* @__PURE__ */ e("p", { className: "cm:text-sm", children: b.message }),
+        b.fix && /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-muted-foreground", children: b.fix })
+      ] }, b.key)) })
     ] }),
     s && /* @__PURE__ */ t("div", { className: "cm:flex cm:flex-wrap cm:items-center cm:justify-between cm:gap-2", children: [
-      /* @__PURE__ */ e("div", { role: "group", "aria-label": "Period", className: "cm:flex cm:gap-1", children: r.options.map((f) => /* @__PURE__ */ e(
-        i,
+      /* @__PURE__ */ e("div", { role: "group", "aria-label": "Period", className: "cm:flex cm:gap-1", children: r.options.map((b) => /* @__PURE__ */ e(
+        v,
         {
           size: "sm",
-          variant: f.value === r.key ? "default" : "outline",
-          "aria-pressed": f.value === r.key,
-          onClick: () => P.router.get(C("commerce"), { period: f.value }, { preserveScroll: !0, preserveState: !0 }),
-          children: f.label
+          variant: b.value === r.key ? "default" : "outline",
+          "aria-pressed": b.value === r.key,
+          onClick: () => P.router.get(C("commerce"), { period: b.value }, { preserveScroll: !0, preserveState: !0 }),
+          children: b.label
         },
-        f.value
+        b.value
       )) }),
-      l && /* @__PURE__ */ e(v, { href: C("commerce/reports/sales"), className: "cm:text-sm cm:underline", children: "All reports" })
+      l && /* @__PURE__ */ e(f, { href: C("commerce/reports/sales"), className: "cm:text-sm cm:underline", children: "All reports" })
     ] }),
-    /* @__PURE__ */ e("div", { className: "cm:grid cm:gap-4 cm:sm:grid-cols-2 cm:lg:grid-cols-5", children: d === void 0 ? [0, 1, 2, 3, 4].map((f) => /* @__PURE__ */ e("div", { className: "cm:h-24 cm:animate-pulse cm:rounded-lg cm:bg-muted" }, f)) : d.map((f) => /* @__PURE__ */ e(_e, { kpi: f }, f.key)) }),
+    /* @__PURE__ */ e("div", { className: "cm:grid cm:gap-4 cm:sm:grid-cols-2 cm:lg:grid-cols-5", children: d === void 0 ? [0, 1, 2, 3, 4].map((b) => /* @__PURE__ */ e("div", { className: "cm:h-24 cm:animate-pulse cm:rounded-lg cm:bg-muted" }, b)) : d.map((b) => /* @__PURE__ */ e(_e, { kpi: b }, b.key)) }),
     s && /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-4 cm:lg:grid-cols-3", children: [
-      /* @__PURE__ */ t(b, { className: "cm:lg:col-span-2", children: [
-        /* @__PURE__ */ t(p, { children: [
-          /* @__PURE__ */ e(_, { children: "Sales" }),
-          /* @__PURE__ */ e(g, { children: "Total sales per day, against the previous period" })
+      /* @__PURE__ */ t(h, { className: "cm:lg:col-span-2", children: [
+        /* @__PURE__ */ t(_, { children: [
+          /* @__PURE__ */ e(g, { children: "Sales" }),
+          /* @__PURE__ */ e(i, { children: "Total sales per day, against the previous period" })
         ] }),
-        /* @__PURE__ */ e(h, { children: u === void 0 ? /* @__PURE__ */ e("div", { className: "cm:h-64 cm:animate-pulse cm:rounded-md cm:bg-muted" }) : /* @__PURE__ */ e(
+        /* @__PURE__ */ e(p, { children: u === void 0 ? /* @__PURE__ */ e("div", { className: "cm:h-64 cm:animate-pulse cm:rounded-md cm:bg-muted" }) : /* @__PURE__ */ e(
           ke,
           {
             label: "Total sales per day",
             data: u,
             xKey: "date",
             formatX: Xe,
-            format: (f) => Y(f),
+            format: (b) => Y(b),
             series: [{ key: "total", label: "This period" }, { key: "previous", label: "Previous period", dashed: !0 }]
           }
         ) })
       ] }),
-      /* @__PURE__ */ t(b, { children: [
-        /* @__PURE__ */ e(p, { children: /* @__PURE__ */ e(_, { children: "Top products" }) }),
-        /* @__PURE__ */ e(h, { children: x === void 0 ? /* @__PURE__ */ e("div", { className: "cm:h-40 cm:animate-pulse cm:rounded-md cm:bg-muted" }) : x.length === 0 ? /* @__PURE__ */ e(de, { title: "No sales yet", description: "Best sellers in this period show up here." }) : /* @__PURE__ */ e("ol", { className: "cm:grid cm:gap-2", children: x.map((f) => /* @__PURE__ */ t("li", { className: "cm:flex cm:justify-between cm:gap-2 cm:text-sm", children: [
-          f.href ? /* @__PURE__ */ e(v, { href: C(f.href), className: "cm:truncate cm:hover:underline", children: f.title }) : /* @__PURE__ */ e("span", { className: "cm:truncate", children: f.title }),
+      /* @__PURE__ */ t(h, { children: [
+        /* @__PURE__ */ e(_, { children: /* @__PURE__ */ e(g, { children: "Top products" }) }),
+        /* @__PURE__ */ e(p, { children: x === void 0 ? /* @__PURE__ */ e("div", { className: "cm:h-40 cm:animate-pulse cm:rounded-md cm:bg-muted" }) : x.length === 0 ? /* @__PURE__ */ e(de, { title: "No sales yet", description: "Best sellers in this period show up here." }) : /* @__PURE__ */ e("ol", { className: "cm:grid cm:gap-2", children: x.map((b) => /* @__PURE__ */ t("li", { className: "cm:flex cm:justify-between cm:gap-2 cm:text-sm", children: [
+          b.href ? /* @__PURE__ */ e(f, { href: C(b.href), className: "cm:truncate cm:hover:underline", children: b.title }) : /* @__PURE__ */ e("span", { className: "cm:truncate", children: b.title }),
           /* @__PURE__ */ t("span", { className: "cm:shrink-0 cm:tabular-nums cm:text-muted-foreground", children: [
-            f.units,
+            b.units,
             " · ",
-            f.revenue
+            b.revenue
           ] })
-        ] }, f.product_id)) }) })
+        ] }, b.product_id)) }) })
       ] })
     ] }),
-    /* @__PURE__ */ t(b, { children: [
-      /* @__PURE__ */ e(p, { children: /* @__PURE__ */ e(_, { children: "To do" }) }),
-      /* @__PURE__ */ e(h, { children: o === void 0 ? /* @__PURE__ */ e("div", { className: "cm:h-16 cm:animate-pulse cm:rounded-md cm:bg-muted" }) : o.length === 0 ? /* @__PURE__ */ e(de, { title: "Nothing to do", description: "Orders to process and payments to verify show up here." }) : /* @__PURE__ */ e("ul", { className: "cm:grid cm:gap-1", children: o.map((f) => /* @__PURE__ */ e("li", { children: /* @__PURE__ */ t(v, { href: C(f.href), className: "cm:flex cm:justify-between cm:rounded-md cm:p-2 cm:hover:bg-muted", children: [
-        /* @__PURE__ */ e("span", { children: f.label }),
-        /* @__PURE__ */ e("span", { className: "cm:font-semibold", children: f.count })
-      ] }) }, f.key)) }) })
+    /* @__PURE__ */ t(h, { children: [
+      /* @__PURE__ */ e(_, { children: /* @__PURE__ */ e(g, { children: "To do" }) }),
+      /* @__PURE__ */ e(p, { children: o === void 0 ? /* @__PURE__ */ e("div", { className: "cm:h-16 cm:animate-pulse cm:rounded-md cm:bg-muted" }) : o.length === 0 ? /* @__PURE__ */ e(de, { title: "Nothing to do", description: "Orders to process and payments to verify show up here." }) : /* @__PURE__ */ e("ul", { className: "cm:grid cm:gap-1", children: o.map((b) => /* @__PURE__ */ e("li", { children: /* @__PURE__ */ t(f, { href: C(b.href), className: "cm:flex cm:justify-between cm:rounded-md cm:p-2 cm:hover:bg-muted", children: [
+        /* @__PURE__ */ e("span", { children: b.label }),
+        /* @__PURE__ */ e("span", { className: "cm:font-semibold", children: b.count })
+      ] }) }, b.key)) }) })
     ] }),
-    N !== void 0 && N.length > 0 && /* @__PURE__ */ t(b, { children: [
-      /* @__PURE__ */ e(p, { children: /* @__PURE__ */ e(_, { children: "Recent orders" }) }),
-      /* @__PURE__ */ e(h, { children: /* @__PURE__ */ e("ul", { className: "cm:grid cm:gap-1", children: N.map((f) => /* @__PURE__ */ e("li", { children: /* @__PURE__ */ t(v, { href: C(f.href), className: "cm:grid cm:grid-cols-[1fr_auto] cm:items-center cm:gap-x-3 cm:rounded-md cm:p-2 cm:hover:bg-muted cm:sm:grid-cols-[8rem_1fr_auto_auto]", children: [
-        /* @__PURE__ */ e("span", { className: "cm:font-medium", children: f.number }),
-        /* @__PURE__ */ e("span", { className: "cm:truncate cm:text-muted-foreground", children: f.customer }),
-        /* @__PURE__ */ e(R, { tone: Ve[f.status_key], children: f.status }),
-        /* @__PURE__ */ e("span", { className: "cm:tabular-nums", children: f.total })
-      ] }) }, f.id)) }) })
+    y !== void 0 && y.length > 0 && /* @__PURE__ */ t(h, { children: [
+      /* @__PURE__ */ e(_, { children: /* @__PURE__ */ e(g, { children: "Recent orders" }) }),
+      /* @__PURE__ */ e(p, { children: /* @__PURE__ */ e("ul", { className: "cm:grid cm:gap-1", children: y.map((b) => /* @__PURE__ */ e("li", { children: /* @__PURE__ */ t(f, { href: C(b.href), className: "cm:grid cm:grid-cols-[1fr_auto] cm:items-center cm:gap-x-3 cm:rounded-md cm:p-2 cm:hover:bg-muted cm:sm:grid-cols-[8rem_1fr_auto_auto]", children: [
+        /* @__PURE__ */ e("span", { className: "cm:font-medium", children: b.number }),
+        /* @__PURE__ */ e("span", { className: "cm:truncate cm:text-muted-foreground", children: b.customer }),
+        /* @__PURE__ */ e(R, { tone: Ve[b.status_key], children: b.status }),
+        /* @__PURE__ */ e("span", { className: "cm:tabular-nums", children: b.total })
+      ] }) }, b.id)) }) })
     ] }),
-    S.map(([f, F]) => /* @__PURE__ */ e(F, {}, f))
+    S.map(([b, F]) => /* @__PURE__ */ e(F, { ...N?.[b] }, b))
   ] });
 }
 const Ye = { in_stock: "ok", out_of_stock: "error", backorder: "warning" };
 function Ze({ row: c, reasons: n, onClose: a }) {
-  const { Dialog: r, DialogContent: s, DialogHeader: l, DialogTitle: d, DialogDescription: u, DialogFooter: x, Button: o, Input: N, Label: b } = j, h = P.useForm({ mode: "add", quantity: 0, reason: "manual", note: "" }), [p, _] = T.useState(null);
+  const { Dialog: r, DialogContent: s, DialogHeader: l, DialogTitle: d, DialogDescription: u, DialogFooter: x, Button: o, Input: N, Label: y } = j, h = P.useForm({ mode: "add", quantity: 0, reason: "manual", note: "" }), [p, _] = T.useState(null);
   T.useEffect(() => {
     X(C(`commerce/inventory/${c.id}/history`)).then((i) => _(i.data)).catch(() => _([]));
   }, [c.id]);
@@ -471,25 +471,25 @@ function Ze({ row: c, reasons: n, onClose: a }) {
     }, children: [
       /* @__PURE__ */ t("div", { className: "cm:grid cm:grid-cols-2 cm:gap-3", children: [
         /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
-          /* @__PURE__ */ e(b, { htmlFor: "adjust-mode", children: "Change" }),
+          /* @__PURE__ */ e(y, { htmlFor: "adjust-mode", children: "Change" }),
           /* @__PURE__ */ t("select", { id: "adjust-mode", className: "cm:h-9 cm:rounded-md cm:border cm:bg-background cm:px-3 cm:text-sm", value: h.data.mode, onChange: (i) => h.setData("mode", i.target.value), children: [
             /* @__PURE__ */ e("option", { value: "add", children: "Add or remove" }),
             /* @__PURE__ */ e("option", { value: "set", children: "Set to" })
           ] })
         ] }),
         /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
-          /* @__PURE__ */ e(b, { htmlFor: "adjust-quantity", children: h.data.mode === "set" ? "New stock" : "Units (+/−)" }),
+          /* @__PURE__ */ e(y, { htmlFor: "adjust-quantity", children: h.data.mode === "set" ? "New stock" : "Units (+/−)" }),
           /* @__PURE__ */ e(N, { id: "adjust-quantity", type: "number", value: h.data.quantity, onChange: (i) => h.setData("quantity", Number(i.target.value)) }),
           h.errors.quantity && /* @__PURE__ */ e("p", { className: "cm:text-xs cm:text-destructive", children: h.errors.quantity })
         ] })
       ] }),
       /* @__PURE__ */ t("div", { className: "cm:grid cm:grid-cols-2 cm:gap-3", children: [
         /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
-          /* @__PURE__ */ e(b, { htmlFor: "adjust-reason", children: "Reason" }),
+          /* @__PURE__ */ e(y, { htmlFor: "adjust-reason", children: "Reason" }),
           /* @__PURE__ */ e("select", { id: "adjust-reason", className: "cm:h-9 cm:rounded-md cm:border cm:bg-background cm:px-3 cm:text-sm", value: h.data.reason, onChange: (i) => h.setData("reason", i.target.value), children: n.map((i) => /* @__PURE__ */ e("option", { value: i, children: i[0].toUpperCase() + i.slice(1) }, i)) })
         ] }),
         /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
-          /* @__PURE__ */ e(b, { htmlFor: "adjust-note", children: "Note" }),
+          /* @__PURE__ */ e(y, { htmlFor: "adjust-note", children: "Note" }),
           /* @__PURE__ */ e(N, { id: "adjust-note", value: h.data.note, onChange: (i) => h.setData("note", i.target.value) })
         ] })
       ] }),
@@ -549,7 +549,7 @@ function se({
   allowNull: s = !0,
   invalid: l
 }) {
-  const { Input: d } = j, u = (h) => h == null ? "" : Y(h).replace(/^[^\d-]+|[^\d]+$/g, ""), [x, o] = T.useState(u(c)), [N, b] = T.useState(!1);
+  const { Input: d } = j, u = (h) => h == null ? "" : Y(h).replace(/^[^\d-]+|[^\d]+$/g, ""), [x, o] = T.useState(u(c)), [N, y] = T.useState(!1);
   return T.useEffect(() => {
     N || o(u(c));
   }, [c, N]), /* @__PURE__ */ e(
@@ -560,14 +560,14 @@ function se({
       value: x,
       placeholder: r,
       "aria-invalid": l || void 0,
-      onFocus: () => b(!0),
+      onFocus: () => y(!0),
       onChange: (h) => {
         o(h.target.value);
         const p = h.target.value.trim() === "" ? s ? null : 0 : Re(h.target.value);
         (p !== null || h.target.value.trim() === "") && n(p);
       },
       onBlur: () => {
-        b(!1), o(u(c));
+        y(!1), o(u(c));
       }
     }
   );
@@ -584,17 +584,17 @@ function nt(c, n) {
 }
 const De = "cm:h-9 cm:w-full cm:rounded-md cm:border cm:border-border cm:bg-background cm:px-3 cm:text-sm cm:disabled:opacity-50";
 function Be({ field: c, value: n, onChange: a, pathPrefix: r }) {
-  const { Label: s } = j, l = c.config ?? {}, d = String(l.api ?? ""), u = tt[l.depth ?? "district"] ?? 3, x = l.country_options ?? [], o = { country: "ID", province_code: null, city_code: null, district_code: null, village_code: null, ...n ?? {} }, N = $e.slice(0, u), [b, h] = T.useState({}), p = [null, o.province_code, o.city_code, o.district_code];
+  const { Label: s } = j, l = c.config ?? {}, d = String(l.api ?? ""), u = tt[l.depth ?? "district"] ?? 3, x = l.country_options ?? [], o = { country: "ID", province_code: null, city_code: null, district_code: null, village_code: null, ...n ?? {} }, N = $e.slice(0, u), [y, h] = T.useState({}), p = [null, o.province_code, o.city_code, o.district_code];
   T.useEffect(() => {
     o.country !== "ID" || !d || N.forEach((g, i) => {
       const v = p[i];
-      i > 0 && !v || nt(d, v).then((y) => h((w) => ({ ...w, [g.key]: y })));
+      i > 0 && !v || nt(d, v).then((f) => h((w) => ({ ...w, [g.key]: f })));
     });
   }, [d, o.country, o.province_code, o.city_code, o.district_code]);
   const _ = (g, i) => {
     const v = { ...o };
-    v[N[g].key] = i || null, $e.slice(g + 1).forEach((y) => {
-      v[y.key] = null;
+    v[N[g].key] = i || null, $e.slice(g + 1).forEach((f) => {
+      v[f.key] = null;
     }), a(v);
   };
   return /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-3 cm:sm:grid-cols-2", children: [
@@ -623,7 +623,7 @@ function Be({ field: c, value: n, onChange: a, pathPrefix: r }) {
           onChange: (v) => _(i, v.target.value),
           children: [
             /* @__PURE__ */ e("option", { value: "", children: "Choose…" }),
-            (b[g.key] ?? []).map((v) => /* @__PURE__ */ e("option", { value: v.code, children: v.name }, v.code))
+            (y[g.key] ?? []).map((v) => /* @__PURE__ */ e("option", { value: v.code, children: v.name }, v.code))
           ]
         }
       )
@@ -631,7 +631,7 @@ function Be({ field: c, value: n, onChange: a, pathPrefix: r }) {
   ] });
 }
 function ct({ mode: c, order: n, paymentMethods: a, canOverride: r, variantsUrl: s, previewUrl: l, submitUrl: d }) {
-  const { Card: u, CardContent: x, CardHeader: o, CardTitle: N, Button: b, Input: h, Label: p, Checkbox: _, Textarea: g } = j;
+  const { Card: u, CardContent: x, CardHeader: o, CardTitle: N, Button: y, Input: h, Label: p, Checkbox: _, Textarea: g } = j;
   W(), z.useBreadcrumbs([
     { label: "Shop", href: C("commerce") },
     { label: "Orders", href: C("commerce/orders") },
@@ -654,36 +654,36 @@ function ct({ mode: c, order: n, paymentMethods: a, canOverride: r, variantsUrl:
     notify: !1,
     valid_until: n?.valid_until ?? "",
     send: !0
-  }), v = i.errors, [y, w] = T.useState(""), [S, f] = T.useState([]), [F, D] = T.useState(null);
+  }), v = i.errors, [f, w] = T.useState(""), [$, S] = T.useState([]), [b, F] = T.useState(null);
   T.useEffect(() => {
-    if (y.trim().length < 2) {
-      f([]);
+    if (f.trim().length < 2) {
+      S([]);
       return;
     }
-    const k = setTimeout(() => X(`${C(s)}&q=${encodeURIComponent(y)}`).then((I) => f(I.data)).catch(() => f([])), 250);
+    const k = setTimeout(() => X(`${C(s)}&q=${encodeURIComponent(f)}`).then((I) => S(I.data)).catch(() => S([])), 250);
     return () => clearTimeout(k);
-  }, [y]), T.useEffect(() => {
+  }, [f]), T.useEffect(() => {
     if (i.data.lines.length === 0) {
-      D(null);
+      F(null);
       return;
     }
     const k = setTimeout(() => {
       X(C(l), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
-        lines: i.data.lines.map(({ item_id: I, variant_id: B, quantity: H, unit_price: $ }) => ({ item_id: I, variant_id: B, quantity: H, unit_price: $ })),
+        lines: i.data.lines.map(({ item_id: I, variant_id: B, quantity: H, unit_price: D }) => ({ item_id: I, variant_id: B, quantity: H, unit_price: D })),
         shipping: i.data.shipping,
         discount: i.data.discount,
         shipping_address: c === "create" ? i.data.shipping_address : void 0
-      }) }).then(D).catch(() => D(null));
+      }) }).then(F).catch(() => F(null));
     }, 300);
     return () => clearTimeout(k);
   }, [JSON.stringify([i.data.lines, i.data.shipping, i.data.discount, i.data.shipping_address])]);
   const M = (k) => {
     const I = i.data.lines.findIndex((B) => B.variant_id === k.id && !B.item_id);
-    i.setData("lines", I >= 0 ? i.data.lines.map((B, H) => H === I ? { ...B, quantity: B.quantity + 1 } : B) : [...i.data.lines, { variant_id: k.id, label: k.label, sku: k.sku, quantity: 1, price: k.price, unit_price: null }]), w(""), f([]);
-  }, ee = (k, I) => i.setData("lines", i.data.lines.map((B, H) => H === k ? { ...B, ...I } : B)), ce = (k) => {
-    k.preventDefault(), i.transform((I) => ({ ...I, lines: I.lines.map(({ item_id: B, variant_id: H, quantity: $, unit_price: U }) => ({ item_id: B, variant_id: H, quantity: $, unit_price: U })) })), c === "create" ? i.post(C(d)) : i.put(C(d));
-  }, ae = (k) => F?.lines.find((I) => I.variant_id === k);
-  return /* @__PURE__ */ t("form", { onSubmit: ce, className: "cm:mx-auto cm:grid cm:w-full cm:max-w-5xl cm:gap-6 cm:p-4 cm:md:p-6", children: [
+    i.setData("lines", I >= 0 ? i.data.lines.map((B, H) => H === I ? { ...B, quantity: B.quantity + 1 } : B) : [...i.data.lines, { variant_id: k.id, label: k.label, sku: k.sku, quantity: 1, price: k.price, unit_price: null }]), w(""), S([]);
+  }, ee = (k, I) => i.setData("lines", i.data.lines.map((B, H) => H === k ? { ...B, ...I } : B)), ae = (k) => {
+    k.preventDefault(), i.transform((I) => ({ ...I, lines: I.lines.map(({ item_id: B, variant_id: H, quantity: D, unit_price: U }) => ({ item_id: B, variant_id: H, quantity: D, unit_price: U })) })), c === "create" ? i.post(C(d)) : i.put(C(d));
+  }, re = (k) => b?.lines.find((I) => I.variant_id === k);
+  return /* @__PURE__ */ t("form", { onSubmit: ae, className: "cm:mx-auto cm:grid cm:w-full cm:max-w-5xl cm:gap-6 cm:p-4 cm:md:p-6", children: [
     /* @__PURE__ */ e(
       G,
       {
@@ -697,8 +697,8 @@ function ct({ mode: c, order: n, paymentMethods: a, canOverride: r, variantsUrl:
           /* @__PURE__ */ e(o, { children: /* @__PURE__ */ e(N, { children: "Products" }) }),
           /* @__PURE__ */ t(x, { className: "cm:grid cm:gap-3", children: [
             /* @__PURE__ */ t("div", { className: "cm:relative", children: [
-              /* @__PURE__ */ e(h, { placeholder: "Search products by name or SKU…", value: y, onChange: (k) => w(k.target.value), "aria-label": "Search products" }),
-              S.length > 0 && /* @__PURE__ */ e("ul", { className: "cm:absolute cm:z-10 cm:mt-1 cm:max-h-64 cm:w-full cm:overflow-auto cm:rounded-md cm:border cm:bg-background cm:shadow", children: S.map((k) => /* @__PURE__ */ e("li", { children: /* @__PURE__ */ e("button", { type: "button", className: "cm:flex cm:w-full cm:justify-between cm:px-3 cm:py-2 cm:text-left cm:text-sm cm:hover:bg-muted", onClick: () => M(k), children: /* @__PURE__ */ t("span", { children: [
+              /* @__PURE__ */ e(h, { placeholder: "Search products by name or SKU…", value: f, onChange: (k) => w(k.target.value), "aria-label": "Search products" }),
+              $.length > 0 && /* @__PURE__ */ e("ul", { className: "cm:absolute cm:z-10 cm:mt-1 cm:max-h-64 cm:w-full cm:overflow-auto cm:rounded-md cm:border cm:bg-background cm:shadow", children: $.map((k) => /* @__PURE__ */ e("li", { children: /* @__PURE__ */ e("button", { type: "button", className: "cm:flex cm:w-full cm:justify-between cm:px-3 cm:py-2 cm:text-left cm:text-sm cm:hover:bg-muted", onClick: () => M(k), children: /* @__PURE__ */ t("span", { children: [
                 k.label,
                 k.sku ? /* @__PURE__ */ t("span", { className: "cm:text-muted-foreground", children: [
                   " · ",
@@ -713,11 +713,11 @@ function ct({ mode: c, order: n, paymentMethods: a, canOverride: r, variantsUrl:
                 k.sku && /* @__PURE__ */ e("p", { className: "cm:text-xs cm:text-muted-foreground", children: k.sku })
               ] }),
               /* @__PURE__ */ e(h, { type: "number", min: 1, "aria-label": "Quantity", value: k.quantity, onChange: (B) => ee(I, { quantity: Math.max(1, Number(B.target.value)) }) }),
-              r ? /* @__PURE__ */ e(se, { value: k.unit_price, placeholder: ae(k.variant_id)?.unit_price_formatted ?? "", onChange: (B) => ee(I, { unit_price: B }) }) : /* @__PURE__ */ e("span", { className: "cm:text-sm", children: ae(k.variant_id)?.unit_price_formatted ?? "…" }),
-              /* @__PURE__ */ e("span", { className: "cm:text-sm cm:font-medium cm:sm:text-right", children: ae(k.variant_id)?.total ?? "" }),
-              /* @__PURE__ */ e(b, { type: "button", variant: "ghost", size: "sm", "aria-label": "Remove", onClick: () => i.setData("lines", i.data.lines.filter((B, H) => H !== I)), children: "×" })
+              r ? /* @__PURE__ */ e(se, { value: k.unit_price, placeholder: re(k.variant_id)?.unit_price_formatted ?? "", onChange: (B) => ee(I, { unit_price: B }) }) : /* @__PURE__ */ e("span", { className: "cm:text-sm", children: re(k.variant_id)?.unit_price_formatted ?? "…" }),
+              /* @__PURE__ */ e("span", { className: "cm:text-sm cm:font-medium cm:sm:text-right", children: re(k.variant_id)?.total ?? "" }),
+              /* @__PURE__ */ e(y, { type: "button", variant: "ghost", size: "sm", "aria-label": "Remove", onClick: () => i.setData("lines", i.data.lines.filter((B, H) => H !== I)), children: "×" })
             ] }, `${k.item_id ?? "n"}-${k.variant_id}-${I}`)) }),
-            F?.notices.map((k, I) => /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-amber-700", children: k }, I))
+            b?.notices.map((k, I) => /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-amber-700", children: k }, I))
           ] })
         ] }),
         c === "create" && /* @__PURE__ */ t(u, { children: [
@@ -738,7 +738,7 @@ function ct({ mode: c, order: n, paymentMethods: a, canOverride: r, variantsUrl:
             ] })
           ] })
         ] }),
-        c === "create" && (F?.needs_shipping ?? !0) && /* @__PURE__ */ t(u, { children: [
+        c === "create" && (b?.needs_shipping ?? !0) && /* @__PURE__ */ t(u, { children: [
           /* @__PURE__ */ e(o, { children: /* @__PURE__ */ e(N, { children: "Shipping address" }) }),
           /* @__PURE__ */ t(x, { className: "cm:grid cm:gap-3", children: [
             /* @__PURE__ */ e("div", { className: "cm:grid cm:gap-3 cm:sm:grid-cols-2", children: ["name", "phone"].map((k) => /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
@@ -789,25 +789,25 @@ function ct({ mode: c, order: n, paymentMethods: a, canOverride: r, variantsUrl:
         ] }),
         /* @__PURE__ */ t(u, { children: [
           /* @__PURE__ */ e(o, { children: /* @__PURE__ */ e(N, { children: "Total" }) }),
-          /* @__PURE__ */ e(x, { className: "cm:grid cm:gap-1 cm:text-sm", children: F ? /* @__PURE__ */ t(A, { children: [
+          /* @__PURE__ */ e(x, { className: "cm:grid cm:gap-1 cm:text-sm", children: b ? /* @__PURE__ */ t(A, { children: [
             /* @__PURE__ */ t("p", { className: "cm:flex cm:justify-between", children: [
               /* @__PURE__ */ e("span", { children: "Subtotal" }),
-              /* @__PURE__ */ e("span", { children: F.totals.subtotal })
+              /* @__PURE__ */ e("span", { children: b.totals.subtotal })
             ] }),
             /* @__PURE__ */ t("p", { className: "cm:flex cm:justify-between", children: [
               /* @__PURE__ */ e("span", { children: "Discount" }),
               /* @__PURE__ */ t("span", { children: [
                 "−",
-                F.totals.discount
+                b.totals.discount
               ] })
             ] }),
             /* @__PURE__ */ t("p", { className: "cm:flex cm:justify-between", children: [
               /* @__PURE__ */ e("span", { children: "Shipping" }),
-              /* @__PURE__ */ e("span", { children: F.totals.shipping })
+              /* @__PURE__ */ e("span", { children: b.totals.shipping })
             ] }),
             /* @__PURE__ */ t("p", { className: "cm:flex cm:justify-between cm:text-base cm:font-semibold", children: [
               /* @__PURE__ */ e("span", { children: "Total" }),
-              /* @__PURE__ */ e("span", { children: F.totals.total })
+              /* @__PURE__ */ e("span", { children: b.totals.total })
             ] })
           ] }) : /* @__PURE__ */ e("p", { className: "cm:text-muted-foreground", children: "Add products to see the total." }) })
         ] }),
@@ -856,18 +856,18 @@ function ct({ mode: c, order: n, paymentMethods: a, canOverride: r, variantsUrl:
           /* @__PURE__ */ e(_, { checked: i.data.notify, onCheckedChange: (k) => i.setData("notify", k === !0) }),
           " Tell the customer about the change"
         ] }),
-        /* @__PURE__ */ e(b, { type: "submit", disabled: i.processing || i.data.lines.length === 0, children: c === "create" ? "Create order" : c === "quote" ? i.data.send ? "Send quote" : "Save quote" : "Save changes" })
+        /* @__PURE__ */ e(y, { type: "submit", disabled: i.processing || i.data.lines.length === 0, children: c === "create" ? "Create order" : c === "quote" ? i.data.send ? "Send quote" : "Save quote" : "Save changes" })
       ] })
     ] })
   ] });
 }
 function at({ order: c, couriers: n, onClose: a }) {
-  const { Dialog: r, DialogContent: s, DialogFooter: l, DialogHeader: d, DialogTitle: u, Button: x, Input: o, Label: N } = j, b = c.items.filter((g) => g.unfulfilled > 0), h = P.useForm({
+  const { Dialog: r, DialogContent: s, DialogFooter: l, DialogHeader: d, DialogTitle: u, Button: x, Input: o, Label: N } = j, y = c.items.filter((g) => g.unfulfilled > 0), h = P.useForm({
     courier: n[0]?.key ?? "",
     courier_name: "",
     service: "",
     tracking_number: "",
-    items: b.map((g) => ({ order_item_id: g.id, quantity: g.unfulfilled }))
+    items: y.map((g) => ({ order_item_id: g.id, quantity: g.unfulfilled }))
   }), p = h.errors;
   return /* @__PURE__ */ e(r, { open: !0, onOpenChange: (g) => !g && a(), children: /* @__PURE__ */ t(s, { children: [
     /* @__PURE__ */ e(d, { children: /* @__PURE__ */ e(u, { children: "Add a shipment" }) }),
@@ -895,7 +895,7 @@ function at({ order: c, couriers: n, onClose: a }) {
       ] }),
       /* @__PURE__ */ t("fieldset", { className: "cm:grid cm:gap-2", children: [
         /* @__PURE__ */ e("legend", { className: "cm:mb-1 cm:text-sm cm:font-medium", children: "In this parcel" }),
-        b.map((g, i) => /* @__PURE__ */ t("label", { className: "cm:flex cm:items-center cm:justify-between cm:gap-3 cm:text-sm", children: [
+        y.map((g, i) => /* @__PURE__ */ t("label", { className: "cm:flex cm:items-center cm:justify-between cm:gap-3 cm:text-sm", children: [
           /* @__PURE__ */ t("span", { children: [
             g.name,
             g.variant_title ? ` · ${g.variant_title}` : "",
@@ -914,7 +914,7 @@ function at({ order: c, couriers: n, onClose: a }) {
               max: g.unfulfilled,
               className: "cm:w-20",
               value: h.data.items[i].quantity,
-              onChange: (v) => h.setData("items", h.data.items.map((y, w) => w === i ? { ...y, quantity: Number(v.target.value) } : y))
+              onChange: (v) => h.setData("items", h.data.items.map((f, w) => w === i ? { ...f, quantity: Number(v.target.value) } : f))
             }
           )
         ] }, g.id)),
@@ -928,7 +928,7 @@ function at({ order: c, couriers: n, onClose: a }) {
   ] }) });
 }
 function rt({ order: c, onClose: n }) {
-  const { Dialog: a, DialogContent: r, DialogFooter: s, DialogHeader: l, DialogTitle: d, DialogDescription: u, Button: x, Input: o, Label: N, Checkbox: b } = j, h = P.useForm({
+  const { Dialog: a, DialogContent: r, DialogFooter: s, DialogHeader: l, DialogTitle: d, DialogDescription: u, Button: x, Input: o, Label: N, Checkbox: y } = j, h = P.useForm({
     amount: c.totals.refundable,
     reason: "",
     restock: !1,
@@ -962,13 +962,13 @@ function rt({ order: c, onClose: n }) {
               max: _.quantity - _.refunded_quantity,
               className: "cm:w-20",
               value: h.data.items[g].quantity,
-              onChange: (i) => h.setData("items", h.data.items.map((v, y) => y === g ? { ...v, quantity: Number(i.target.value) } : v))
+              onChange: (i) => h.setData("items", h.data.items.map((v, f) => f === g ? { ...v, quantity: Number(i.target.value) } : v))
             }
           )
         ] }, _.id))
       ] }),
       /* @__PURE__ */ t("label", { className: "cm:flex cm:items-center cm:gap-2 cm:text-sm", children: [
-        /* @__PURE__ */ e(b, { checked: h.data.restock, onCheckedChange: (_) => h.setData("restock", _ === !0) }),
+        /* @__PURE__ */ e(y, { checked: h.data.restock, onCheckedChange: (_) => h.setData("restock", _ === !0) }),
         " Put the returned items back in stock"
       ] }),
       /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
@@ -1005,9 +1005,9 @@ const K = (c) => c ? new Date(c).toLocaleString(void 0, { dateStyle: "medium", t
   expired: "error"
 })[c] ?? "neutral";
 function lt(c) {
-  const { order: n, transitions: a, can: r, panels: s } = c, { Card: l, CardContent: d, CardHeader: u, CardTitle: x, Button: o, Textarea: N, Label: b, Checkbox: h, Input: p, Dialog: _, DialogContent: g, DialogFooter: i, DialogHeader: v, DialogTitle: y, DialogDescription: w } = j, { Link: S, router: f } = P;
+  const { order: n, transitions: a, can: r, panels: s } = c, { Card: l, CardContent: d, CardHeader: u, CardTitle: x, Button: o, Textarea: N, Label: y, Checkbox: h, Input: p, Dialog: _, DialogContent: g, DialogFooter: i, DialogHeader: v, DialogTitle: f, DialogDescription: w } = j, { Link: $, router: S } = P;
   W(), z.useBreadcrumbs([{ label: "Shop", href: C("commerce") }, { label: "Orders", href: C("commerce/orders") }, { label: n.number }]);
-  const F = `commerce/orders/${n.id}`, [D, M] = T.useState(null), [ee, ce] = T.useState(""), [ae, k] = T.useState(!1), [I, B] = T.useState(!1), [H, $] = T.useState(!1), U = P.useForm({ message: "", customer: !1 }), O = P.useForm({ reference: "", paid_at: "", account: "" }), ve = ie.orderPanels(), we = (m, L) => f.post(C(`${F}/transition`), { to: m, reason: L ?? null }, { preserveScroll: !0, onFinish: () => M(null) });
+  const b = `commerce/orders/${n.id}`, [F, M] = T.useState(null), [ee, ae] = T.useState(""), [re, k] = T.useState(!1), [I, B] = T.useState(!1), [H, D] = T.useState(!1), U = P.useForm({ message: "", customer: !1 }), O = P.useForm({ reference: "", paid_at: "", account: "" }), ve = ne.orderPanels(), we = (m, L) => S.post(C(`${b}/transition`), { to: m, reason: L ?? null }, { preserveScroll: !0, onFinish: () => M(null) });
   return /* @__PURE__ */ t("div", { className: "cm:mx-auto cm:grid cm:w-full cm:max-w-6xl cm:gap-6 cm:p-4 cm:md:p-6", children: [
     /* @__PURE__ */ e(
       G,
@@ -1043,28 +1043,28 @@ function lt(c) {
       )),
       r.mark_paid && /* @__PURE__ */ e(o, { size: "sm", variant: "outline", onClick: () => k(!0), children: "Mark paid" }),
       r.shipments && n.items.some((m) => m.unfulfilled > 0) && /* @__PURE__ */ e(o, { size: "sm", variant: "outline", onClick: () => B(!0), children: "Add shipment" }),
-      r.refund && /* @__PURE__ */ e(o, { size: "sm", variant: "outline", onClick: () => $(!0), children: "Refund" }),
-      r.send_link && /* @__PURE__ */ e(o, { size: "sm", variant: "outline", onClick: () => f.post(C(`${F}/payment-link`), {}, { preserveScroll: !0 }), children: "Send payment link" }),
-      r.edit_items && /* @__PURE__ */ e(o, { size: "sm", variant: "outline", asChild: !0, children: /* @__PURE__ */ e(S, { href: C(`${F}/edit`), children: "Edit items" }) }),
-      r.respond_quote && /* @__PURE__ */ e(o, { size: "sm", asChild: !0, children: /* @__PURE__ */ e(S, { href: C(`${F}/quote`), children: n.status === "quoted" ? "Edit quote" : "Send a quote" }) }),
+      r.refund && /* @__PURE__ */ e(o, { size: "sm", variant: "outline", onClick: () => D(!0), children: "Refund" }),
+      r.send_link && /* @__PURE__ */ e(o, { size: "sm", variant: "outline", onClick: () => S.post(C(`${b}/payment-link`), {}, { preserveScroll: !0 }), children: "Send payment link" }),
+      r.edit_items && /* @__PURE__ */ e(o, { size: "sm", variant: "outline", asChild: !0, children: /* @__PURE__ */ e($, { href: C(`${b}/edit`), children: "Edit items" }) }),
+      r.respond_quote && /* @__PURE__ */ e(o, { size: "sm", asChild: !0, children: /* @__PURE__ */ e($, { href: C(`${b}/quote`), children: n.status === "quoted" ? "Edit quote" : "Send a quote" }) }),
       r.delete && !n.trashed && /* @__PURE__ */ e(
         o,
         {
           size: "sm",
           variant: "ghost",
           className: "cm:ml-auto cm:text-destructive",
-          onClick: () => window.confirm("Move this order to the trash?") && f.delete(C(F)),
+          onClick: () => window.confirm("Move this order to the trash?") && S.delete(C(b)),
           children: "Trash"
         }
       ),
-      r.delete && n.trashed && /* @__PURE__ */ e(o, { size: "sm", variant: "outline", className: "cm:ml-auto", onClick: () => f.post(C(`${F}/restore`)), children: "Restore" }),
+      r.delete && n.trashed && /* @__PURE__ */ e(o, { size: "sm", variant: "outline", className: "cm:ml-auto", onClick: () => S.post(C(`${b}/restore`)), children: "Restore" }),
       r.force_delete && /* @__PURE__ */ e(
         o,
         {
           size: "sm",
           variant: "ghost",
           className: "cm:text-destructive",
-          onClick: () => window.confirm("Delete this order for good? This can't be undone.") && f.delete(C(`${F}/force`)),
+          onClick: () => window.confirm("Delete this order for good? This can't be undone.") && S.delete(C(`${b}/force`)),
           children: "Delete for good"
         }
       )
@@ -1077,7 +1077,7 @@ function lt(c) {
             /* @__PURE__ */ e("ul", { className: "cm:divide-y cm:divide-border", children: n.items.map((m) => /* @__PURE__ */ t("li", { className: "cm:grid cm:gap-1 cm:py-3 cm:first:pt-0 cm:sm:grid-cols-[1fr_auto] cm:sm:gap-4", children: [
               /* @__PURE__ */ t("div", { className: "cm:min-w-0", children: [
                 /* @__PURE__ */ t("p", { className: "cm:font-medium", children: [
-                  m.product_href ? /* @__PURE__ */ e(S, { href: C(m.product_href), className: "cm:hover:underline", children: m.name }) : m.name,
+                  m.product_href ? /* @__PURE__ */ e($, { href: C(m.product_href), className: "cm:hover:underline", children: m.name }) : m.name,
                   m.variant_title && /* @__PURE__ */ t("span", { className: "cm:text-muted-foreground", children: [
                     " · ",
                     m.variant_title
@@ -1123,13 +1123,13 @@ function lt(c) {
               ] })
             ] }, m.id)) }),
             /* @__PURE__ */ t("dl", { className: "cm:grid cm:gap-1 cm:border-t cm:pt-3 cm:text-sm", children: [
-              /* @__PURE__ */ e(re, { label: "Subtotal", value: n.totals.subtotal }),
-              n.adjustments.filter((m) => m.kind !== "tax").map((m, L) => /* @__PURE__ */ e(re, { label: `${m.label}${m.code ? ` (${m.code})` : ""}`, value: m.amount, muted: !0 }, L)),
-              n.totals.shipping !== null && /* @__PURE__ */ e(re, { label: `Shipping${n.shipping_method?.label ? ` · ${n.shipping_method.label}` : ""}`, value: n.totals.shipping }),
-              n.adjustments.filter((m) => m.kind === "tax").map((m, L) => /* @__PURE__ */ e(re, { label: `${m.label}${m.included ? " (included)" : ""}`, value: m.amount, muted: !0 }, `t${L}`)),
-              /* @__PURE__ */ e(re, { label: "Total", value: n.totals.total, strong: !0 }),
-              n.type === "order" && /* @__PURE__ */ e(re, { label: "Paid", value: n.totals.paid, muted: !0 }),
-              n.totals.refunded && /* @__PURE__ */ e(re, { label: "Refunded", value: `−${n.totals.refunded}`, muted: !0 })
+              /* @__PURE__ */ e(le, { label: "Subtotal", value: n.totals.subtotal }),
+              n.adjustments.filter((m) => m.kind !== "tax").map((m, L) => /* @__PURE__ */ e(le, { label: `${m.label}${m.code ? ` (${m.code})` : ""}`, value: m.amount, muted: !0 }, L)),
+              n.totals.shipping !== null && /* @__PURE__ */ e(le, { label: `Shipping${n.shipping_method?.label ? ` · ${n.shipping_method.label}` : ""}`, value: n.totals.shipping }),
+              n.adjustments.filter((m) => m.kind === "tax").map((m, L) => /* @__PURE__ */ e(le, { label: `${m.label}${m.included ? " (included)" : ""}`, value: m.amount, muted: !0 }, `t${L}`)),
+              /* @__PURE__ */ e(le, { label: "Total", value: n.totals.total, strong: !0 }),
+              n.type === "order" && /* @__PURE__ */ e(le, { label: "Paid", value: n.totals.paid, muted: !0 }),
+              n.totals.refunded && /* @__PURE__ */ e(le, { label: "Refunded", value: `−${n.totals.refunded}`, muted: !0 })
             ] })
           ] })
         ] }),
@@ -1169,7 +1169,7 @@ function lt(c) {
               ] }),
               /* @__PURE__ */ t("span", { className: "cm:flex cm:items-center cm:gap-2", children: [
                 /* @__PURE__ */ e(R, { tone: m.status === "approved" ? "ok" : m.status === "rejected" ? "error" : "warning", children: m.status }),
-                m.can_review && /* @__PURE__ */ e(o, { size: "sm", asChild: !0, children: /* @__PURE__ */ e(S, { href: C("commerce/confirmations"), children: "Review" }) })
+                m.can_review && /* @__PURE__ */ e(o, { size: "sm", asChild: !0, children: /* @__PURE__ */ e($, { href: C("commerce/confirmations"), children: "Review" }) })
               ] })
             ] }, m.id))
           ] })
@@ -1194,7 +1194,7 @@ function lt(c) {
               K(m.shipped_at),
               m.delivered_at ? ` · delivered ${K(m.delivered_at)}` : ""
             ] }),
-            r.shipments && m.status !== "delivered" && /* @__PURE__ */ e("div", { children: /* @__PURE__ */ e(o, { size: "sm", variant: "outline", onClick: () => f.post(C(`${F}/shipments/${m.id}/delivered`), {}, { preserveScroll: !0 }), children: "Mark delivered" }) })
+            r.shipments && m.status !== "delivered" && /* @__PURE__ */ e("div", { children: /* @__PURE__ */ e(o, { size: "sm", variant: "outline", onClick: () => S.post(C(`${b}/shipments/${m.id}/delivered`), {}, { preserveScroll: !0 }), children: "Mark delivered" }) })
           ] }, m.id)) })
         ] }),
         n.downloads.length > 0 && /* @__PURE__ */ t(l, { children: [
@@ -1210,7 +1210,7 @@ function lt(c) {
             ] }),
             /* @__PURE__ */ t("span", { className: "cm:flex cm:items-center cm:gap-1", children: [
               /* @__PURE__ */ e(R, { tone: m.state === "active" ? "ok" : "warning", children: m.state.replace("_", " ") }),
-              r.edit && ["resend", "extend", "reset", "revoke"].map((L) => /* @__PURE__ */ e(o, { size: "sm", variant: "ghost", onClick: () => f.post(C(`${F}/downloads/${m.id}`), { action: L }, { preserveScroll: !0 }), children: { resend: "Resend", extend: "+7 days", reset: "Reset count", revoke: "Revoke" }[L] }, L))
+              r.edit && ["resend", "extend", "reset", "revoke"].map((L) => /* @__PURE__ */ e(o, { size: "sm", variant: "ghost", onClick: () => S.post(C(`${b}/downloads/${m.id}`), { action: L }, { preserveScroll: !0 }), children: { resend: "Resend", extend: "+7 days", reset: "Reset count", revoke: "Revoke" }[L] }, L))
             ] })
           ] }, m.id)) })
         ] }),
@@ -1235,9 +1235,9 @@ function lt(c) {
           /* @__PURE__ */ e(u, { children: /* @__PURE__ */ e(x, { children: "Timeline" }) }),
           /* @__PURE__ */ t(d, { className: "cm:grid cm:gap-4", children: [
             r.edit && /* @__PURE__ */ t("form", { className: "cm:grid cm:gap-2", onSubmit: (m) => {
-              m.preventDefault(), U.post(C(`${F}/notes`), { preserveScroll: !0, onSuccess: () => U.reset() });
+              m.preventDefault(), U.post(C(`${b}/notes`), { preserveScroll: !0, onSuccess: () => U.reset() });
             }, children: [
-              /* @__PURE__ */ e(b, { htmlFor: "o-note", className: "cm:sr-only", children: "Note" }),
+              /* @__PURE__ */ e(y, { htmlFor: "o-note", className: "cm:sr-only", children: "Note" }),
               /* @__PURE__ */ e(N, { id: "o-note", placeholder: "Add a note…", value: U.data.message, onChange: (m) => U.setData("message", m.target.value) }),
               /* @__PURE__ */ t("div", { className: "cm:flex cm:items-center cm:justify-between cm:gap-2", children: [
                 /* @__PURE__ */ t("label", { className: "cm:flex cm:items-center cm:gap-2 cm:text-sm", children: [
@@ -1263,7 +1263,7 @@ function lt(c) {
         /* @__PURE__ */ t(l, { children: [
           /* @__PURE__ */ e(u, { children: /* @__PURE__ */ e(x, { children: "Customer" }) }),
           /* @__PURE__ */ t(d, { className: "cm:grid cm:gap-1 cm:text-sm", children: [
-            /* @__PURE__ */ e("p", { className: "cm:font-medium", children: n.customer.href ? /* @__PURE__ */ e(S, { href: C(n.customer.href), className: "cm:hover:underline", children: n.customer.name ?? n.customer.email }) : n.customer.name ?? n.customer.email }),
+            /* @__PURE__ */ e("p", { className: "cm:font-medium", children: n.customer.href ? /* @__PURE__ */ e($, { href: C(n.customer.href), className: "cm:hover:underline", children: n.customer.name ?? n.customer.email }) : n.customer.name ?? n.customer.email }),
             n.customer.email && /* @__PURE__ */ e("a", { href: `mailto:${n.customer.email}`, className: "cm:text-muted-foreground cm:hover:underline", children: n.customer.email }),
             n.customer.phone && /* @__PURE__ */ e("a", { href: `https://wa.me/${n.customer.phone.replace(/\D/g, "")}`, target: "_blank", rel: "noreferrer", className: "cm:text-muted-foreground cm:hover:underline", children: n.customer.phone }),
             n.customer.guest && /* @__PURE__ */ e("p", { className: "cm:text-xs cm:text-muted-foreground", children: "Guest checkout" })
@@ -1272,7 +1272,7 @@ function lt(c) {
         /* @__PURE__ */ t(l, { children: [
           /* @__PURE__ */ t(u, { className: "cm:flex cm:flex-row cm:items-center cm:justify-between", children: [
             /* @__PURE__ */ e(x, { children: "Addresses" }),
-            r.edit_addresses && /* @__PURE__ */ e(o, { size: "sm", variant: "ghost", asChild: !0, children: /* @__PURE__ */ e(S, { href: C(`${F}/addresses`), children: "Edit" }) })
+            r.edit_addresses && /* @__PURE__ */ e(o, { size: "sm", variant: "ghost", asChild: !0, children: /* @__PURE__ */ e($, { href: C(`${b}/addresses`), children: "Edit" }) })
           ] }),
           /* @__PURE__ */ t(d, { className: "cm:grid cm:gap-3 cm:text-sm", children: [
             n.pickup && /* @__PURE__ */ t("div", { children: [
@@ -1352,23 +1352,23 @@ function lt(c) {
         ] })
       ] })
     ] }),
-    /* @__PURE__ */ e(_, { open: D !== null, onOpenChange: (m) => !m && M(null), children: /* @__PURE__ */ t(g, { children: [
+    /* @__PURE__ */ e(_, { open: F !== null, onOpenChange: (m) => !m && M(null), children: /* @__PURE__ */ t(g, { children: [
       /* @__PURE__ */ t(v, { children: [
-        /* @__PURE__ */ e(y, { children: D?.to === "cancelled" ? "Cancel this order?" : "Put this order on hold?" }),
-        /* @__PURE__ */ e(w, { children: D?.to === "cancelled" ? "Stock, flash sale quantities and voucher uses are given back." : "It can go back to its status later." })
+        /* @__PURE__ */ e(f, { children: F?.to === "cancelled" ? "Cancel this order?" : "Put this order on hold?" }),
+        /* @__PURE__ */ e(w, { children: F?.to === "cancelled" ? "Stock, flash sale quantities and voucher uses are given back." : "It can go back to its status later." })
       ] }),
       /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
-        /* @__PURE__ */ e(b, { htmlFor: "o-reason", children: "Reason (on the timeline)" }),
-        /* @__PURE__ */ e(p, { id: "o-reason", value: ee, onChange: (m) => ce(m.target.value) })
+        /* @__PURE__ */ e(y, { htmlFor: "o-reason", children: "Reason (on the timeline)" }),
+        /* @__PURE__ */ e(p, { id: "o-reason", value: ee, onChange: (m) => ae(m.target.value) })
       ] }),
       /* @__PURE__ */ t(i, { children: [
         /* @__PURE__ */ e(o, { variant: "outline", onClick: () => M(null), children: "Back" }),
-        /* @__PURE__ */ e(o, { onClick: () => D && we(D.to, ee), children: "Confirm" })
+        /* @__PURE__ */ e(o, { onClick: () => F && we(F.to, ee), children: "Confirm" })
       ] })
     ] }) }),
-    /* @__PURE__ */ e(_, { open: ae, onOpenChange: k, children: /* @__PURE__ */ t(g, { children: [
+    /* @__PURE__ */ e(_, { open: re, onOpenChange: k, children: /* @__PURE__ */ t(g, { children: [
       /* @__PURE__ */ t(v, { children: [
-        /* @__PURE__ */ e(y, { children: "Mark as paid" }),
+        /* @__PURE__ */ e(f, { children: "Mark as paid" }),
         /* @__PURE__ */ t(w, { children: [
           "Record a payment you received outside the store (",
           n.totals.total,
@@ -1376,28 +1376,28 @@ function lt(c) {
         ] })
       ] }),
       /* @__PURE__ */ t("form", { className: "cm:grid cm:gap-3", onSubmit: (m) => {
-        m.preventDefault(), O.post(C(`${F}/mark-paid`), { preserveScroll: !0, onSuccess: () => k(!1) });
+        m.preventDefault(), O.post(C(`${b}/mark-paid`), { preserveScroll: !0, onSuccess: () => k(!1) });
       }, children: [
         /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
-          /* @__PURE__ */ e(b, { htmlFor: "p-ref", children: "Reference" }),
+          /* @__PURE__ */ e(y, { htmlFor: "p-ref", children: "Reference" }),
           /* @__PURE__ */ e(p, { id: "p-ref", value: O.data.reference, onChange: (m) => O.setData("reference", m.target.value) })
         ] }),
         /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
-          /* @__PURE__ */ e(b, { htmlFor: "p-date", children: "Paid on" }),
+          /* @__PURE__ */ e(y, { htmlFor: "p-date", children: "Paid on" }),
           /* @__PURE__ */ e(p, { id: "p-date", type: "datetime-local", value: O.data.paid_at, onChange: (m) => O.setData("paid_at", m.target.value) })
         ] }),
         /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
-          /* @__PURE__ */ e(b, { htmlFor: "p-acc", children: "Into account" }),
+          /* @__PURE__ */ e(y, { htmlFor: "p-acc", children: "Into account" }),
           /* @__PURE__ */ e(p, { id: "p-acc", value: O.data.account, onChange: (m) => O.setData("account", m.target.value) })
         ] }),
         /* @__PURE__ */ e(i, { children: /* @__PURE__ */ e(o, { type: "submit", disabled: O.processing, children: "Record payment" }) })
       ] })
     ] }) }),
     I && /* @__PURE__ */ e(at, { order: n, couriers: c.couriers, onClose: () => B(!1) }),
-    H && /* @__PURE__ */ e(rt, { order: n, onClose: () => $(!1) })
+    H && /* @__PURE__ */ e(rt, { order: n, onClose: () => D(!1) })
   ] });
 }
-function re({ label: c, value: n, muted: a, strong: r }) {
+function le({ label: c, value: n, muted: a, strong: r }) {
   return /* @__PURE__ */ t("div", { className: `cm:flex cm:justify-between cm:gap-4 ${a ? "cm:text-muted-foreground" : ""} ${r ? "cm:text-base cm:font-semibold" : ""}`, children: [
     /* @__PURE__ */ e("dt", { children: c }),
     /* @__PURE__ */ e("dd", { children: n })
@@ -1444,7 +1444,7 @@ function st(c) {
   ] });
 }
 const Le = (c) => c.toLocaleString(void 0, { maximumFractionDigits: 0 });
-function le(c, n) {
+function ie(c, n) {
   return c == null || c === "" ? "—" : typeof c != "number" ? n === "date" && /^\d{4}-\d{2}-\d{2}$/.test(String(c)) ? (/* @__PURE__ */ new Date(`${c}T00:00:00`)).toLocaleDateString() : String(c) : n === "money" ? Y(c) : n === "percent" ? `${c.toLocaleString(void 0, { maximumFractionDigits: 1 })}%` : Le(c);
 }
 const ye = (c) => c === "money" || c === "count" || c === "percent";
@@ -1456,22 +1456,22 @@ function dt({ report: c, reports: n, period: a, result: r, exportUrl: s }) {
     CardTitle: x,
     CardDescription: o,
     Button: N,
-    Input: b,
+    Input: y,
     Label: h,
     Select: p,
     SelectContent: _,
     SelectItem: g,
     SelectTrigger: i,
     SelectValue: v,
-    Table: y,
+    Table: f,
     TableBody: w,
-    TableCell: S,
-    TableHead: f,
-    TableHeader: F,
-    TableRow: D
+    TableCell: $,
+    TableHead: S,
+    TableHeader: b,
+    TableRow: F
   } = j, { Link: M, router: ee } = P;
   W(), z.useBreadcrumbs([{ label: "Shop", href: C("commerce") }, { label: "Reports", href: C("commerce/reports") }, { label: c.label }]);
-  const [ce, ae] = T.useState(a.from), [k, I] = T.useState(a.to), B = ($) => ee.get(C(`commerce/reports/${c.key}`), { from: a.from, to: a.to, interval: a.interval, compare: a.compare, ...$ }, { preserveScroll: !0 }), H = r.chart && r.columns.find(($) => $.key === r.chart?.series[0]?.key)?.kind === "money" ? ($) => Y($) : Le;
+  const [ae, re] = T.useState(a.from), [k, I] = T.useState(a.to), B = (D) => ee.get(C(`commerce/reports/${c.key}`), { from: a.from, to: a.to, interval: a.interval, compare: a.compare, ...D }, { preserveScroll: !0 }), H = r.chart && r.columns.find((D) => D.key === r.chart?.series[0]?.key)?.kind === "money" ? (D) => Y(D) : Le;
   return /* @__PURE__ */ t("div", { className: "cm:mx-auto cm:grid cm:w-full cm:max-w-6xl cm:grid-cols-1 cm:gap-6 cm:p-4 cm:md:p-6", children: [
     /* @__PURE__ */ e(
       G,
@@ -1481,43 +1481,43 @@ function dt({ report: c, reports: n, period: a, result: r, exportUrl: s }) {
         actions: s ? /* @__PURE__ */ e(N, { asChild: !0, variant: "outline", children: /* @__PURE__ */ e("a", { href: s, children: "Export CSV" }) }) : void 0
       }
     ),
-    /* @__PURE__ */ e("nav", { "aria-label": "Reports", className: "cm:flex cm:flex-wrap cm:gap-1", children: n.map(($) => /* @__PURE__ */ e(
+    /* @__PURE__ */ e("nav", { "aria-label": "Reports", className: "cm:flex cm:flex-wrap cm:gap-1", children: n.map((D) => /* @__PURE__ */ e(
       M,
       {
-        href: C(`commerce/reports/${$.key}`),
-        "aria-current": $.key === c.key ? "page" : void 0,
-        className: J("cm:rounded-md cm:px-3 cm:py-1.5 cm:text-sm", $.key === c.key ? "cm:bg-primary cm:text-primary-foreground" : "cm:hover:bg-muted"),
-        children: $.label
+        href: C(`commerce/reports/${D.key}`),
+        "aria-current": D.key === c.key ? "page" : void 0,
+        className: J("cm:rounded-md cm:px-3 cm:py-1.5 cm:text-sm", D.key === c.key ? "cm:bg-primary cm:text-primary-foreground" : "cm:hover:bg-muted"),
+        children: D.label
       },
-      $.key
+      D.key
     )) }),
     c.usesDates && /* @__PURE__ */ e(l, { children: /* @__PURE__ */ t(d, { className: "cm:flex cm:flex-wrap cm:items-end cm:gap-3 cm:pt-6", children: [
       /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
         /* @__PURE__ */ e(h, { htmlFor: "report-preset", children: "Period" }),
-        /* @__PURE__ */ t(p, { value: a.preset ?? "custom", onValueChange: ($) => $ !== "custom" && ee.get(C(`commerce/reports/${c.key}`), { period: $, compare: a.compare }, { preserveScroll: !0 }), children: [
+        /* @__PURE__ */ t(p, { value: a.preset ?? "custom", onValueChange: (D) => D !== "custom" && ee.get(C(`commerce/reports/${c.key}`), { period: D, compare: a.compare }, { preserveScroll: !0 }), children: [
           /* @__PURE__ */ e(i, { id: "report-preset", className: "cm:w-44", children: /* @__PURE__ */ e(v, {}) }),
           /* @__PURE__ */ t(_, { children: [
-            Object.entries(a.presets).map(([$, U]) => /* @__PURE__ */ e(g, { value: $, children: U }, $)),
+            Object.entries(a.presets).map(([D, U]) => /* @__PURE__ */ e(g, { value: D, children: U }, D)),
             /* @__PURE__ */ e(g, { value: "custom", children: "Custom" })
           ] })
         ] })
       ] }),
-      /* @__PURE__ */ t("form", { className: "cm:flex cm:flex-wrap cm:items-end cm:gap-3", onSubmit: ($) => {
-        $.preventDefault(), B({ from: ce, to: k });
+      /* @__PURE__ */ t("form", { className: "cm:flex cm:flex-wrap cm:items-end cm:gap-3", onSubmit: (D) => {
+        D.preventDefault(), B({ from: ae, to: k });
       }, children: [
         /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
           /* @__PURE__ */ e(h, { htmlFor: "report-from", children: "From" }),
-          /* @__PURE__ */ e(b, { id: "report-from", type: "date", value: ce, max: k, onChange: ($) => ae($.target.value) })
+          /* @__PURE__ */ e(y, { id: "report-from", type: "date", value: ae, max: k, onChange: (D) => re(D.target.value) })
         ] }),
         /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
           /* @__PURE__ */ e(h, { htmlFor: "report-to", children: "To" }),
-          /* @__PURE__ */ e(b, { id: "report-to", type: "date", value: k, min: ce, onChange: ($) => I($.target.value) })
+          /* @__PURE__ */ e(y, { id: "report-to", type: "date", value: k, min: ae, onChange: (D) => I(D.target.value) })
         ] }),
         /* @__PURE__ */ e(N, { type: "submit", variant: "outline", children: "Apply" })
       ] }),
       /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
         /* @__PURE__ */ e(h, { htmlFor: "report-compare", children: "Compare with" }),
-        /* @__PURE__ */ t(p, { value: a.compare, onValueChange: ($) => B({ compare: $ }), children: [
+        /* @__PURE__ */ t(p, { value: a.compare, onValueChange: (D) => B({ compare: D }), children: [
           /* @__PURE__ */ e(i, { id: "report-compare", className: "cm:w-44", children: /* @__PURE__ */ e(v, {}) }),
           /* @__PURE__ */ t(_, { children: [
             /* @__PURE__ */ e(g, { value: "previous", children: "Previous period" }),
@@ -1528,7 +1528,7 @@ function dt({ report: c, reports: n, period: a, result: r, exportUrl: s }) {
       ] }),
       c.key === "sales" && /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
         /* @__PURE__ */ e(h, { htmlFor: "report-interval", children: "Group by" }),
-        /* @__PURE__ */ t(p, { value: a.interval, onValueChange: ($) => B({ interval: $ }), children: [
+        /* @__PURE__ */ t(p, { value: a.interval, onValueChange: (D) => B({ interval: D }), children: [
           /* @__PURE__ */ e(i, { id: "report-interval", className: "cm:w-32", children: /* @__PURE__ */ e(v, {}) }),
           /* @__PURE__ */ t(_, { children: [
             /* @__PURE__ */ e(g, { value: "day", children: "Day" }),
@@ -1538,14 +1538,14 @@ function dt({ report: c, reports: n, period: a, result: r, exportUrl: s }) {
         ] })
       ] })
     ] }) }),
-    r.summary.length > 0 && /* @__PURE__ */ e("div", { className: "cm:grid cm:gap-4 cm:sm:grid-cols-2 cm:lg:grid-cols-5", children: r.summary.map(($) => /* @__PURE__ */ e(_e, { kpi: { key: $.key, label: $.label, value: le($.value, $.kind), change: $.change } }, $.key)) }),
+    r.summary.length > 0 && /* @__PURE__ */ e("div", { className: "cm:grid cm:gap-4 cm:sm:grid-cols-2 cm:lg:grid-cols-5", children: r.summary.map((D) => /* @__PURE__ */ e(_e, { kpi: { key: D.key, label: D.label, value: ie(D.value, D.kind), change: D.change } }, D.key)) }),
     r.chart && r.chart.data.length > 0 && /* @__PURE__ */ t(l, { children: [
       /* @__PURE__ */ t(u, { children: [
         /* @__PURE__ */ e(x, { children: c.label }),
         c.usesDates && /* @__PURE__ */ t(o, { children: [
-          le(a.from, "date"),
+          ie(a.from, "date"),
           " – ",
-          le(a.to, "date")
+          ie(a.to, "date")
         ] })
       ] }),
       /* @__PURE__ */ e(d, { children: /* @__PURE__ */ e(
@@ -1557,15 +1557,15 @@ function dt({ report: c, reports: n, period: a, result: r, exportUrl: s }) {
           xKey: r.chart.xKey,
           series: r.chart.series,
           format: H,
-          formatX: r.chart.xKey === "date" ? ($) => le($, "date") : void 0
+          formatX: r.chart.xKey === "date" ? (D) => ie(D, "date") : void 0
         }
       ) })
     ] }),
-    /* @__PURE__ */ e(l, { children: /* @__PURE__ */ e(d, { className: "cm:pt-6", children: r.rows.length === 0 ? /* @__PURE__ */ e(de, { title: "Nothing to show", description: c.usesDates ? "There is no data for this period." : "Nothing needs attention." }) : /* @__PURE__ */ e("div", { className: "cm:overflow-x-auto", children: /* @__PURE__ */ t(y, { children: [
-      /* @__PURE__ */ e(F, { children: /* @__PURE__ */ e(D, { children: r.columns.map(($) => /* @__PURE__ */ e(f, { className: ye($.kind) ? "cm:text-right" : void 0, children: $.label }, $.key)) }) }),
+    /* @__PURE__ */ e(l, { children: /* @__PURE__ */ e(d, { className: "cm:pt-6", children: r.rows.length === 0 ? /* @__PURE__ */ e(de, { title: "Nothing to show", description: c.usesDates ? "There is no data for this period." : "Nothing needs attention." }) : /* @__PURE__ */ e("div", { className: "cm:overflow-x-auto", children: /* @__PURE__ */ t(f, { children: [
+      /* @__PURE__ */ e(b, { children: /* @__PURE__ */ e(F, { children: r.columns.map((D) => /* @__PURE__ */ e(S, { className: ye(D.kind) ? "cm:text-right" : void 0, children: D.label }, D.key)) }) }),
       /* @__PURE__ */ t(w, { children: [
-        r.rows.map(($, U) => /* @__PURE__ */ e(D, { children: r.columns.map((O, ve) => /* @__PURE__ */ e(S, { className: J(ye(O.kind) && "cm:text-right cm:tabular-nums"), children: ve === 0 && $.href ? /* @__PURE__ */ e(M, { href: C($.href), className: "cm:underline-offset-2 cm:hover:underline", children: le($[O.key], O.kind) }) : le($[O.key], O.kind) }, O.key)) }, U)),
-        r.totals && /* @__PURE__ */ e(D, { className: "cm:font-semibold", children: r.columns.map(($) => /* @__PURE__ */ e(S, { className: J(ye($.kind) && "cm:text-right cm:tabular-nums"), children: le(r.totals?.[$.key], $.kind) }, $.key)) })
+        r.rows.map((D, U) => /* @__PURE__ */ e(F, { children: r.columns.map((O, ve) => /* @__PURE__ */ e($, { className: J(ye(O.kind) && "cm:text-right cm:tabular-nums"), children: ve === 0 && D.href ? /* @__PURE__ */ e(M, { href: C(D.href), className: "cm:underline-offset-2 cm:hover:underline", children: ie(D[O.key], O.kind) }) : ie(D[O.key], O.kind) }, O.key)) }, U)),
+        r.totals && /* @__PURE__ */ e(F, { className: "cm:font-semibold", children: r.columns.map((D) => /* @__PURE__ */ e($, { className: J(ye(D.kind) && "cm:text-right cm:tabular-nums"), children: ie(r.totals?.[D.key], D.kind) }, D.key)) })
       ] })
     ] }) }) }) })
   ] });
@@ -1600,9 +1600,9 @@ function pe({ sections: c, current: n, title: a, description: r, children: s }) 
   ] });
 }
 function mt({ sections: c, emails: n }) {
-  const { Card: a, CardContent: r, CardHeader: s, CardTitle: l, Switch: d, Button: u } = j, { Link: x, router: o } = P, N = [["To customers", n.filter((b) => b.audience === "customer")], ["To staff", n.filter((b) => b.audience === "staff")]];
-  return /* @__PURE__ */ e(pe, { sections: c, current: "emails", title: "Emails", description: "What the store sends, and to whom. Open an email to change its texts, recipients and attachments.", children: N.map(([b, h]) => h.length > 0 && /* @__PURE__ */ t(a, { children: [
-    /* @__PURE__ */ e(s, { children: /* @__PURE__ */ e(l, { children: b }) }),
+  const { Card: a, CardContent: r, CardHeader: s, CardTitle: l, Switch: d, Button: u } = j, { Link: x, router: o } = P, N = [["To customers", n.filter((y) => y.audience === "customer")], ["To staff", n.filter((y) => y.audience === "staff")]];
+  return /* @__PURE__ */ e(pe, { sections: c, current: "emails", title: "Emails", description: "What the store sends, and to whom. Open an email to change its texts, recipients and attachments.", children: N.map(([y, h]) => h.length > 0 && /* @__PURE__ */ t(a, { children: [
+    /* @__PURE__ */ e(s, { children: /* @__PURE__ */ e(l, { children: y }) }),
     /* @__PURE__ */ e(r, { className: "cm:p-0", children: /* @__PURE__ */ e("ul", { className: "cm:divide-y cm:divide-border", children: h.map((p) => /* @__PURE__ */ t("li", { className: "cm:flex cm:items-center cm:justify-between cm:gap-3 cm:px-6 cm:py-3", children: [
       /* @__PURE__ */ t("div", { className: "cm:min-w-0", children: [
         /* @__PURE__ */ e(x, { href: C(p.edit_url), className: "cm:font-medium cm:hover:underline", children: p.label }),
@@ -1623,11 +1623,11 @@ function mt({ sections: c, emails: n }) {
         )
       ] })
     ] }, p.key)) }) })
-  ] }, b)) });
+  ] }, y)) });
 }
 function ot({ sections: c, mode: n, groups: a, updateUrl: r }) {
-  const { Card: s, CardContent: l, CardHeader: d, CardTitle: u, Switch: x, Button: o, Dialog: N, DialogContent: b, DialogDescription: h, DialogFooter: p, DialogHeader: _, DialogTitle: g } = j, { errors: i } = P.usePage().props, [v, y] = T.useState(null), [w, S] = T.useState(null), f = (F, D) => {
-    S(F.key), P.router.put(r.replace("__key__", F.key), { on: D }, { preserveScroll: !0, onFinish: () => S(null) });
+  const { Card: s, CardContent: l, CardHeader: d, CardTitle: u, Switch: x, Button: o, Dialog: N, DialogContent: y, DialogDescription: h, DialogFooter: p, DialogHeader: _, DialogTitle: g } = j, { errors: i } = P.usePage().props, [v, f] = T.useState(null), [w, $] = T.useState(null), S = (b, F) => {
+    $(b.key), P.router.put(r.replace("__key__", b.key), { on: F }, { preserveScroll: !0, onFinish: () => $(null) });
   };
   return /* @__PURE__ */ t(
     pe,
@@ -1642,40 +1642,40 @@ function ot({ sections: c, mode: n, groups: a, updateUrl: r }) {
       ] }),
       children: [
         i.feature && /* @__PURE__ */ e("div", { role: "alert", className: "cm:rounded-md cm:border cm:border-destructive/40 cm:bg-destructive/5 cm:px-3 cm:py-2 cm:text-sm cm:text-destructive", children: i.feature }),
-        a.map((F) => /* @__PURE__ */ t(s, { children: [
-          /* @__PURE__ */ e(d, { children: /* @__PURE__ */ e(u, { children: F.label }) }),
-          /* @__PURE__ */ e(l, { className: "cm:grid cm:gap-0 cm:divide-y cm:divide-border", children: F.features.map((D) => /* @__PURE__ */ t("div", { className: "cm:flex cm:items-start cm:justify-between cm:gap-4 cm:py-3 cm:first:pt-0 cm:last:pb-0", children: [
+        a.map((b) => /* @__PURE__ */ t(s, { children: [
+          /* @__PURE__ */ e(d, { children: /* @__PURE__ */ e(u, { children: b.label }) }),
+          /* @__PURE__ */ e(l, { className: "cm:grid cm:gap-0 cm:divide-y cm:divide-border", children: b.features.map((F) => /* @__PURE__ */ t("div", { className: "cm:flex cm:items-start cm:justify-between cm:gap-4 cm:py-3 cm:first:pt-0 cm:last:pb-0", children: [
             /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
               /* @__PURE__ */ t("div", { className: "cm:flex cm:flex-wrap cm:items-center cm:gap-2", children: [
-                /* @__PURE__ */ e("label", { htmlFor: `feature-${D.key}`, className: "cm:font-medium", children: D.label }),
-                D.core && /* @__PURE__ */ e(R, { children: "Always on" }),
-                D.switched_on && !D.active && /* @__PURE__ */ t(R, { tone: "warning", children: [
+                /* @__PURE__ */ e("label", { htmlFor: `feature-${F.key}`, className: "cm:font-medium", children: F.label }),
+                F.core && /* @__PURE__ */ e(R, { children: "Always on" }),
+                F.switched_on && !F.active && /* @__PURE__ */ t(R, { tone: "warning", children: [
                   "Off — ",
-                  D.reasons.join("; ").replace(/^Needs /, "needs ")
+                  F.reasons.join("; ").replace(/^Needs /, "needs ")
                 ] }),
-                D.essential && /* @__PURE__ */ t(R, { tone: "info", children: [
+                F.essential && /* @__PURE__ */ t(R, { tone: "info", children: [
                   "Needed by ",
                   n.label
                 ] })
               ] }),
-              /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-muted-foreground", children: D.description }),
-              D.requires.length > 0 && /* @__PURE__ */ t("p", { className: "cm:text-xs cm:text-muted-foreground", children: [
+              /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-muted-foreground", children: F.description }),
+              F.requires.length > 0 && /* @__PURE__ */ t("p", { className: "cm:text-xs cm:text-muted-foreground", children: [
                 "Needs: ",
-                D.requires.join(", ")
+                F.requires.join(", ")
               ] })
             ] }),
             /* @__PURE__ */ e(
               x,
               {
-                id: `feature-${D.key}`,
-                checked: D.switched_on,
-                disabled: D.core || w === D.key,
-                onCheckedChange: (M) => !M && D.dependents.length > 0 ? y(D) : f(D, M)
+                id: `feature-${F.key}`,
+                checked: F.switched_on,
+                disabled: F.core || w === F.key,
+                onCheckedChange: (M) => !M && F.dependents.length > 0 ? f(F) : S(F, M)
               }
             )
-          ] }, D.key)) })
-        ] }, F.key)),
-        /* @__PURE__ */ e(N, { open: v !== null, onOpenChange: (F) => !F && y(null), children: /* @__PURE__ */ t(b, { children: [
+          ] }, F.key)) })
+        ] }, b.key)),
+        /* @__PURE__ */ e(N, { open: v !== null, onOpenChange: (b) => !b && f(null), children: /* @__PURE__ */ t(y, { children: [
           /* @__PURE__ */ t(_, { children: [
             /* @__PURE__ */ t(g, { children: [
               "Switch off ",
@@ -1684,18 +1684,18 @@ function ot({ sections: c, mode: n, groups: a, updateUrl: r }) {
             ] }),
             /* @__PURE__ */ t(h, { children: [
               "These are switched off with it: ",
-              v?.dependents.map((F) => F.label).join(", "),
+              v?.dependents.map((b) => b.label).join(", "),
               ". Their data is kept."
             ] })
           ] }),
           /* @__PURE__ */ t(p, { children: [
-            /* @__PURE__ */ e(o, { variant: "outline", onClick: () => y(null), children: "Cancel" }),
+            /* @__PURE__ */ e(o, { variant: "outline", onClick: () => f(null), children: "Cancel" }),
             /* @__PURE__ */ e(
               o,
               {
                 variant: "destructive",
                 onClick: () => {
-                  v && f(v, !1), y(null);
+                  v && S(v, !1), f(null);
                 },
                 children: "Switch off"
               }
@@ -1707,10 +1707,10 @@ function ot({ sections: c, mode: n, groups: a, updateUrl: r }) {
   );
 }
 function ut({ sections: c, methods: n, instanceTypes: a }) {
-  const { Card: r, CardContent: s, Button: l, Switch: d } = j, { Link: u, router: x } = P, o = (N, b) => x.post(C("commerce/settings/payments/move"), { key: N, direction: b }, { preserveScroll: !0 });
+  const { Card: r, CardContent: s, Button: l, Switch: d } = j, { Link: u, router: x } = P, o = (N, y) => x.post(C("commerce/settings/payments/move"), { key: N, direction: y }, { preserveScroll: !0 });
   return /* @__PURE__ */ t(pe, { sections: c, current: "payments", title: "Payments", description: "Payment methods offered at checkout and on the pay page, in this order.", children: [
     n.length === 0 && /* @__PURE__ */ e(de, { title: "No payment methods", description: "Switch on Bank transfer, QRIS and cash on delivery in Features, or install a gateway package." }),
-    n.length > 0 && /* @__PURE__ */ e(r, { children: /* @__PURE__ */ e(s, { className: "cm:p-0", children: /* @__PURE__ */ e("ul", { className: "cm:divide-y cm:divide-border", children: n.map((N, b) => /* @__PURE__ */ t("li", { className: "cm:flex cm:items-center cm:justify-between cm:gap-3 cm:px-4 cm:py-3", children: [
+    n.length > 0 && /* @__PURE__ */ e(r, { children: /* @__PURE__ */ e(s, { className: "cm:p-0", children: /* @__PURE__ */ e("ul", { className: "cm:divide-y cm:divide-border", children: n.map((N, y) => /* @__PURE__ */ t("li", { className: "cm:flex cm:items-center cm:justify-between cm:gap-3 cm:px-4 cm:py-3", children: [
       /* @__PURE__ */ t("div", { className: "cm:min-w-0", children: [
         /* @__PURE__ */ e(u, { href: C(N.edit_url), className: "cm:font-medium cm:hover:underline", children: N.title }),
         /* @__PURE__ */ t("p", { className: "cm:text-xs cm:text-muted-foreground", children: [
@@ -1720,8 +1720,8 @@ function ut({ sections: c, methods: n, instanceTypes: a }) {
       ] }),
       /* @__PURE__ */ t("div", { className: "cm:flex cm:items-center cm:gap-2", children: [
         !N.active && /* @__PURE__ */ e(R, { children: "Off" }),
-        /* @__PURE__ */ e(l, { variant: "ghost", size: "sm", "aria-label": "Move up", disabled: b === 0, onClick: () => o(N.key, "up"), children: "↑" }),
-        /* @__PURE__ */ e(l, { variant: "ghost", size: "sm", "aria-label": "Move down", disabled: b === n.length - 1, onClick: () => o(N.key, "down"), children: "↓" }),
+        /* @__PURE__ */ e(l, { variant: "ghost", size: "sm", "aria-label": "Move up", disabled: y === 0, onClick: () => o(N.key, "up"), children: "↑" }),
+        /* @__PURE__ */ e(l, { variant: "ghost", size: "sm", "aria-label": "Move down", disabled: y === n.length - 1, onClick: () => o(N.key, "down"), children: "↓" }),
         /* @__PURE__ */ e(
           d,
           {
@@ -1769,10 +1769,11 @@ function Ce({ form: c, footer: n }) {
   );
 }
 function ht({ section: c, sections: n, form: a }) {
-  return /* @__PURE__ */ e(pe, { sections: n, current: c.key, title: `${c.label} settings`, children: /* @__PURE__ */ e(Ce, { form: a }, c.key) });
+  const r = ne.settingsSections()[c.key];
+  return /* @__PURE__ */ e(pe, { sections: n, current: c.key, title: `${c.label} settings`, children: r ? /* @__PURE__ */ e(r, { section: c, form: a }, c.key) : /* @__PURE__ */ e(Ce, { form: a }, c.key) });
 }
 function pt({ sections: c, zones: n, types: a, couriers: r, moveUrl: s }) {
-  const { Card: l, CardContent: d, CardHeader: u, CardTitle: x, Button: o, Select: N, SelectContent: b, SelectItem: h, SelectTrigger: p, SelectValue: _ } = j, { Link: g } = P, i = (v, y, w) => P.router.post(C(s), { kind: v, id: y, direction: w }, { preserveScroll: !0 });
+  const { Card: l, CardContent: d, CardHeader: u, CardTitle: x, Button: o, Select: N, SelectContent: y, SelectItem: h, SelectTrigger: p, SelectValue: _ } = j, { Link: g } = P, i = (v, f, w) => P.router.post(C(s), { kind: v, id: f, direction: w }, { preserveScroll: !0 });
   return /* @__PURE__ */ t(
     pe,
     {
@@ -1783,7 +1784,7 @@ function pt({ sections: c, zones: n, types: a, couriers: r, moveUrl: s }) {
       children: [
         /* @__PURE__ */ e("div", { className: "cm:flex cm:justify-end", children: /* @__PURE__ */ e(o, { asChild: !0, children: /* @__PURE__ */ e(g, { href: C("commerce/settings/shipping/zones/create"), children: "Add zone" }) }) }),
         n.length === 0 && /* @__PURE__ */ e(de, { title: "No shipping zones yet", description: "Without a zone, checkout offers no shipping. Add one for your country or provinces." }),
-        n.map((v, y) => /* @__PURE__ */ t(l, { children: [
+        n.map((v, f) => /* @__PURE__ */ t(l, { children: [
           /* @__PURE__ */ t(u, { className: "cm:flex cm:flex-row cm:items-start cm:justify-between cm:gap-4", children: [
             /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-1", children: [
               /* @__PURE__ */ t(x, { className: "cm:flex cm:items-center cm:gap-2", children: [
@@ -1793,14 +1794,14 @@ function pt({ sections: c, zones: n, types: a, couriers: r, moveUrl: s }) {
               !v.everywhere_else && /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-muted-foreground", children: v.regions.length > 0 ? v.regions.join(", ") : "No regions" })
             ] }),
             /* @__PURE__ */ t("div", { className: "cm:flex cm:shrink-0 cm:gap-1", children: [
-              /* @__PURE__ */ e(o, { variant: "ghost", size: "sm", "aria-label": "Move up", disabled: y === 0, onClick: () => i("zone", v.id, "up"), children: "↑" }),
-              /* @__PURE__ */ e(o, { variant: "ghost", size: "sm", "aria-label": "Move down", disabled: y === n.length - 1, onClick: () => i("zone", v.id, "down"), children: "↓" }),
+              /* @__PURE__ */ e(o, { variant: "ghost", size: "sm", "aria-label": "Move up", disabled: f === 0, onClick: () => i("zone", v.id, "up"), children: "↑" }),
+              /* @__PURE__ */ e(o, { variant: "ghost", size: "sm", "aria-label": "Move down", disabled: f === n.length - 1, onClick: () => i("zone", v.id, "down"), children: "↓" }),
               /* @__PURE__ */ e(o, { variant: "outline", size: "sm", asChild: !0, children: /* @__PURE__ */ e(g, { href: C(v.edit_url), children: "Edit" }) })
             ] })
           ] }),
           /* @__PURE__ */ t(d, { className: "cm:grid cm:gap-3", children: [
             v.methods.length === 0 && /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-muted-foreground", children: "No methods in this zone." }),
-            v.methods.length > 0 && /* @__PURE__ */ e("ul", { className: "cm:divide-y cm:divide-border cm:rounded-md cm:border", children: v.methods.map((w, S) => /* @__PURE__ */ t("li", { className: "cm:flex cm:items-center cm:justify-between cm:gap-3 cm:px-3 cm:py-2", children: [
+            v.methods.length > 0 && /* @__PURE__ */ e("ul", { className: "cm:divide-y cm:divide-border cm:rounded-md cm:border", children: v.methods.map((w, $) => /* @__PURE__ */ t("li", { className: "cm:flex cm:items-center cm:justify-between cm:gap-3 cm:px-3 cm:py-2", children: [
               /* @__PURE__ */ t("div", { className: "cm:min-w-0", children: [
                 /* @__PURE__ */ e(g, { href: C(w.edit_url), className: "cm:font-medium cm:hover:underline", children: w.title }),
                 /* @__PURE__ */ t("p", { className: "cm:text-xs cm:text-muted-foreground", children: [
@@ -1810,13 +1811,13 @@ function pt({ sections: c, zones: n, types: a, couriers: r, moveUrl: s }) {
               ] }),
               /* @__PURE__ */ t("div", { className: "cm:flex cm:items-center cm:gap-1", children: [
                 !w.active && /* @__PURE__ */ e(R, { children: "Inactive" }),
-                /* @__PURE__ */ e(o, { variant: "ghost", size: "sm", "aria-label": "Move up", disabled: S === 0, onClick: () => i("method", w.id, "up"), children: "↑" }),
-                /* @__PURE__ */ e(o, { variant: "ghost", size: "sm", "aria-label": "Move down", disabled: S === v.methods.length - 1, onClick: () => i("method", w.id, "down"), children: "↓" })
+                /* @__PURE__ */ e(o, { variant: "ghost", size: "sm", "aria-label": "Move up", disabled: $ === 0, onClick: () => i("method", w.id, "up"), children: "↑" }),
+                /* @__PURE__ */ e(o, { variant: "ghost", size: "sm", "aria-label": "Move down", disabled: $ === v.methods.length - 1, onClick: () => i("method", w.id, "down"), children: "↓" })
               ] })
             ] }, w.id)) }),
             /* @__PURE__ */ e("div", { children: /* @__PURE__ */ t(N, { value: "", onValueChange: (w) => P.router.visit(C(`commerce/settings/shipping/zones/${v.id}/methods/create?type=${w}`)), children: [
               /* @__PURE__ */ e(p, { className: "cm:w-48", "aria-label": `Add a method to ${v.name}`, children: /* @__PURE__ */ e(_, { placeholder: "Add method…" }) }),
-              /* @__PURE__ */ e(b, { children: a.map((w) => /* @__PURE__ */ e(h, { value: w.key, children: w.label }, w.key)) })
+              /* @__PURE__ */ e(y, { children: a.map((w) => /* @__PURE__ */ e(h, { value: w.key, children: w.label }, w.key)) })
             ] }) })
           ] })
         ] }, v.id)),
@@ -1944,12 +1945,12 @@ function xt({ field: c, value: n, onChange: a, errors: r, pathPrefix: s }) {
   );
 }
 function Nt({ field: c, value: n, onChange: a, pathPrefix: r }) {
-  const { Input: s, Badge: l } = j, d = c.config ?? {}, u = Array.isArray(n) ? n : [], [x, o] = T.useState(""), [N, b] = T.useState([]), [h, p] = T.useState(!1);
+  const { Input: s, Badge: l } = j, d = c.config ?? {}, u = Array.isArray(n) ? n : [], [x, o] = T.useState(""), [N, y] = T.useState([]), [h, p] = T.useState(!1);
   T.useEffect(() => {
     if (!h) return;
     const i = new URLSearchParams({ q: x });
-    (d.types ?? []).forEach((y) => i.append("types[]", y)), (d.taxonomies ?? []).forEach((y) => i.append("taxonomies[]", y));
-    const v = setTimeout(() => X(`${d.api}?${i}`).then((y) => b(y.data)).catch(() => b([])), 200);
+    (d.types ?? []).forEach((f) => i.append("types[]", f)), (d.taxonomies ?? []).forEach((f) => i.append("taxonomies[]", f));
+    const v = setTimeout(() => X(`${d.api}?${i}`).then((f) => y(f.data)).catch(() => y([])), 200);
     return () => clearTimeout(v);
   }, [x, h]);
   const _ = (i) => u.some((v) => v.type === i.type && v.id === i.id), g = { product: "Product", variant: "Variant", term: "Category/brand" };
@@ -2064,7 +2065,7 @@ function he({ id: c, value: n, onChange: a, placeholder: r, onBlur: s }) {
     }
   );
 }
-function ne({ id: c, value: n, onChange: a, nullable: r = !0 }) {
+function ce({ id: c, value: n, onChange: a, nullable: r = !0 }) {
   return /* @__PURE__ */ e(se, { id: c, value: n, allowNull: r, onChange: a });
 }
 function oe({ id: c, label: n, checked: a, onChange: r, hint: s }) {
@@ -2094,14 +2095,14 @@ function V({ title: c, description: n, children: a, actions: r }) {
   ] });
 }
 function wt({ value: c, update: n, path: a }) {
-  const { Button: r, Input: s } = j, l = c.bundle ?? { pricing: "fixed", value: 0, items: [] }, [d, u] = T.useState({}), [x, o] = T.useState(""), [N, b] = T.useState([]), h = l.items.map((g) => g.variant_id).filter((g) => !!g);
+  const { Button: r, Input: s } = j, l = c.bundle ?? { pricing: "fixed", value: 0, items: [] }, [d, u] = T.useState({}), [x, o] = T.useState(""), [N, y] = T.useState([]), h = l.items.map((g) => g.variant_id).filter((g) => !!g);
   T.useEffect(() => {
     const g = h.filter((i) => !d[i]);
-    g.length !== 0 && X(C(`commerce/api/variants?${g.map((i) => `ids[]=${i}`).join("&")}`)).then((i) => u((v) => ({ ...v, ...Object.fromEntries(i.data.map((y) => [y.id, y])) }))).catch(() => {
+    g.length !== 0 && X(C(`commerce/api/variants?${g.map((i) => `ids[]=${i}`).join("&")}`)).then((i) => u((v) => ({ ...v, ...Object.fromEntries(i.data.map((f) => [f.id, f])) }))).catch(() => {
     });
   }, [h.join(",")]), T.useEffect(() => {
-    if (x.trim().length < 2) return b([]);
-    const g = setTimeout(() => X(C(`commerce/api/variants?q=${encodeURIComponent(x)}`)).then((i) => b(i.data)).catch(() => {
+    if (x.trim().length < 2) return y([]);
+    const g = setTimeout(() => X(C(`commerce/api/variants?q=${encodeURIComponent(x)}`)).then((i) => y(i.data)).catch(() => {
     }), 250);
     return () => clearTimeout(g);
   }, [x]);
@@ -2110,8 +2111,8 @@ function wt({ value: c, update: n, path: a }) {
     /* @__PURE__ */ t(V, { title: "Products in the bundle", description: "Bundles take their stock from these products.", children: [
       l.items.map((g, i) => /* @__PURE__ */ t("div", { className: "cm:flex cm:items-center cm:gap-3", children: [
         /* @__PURE__ */ e("span", { className: "cm:flex-1 cm:text-sm", children: d[g.variant_id ?? 0]?.label ?? `#${g.variant_id}` }),
-        /* @__PURE__ */ e("div", { className: "cm:w-24", children: /* @__PURE__ */ e(E, { min: 1, value: g.quantity, onChange: (v) => p({ items: l.items.map((y, w) => w === i ? { ...y, quantity: v ?? 1 } : y) }) }) }),
-        /* @__PURE__ */ e(r, { type: "button", variant: "ghost", size: "sm", onClick: () => p({ items: l.items.filter((v, y) => y !== i) }), children: "Remove" })
+        /* @__PURE__ */ e("div", { className: "cm:w-24", children: /* @__PURE__ */ e(E, { min: 1, value: g.quantity, onChange: (v) => p({ items: l.items.map((f, w) => w === i ? { ...f, quantity: v ?? 1 } : f) }) }) }),
+        /* @__PURE__ */ e(r, { type: "button", variant: "ghost", size: "sm", onClick: () => p({ items: l.items.filter((v, f) => f !== i) }), children: "Remove" })
       ] }, i)),
       /* @__PURE__ */ t("div", { className: "cm:relative", children: [
         /* @__PURE__ */ e(s, { value: x, placeholder: "Search products or SKUs to add…", "aria-label": "Add a product to the bundle", onChange: (g) => o(g.target.value) }),
@@ -2148,7 +2149,7 @@ function wt({ value: c, update: n, path: a }) {
         }
       ) }),
       l.pricing === "percent_off" && /* @__PURE__ */ e(q, { label: "Percent off", htmlFor: `${a}-bundle-value`, children: /* @__PURE__ */ e(E, { id: `${a}-bundle-value`, value: l.value / 100, onChange: (g) => p({ value: Math.round((g ?? 0) * 100) }) }) }),
-      l.pricing === "amount_off" && /* @__PURE__ */ e(q, { label: "Amount off", htmlFor: `${a}-bundle-value`, children: /* @__PURE__ */ e(ne, { id: `${a}-bundle-value`, value: l.value, nullable: !1, onChange: (g) => p({ value: g ?? 0 }) }) })
+      l.pricing === "amount_off" && /* @__PURE__ */ e(q, { label: "Amount off", htmlFor: `${a}-bundle-value`, children: /* @__PURE__ */ e(ce, { id: `${a}-bundle-value`, value: l.value, nullable: !1, onChange: (g) => p({ value: g ?? 0 }) }) })
     ] }) })
   ] });
 }
@@ -2156,12 +2157,12 @@ function St() {
   return decodeURIComponent(document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]+)/)?.[1] ?? "");
 }
 function $t({ value: c, update: n, path: a }) {
-  const { Button: r } = j, [s, l] = T.useState(!1), d = T.useRef(null), u = c.delivery ?? { modes: ["link", "account"], download_limit: null, expiry_days: null }, x = (b) => n({ delivery: { ...u, ...b } }), o = (b, h) => n({ downloads: c.downloads.map((p, _) => _ === b ? { ...p, ...h } : p) }), N = async (b) => {
-    if (b?.length) {
+  const { Button: r } = j, [s, l] = T.useState(!1), d = T.useRef(null), u = c.delivery ?? { modes: ["link", "account"], download_limit: null, expiry_days: null }, x = (y) => n({ delivery: { ...u, ...y } }), o = (y, h) => n({ downloads: c.downloads.map((p, _) => _ === y ? { ...p, ...h } : p) }), N = async (y) => {
+    if (y?.length) {
       l(!0);
       try {
         const h = [];
-        for (const p of Array.from(b)) {
+        for (const p of Array.from(y)) {
           const _ = new FormData();
           _.append("file", p);
           const g = await fetch(C("commerce/api/downloads"), { method: "POST", body: _, headers: { "X-XSRF-TOKEN": St(), Accept: "application/json" }, credentials: "same-origin" }), i = await g.json();
@@ -2185,32 +2186,32 @@ function $t({ value: c, update: n, path: a }) {
         actions: /* @__PURE__ */ t("div", { className: "cm:flex cm:gap-2", children: [
           /* @__PURE__ */ e(r, { type: "button", variant: "outline", size: "sm", disabled: s, onClick: () => d.current?.click(), children: s ? "Uploading…" : "Upload file" }),
           /* @__PURE__ */ e(r, { type: "button", variant: "outline", size: "sm", onClick: () => n({ downloads: [...c.downloads, { id: Z(), type: "url", file_id: null, url: null, name: "" }] }), children: "Add link" }),
-          /* @__PURE__ */ e("input", { ref: d, type: "file", multiple: !0, hidden: !0, onChange: (b) => N(b.target.files) })
+          /* @__PURE__ */ e("input", { ref: d, type: "file", multiple: !0, hidden: !0, onChange: (y) => N(y.target.files) })
         ] }),
         children: [
           c.downloads.length === 0 && /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-muted-foreground", children: "No files yet." }),
-          c.downloads.map((b, h) => /* @__PURE__ */ t("div", { className: "cm:grid cm:items-end cm:gap-3 cm:sm:grid-cols-[1fr_2fr_auto]", children: [
-            /* @__PURE__ */ e(q, { label: "Name", htmlFor: `${a}-dl-${h}`, children: /* @__PURE__ */ e(he, { id: `${a}-dl-${h}`, value: b.name, onChange: (p) => o(h, { name: p ?? "" }) }) }),
-            b.type === "url" ? /* @__PURE__ */ e(q, { label: "Link", htmlFor: `${a}-dl-${h}-url`, children: /* @__PURE__ */ e(he, { id: `${a}-dl-${h}-url`, value: b.url, placeholder: "https://", onChange: (p) => o(h, { url: p }) }) }) : /* @__PURE__ */ e(q, { label: "File", children: /* @__PURE__ */ e("p", { className: "cm:truncate cm:text-sm cm:text-muted-foreground", children: b.file?.filename ?? `File #${b.file_id}` }) }),
+          c.downloads.map((y, h) => /* @__PURE__ */ t("div", { className: "cm:grid cm:items-end cm:gap-3 cm:sm:grid-cols-[1fr_2fr_auto]", children: [
+            /* @__PURE__ */ e(q, { label: "Name", htmlFor: `${a}-dl-${h}`, children: /* @__PURE__ */ e(he, { id: `${a}-dl-${h}`, value: y.name, onChange: (p) => o(h, { name: p ?? "" }) }) }),
+            y.type === "url" ? /* @__PURE__ */ e(q, { label: "Link", htmlFor: `${a}-dl-${h}-url`, children: /* @__PURE__ */ e(he, { id: `${a}-dl-${h}-url`, value: y.url, placeholder: "https://", onChange: (p) => o(h, { url: p }) }) }) : /* @__PURE__ */ e(q, { label: "File", children: /* @__PURE__ */ e("p", { className: "cm:truncate cm:text-sm cm:text-muted-foreground", children: y.file?.filename ?? `File #${y.file_id}` }) }),
             /* @__PURE__ */ e(r, { type: "button", variant: "ghost", size: "sm", onClick: () => n({ downloads: c.downloads.filter((p, _) => _ !== h) }), children: "Remove" })
-          ] }, b.id ?? h))
+          ] }, y.id ?? h))
         ]
       }
     ),
     /* @__PURE__ */ t(V, { title: "Delivery", children: [
-      /* @__PURE__ */ e("div", { className: "cm:grid cm:gap-3 cm:sm:grid-cols-3", children: [["attachment", "Attach files to the email"], ["link", "Download links in the email"], ["account", "Library in My Account"]].map(([b, h]) => /* @__PURE__ */ e(
+      /* @__PURE__ */ e("div", { className: "cm:grid cm:gap-3 cm:sm:grid-cols-3", children: [["attachment", "Attach files to the email"], ["link", "Download links in the email"], ["account", "Library in My Account"]].map(([y, h]) => /* @__PURE__ */ e(
         oe,
         {
-          id: `${a}-mode-${b}`,
+          id: `${a}-mode-${y}`,
           label: h,
-          checked: u.modes.includes(b),
-          onChange: (p) => x({ modes: p ? [...u.modes, b] : u.modes.filter((_) => _ !== b) })
+          checked: u.modes.includes(y),
+          onChange: (p) => x({ modes: p ? [...u.modes, y] : u.modes.filter((_) => _ !== y) })
         },
-        b
+        y
       )) }),
       /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-3 cm:sm:grid-cols-2", children: [
-        /* @__PURE__ */ e(q, { label: "Downloads per file", htmlFor: `${a}-limit`, hint: "Empty: unlimited.", children: /* @__PURE__ */ e(E, { id: `${a}-limit`, min: 1, value: u.download_limit, onChange: (b) => x({ download_limit: b }) }) }),
-        /* @__PURE__ */ e(q, { label: "Links expire after (days)", htmlFor: `${a}-expiry`, hint: "Empty: never.", children: /* @__PURE__ */ e(E, { id: `${a}-expiry`, min: 1, value: u.expiry_days, onChange: (b) => x({ expiry_days: b }) }) })
+        /* @__PURE__ */ e(q, { label: "Downloads per file", htmlFor: `${a}-limit`, hint: "Empty: unlimited.", children: /* @__PURE__ */ e(E, { id: `${a}-limit`, min: 1, value: u.download_limit, onChange: (y) => x({ download_limit: y }) }) }),
+        /* @__PURE__ */ e(q, { label: "Links expire after (days)", htmlFor: `${a}-expiry`, hint: "Empty: never.", children: /* @__PURE__ */ e(E, { id: `${a}-expiry`, min: 1, value: u.expiry_days, onChange: (y) => x({ expiry_days: y }) }) })
       ] })
     ] })
   ] });
@@ -2250,9 +2251,9 @@ function Ft({ value: c, update: n, updateVariant: a, config: r, entryId: s, path
       /* @__PURE__ */ e(q, { label: "Button on the product page", htmlFor: `${l}-mode`, hint: "'Follow the store' uses the selling mode set in Settings → Store.", children: /* @__PURE__ */ e(Q, { id: `${l}-mode`, value: c.purchase_mode, options: Dt, onChange: (o) => n({ purchase_mode: o }) }) })
     ] }),
     c.type !== "variable" && x && /* @__PURE__ */ e(V, { title: "Price", children: /* @__PURE__ */ t(ue, { cols: 4, children: [
-      /* @__PURE__ */ e(q, { label: "Price", htmlFor: `${l}-price`, children: /* @__PURE__ */ e(ne, { id: `${l}-price`, value: x.price, nullable: !1, onChange: (o) => a(0, { price: o ?? 0 }) }) }),
-      /* @__PURE__ */ e(q, { label: "Compare-at price", htmlFor: `${l}-compare`, hint: "Shown struck through when higher.", children: /* @__PURE__ */ e(ne, { id: `${l}-compare`, value: x.compare_at_price, onChange: (o) => a(0, { compare_at_price: o }) }) }),
-      /* @__PURE__ */ e(q, { label: "Cost", htmlFor: `${l}-cost`, hint: "For profit reports; never shown.", children: /* @__PURE__ */ e(ne, { id: `${l}-cost`, value: x.cost, onChange: (o) => a(0, { cost: o }) }) }),
+      /* @__PURE__ */ e(q, { label: "Price", htmlFor: `${l}-price`, children: /* @__PURE__ */ e(ce, { id: `${l}-price`, value: x.price, nullable: !1, onChange: (o) => a(0, { price: o ?? 0 }) }) }),
+      /* @__PURE__ */ e(q, { label: "Compare-at price", htmlFor: `${l}-compare`, hint: "Shown struck through when higher.", children: /* @__PURE__ */ e(ce, { id: `${l}-compare`, value: x.compare_at_price, onChange: (o) => a(0, { compare_at_price: o }) }) }),
+      /* @__PURE__ */ e(q, { label: "Cost", htmlFor: `${l}-cost`, hint: "For profit reports; never shown.", children: /* @__PURE__ */ e(ce, { id: `${l}-cost`, value: x.cost, onChange: (o) => a(0, { cost: o }) }) }),
       /* @__PURE__ */ e(q, { label: "SKU", htmlFor: `${l}-sku`, children: /* @__PURE__ */ e(Ae, { id: `${l}-sku`, value: x.sku, entryId: s, onChange: (o) => a(0, { sku: o }) }) })
     ] }) }),
     (c.purchase_mode === "external" || c.external_links.length > 0) && /* @__PURE__ */ e(
@@ -2262,19 +2263,19 @@ function Ft({ value: c, update: n, updateVariant: a, config: r, entryId: s, path
         description: "Buttons such as 'Buy on Tokopedia'.",
         actions: c.external_links.length < 10 && /* @__PURE__ */ e(d, { type: "button", variant: "outline", size: "sm", onClick: () => n({ external_links: [...c.external_links, { preset: "tokopedia", label: null, url: null }] }), children: "Add link" }),
         children: c.external_links.map((o, N) => {
-          const b = (h) => n({ external_links: c.external_links.map((p, _) => _ === N ? { ...p, ...h } : p) });
+          const y = (h) => n({ external_links: c.external_links.map((p, _) => _ === N ? { ...p, ...h } : p) });
           return /* @__PURE__ */ t("div", { className: "cm:grid cm:items-end cm:gap-3 cm:sm:grid-cols-[10rem_1fr_2fr_auto]", children: [
             /* @__PURE__ */ e(q, { label: "Shop", htmlFor: `${l}-link-${N}-preset`, children: /* @__PURE__ */ e(
               Q,
               {
                 id: `${l}-link-${N}-preset`,
                 value: o.preset ?? "",
-                onChange: (h) => b({ preset: h || null }),
+                onChange: (h) => y({ preset: h || null }),
                 options: [...Object.entries(r.link_presets), ["", "Other…"]]
               }
             ) }),
-            /* @__PURE__ */ e(q, { label: "Button label", htmlFor: `${l}-link-${N}-label`, children: /* @__PURE__ */ e(he, { id: `${l}-link-${N}-label`, value: o.label, placeholder: o.preset ? `Buy on ${r.link_presets[o.preset]}` : "", onChange: (h) => b({ label: h }) }) }),
-            /* @__PURE__ */ e(q, { label: "Link", htmlFor: `${l}-link-${N}-url`, children: /* @__PURE__ */ e(he, { id: `${l}-link-${N}-url`, value: o.url, placeholder: "https://", onChange: (h) => b({ url: h }) }) }),
+            /* @__PURE__ */ e(q, { label: "Button label", htmlFor: `${l}-link-${N}-label`, children: /* @__PURE__ */ e(he, { id: `${l}-link-${N}-label`, value: o.label, placeholder: o.preset ? `Buy on ${r.link_presets[o.preset]}` : "", onChange: (h) => y({ label: h }) }) }),
+            /* @__PURE__ */ e(q, { label: "Link", htmlFor: `${l}-link-${N}-url`, children: /* @__PURE__ */ e(he, { id: `${l}-link-${N}-url`, value: o.url, placeholder: "https://", onChange: (h) => y({ url: h }) }) }),
             /* @__PURE__ */ e(d, { type: "button", variant: "ghost", size: "sm", onClick: () => n({ external_links: c.external_links.filter((h, p) => p !== N) }), children: "Remove" })
           ] }, N);
         })
@@ -2364,7 +2365,7 @@ function qt({ value: c, update: n, path: a }) {
               options: [["percent_off", "Percent off"], ["amount_off", "Amount off per unit"], ["fixed_price", "Fixed unit price"]]
             }
           ) }),
-          /* @__PURE__ */ e(q, { label: l.type === "percent_off" ? "Percent" : "Amount", htmlFor: `${a}-tier-${d}-value`, children: l.type === "percent_off" ? /* @__PURE__ */ e(E, { id: `${a}-tier-${d}-value`, value: l.value / 100, onChange: (u) => s(d, { value: Math.round((u ?? 0) * 100) }) }) : /* @__PURE__ */ e(ne, { id: `${a}-tier-${d}-value`, value: l.value, nullable: !1, onChange: (u) => s(d, { value: u ?? 0 }) }) }),
+          /* @__PURE__ */ e(q, { label: l.type === "percent_off" ? "Percent" : "Amount", htmlFor: `${a}-tier-${d}-value`, children: l.type === "percent_off" ? /* @__PURE__ */ e(E, { id: `${a}-tier-${d}-value`, value: l.value / 100, onChange: (u) => s(d, { value: Math.round((u ?? 0) * 100) }) }) : /* @__PURE__ */ e(ce, { id: `${a}-tier-${d}-value`, value: l.value, nullable: !1, onChange: (u) => s(d, { value: u ?? 0 }) }) }),
           /* @__PURE__ */ e(q, { label: "For", htmlFor: `${a}-tier-${d}-variant`, children: /* @__PURE__ */ e(
             Q,
             {
@@ -2426,7 +2427,7 @@ function Rt(c) {
   }, [r.join(",")]), n;
 }
 function Pt({ option: c, onChange: n, onRemove: a, config: r, path: s }) {
-  const { Button: l, Input: d, Badge: u } = j, { FieldRenderer: x } = me, [o, N] = T.useState(""), b = () => {
+  const { Button: l, Input: d, Badge: u } = j, { FieldRenderer: x } = me, [o, N] = T.useState(""), y = () => {
     const p = o.split(",").map((_) => _.trim()).filter(Boolean).filter((_) => !c.values.some((g) => (g.label ?? "").toLowerCase() === _.toLowerCase()));
     p.length && n({ ...c, values: [...c.values, ...p.map((_) => ({ id: Z(), label: _ }))] }), N("");
   }, h = c.values.map((p) => p.term_id).filter((p) => !!p);
@@ -2451,7 +2452,7 @@ function Pt({ option: c, onChange: n, onRemove: a, config: r, path: s }) {
         values: { terms: h },
         pathPrefix: `${s}-terms`,
         onChange: (p) => {
-          const _ = p.terms ?? [], g = c.values.filter((v) => v.term_id && _.includes(v.term_id)), i = _.filter((v) => !g.some((y) => y.term_id === v)).map((v) => ({ id: Z(), term_id: v }));
+          const _ = p.terms ?? [], g = c.values.filter((v) => v.term_id && _.includes(v.term_id)), i = _.filter((v) => !g.some((f) => f.term_id === v)).map((v) => ({ id: Z(), term_id: v }));
           n({ ...c, values: [...g, ...i] });
         }
       }
@@ -2469,11 +2470,11 @@ function Pt({ option: c, onChange: n, onRemove: a, config: r, path: s }) {
             "aria-label": `Add values to ${c.name || "option"}`,
             onChange: (p) => N(p.target.value),
             onKeyDown: (p) => {
-              p.key === "Enter" && (p.preventDefault(), b());
+              p.key === "Enter" && (p.preventDefault(), y());
             }
           }
         ),
-        /* @__PURE__ */ e(l, { type: "button", variant: "outline", onClick: b, children: "Add" })
+        /* @__PURE__ */ e(l, { type: "button", variant: "outline", onClick: y, children: "Add" })
       ] })
     ] })
   ] });
@@ -2482,7 +2483,7 @@ function It({ variant: c, index: n, updateVariant: a, tab: r }) {
   const { FieldRenderer: s } = me, l = `${r.path}-v${n}`, d = r.live?.variants[c.id];
   return /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-4 cm:bg-muted/40 cm:p-4", children: [
     /* @__PURE__ */ t(ue, { cols: 4, children: [
-      /* @__PURE__ */ e(q, { label: "Cost", htmlFor: `${l}-cost`, children: /* @__PURE__ */ e(ne, { id: `${l}-cost`, value: c.cost, onChange: (u) => a(n, { cost: u }) }) }),
+      /* @__PURE__ */ e(q, { label: "Cost", htmlFor: `${l}-cost`, children: /* @__PURE__ */ e(ce, { id: `${l}-cost`, value: c.cost, onChange: (u) => a(n, { cost: u }) }) }),
       /* @__PURE__ */ e(q, { label: "Barcode", htmlFor: `${l}-barcode`, children: /* @__PURE__ */ e(he, { id: `${l}-barcode`, value: c.barcode, onChange: (u) => a(n, { barcode: u }) }) }),
       /* @__PURE__ */ e(q, { label: "Weight (g)", htmlFor: `${l}-weight`, children: /* @__PURE__ */ e(E, { id: `${l}-weight`, value: c.weight, onChange: (u) => a(n, { weight: u }), placeholder: "Product's" }) }),
       /* @__PURE__ */ e(q, { label: "Min / max / step", htmlFor: `${l}-min`, children: /* @__PURE__ */ t("div", { className: "cm:grid cm:grid-cols-3 cm:gap-1", children: [
@@ -2528,7 +2529,7 @@ function It({ variant: c, index: n, updateVariant: a, tab: r }) {
   ] });
 }
 function Bt(c) {
-  const { value: n, update: a, updateVariant: r, config: s, entryId: l, live: d } = c, { Button: u, Table: x, TableBody: o, TableCell: N, TableHead: b, TableHeader: h, TableRow: p, Switch: _ } = j, [g, i] = T.useState(null), v = Rt(n.options.flatMap((S) => S.values.map((f) => f.term_id).filter((f) => !!f))), y = n.variants[0] ?? { ...xe, id: Z() }, w = (S = n.options) => a({ options: S, variants: _t(S, n.variants, { ...y, initial_stock: null, image: null }, s.max_variants) });
+  const { value: n, update: a, updateVariant: r, config: s, entryId: l, live: d } = c, { Button: u, Table: x, TableBody: o, TableCell: N, TableHead: y, TableHeader: h, TableRow: p, Switch: _ } = j, [g, i] = T.useState(null), v = Rt(n.options.flatMap(($) => $.values.map((S) => S.term_id).filter((S) => !!S))), f = n.variants[0] ?? { ...xe, id: Z() }, w = ($ = n.options) => a({ options: $, variants: _t($, n.variants, { ...f, initial_stock: null, image: null }, s.max_variants) });
   return /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-6", children: [
     /* @__PURE__ */ e(
       V,
@@ -2536,16 +2537,16 @@ function Bt(c) {
         title: "Options",
         description: `Up to ${s.max_options} options, such as size and color. Variants are made for every combination.`,
         actions: n.options.length < s.max_options && /* @__PURE__ */ e(u, { type: "button", variant: "outline", size: "sm", onClick: () => a({ options: [...n.options, { id: Z(), name: "", taxonomy: null, values: [] }] }), children: "Add option" }),
-        children: n.options.map((S, f) => /* @__PURE__ */ e(
+        children: n.options.map(($, S) => /* @__PURE__ */ e(
           Pt,
           {
-            option: S,
+            option: $,
             config: s,
-            path: `${c.path}-o${f}`,
-            onChange: (F) => w(n.options.map((D, M) => M === f ? F : D)),
-            onRemove: () => w(n.options.filter((F, D) => D !== f))
+            path: `${c.path}-o${S}`,
+            onChange: (b) => w(n.options.map((F, M) => M === S ? b : F)),
+            onRemove: () => w(n.options.filter((b, F) => F !== S))
           },
-          S.id
+          $.id
         ))
       }
     ),
@@ -2558,35 +2559,35 @@ function Bt(c) {
         children: [
           n.options.length === 0 ? /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-muted-foreground", children: "Add an option with values to create variants." }) : /* @__PURE__ */ e("div", { className: "cm:overflow-x-auto cm:rounded-md cm:border", children: /* @__PURE__ */ t(x, { children: [
             /* @__PURE__ */ e(h, { children: /* @__PURE__ */ t(p, { children: [
-              /* @__PURE__ */ e(b, { children: "Variant" }),
-              /* @__PURE__ */ e(b, { children: "SKU" }),
-              /* @__PURE__ */ e(b, { children: "Price" }),
-              /* @__PURE__ */ e(b, { children: "Compare-at" }),
-              s.features.inventory && /* @__PURE__ */ e(b, { children: "Stock" }),
-              /* @__PURE__ */ e(b, { children: "On sale" }),
-              /* @__PURE__ */ e(b, {})
+              /* @__PURE__ */ e(y, { children: "Variant" }),
+              /* @__PURE__ */ e(y, { children: "SKU" }),
+              /* @__PURE__ */ e(y, { children: "Price" }),
+              /* @__PURE__ */ e(y, { children: "Compare-at" }),
+              s.features.inventory && /* @__PURE__ */ e(y, { children: "Stock" }),
+              /* @__PURE__ */ e(y, { children: "On sale" }),
+              /* @__PURE__ */ e(y, {})
             ] }) }),
-            /* @__PURE__ */ e(o, { children: n.variants.map((S, f) => {
-              const F = d?.variants[S.id];
+            /* @__PURE__ */ e(o, { children: n.variants.map(($, S) => {
+              const b = d?.variants[$.id];
               return /* @__PURE__ */ t(T.Fragment, { children: [
-                /* @__PURE__ */ t(p, { className: S.active ? "" : "cm:opacity-60", children: [
-                  /* @__PURE__ */ e(N, { className: "cm:font-medium cm:whitespace-nowrap", children: Oe(n.options, S, v) }),
-                  /* @__PURE__ */ e(N, { className: "cm:min-w-36", children: /* @__PURE__ */ e(Ae, { value: S.sku, entryId: l, onChange: (D) => r(f, { sku: D }) }) }),
-                  /* @__PURE__ */ e(N, { className: "cm:min-w-32", children: /* @__PURE__ */ e(ne, { value: S.price, nullable: !1, onChange: (D) => r(f, { price: D ?? 0 }) }) }),
-                  /* @__PURE__ */ e(N, { className: "cm:min-w-32", children: /* @__PURE__ */ e(ne, { value: S.compare_at_price, onChange: (D) => r(f, { compare_at_price: D }) }) }),
-                  s.features.inventory && /* @__PURE__ */ e(N, { className: "cm:whitespace-nowrap cm:text-sm", children: S.track_stock ? F?.stock_quantity ?? S.initial_stock ?? 0 : /* @__PURE__ */ e(R, { children: S.stock_status.replace("_", " ") }) }),
-                  /* @__PURE__ */ e(N, { children: /* @__PURE__ */ e(_, { checked: S.active, "aria-label": "Sell this variant", onCheckedChange: (D) => r(f, { active: D }) }) }),
-                  /* @__PURE__ */ e(N, { children: /* @__PURE__ */ e(u, { type: "button", variant: "ghost", size: "sm", "aria-expanded": g === S.id, onClick: () => i(g === S.id ? null : S.id), children: g === S.id ? "Close" : "More" }) })
+                /* @__PURE__ */ t(p, { className: $.active ? "" : "cm:opacity-60", children: [
+                  /* @__PURE__ */ e(N, { className: "cm:font-medium cm:whitespace-nowrap", children: Oe(n.options, $, v) }),
+                  /* @__PURE__ */ e(N, { className: "cm:min-w-36", children: /* @__PURE__ */ e(Ae, { value: $.sku, entryId: l, onChange: (F) => r(S, { sku: F }) }) }),
+                  /* @__PURE__ */ e(N, { className: "cm:min-w-32", children: /* @__PURE__ */ e(ce, { value: $.price, nullable: !1, onChange: (F) => r(S, { price: F ?? 0 }) }) }),
+                  /* @__PURE__ */ e(N, { className: "cm:min-w-32", children: /* @__PURE__ */ e(ce, { value: $.compare_at_price, onChange: (F) => r(S, { compare_at_price: F }) }) }),
+                  s.features.inventory && /* @__PURE__ */ e(N, { className: "cm:whitespace-nowrap cm:text-sm", children: $.track_stock ? b?.stock_quantity ?? $.initial_stock ?? 0 : /* @__PURE__ */ e(R, { children: $.stock_status.replace("_", " ") }) }),
+                  /* @__PURE__ */ e(N, { children: /* @__PURE__ */ e(_, { checked: $.active, "aria-label": "Sell this variant", onCheckedChange: (F) => r(S, { active: F }) }) }),
+                  /* @__PURE__ */ e(N, { children: /* @__PURE__ */ e(u, { type: "button", variant: "ghost", size: "sm", "aria-expanded": g === $.id, onClick: () => i(g === $.id ? null : $.id), children: g === $.id ? "Close" : "More" }) })
                 ] }),
-                g === S.id && /* @__PURE__ */ e(p, { children: /* @__PURE__ */ e(N, { colSpan: 7, className: "cm:p-0", children: /* @__PURE__ */ e(It, { variant: S, index: f, updateVariant: r, tab: c }) }) })
-              ] }, S.id);
+                g === $.id && /* @__PURE__ */ e(p, { children: /* @__PURE__ */ e(N, { colSpan: 7, className: "cm:p-0", children: /* @__PURE__ */ e(It, { variant: $, index: S, updateVariant: r, tab: c }) }) })
+              ] }, $.id);
             }) })
           ] }) }),
           n.variants.length > 0 && /* @__PURE__ */ t("p", { className: "cm:text-xs cm:text-muted-foreground", children: [
             "Prices from ",
-            Y(Math.min(...n.variants.map((S) => S.price))),
+            Y(Math.min(...n.variants.map(($) => $.price))),
             " to ",
-            Y(Math.max(...n.variants.map((S) => S.price))),
+            Y(Math.max(...n.variants.map(($) => $.price))),
             "."
           ] })
         ]
@@ -2619,14 +2620,14 @@ function Et({ field: c, value: n, onChange: a, errors: r, pathPrefix: s = "data.
     x && X(C(`commerce/api/products/${x}`)).then((w) => N(w.data)).catch(() => {
     });
   }, [x, u.entry]);
-  const b = (w) => {
-    const S = { ...d, ...w };
-    w.type && w.type !== "variable" && (S.options = [], S.variants = [{ ...S.variants[0], options: {} }]), w.type === "bundle" && !S.bundle && (S.bundle = { pricing: "fixed", value: 0, items: [] }), a(S);
-  }, h = (w, S) => b({ variants: d.variants.map((f, F) => F === w ? { ...f, ...S } : f) }), p = [{ key: "general", label: "General", render: (w) => /* @__PURE__ */ e(Ft, { ...w }) }];
+  const y = (w) => {
+    const $ = { ...d, ...w };
+    w.type && w.type !== "variable" && ($.options = [], $.variants = [{ ...$.variants[0], options: {} }]), w.type === "bundle" && !$.bundle && ($.bundle = { pricing: "fixed", value: 0, items: [] }), a($);
+  }, h = (w, $) => y({ variants: d.variants.map((S, b) => b === w ? { ...S, ...$ } : S) }), p = [{ key: "general", label: "General", render: (w) => /* @__PURE__ */ e(Ft, { ...w }) }];
   d.type === "variable" && p.push({ key: "variants", label: "Variants", render: (w) => /* @__PURE__ */ e(Bt, { ...w }) }), d.type === "bundle" && p.push({ key: "bundle", label: "Bundle", render: (w) => /* @__PURE__ */ e(wt, { ...w }) }), d.type !== "variable" && (l.features?.inventory ?? !0) && p.push({ key: "inventory", label: "Inventory", render: (w) => /* @__PURE__ */ e(Tt, { ...w }) }), d.requires_shipping && p.push({ key: "shipping", label: "Shipping", render: (w) => /* @__PURE__ */ e(jt, { ...w }) }), (l.features?.pricing_rules !== !1 || d.tiers.length > 0) && p.push({ key: "pricing", label: "Bulk prices", render: (w) => /* @__PURE__ */ e(qt, { ...w }) }), d.downloadable && p.push({ key: "digital", label: "Digital", render: (w) => /* @__PURE__ */ e($t, { ...w }) });
-  for (const [w, S] of Object.entries(ie.productTabs()))
-    p.push({ key: `ext-${w}`, label: S.label ?? w, render: (f) => /* @__PURE__ */ e(S, { ...f }) });
-  const [_, g] = T.useState("general"), i = p.find((w) => w.key === _) ?? p[0], v = r?.[s], y = { value: d, update: b, updateVariant: h, config: l, live: o, entryId: x, path: s.replace(/\W+/g, "-") };
+  for (const [w, $] of Object.entries(ne.productTabs()))
+    p.push({ key: `ext-${w}`, label: $.label ?? w, render: (S) => /* @__PURE__ */ e($, { ...S }) });
+  const [_, g] = T.useState("general"), i = p.find((w) => w.key === _) ?? p[0], v = r?.[s], f = { value: d, update: y, updateVariant: h, config: l, live: o, entryId: x, path: s.replace(/\W+/g, "-") };
   return /* @__PURE__ */ t("div", { className: "cm:grid cm:gap-4 cm:rounded-lg cm:border cm:p-4", children: [
     o?.sync_status === "failed" && /* @__PURE__ */ t("div", { role: "alert", className: "cm:rounded-md cm:border cm:border-destructive/40 cm:bg-destructive/5 cm:px-3 cm:py-2 cm:text-sm cm:text-destructive", children: [
       "The published version couldn't be applied to the store, so it can't be bought: ",
@@ -2646,7 +2647,7 @@ function Et({ field: c, value: n, onChange: a, errors: r, pathPrefix: s = "data.
       },
       w.key
     )) }),
-    /* @__PURE__ */ e("div", { role: "tabpanel", children: i.render(y) })
+    /* @__PURE__ */ e("div", { role: "tabpanel", children: i.render(f) })
   ] });
 }
 const Ot = {
@@ -2683,7 +2684,7 @@ function zt({ sales: c, orders: n, todo: a }) {
   ] });
 }
 function Mt() {
-  Object.assign(ie.components, { Chart: ke, EmptyState: de, KpiCard: _e, MoneyInput: se, PageHeader: G, SchemaFormView: Ce, SectionNav: Ee, SettingsLayout: pe, StatusBadge: R }), z.registerDashboardCard?.("commerce-store", zt);
+  Object.assign(ne.components, { Chart: ke, EmptyState: de, KpiCard: _e, MoneyInput: se, PageHeader: G, SchemaFormView: Ce, SectionNav: Ee, SettingsLayout: pe, StatusBadge: R }), z.registerDashboardCard?.("commerce-store", zt);
 }
 Ue();
 Mt();

@@ -10,6 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <x-sunrice::seo :default-title="$seoTitle ?? null" :noindex="(bool) request()->attributes->get('commerce.noindex')" />
     @stack('head')
+    <x-commerce::slot name="head" />
     <x-sunrice::code position="head" />
 </head>
 <body @bodyClass>

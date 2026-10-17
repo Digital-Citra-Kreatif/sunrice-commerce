@@ -1591,7 +1591,8 @@ interface BooksShipments  { public function book(Order $order, Shipment $shipmen
   - `cart.after_items`, `cart.totals_after`;
   - `checkout.after_contact`, `checkout.after_shipping`, `checkout.after_payment`,
     `checkout.before_submit`;
-  - `order.after_summary`, `account.overview`, `mini_cart.footer`.
+  - `order.after_summary`, `account.overview`, `mini_cart.footer`;
+  - also `checkout.before`, `order.after_payment` and `order.after` (see `docs/extending.md`).
 
 ### 22.3 Published templates and theme
 
@@ -1670,6 +1671,9 @@ Commerce::registerCourier(string $key, string $name, ?string $trackingUrl);
 Commerce::orderNumberUsing(callable $generator);
 ```
 
+`docs/extending.md` documents each method with its contract; `tests/Feature/Extensions` uses
+every one through a fake extension provider.
+
 Read-side helpers are public too: `Commerce::features()`, `Commerce::settings()`,
 `Commerce::cart()`, `Commerce::customer()`, `Commerce::money(int $amount)`.
 
@@ -1680,7 +1684,7 @@ Read-side helpers are public too: `Commerce::features()`, `Commerce::settings()`
 | `Payments\Contracts\PaymentMethod` (+ `HandlesReturn`, `HandlesWebhooks`, `SupportsRefunds`, `SupportsCancel`, `SupportsStatusCheck`) | Gateways (§13.1) |
 | `Shipping\Contracts\ShippingMethodType` (+ `TracksShipments`, `BooksShipments`) | Couriers (§14.1) |
 | `Pricing\Contracts\PriceCandidateProvider` | Member prices, price lists |
-| `Pricing\Contracts\DiscountProvider` | Loyalty points, gift cards, cashback |
+| `Pricing\Contracts\DiscountProvider` (+ `ReservesDiscounts`) | Loyalty points, gift cards, cashback |
 | `Pricing\Contracts\CalculationStage` | Extra fees, rounding rules |
 | `Checkout\Contracts\CheckoutCompletion` | New checkout endings (e.g., Telegram, marketplace) |
 | `Taxes\Contracts\TaxCalculator` | External tax engines |
@@ -1690,12 +1694,16 @@ Read-side helpers are public too: `Commerce::features()`, `Commerce::settings()`
 ```php
 interface DiscountProvider
 {
-    public function key(): string;
-    /** Called in the Discounts stage; returns adjustments with per-line allocations. */
-    public function apply(CalculationState $state): DiscountResult;
-    /** Called inside PlaceOrder's transaction; reserve what you gave (e.g. deduct points). */
-    public function commit(Order $order, DiscountResult $result): void;
-    /** Called when the order is cancelled or expires. */
+    public function priority(): int;
+    /** Called in the Discounts stage: add adjustments with per-line allocations. */
+    public function apply(CalculationState $state): void;
+}
+
+interface ReservesDiscounts  // optional, for providers that hold something back
+{
+    /** Inside PlaceOrder's transaction; throw CheckoutRefused to refuse the order. */
+    public function commit(Order $order, CalculationState $state): void;
+    /** Once, when the order is cancelled or expires. */
     public function release(Order $order): void;
 }
 ```

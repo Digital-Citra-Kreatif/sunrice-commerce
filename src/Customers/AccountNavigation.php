@@ -25,7 +25,7 @@ class AccountNavigation
         $this->pages[$key] = ['key' => $key, 'label' => $label, 'route' => $route, 'feature' => $feature, 'position' => $position];
     }
 
-    /** @return array<int, array{key: string, label: string, url: string}> */
+    /** @return array<int, array{key: string, label: string, url: string, route: string}> */
     public function items(): array
     {
         $pages = array_filter($this->pages, fn (array $p) => ($p['feature'] === null || ($p['feature'] instanceof \Closure ? ($p['feature'])() : commerce_feature($p['feature']))) && Route::has($p['route']));
@@ -35,6 +35,7 @@ class AccountNavigation
             'key' => $p['key'],
             'label' => $p['label'] instanceof \Closure ? ($p['label'])() : $p['label'],
             'url' => StorefrontRoutes::url($p['route']),
+            'route' => $p['route'],
         ], $pages);
     }
 }

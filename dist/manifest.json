@@ -1,18 +1,18 @@
 {
-  "_main-DLyWe7Qd.js": {
-    "file": "main-DLyWe7Qd.js",
+  "_main-TrOnz9SF.js": {
+    "file": "main-TrOnz9SF.js",
     "name": "main",
     "dynamicImports": [
       "resources/js/admin/components/ChartImpl.tsx"
     ]
   },
   "resources/js/admin/components/ChartImpl.tsx": {
-    "file": "ChartImpl-DrvgPsfU.js",
+    "file": "ChartImpl-BvtD9Q-M.js",
     "name": "ChartImpl",
     "src": "resources/js/admin/components/ChartImpl.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-DLyWe7Qd.js"
+      "_main-TrOnz9SF.js"
     ]
   },
   "resources/js/admin/main.tsx": {
@@ -21,7 +21,7 @@
     "src": "resources/js/admin/main.tsx",
     "isEntry": true,
     "imports": [
-      "_main-DLyWe7Qd.js"
+      "_main-TrOnz9SF.js"
     ]
   },
   "style.css": {

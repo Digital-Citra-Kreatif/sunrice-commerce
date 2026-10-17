@@ -46,6 +46,8 @@ use Sunrice\Commerce\Payments\UniqueCodes;
 use Sunrice\Commerce\Pricing\Adjustment;
 use Sunrice\Commerce\Pricing\CalcLine;
 use Sunrice\Commerce\Pricing\CalculationState;
+use Sunrice\Commerce\Pricing\Contracts\ReservesDiscounts;
+use Sunrice\Commerce\Pricing\PriceProviders;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSaleReservations;
 use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Promotions\Vouchers\VoucherRedemptions;
@@ -414,6 +416,19 @@ class PlaceOrder
             }
         }
         $order->setMeta('reserved.vouchers', $amounts !== []);
+
+        // Extension providers that hold something back (loyalty points…).
+        $committed = [];
+        $providers = app(PriceProviders::class);
+        foreach ([...$providers->discounts(), ...$providers->shippingDiscounts(), ...$providers->fees()] as $provider) {
+            if ($provider instanceof ReservesDiscounts && ! in_array($provider::class, $committed, true)) {
+                $provider->commit($order, $state);
+                $committed[] = $provider::class;
+            }
+        }
+        if ($committed !== []) {
+            $order->setMeta('reserved.providers', $committed);
+        }
         $order->save();
     }
 

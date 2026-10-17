@@ -12,14 +12,16 @@ use Sunrice\Commerce\Orders\Events\OrderCancelled;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Actions\RecordPaymentResult;
 use Sunrice\Commerce\Payments\PaymentResult;
+use Sunrice\Commerce\Pricing\Contracts\ReservesDiscounts;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSaleReservations;
 use Sunrice\Commerce\Promotions\Vouchers\VoucherRedemptions;
 
 /**
  * A cancelled order gives back what it reserved: stock (less what was
- * already restocked by refunds), flash sale quantities and voucher uses,
- * and its open payments are cancelled. Each part runs once (meta flags),
- * so retries and repeated events are harmless.
+ * already restocked by refunds), flash sale quantities, voucher uses and
+ * what extension providers reserved (ReservesDiscounts); its open payments
+ * are cancelled. Each part runs once (meta flags), so retries and repeated
+ * events are harmless.
  */
 class ReleaseReservations
 {
@@ -54,6 +56,16 @@ class ReleaseReservations
             if ($locked->meta('reserved.vouchers') && ! $locked->meta('released.vouchers')) {
                 app(VoucherRedemptions::class)->release($locked->id);
                 $locked->setMeta('released.vouchers', true);
+            }
+            $released = (array) $locked->meta('released.providers', []);
+            foreach ((array) $locked->meta('reserved.providers', []) as $class) {
+                if (! in_array($class, $released, true) && class_exists($class) && ($provider = app($class)) instanceof ReservesDiscounts) {
+                    $provider->release($locked);
+                    $released[] = $class;
+                }
+            }
+            if ($released !== []) {
+                $locked->setMeta('released.providers', $released);
             }
             $locked->save();
         });
