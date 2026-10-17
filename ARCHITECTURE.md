@@ -1631,7 +1631,15 @@ public/commerce-theme/commerce.css · commerce.js
   - calls the same actions as the admin, so validation, the state machine and the activity log
     apply, with source `ai`;
   - returns compact JSON with money as integers plus a formatted string.
-- **Instructions** (U6) are appended to the server's instructions:
+- `Mcp\CommerceTool` holds the checks (`shouldRegister()`, re-checked in `handle()`), the `ai`
+  actor (with the token's name), `confirm: true` for anything the instructions say to ask about
+  (cancelling, marking paid, refunds, payment reviews, store features), and turns domain refusals
+  (an impossible transition, nothing left to refund) into readable tool errors.
+- `Mcp\StoreTools::ALL` lists the 23 tools. Promotions save through `Promotions\Actions\Save*`
+  (also used by the admin pages): without `values` the tool returns the form's fields and current
+  values; with `values` they are merged over the current ones.
+- **Instructions** (U6) are appended to the server's instructions (until U6 lands, the same
+  guidance is in `get_store_info` and the tool descriptions):
 
   > Store tools start with get_store_info. Ask the user before approving payments, refunding,
   > cancelling orders, switching store features or changing many prices. Products are Sunrice

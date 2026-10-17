@@ -109,6 +109,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         Permissions\CommercePermissions::register();
         $this->registerStorefront();
         $this->registerHealthAndSchedule();
+        $this->registerMcpTools();
         $this->registerAdmin();
         $this->registerCatalog();
         $this->registerPromotions();
@@ -386,6 +387,14 @@ class CommerceServiceProvider extends PackageServiceProvider
      * The prebuilt admin bundle (dist/), published to public/vendor/commerce
      * and loaded on every admin page after Sunrice's own.
      */
+    /** Store tools on Sunrice's MCP server (ARCHITECTURE.md §23); each hides itself unless allowed. */
+    protected function registerMcpTools(): void
+    {
+        foreach (Mcp\StoreTools::ALL as $tool) {
+            Sunrice::registerMcpTool($tool);
+        }
+    }
+
     protected function registerAdminAssets(): void
     {
         $this->publishes([__DIR__.'/../dist' => public_path('vendor/commerce')], 'commerce-assets');

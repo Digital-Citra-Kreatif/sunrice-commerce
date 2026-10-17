@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Str;
+use Laravel\Mcp\Server\Testing\TestResponse;
 use Spatie\Permission\Models\Role;
 use Sunrice\Actions\Entries\PublishTranslation;
 use Sunrice\Actions\Entries\SaveDraft;
@@ -18,6 +19,7 @@ use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Shipping\Models\ShippingMethod;
 use Sunrice\Commerce\Shipping\Models\ShippingZone;
 use Sunrice\Commerce\Tests\TestCase;
+use Sunrice\Mcp\SunriceServer;
 use Sunrice\Models\Blueprint;
 use Sunrice\Models\Collection;
 use Sunrice\Models\Entry;
@@ -187,4 +189,18 @@ function term(string $taxonomy, string $name, ?Term $parent = null): Term
     $term->translations()->create(['taxonomy_id' => $taxonomyId, 'locale' => 'id', 'name' => $name, 'slug' => Str::slug($name), 'data' => [], 'is_ready' => true]);
 
     return $term->fresh();
+}
+
+/** A store MCP tool's result: its JSON, or ['error' => message]. */
+function mcpTool(string $tool, array $arguments = [], mixed $user = null): array
+{
+    $response = SunriceServer::actingAs($user ?? auth()->user())->tool($tool, $arguments);
+    $result = (new ReflectionProperty(TestResponse::class, 'response'))->getValue($response)->toArray();
+    if (isset($result['error'])) {
+        return ['error' => (string) ($result['error']['message'] ?? 'error')];
+    }
+    $result = $result['result'] ?? [];
+    $text = (string) ($result['content'][0]['text'] ?? '');
+
+    return ($result['isError'] ?? false) ? ['error' => $text] : (json_decode($text, true) ?? ['text' => $text]);
 }
