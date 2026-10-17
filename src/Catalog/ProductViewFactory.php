@@ -1,0 +1,283 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Sunrice\Commerce\Catalog;
+
+use Closure;
+use Illuminate\Support\Collection;
+use Sunrice\Commerce\Catalog\Models\PriceTier;
+use Sunrice\Commerce\Catalog\Models\Product;
+use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Contracts\Inventory;
+use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Commerce\Support\Money;
+use Sunrice\Commerce\Support\MoneyFormatter;
+use Sunrice\Models\Entry;
+
+/**
+ * Builds ProductViews for a page of entries in a fixed number of queries
+ * (products, variants with option values and terms, options, tiers). In
+ * preview, the draft value is mapped in memory instead.
+ */
+class ProductViewFactory
+{
+    /** @var array<int, ProductView|null> entry id => view (per request) */
+    protected array $memo = [];
+
+    /** @var array<int, Closure(Variant, int): int> */
+    protected static array $priceAdjusters = [];
+
+    /** @var array<int, Closure(ProductView): ProductView> */
+    protected static array $extenders = [];
+
+    public function __construct(
+        protected StoreSettings $settings,
+        protected PriceVisibility $visibility,
+        protected CallToAction $cta,
+        protected MoneyFormatter $money,
+        protected Inventory $inventory,
+        protected Catalog $catalog,
+    ) {}
+
+    /**
+     * Change the displayed current price of a variant for everyone (flash sales, pricing rules).
+     *
+     * @param  Closure(Variant, int): int  $adjuster
+     */
+    public static function adjustPricesUsing(Closure $adjuster): void
+    {
+        static::$priceAdjusters[] = $adjuster;
+    }
+
+    /**
+     * Rebuild views before they are returned (e.g. add flash sale data).
+     *
+     * @param  Closure(ProductView): ProductView  $extender
+     */
+    public static function extendUsing(Closure $extender): void
+    {
+        static::$extenders[] = $extender;
+    }
+
+    public static function flushHooks(): void
+    {
+        static::$priceAdjusters = [];
+        static::$extenders = [];
+    }
+
+    public function forEntry(Entry $entry): ?ProductView
+    {
+        if ($entry->hydrationContext->preview ?? false) {
+            // Drafts are never memoized: the live page must not see them.
+            return $this->forEntries(collect([$entry]))[$entry->id] ?? null;
+        }
+        if (! array_key_exists($entry->id, $this->memo)) {
+            $this->forEntries(collect([$entry]));
+        }
+
+        return $this->memo[$entry->id] ?? null;
+    }
+
+    /**
+     * @param  Collection<int, Entry>  $entries
+     * @return array<int, ProductView> entry id => view (entries without a product are left out)
+     */
+    public function forEntries(Collection $entries): array
+    {
+        $ids = $entries->pluck('id')->all();
+        $products = Product::query()->whereIn('entry_id', $ids)->whereNull('removed_at')
+            ->with(['variants.optionValues.term.translations', 'options.values.term.translations', 'tiers'])
+            ->get()->keyBy('entry_id');
+
+        $views = [];
+        foreach ($entries as $entry) {
+            $preview = (bool) ($entry->hydrationContext->preview ?? false);
+            $product = $products->get($entry->id);
+            if ($preview) {
+                $draft = (array) ($entry->data ?? []);
+                $field = (string) config('commerce.catalog.field', 'product');
+                $product = app(ProductProjector::class)->map($draft[$field] ?? null, $product);
+                $product->collection_id = $entry->collection_id;
+                $product->entry_id = $entry->id;
+            }
+            if ($product === null) {
+                if (! $preview) {
+                    $this->memo[$entry->id] = null;
+                }
+
+                continue;
+            }
+            $views[$entry->id] = $this->build($entry, $product, $preview);
+            if (! $preview) {
+                $this->memo[$entry->id] = $views[$entry->id];
+            }
+        }
+
+        return $views;
+    }
+
+    protected function build(Entry $entry, Product $product, bool $preview): ProductView
+    {
+        $hidden = ! $this->visibility->visible();
+        $variants = $product->variants->filter(fn (Variant $v) => $v->active)->values();
+        $current = $variants->mapWithKeys(fn (Variant $v) => [$v->uid => $this->currentPrice($product, $v)]);
+
+        // Price display
+        $prices = $current->values();
+        $from = $prices->min();
+        $to = $prices->max();
+        $single = $variants->first();
+        $regular = $single !== null ? max($this->basePrice($product, $single), (int) $single->compare_at_price) : null;
+        $isRange = $from !== null && $from !== $to && $this->settings->get('catalog.price_range', 'range') !== 'min';
+        $amount = $isRange ? null : $from;
+        $compareAt = ! $isRange && $regular !== null && $amount !== null && $regular > $amount ? $regular : null;
+        $formatted = $from === null ? '' : ($isRange
+            ? ($this->settings->get('catalog.price_range') === 'from'
+                ? __('commerce::storefront.price.from', ['price' => $this->money->format((int) $from)])
+                : $this->money->format((int) $from).' – '.$this->money->format((int) $to))
+            : $this->money->format((int) $amount));
+        $price = [
+            'amount' => $hidden ? null : $amount,
+            'compareAt' => $hidden ? null : $compareAt,
+            'isRange' => $isRange,
+            'from' => $hidden ? null : $from,
+            'to' => $hidden ? null : $to,
+            'hidden' => $hidden,
+            'signIn' => $hidden && $this->visibility->signInReveals(),
+            'formatted' => $hidden ? '' : $formatted,
+            'compareFormatted' => $hidden || $compareAt === null ? null : $this->money->format($compareAt),
+        ];
+
+        // Stock
+        $statuses = $variants->map(fn (Variant $v) => $this->stockStatus($product, $v));
+        $status = $statuses->contains('in_stock') ? 'in_stock' : ($statuses->contains('backorder') ? 'backorder' : 'out_of_stock');
+        $quantity = $product->isVariable() ? null : ($single?->track_stock ? (int) $single->stock_quantity : null);
+        $stock = ['status' => $status, 'quantity' => $quantity, 'message' => $this->stockMessage($status, $quantity, $single)];
+
+        // Badges
+        $badges = [];
+        if (! $hidden && ($compareAt !== null || $variants->contains(fn (Variant $v) => $v->compare_at_price > ($current[$v->uid] ?? 0)))) {
+            $badges[] = 'sale';
+        }
+        $newDays = (int) $this->settings->get('catalog.new_badge_days', 14);
+        if ($newDays > 0 && $entry->published_at !== null && $entry->published_at->gt(now()->subDays($newDays))) {
+            $badges[] = 'new';
+        }
+        if ($status !== 'in_stock') {
+            $badges[] = $status;
+        }
+        if ($product->featured) {
+            $badges[] = 'featured';
+        }
+
+        // Picker data
+        $options = $product->options->map(fn ($option) => [
+            'id' => $option->uid,
+            'name' => $option->name,
+            'values' => $option->values->map(fn ($value) => ['id' => $value->uid, 'label' => $value->label ?? (string) ($value->term?->name ?? '')])->values()->all(),
+        ])->values()->all();
+        $variantRows = $variants->map(fn (Variant $v) => [
+            'id' => $v->id,
+            'uid' => $v->uid,
+            'title' => $v->title,
+            'sku' => $v->sku,
+            'options' => $preview ? (array) $v->getAttribute('option_uids') : $v->optionValues->mapWithKeys(fn ($value) => [
+                (string) $product->options->firstWhere('id', $value->option_id)?->uid => $value->uid,
+            ])->all(),
+            'price' => $hidden ? null : $current[$v->uid],
+            'price_formatted' => $hidden ? null : $this->money->format($current[$v->uid]),
+            'compare_at' => $hidden || $v->compare_at_price === null || $v->compare_at_price <= $current[$v->uid] ? null : $this->money->format($v->compare_at_price),
+            'stock' => $this->stockStatus($product, $v),
+            'min_qty' => $v->min_qty,
+            'max_qty' => $v->max_qty,
+            'qty_step' => $v->qty_step,
+            'image' => $v->image_asset_id,
+        ])->values()->all();
+
+        // Tiers
+        $tiers = $hidden ? [] : $product->tiers->map(function (PriceTier $tier) use ($single) {
+            $base = $single?->price ?? 0;
+            $unit = match ($tier->type) {
+                'percent_off' => $base - Money::percentOf($base, $tier->value),
+                'amount_off' => max(0, $base - $tier->value),
+                default => $tier->value,
+            };
+
+            return [
+                'min_qty' => $tier->min_qty,
+                'label' => $tier->type === 'percent_off' ? rtrim(rtrim(number_format($tier->value / 100, 2, ',', '.'), '0'), ',').'%' : $this->money->format($tier->value),
+                'price' => $tier->variant_id === null ? $this->money->format($unit) : null,
+            ];
+        })->values()->all();
+
+        $view = new ProductView(
+            entry: $entry,
+            product: $product,
+            type: $product->type,
+            price: $price,
+            badges: $badges,
+            stock: $stock,
+            cta: $this->cta->for($product),
+            tiers: $tiers,
+            options: $options,
+            variants: $variantRows,
+            purchasable: ! $product->syncFailed() && $status !== 'out_of_stock',
+        );
+        foreach (static::$extenders as $extend) {
+            $view = $extend($view);
+        }
+
+        return $view;
+    }
+
+    protected function basePrice(Product $product, Variant $variant): int
+    {
+        return $product->isBundle() ? app(Bundles::class)->price($product, $variant) : $variant->price;
+    }
+
+    protected function currentPrice(Product $product, Variant $variant): int
+    {
+        $price = $this->basePrice($product, $variant);
+        foreach (static::$priceAdjusters as $adjust) {
+            $price = $adjust($variant, $price);
+        }
+
+        return $price;
+    }
+
+    protected function stockStatus(Product $product, Variant $variant): string
+    {
+        if ($product->isBundle()) {
+            return app(Bundles::class)->available($product) > 0 ? 'in_stock' : 'out_of_stock';
+        }
+        $available = $this->inventory->available($variant);
+        if ($available > 0) {
+            return $variant->track_stock && $variant->backorders !== 'no' && (int) $variant->stock_quantity <= 0 ? 'backorder' : 'in_stock';
+        }
+
+        return $variant->track_stock && $variant->backorders !== 'no' ? 'backorder' : ($variant->stock_status === 'backorder' ? 'backorder' : 'out_of_stock');
+    }
+
+    protected function stockMessage(string $status, ?int $quantity, ?Variant $variant): string
+    {
+        if ($status !== 'in_stock') {
+            return __('commerce::storefront.stock.'.$status);
+        }
+        $show = (string) $this->settings->get('catalog.show_stock', 'low');
+        $threshold = (int) ($variant?->low_stock_threshold ?? $this->settings->get('catalog.low_stock_threshold', 5));
+        if ($quantity !== null && $show === 'always') {
+            return __('commerce::storefront.stock.count', ['count' => $quantity]);
+        }
+        if ($quantity !== null && $show === 'low' && $quantity <= $threshold) {
+            return __('commerce::storefront.stock.low', ['count' => $quantity]);
+        }
+
+        return __('commerce::storefront.stock.in_stock');
+    }
+
+    public function flush(): void
+    {
+        $this->memo = [];
+    }
+}

@@ -2,9 +2,13 @@
 
 declare(strict_types=1);
 
+use Illuminate\Contracts\Auth\Authenticatable;
+use Sunrice\Commerce\Catalog\ProductView;
+use Sunrice\Commerce\Catalog\ProductViewFactory;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 use Sunrice\Commerce\Support\MoneyFormatter;
+use Sunrice\Models\Entry;
 
 /*
  * Global helpers for templates. Each is wrapped in function_exists().
@@ -36,5 +40,28 @@ if (! function_exists('commerce_url')) {
     function commerce_url(string $name, array $parameters = [], ?string $locale = null): string
     {
         return StorefrontRoutes::url($name, $parameters, $locale);
+    }
+}
+
+if (! function_exists('commerce_customer')) {
+    /** The customer signed in to the storefront (commerce guard), or null. */
+    function commerce_customer(): ?Authenticatable
+    {
+        return auth()->guard((string) config('commerce.auth.guard', 'commerce'))->user();
+    }
+}
+
+if (! function_exists('commerce_product')) {
+    /** The product view of a product entry (price, stock, call-to-action, variants), or null. */
+    function commerce_product(Entry|int $entry): ?ProductView
+    {
+        if (is_int($entry)) {
+            $entry = Entry::query()->find($entry);
+            if ($entry === null) {
+                return null;
+            }
+        }
+
+        return app(ProductViewFactory::class)->forEntry($entry);
     }
 }

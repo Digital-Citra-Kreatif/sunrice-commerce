@@ -118,6 +118,11 @@ class Product extends Model
         return Entry::withTrashed()->find($this->entry_id);
     }
 
+    public function isVariable(): bool
+    {
+        return $this->type === 'variable';
+    }
+
     public function isBundle(): bool
     {
         return $this->type === 'bundle';

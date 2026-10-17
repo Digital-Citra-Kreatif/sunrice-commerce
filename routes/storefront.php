@@ -7,4 +7,11 @@ declare(strict_types=1);
  * Registered by StorefrontRoutes::localized(); $suffix is '' or '.locale'.
  */
 
+use Illuminate\Support\Facades\Route;
+use Sunrice\Commerce\Http\Controllers\Storefront;
+use Sunrice\Commerce\Storefront\StorefrontRoutes;
+
 /** @var string $suffix */
+Route::get(StorefrontRoutes::path('go').'/{type}/{entry}', Storefront\GoController::class)
+    ->whereIn('type', ['whatsapp', 'external', 'inquiry'])->whereNumber('entry')
+    ->middleware('commerce.noindex')->name('commerce.go'.$suffix);

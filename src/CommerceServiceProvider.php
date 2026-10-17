@@ -16,6 +16,7 @@ use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Sunrice\Events\EntryDeleted;
 use Sunrice\Events\EntryPublished;
 use Sunrice\Facades\Sunrice;
+use Sunrice\Frontend\TemplateContext;
 
 class CommerceServiceProvider extends PackageServiceProvider
 {
@@ -32,6 +33,7 @@ class CommerceServiceProvider extends PackageServiceProvider
 
     public function packageRegistered(): void
     {
+        $this->registerCustomerGuard();
         $this->app->singleton(Commerce::class);
         $this->app->singleton(Features\FeatureRegistry::class);
         $this->app->singleton(Settings\SettingsRegistry::class);
@@ -44,6 +46,12 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->singleton(Admin\Setup\SetupChecklist::class);
         $this->app->singleton(Admin\Dashboard\DashboardCards::class);
         $this->app->singleton(Catalog\PriceIndex::class);
+        $this->app->scoped(Catalog\Catalog::class);
+        $this->app->scoped(Catalog\ProductViewFactory::class);
+        // Optional connections, replaced when their module is built (C4.8, C5.3, C13).
+        $this->app->singletonIf(Contracts\Inventory::class, Support\Nulls\NullInventory::class);
+        $this->app->singletonIf(Contracts\Tracking::class, Support\Nulls\NullTracking::class);
+        $this->app->singletonIf(Contracts\SaleLimits::class, Support\Nulls\NullSaleLimits::class);
     }
 
     public function packageBooted(): void
@@ -85,6 +93,11 @@ class CommerceServiceProvider extends PackageServiceProvider
         });
 
         Blade::component(View\Components\Slot::class, 'commerce::slot');
+        Blade::component(View\Components\Product::class, 'commerce::product');
+        Blade::component(View\Components\Price::class, 'commerce::price');
+
+        // Product pages (and the shop's listings) when the app has no template of its own.
+        Sunrice::resolveTemplateUsing(fn (string $view, TemplateContext $context): ?string => Storefront\TemplateFallback::resolve($view, $context));
 
         Sunrice::bodyClassUsing(function (array $classes): array {
             $name = (string) request()->route()?->getName();
@@ -95,6 +108,19 @@ class CommerceServiceProvider extends PackageServiceProvider
 
             return $classes;
         });
+    }
+
+    /**
+     * The storefront's own session guard (customers), on the same user
+     * provider as the admin, so signing in to the shop never opens the admin.
+     */
+    protected function registerCustomerGuard(): void
+    {
+        $guard = (string) config('commerce.auth.guard', 'commerce');
+        if (config("auth.guards.{$guard}") === null) {
+            $adminGuard = (string) config('sunrice.auth.guard', 'web');
+            config(["auth.guards.{$guard}" => ['driver' => 'session', 'provider' => config("auth.guards.{$adminGuard}.provider", 'users')]]);
+        }
     }
 
     /** Product projection on publish. */
