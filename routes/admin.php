@@ -16,6 +16,7 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::get('api/sku-check', [Admin\ProductApiController::class, 'skuCheck'])->name('api.sku-check');
     Route::get('api/products/{entry}', [Admin\ProductApiController::class, 'show'])->whereNumber('entry')->name('api.products.show');
     Route::post('api/downloads', Admin\DownloadUploadController::class)->name('api.downloads.store');
+    Route::get('api/targets', Admin\TargetsApiController::class)->name('api.targets');
     Route::get('api/variants', [Admin\ProductApiController::class, 'variants'])->name('api.variants');
 
     Route::get('products', [Admin\ProductsController::class, 'index'])->name('products');
@@ -24,6 +25,13 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::get('inventory', [Admin\InventoryController::class, 'index'])->name('inventory');
     Route::post('inventory/{variant}/adjust', [Admin\InventoryController::class, 'adjust'])->name('inventory.adjust');
     Route::get('inventory/{variant}/history', [Admin\InventoryController::class, 'history'])->name('inventory.history');
+
+    Route::get('pricing-rules', [Admin\PricingRulesController::class, 'index'])->name('pricing-rules');
+    Route::get('pricing-rules/create', [Admin\PricingRulesController::class, 'create'])->name('pricing-rules.create');
+    Route::post('pricing-rules', [Admin\PricingRulesController::class, 'store'])->name('pricing-rules.store');
+    Route::get('pricing-rules/{rule}/edit', [Admin\PricingRulesController::class, 'edit'])->name('pricing-rules.edit');
+    Route::put('pricing-rules/{rule}', [Admin\PricingRulesController::class, 'update'])->name('pricing-rules.update');
+    Route::delete('pricing-rules/{rule}', [Admin\PricingRulesController::class, 'destroy'])->name('pricing-rules.destroy');
 
     Route::get('settings', [Admin\SettingsController::class, 'index'])->name('settings');
     Route::get('settings/features', [Admin\FeaturesController::class, 'index'])->name('settings.features');

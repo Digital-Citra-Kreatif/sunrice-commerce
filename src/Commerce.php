@@ -119,6 +119,48 @@ class Commerce
         return $this->pruneSteps;
     }
 
+    // ---- Pricing ------------------------------------------------------------
+
+    /**
+     * A source of unit prices (the lowest candidate wins).
+     *
+     * @param  class-string<Pricing\Contracts\PriceCandidateProvider>  $class
+     */
+    public function registerPriceCandidateProvider(string $class, int $order = 100): void
+    {
+        app(Pricing\PriceProviders::class)->price($class, $order);
+    }
+
+    /** @param  class-string<Pricing\Contracts\DiscountProvider>  $class */
+    public function registerDiscountProvider(string $class): void
+    {
+        app(Pricing\PriceProviders::class)->discount($class);
+    }
+
+    /** @param  class-string<Pricing\Contracts\ShippingDiscountProvider>  $class */
+    public function registerShippingDiscountProvider(string $class): void
+    {
+        app(Pricing\PriceProviders::class)->shippingDiscount($class);
+    }
+
+    /** @param  class-string<Pricing\Contracts\FeeProvider>  $class */
+    public function registerFeeProvider(string $class): void
+    {
+        app(Pricing\PriceProviders::class)->fee($class);
+    }
+
+    /**
+     * A step in the calculation pipeline (priorities: lines 10, unit prices 20,
+     * subtotals 30, discounts 40, shipping 50, shipping discounts 60, fees 70,
+     * taxes 80, totals 90).
+     *
+     * @param  class-string<Pricing\Contracts\CalculationStage>  $class
+     */
+    public function registerCalculationStage(string $class, int $priority): void
+    {
+        app(Pricing\Calculator::class)->registerStage($class, $priority);
+    }
+
     public function money(int $amount): Money
     {
         return Money::of($amount);

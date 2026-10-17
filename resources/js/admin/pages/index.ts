@@ -6,6 +6,7 @@ import ProductsIndex from './Products/Index';
 import SettingsFeatures from './Settings/Features';
 import SettingsSection from './Settings/Section';
 import SharedSchemaForm from './Shared/SchemaForm';
+import SharedResourceIndex from './Shared/ResourceIndex';
 
 type Page = ReactTypes.ComponentType<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -17,6 +18,7 @@ const pages: Record<string, Page> = {
     'Commerce/Settings/Section': SettingsSection,
     'Commerce/Settings/Features': SettingsFeatures,
     'Commerce/Shared/SchemaForm': SharedSchemaForm,
+    'Commerce/Shared/ResourceIndex': SharedResourceIndex,
 };
 
 export function definePage(name: string, component: Page): void {

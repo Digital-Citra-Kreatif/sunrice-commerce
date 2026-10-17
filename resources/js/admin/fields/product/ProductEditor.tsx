@@ -55,7 +55,7 @@ export default function ProductEditor({ field, value: raw, onChange, errors, pat
     if (value.type === 'bundle') tabs.push({ key: 'bundle', label: 'Bundle', render: (p) => <BundleTab {...p} /> });
     if (value.type !== 'variable' && (config.features?.inventory ?? true)) tabs.push({ key: 'inventory', label: 'Inventory', render: (p) => <InventoryTab {...p} /> });
     if (value.requires_shipping) tabs.push({ key: 'shipping', label: 'Shipping', render: (p) => <ShippingTab {...p} /> });
-    tabs.push({ key: 'pricing', label: 'Bulk prices', render: (p) => <PricingTab {...p} /> });
+    if (config.features?.pricing_rules !== false || value.tiers.length > 0) tabs.push({ key: 'pricing', label: 'Bulk prices', render: (p) => <PricingTab {...p} /> });
     if (value.downloadable) tabs.push({ key: 'digital', label: 'Digital', render: (p) => <DigitalTab {...p} /> });
     for (const [key, Tab] of Object.entries(api.productTabs())) {
         tabs.push({ key: `ext-${key}`, label: (Tab as { label?: string }).label ?? key, render: (p) => <Tab {...p} /> });

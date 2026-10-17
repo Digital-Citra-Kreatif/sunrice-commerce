@@ -48,10 +48,15 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->singleton(Catalog\PriceIndex::class);
         $this->app->scoped(Catalog\Catalog::class);
         $this->app->scoped(Catalog\ProductViewFactory::class);
+        $this->app->scoped(Promotions\PriceRules\RuleMatcher::class);
         // Optional connections, replaced when their module is built (C4.8, C5.3, C13).
         $this->app->scoped(Contracts\Inventory::class, fn ($app) => $app->make(Features\Features::class)->active('inventory')
             ? $app->make(Inventory\DatabaseInventory::class)
             : $app->make(Support\Nulls\NullInventory::class));
+        $this->app->singleton(Pricing\Calculator::class);
+        $this->app->singleton(Pricing\PriceProviders::class);
+        $this->app->singletonIf(Contracts\ShippingQuoter::class, Support\Nulls\NullShippingQuoter::class);
+        $this->app->singletonIf(Contracts\TaxCalculator::class, Support\Nulls\NullTaxCalculator::class);
         $this->app->singletonIf(Contracts\Tracking::class, Support\Nulls\NullTracking::class);
         $this->app->singletonIf(Contracts\SaleLimits::class, Support\Nulls\NullSaleLimits::class);
     }
@@ -66,6 +71,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->registerHealthAndSchedule();
         $this->registerAdmin();
         $this->registerCatalog();
+        $this->registerPromotions();
         Event::listen(JobProcessing::class, function (): void {
             $this->app->forgetScopedInstances();
         });
@@ -127,6 +133,14 @@ class CommerceServiceProvider extends PackageServiceProvider
         }
     }
 
+    /** Pricing rules, flash sales and vouchers. */
+    protected function registerPromotions(): void
+    {
+        $commerce = $this->app->make(Commerce::class);
+        $commerce->registerPriceCandidateProvider(Pricing\Providers\ProductTierPrice::class, 10);
+        $commerce->registerPriceCandidateProvider(Pricing\Providers\PriceRulePrice::class, 20);
+    }
+
     /** Product projection on publish. */
     protected function registerCatalog(): void
     {
@@ -152,7 +166,7 @@ class CommerceServiceProvider extends PackageServiceProvider
     /** Shop navigation, Settings → Store, admin routes and field types. */
     protected function registerAdmin(): void
     {
-        foreach ([Admin\Fields\MoneyField::class, Admin\Fields\DateTimeRangeField::class, Admin\Fields\RegionField::class, Catalog\ProductField::class] as $field) {
+        foreach ([Admin\Fields\MoneyField::class, Admin\Fields\DateTimeRangeField::class, Admin\Fields\RegionField::class, Admin\Fields\TargetsField::class, Catalog\ProductField::class] as $field) {
             Sunrice::registerField($field);
         }
         Admin\ShopNavigation::register();
