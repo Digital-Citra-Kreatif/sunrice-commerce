@@ -6,9 +6,11 @@ use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 use Sunrice\Actions\Entries\PublishTranslation;
 use Sunrice\Actions\Entries\SaveDraft;
+use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Checkout\CheckoutData;
 use Sunrice\Commerce\Commerce;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Regions\RegionImporter;
@@ -166,4 +168,12 @@ function cartWith(array $lines): Cart
     test()->withCookie((string) config('commerce.cart.cookie', 'commerce_cart'), $cart->token);
 
     return $cart;
+}
+
+/** The totals hash of what the cart would cost with this input. */
+function seenHash(Cart $cart, array $input): string
+{
+    app()->forgetScopedInstances();
+
+    return CartView::for($cart->fresh(), CheckoutData::fromCart($cart->fresh())->merge($input)->context())->state->hash();
 }

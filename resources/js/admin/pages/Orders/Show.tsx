@@ -122,9 +122,13 @@ export default function OrderShow(props: OrderPageProps) {
                                     </div>
                                 ))}
                                 {order.confirmations.map((c) => (
-                                    <div key={c.id} className="cm:flex cm:items-center cm:justify-between cm:rounded-md cm:border cm:border-dashed cm:p-3">
-                                        <span>Confirmation from {c.sender_name}{c.sender_bank ? ` (${c.sender_bank})` : ''} · {c.amount}</span>
-                                        <StatusBadge tone={c.status === 'approved' ? 'ok' : c.status === 'rejected' ? 'error' : 'warning'}>{c.status}</StatusBadge>
+                                    <div key={c.id} className="cm:flex cm:flex-wrap cm:items-center cm:justify-between cm:gap-2 cm:rounded-md cm:border cm:border-dashed cm:p-3">
+                                        <span>Confirmation from {c.sender_name}{c.sender_bank ? ` (${c.sender_bank})` : ''} · {c.amount}
+                                            {c.proof_url && <> · <a href={c.proof_url} target="_blank" rel="noreferrer" className="cm:underline">proof</a></>}</span>
+                                        <span className="cm:flex cm:items-center cm:gap-2">
+                                            <StatusBadge tone={c.status === 'approved' ? 'ok' : c.status === 'rejected' ? 'error' : 'warning'}>{c.status}</StatusBadge>
+                                            {c.can_review && <Button size="sm" asChild><Link href={adminUrl('commerce/confirmations')}>Review</Link></Button>}
+                                        </span>
                                     </div>
                                 ))}
                             </CardContent>

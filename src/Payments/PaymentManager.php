@@ -34,6 +34,9 @@ class PaymentManager
         $stored = (array) $this->settings->get('payments.methods', []);
         $methods = [];
         foreach ($this->registry->classes() as $key => $class) {
+            if (is_subclass_of($class, PaymentMethodBase::class) && ($feature = $class::feature()) !== null && ! $this->features->active($feature)) {
+                continue;
+            }
             $method = app($class);
             $keys = method_exists($class, 'instances') ? (array) $class::instances($this->settings) : [$key];
             foreach ($keys as $instance) {

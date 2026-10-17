@@ -1,5 +1,6 @@
 import { Sunrice } from '../lib/sunrice';
 import type * as ReactTypes from 'react';
+import ConfirmationsIndex from './Confirmations/Index';
 import CustomerShow from './Customers/Show';
 import Dashboard from './Dashboard';
 import InventoryIndex from './Inventory/Index';
@@ -7,6 +8,7 @@ import OrderEditor from './Orders/Editor';
 import OrderShow from './Orders/Show';
 import ProductsIndex from './Products/Index';
 import SettingsFeatures from './Settings/Features';
+import SettingsPayments from './Settings/Payments';
 import SettingsSection from './Settings/Section';
 import SettingsShipping from './Settings/Shipping';
 import SharedSchemaForm from './Shared/SchemaForm';
@@ -16,6 +18,7 @@ type Page = ReactTypes.ComponentType<any>; // eslint-disable-line @typescript-es
 
 /** Inertia page name (Commerce/…) → component; filled by each area. */
 const pages: Record<string, Page> = {
+    'Commerce/Confirmations/Index': ConfirmationsIndex,
     'Commerce/Customers/Show': CustomerShow,
     'Commerce/Dashboard': Dashboard,
     'Commerce/Inventory/Index': InventoryIndex,
@@ -24,6 +27,7 @@ const pages: Record<string, Page> = {
     'Commerce/Products/Index': ProductsIndex,
     'Commerce/Settings/Section': SettingsSection,
     'Commerce/Settings/Features': SettingsFeatures,
+    'Commerce/Settings/Payments': SettingsPayments,
     'Commerce/Settings/Shipping': SettingsShipping,
     'Commerce/Shared/SchemaForm': SharedSchemaForm,
     'Commerce/Shared/ResourceIndex': SharedResourceIndex,

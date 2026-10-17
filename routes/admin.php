@@ -72,6 +72,11 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::post('orders/{order}/restore', [Admin\OrdersController::class, 'restore'])->whereNumber('order')->name('orders.restore');
     Route::delete('orders/{order}/force', [Admin\OrdersController::class, 'forceDelete'])->whereNumber('order')->name('orders.force-delete');
 
+    Route::get('confirmations', [Admin\ConfirmationsController::class, 'index'])->name('confirmations');
+    Route::get('confirmations/{confirmation}/proof', [Admin\ConfirmationsController::class, 'proof'])->name('confirmations.proof');
+    Route::post('confirmations/{confirmation}/approve', [Admin\ConfirmationsController::class, 'approve'])->name('confirmations.approve');
+    Route::post('confirmations/{confirmation}/reject', [Admin\ConfirmationsController::class, 'reject'])->name('confirmations.reject');
+
     Route::get('customers', [Admin\CustomersController::class, 'index'])->name('customers');
     Route::get('customers/{customer}', [Admin\CustomersController::class, 'show'])->name('customers.show');
     Route::put('customers/{customer}', [Admin\CustomersController::class, 'update'])->name('customers.update');
@@ -84,6 +89,13 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::put('settings/features/{feature}', [Admin\FeaturesController::class, 'update'])->name('settings.features.update');
     Route::get('settings/tax-rates', [Admin\TaxRatesController::class, 'edit'])->name('settings.tax-rates');
     Route::put('settings/tax-rates', [Admin\TaxRatesController::class, 'update'])->name('settings.tax-rates.update');
+    Route::get('settings/payments', [Admin\PaymentsSettingsController::class, 'index'])->name('settings.payments');
+    Route::post('settings/payments/move', [Admin\PaymentsSettingsController::class, 'move'])->name('settings.payments.move');
+    Route::post('settings/payments/instances', [Admin\PaymentsSettingsController::class, 'addInstance'])->name('settings.payments.instances.store');
+    Route::get('settings/payments/{method}', [Admin\PaymentsSettingsController::class, 'edit'])->name('settings.payments.edit');
+    Route::put('settings/payments/{method}', [Admin\PaymentsSettingsController::class, 'update'])->name('settings.payments.update');
+    Route::put('settings/payments/{method}/active', [Admin\PaymentsSettingsController::class, 'toggle'])->name('settings.payments.toggle');
+    Route::delete('settings/payments/{method}', [Admin\PaymentsSettingsController::class, 'destroyInstance'])->name('settings.payments.destroy');
     Route::get('settings/shipping', [Admin\ShippingController::class, 'index'])->name('settings.shipping');
     Route::post('settings/shipping/move', [Admin\ShippingController::class, 'move'])->name('settings.shipping.move');
     Route::get('settings/shipping/zones/create', [Admin\ShippingController::class, 'createZone'])->name('settings.shipping.zones.create');

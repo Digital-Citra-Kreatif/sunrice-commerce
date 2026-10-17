@@ -11,6 +11,7 @@ use Sunrice\Commerce\Customers\Auth\Throttle;
 use Sunrice\Commerce\Orders\Actions\CancelOrderByCustomer;
 use Sunrice\Commerce\Orders\InvalidTransition;
 use Sunrice\Commerce\Orders\Models\Order;
+use Sunrice\Commerce\Payments\Actions\PayWithMethod;
 use Sunrice\Commerce\Payments\PaymentManager;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
@@ -85,6 +86,8 @@ class OrderController
             'instructionsView' => $method?->instructionsView(),
             'whatsappUrl' => $order->meta('whatsapp_url'),
             'openWhatsApp' => $request->boolean('whatsapp') && $order->meta('whatsapp_url') !== null,
+            'payUrl' => commerce_feature('payments') && app(PayWithMethod::class)->payable($order) && $order->payment_method !== 'whatsapp'
+                ? commerce_url('commerce.order.pay', ['key' => $order->order_key]) : null,
             'canCancel' => app(CancelOrderByCustomer::class)->allowed($order),
             'invite' => commerce_customer() === null && $order->user_id === null && commerce_feature('accounts'),
             'registerUrl' => commerce_feature('accounts') ? StorefrontRoutes::url('commerce.account.register') : null,

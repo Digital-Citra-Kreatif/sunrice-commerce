@@ -75,6 +75,9 @@ class SettingsController extends Controller
         foreach (app(SettingsRegistry::class)->visibleTo($user) as $key => $section) {
             $menu[] = ['key' => $key, 'label' => $section->label, 'href' => "commerce/settings/{$key}"];
         }
+        if (commerce_feature('payments') && $user->can('commerce.settings.payments')) {
+            $menu[] = ['key' => 'payments', 'label' => 'Payments', 'href' => 'commerce/settings/payments'];
+        }
         if (commerce_feature('shipping') && $user->can('commerce.settings.shipping')) {
             $menu[] = ['key' => 'shipping', 'label' => 'Shipping', 'href' => 'commerce/settings/shipping'];
         }

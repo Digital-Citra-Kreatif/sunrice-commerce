@@ -42,13 +42,16 @@
             @endif
         @endif
 
-        @if ($payment && $order->isUnpaid() && $order->status !== $S::CANCELLED)
+        @if (($payment || ($payUrl ?? null)) && $order->isUnpaid() && $order->status !== $S::CANCELLED && $order->payment_method !== 'whatsapp')
             <div class="commerce-order__payment">
                 <h2>{{ __('commerce::checkout.order.how_to_pay') }}</h2>
-                <p>{{ __('commerce::checkout.order.amount_due', ['amount' => $money->format($payment->amount)]) }}
-                    @if ($payment->expires_at) {{ __('commerce::checkout.order.deadline', ['date' => $payment->expires_at->translatedFormat('j F Y H:i')]) }}@endif</p>
+                <p>{{ __('commerce::checkout.order.amount_due', ['amount' => $money->format($payment?->amount ?? $order->total)]) }}
+                    @if ($payment?->expires_at) {{ __('commerce::checkout.order.deadline', ['date' => $payment->expires_at->translatedFormat('j F Y H:i')]) }}@endif</p>
                 @if ($instructionsView)
                     @include($instructionsView, ['order' => $order, 'payment' => $payment])
+                @endif
+                @if ($payUrl ?? null)
+                    <p><a href="{{ $payUrl }}" class="commerce-button commerce-button--secondary">{{ __('commerce::payments.pay_again') }}</a></p>
                 @endif
             </div>
         @endif

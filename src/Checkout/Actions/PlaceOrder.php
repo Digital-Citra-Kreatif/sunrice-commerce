@@ -39,8 +39,10 @@ use Sunrice\Commerce\Orders\Numbering;
 use Sunrice\Commerce\Orders\OrderStatus;
 use Sunrice\Commerce\Orders\Timeline;
 use Sunrice\Commerce\Payments\Actions\StartPayment;
+use Sunrice\Commerce\Payments\Contracts\AddsUniqueCode;
 use Sunrice\Commerce\Payments\Models\Payment;
 use Sunrice\Commerce\Payments\PaymentManager;
+use Sunrice\Commerce\Payments\UniqueCodes;
 use Sunrice\Commerce\Pricing\Adjustment;
 use Sunrice\Commerce\Pricing\CalcLine;
 use Sunrice\Commerce\Pricing\CalculationState;
@@ -216,6 +218,9 @@ class PlaceOrder
         $country = (string) ($data->shippingAddress()['country'] ?? 'ID');
         $rate = $state->shipping['rate'];
         $totals = $state->totals;
+        // 8. The unique transfer code (bank transfer with the setting on).
+        $uniqueCode = $method instanceof AddsUniqueCode && ($range = $method->uniqueCodeRange()) !== null
+            ? app(UniqueCodes::class)->pick($totals['total'], $range, PaymentManager::idOf($method)) : 0;
 
         $order = new Order;
         $order->forceFill([
@@ -247,7 +252,7 @@ class PlaceOrder
             'shipping_total' => $totals['shipping'],
             'fee_total' => $totals['fee'],
             'tax_total' => $totals['tax'],
-            'total' => $totals['total'],
+            'total' => $totals['total'] + $uniqueCode,
             'weight' => $this->weight($state),
             'customer_note' => $this->settings->get('checkout.order_notes', true) ? $data->get('notes') : null,
             'dropship' => $this->settings->get('checkout.dropshipper', false) && $data->dropship()['enabled'] ? $data->dropship() : null,
@@ -262,6 +267,10 @@ class PlaceOrder
 
         $this->insertLines($order, $state);
         $this->insertAdjustments($order, $state);
+        if ($uniqueCode !== 0) {
+            $order->adjustments()->create(['kind' => 'unique_code', 'source_type' => 'unique_code', 'label' => __('commerce::payments.unique_code'),
+                'amount' => $uniqueCode, 'created_at' => now()]);
+        }
         $this->timeline->record($order, 'status', __($isQuote ? 'commerce::orders.timeline.quote_requested' : 'commerce::orders.timeline.placed'),
             ['to' => $order->status, 'channel' => 'storefront'], Actor::customer());
 

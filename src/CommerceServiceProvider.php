@@ -194,7 +194,11 @@ class CommerceServiceProvider extends PackageServiceProvider
     protected function registerOrders(): void
     {
         // Amounts are stored in the currency's minor units: changing it would change every order.
-        $this->app->make(Commerce::class)->registerFeeProvider(Payments\PaymentFeeProvider::class);
+        $commerce = $this->app->make(Commerce::class);
+        $commerce->registerFeeProvider(Payments\PaymentFeeProvider::class);
+        $commerce->registerPaymentMethod(Payments\Methods\BankTransfer::class);
+        $commerce->registerPaymentMethod(Payments\Methods\PaymentInstructions::class);
+        $commerce->registerPaymentMethod(Payments\Methods\CashOnDelivery::class);
         Event::listen(Orders\Events\OrderCancelled::class, Orders\Listeners\ReleaseReservations::class);
         Event::listen(Orders\Events\OrderPaid::class, Orders\Listeners\AutoCompleteOrder::class);
         Event::listen(Orders\Events\ShipmentCreated::class, Orders\Listeners\AutoCompleteOrder::class);
@@ -204,6 +208,20 @@ class CommerceServiceProvider extends PackageServiceProvider
         Event::listen(Orders\Events\OrderPaid::class, Orders\Listeners\RecordSalesCount::class);
         Event::listen(Orders\Events\OrderRefunded::class, Orders\Listeners\RecordSalesCount::class);
         $this->app->make(Commerce::class)->onTick('order expiry', fn () => (new Orders\Expiry)());
+        RateLimiter::for('commerce-confirm', fn (Request $request) => Limit::perHour(10)->by((string) $request->input('order').'|'.$request->ip()));
+        $commerce->onPrune('payment proofs', function (): int {
+            $count = 0;
+            Payments\Models\PaymentConfirmation::query()->whereNotNull('proof_path')
+                ->where('created_at', '<', now()->subDays((int) config('commerce.payments.proof_retention_days', 365)))
+                ->each(function (Payments\Models\PaymentConfirmation $c) use (&$count): void {
+                    app(Payments\ProofFiles::class)->delete($c->proof_disk, $c->proof_path);
+                    $c->forceFill(['proof_path' => null])->save();
+                    $count++;
+                });
+
+            return $count;
+        });
+        RateLimiter::for('commerce-webhooks', fn (Request $request) => Limit::perMinute(300)->by($request->ip()));
         RateLimiter::for('commerce-checkout', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));
         Settings\Actions\SaveStoreSettings::guardUsing(function (string $section, array $values, Settings\StoreSettings $settings): array {
             $code = $values['currency']['code'] ?? null;

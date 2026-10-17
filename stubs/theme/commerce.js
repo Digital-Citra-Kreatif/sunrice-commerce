@@ -110,4 +110,13 @@
         if (update) update.hidden = true;
         syncToggles();
     });
+
+    // Copy buttons next to amounts and account numbers.
+    document.addEventListener('click', function (event) {
+        var button = event.target.closest('[data-commerce-copy-button]');
+        if (!button) return;
+        var source = button.previousElementSibling && button.previousElementSibling.closest('[data-commerce-copy]') ? button.previousElementSibling : button.parentElement.querySelector('[data-commerce-copy]');
+        if (!source || !navigator.clipboard) return;
+        navigator.clipboard.writeText(source.dataset.commerceCopy).then(function () { toast(button.dataset.copied || '✓'); });
+    });
 })();

@@ -53,10 +53,19 @@ Route::middleware(['commerce.feature:checkout', 'commerce.noindex'])->prefix(Sto
 
 Route::middleware(['commerce.feature:orders', 'commerce.noindex'])->group(function () use ($suffix): void {
     Route::get(StorefrontRoutes::path('order').'/{key}', [Storefront\OrderController::class, 'show'])->name('commerce.order'.$suffix);
+    Route::get(StorefrontRoutes::path('order').'/{key}/pay', [Storefront\PayController::class, 'show'])->middleware('commerce.feature:payments')->name('commerce.order.pay'.$suffix);
+    Route::post(StorefrontRoutes::path('order').'/{key}/pay', [Storefront\PayController::class, 'pay'])->middleware(['commerce.feature:payments', 'throttle:commerce-checkout'])->name('commerce.order.pay.submit'.$suffix);
+    Route::get(StorefrontRoutes::path('order').'/{key}/payment/return', [Storefront\PayController::class, 'return'])->middleware('commerce.feature:payments')->name('commerce.order.payment-return'.$suffix);
     Route::post(StorefrontRoutes::path('order').'/{key}/cancel', [Storefront\OrderController::class, 'cancel'])->middleware('throttle:commerce-cart')->name('commerce.order.cancel'.$suffix);
     Route::get(StorefrontRoutes::path('quote').'/{key}', [Storefront\QuoteController::class, 'show'])->name('commerce.quote'.$suffix);
     Route::post(StorefrontRoutes::path('quote').'/{key}/accept', [Storefront\QuoteController::class, 'accept'])->middleware('throttle:commerce-cart')->name('commerce.quote.accept'.$suffix);
     Route::post(StorefrontRoutes::path('quote').'/{key}/decline', [Storefront\QuoteController::class, 'decline'])->middleware('throttle:commerce-cart')->name('commerce.quote.decline'.$suffix);
     Route::get(StorefrontRoutes::path('track_order'), [Storefront\OrderController::class, 'trackForm'])->name('commerce.track-order'.$suffix);
     Route::post(StorefrontRoutes::path('track_order'), [Storefront\OrderController::class, 'track'])->middleware(ProtectAgainstSpam::class)->name('commerce.track-order.submit'.$suffix);
+});
+
+Route::middleware(['commerce.feature:manual_payments', 'commerce.noindex'])->prefix(StorefrontRoutes::path('confirm_payment'))->group(function () use ($suffix): void {
+    Route::get('/', [Storefront\ConfirmPaymentController::class, 'show'])->name('commerce.confirm-payment'.$suffix);
+    Route::post('lookup', [Storefront\ConfirmPaymentController::class, 'lookup'])->middleware(ProtectAgainstSpam::class)->name('commerce.confirm-payment.lookup'.$suffix);
+    Route::post('/', [Storefront\ConfirmPaymentController::class, 'submit'])->middleware([ProtectAgainstSpam::class, 'throttle:commerce-confirm'])->name('commerce.confirm-payment.submit'.$suffix);
 });

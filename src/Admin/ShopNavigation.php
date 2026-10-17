@@ -30,6 +30,7 @@ final class ShopNavigation
     {
         self::add('Dashboard', 'commerce', 'shopping-bag', 'commerce.dashboard.view');
         self::add('Orders', 'commerce/orders', 'shopping-cart', 'commerce.orders.view', 'orders');
+        self::add('Payments to verify', 'commerce/confirmations', 'credit-card', 'commerce.payments.verify', 'manual_payments');
         Sunrice::addNavigationItem('Products', 'commerce/products', 'package', self::GROUP, fn (mixed $user): bool => Collection::query()
             ->whereIn('handle', (array) config('commerce.catalog.collections', ['products']))->pluck('id')
             ->contains(fn (int $id) => $user->can('viewAny', [Entry::class, $id])));

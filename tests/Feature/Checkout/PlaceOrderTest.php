@@ -5,7 +5,6 @@ declare(strict_types=1);
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Testing\TestResponse;
-use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
@@ -29,14 +28,6 @@ beforeEach(function () {
     config(['honeypot.enabled' => false]);
     $this->mug = checkoutStore();
 });
-
-/** The totals hash of what the cart would cost with this input. */
-function seenHash(Cart $cart, array $input): string
-{
-    app()->forgetScopedInstances();
-
-    return CartView::for($cart->fresh(), CheckoutData::fromCart($cart->fresh())->merge($input)->context())->state->hash();
-}
 
 function place(Cart $cart, array $input = []): TestResponse
 {

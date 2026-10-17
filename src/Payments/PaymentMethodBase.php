@@ -20,6 +20,12 @@ abstract class PaymentMethodBase implements PaymentMethod
     /** @var array<string, mixed> */
     protected array $settings = [];
 
+    /** The module the method belongs to (offered only while it is active). */
+    public static function feature(): ?string
+    {
+        return null;
+    }
+
     protected ?string $instanceKey = null;
 
     /** @param  array<string, mixed>  $settings */
