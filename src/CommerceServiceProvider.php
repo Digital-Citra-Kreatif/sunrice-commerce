@@ -9,9 +9,12 @@ use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Sunrice\Events\EntryDeleted;
+use Sunrice\Events\EntryPublished;
 use Sunrice\Facades\Sunrice;
 
 class CommerceServiceProvider extends PackageServiceProvider
@@ -40,6 +43,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->singleton(Health\HealthRegistry::class);
         $this->app->singleton(Admin\Setup\SetupChecklist::class);
         $this->app->singleton(Admin\Dashboard\DashboardCards::class);
+        $this->app->singleton(Catalog\PriceIndex::class);
     }
 
     public function packageBooted(): void
@@ -51,6 +55,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->registerStorefront();
         $this->registerHealthAndSchedule();
         $this->registerAdmin();
+        $this->registerCatalog();
         Event::listen(JobProcessing::class, function (): void {
             $this->app->forgetScopedInstances();
         });
@@ -89,6 +94,28 @@ class CommerceServiceProvider extends PackageServiceProvider
             }
 
             return $classes;
+        });
+    }
+
+    /** Product projection on publish. */
+    protected function registerCatalog(): void
+    {
+        Event::listen(EntryPublished::class, [Catalog\Listeners\ProjectProducts::class, 'published']);
+        Event::listen(EntryDeleted::class, [Catalog\Listeners\ProjectProducts::class, 'deleted']);
+
+        // Uploaded digital files never attached to a published product.
+        $this->app->make(Commerce::class)->onPrune('unattached downloads', function (): int {
+            $count = 0;
+            Catalog\Models\DownloadFile::query()->whereNull('product_id')->where('attached', false)->where('created_at', '<', now()->subDays(7))
+                ->each(function (Catalog\Models\DownloadFile $file) use (&$count): void {
+                    if ($file->disk !== null && $file->path !== null) {
+                        Storage::disk($file->disk)->delete($file->path);
+                    }
+                    $file->forceDelete();
+                    $count++;
+                });
+
+            return $count;
         });
     }
 
@@ -145,6 +172,8 @@ class CommerceServiceProvider extends PackageServiceProvider
             Console\TickCommand::class,
             Console\PruneCommand::class,
             Console\DoctorCommand::class,
+            Console\SyncProductsCommand::class,
+            Console\ScaffoldCommand::class,
         ]);
     }
 

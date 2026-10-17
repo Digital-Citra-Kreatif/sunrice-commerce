@@ -6,8 +6,11 @@ namespace Sunrice\Commerce\Catalog;
 
 use Closure;
 use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Features\Features;
+use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Fields\FieldType;
 use Sunrice\Fields\HydrationContext;
+use Sunrice\Models\Taxonomy;
 
 /**
  * `commerce_product`: a product's commerce data (type, options, variants,
@@ -94,6 +97,11 @@ class ProductField extends FieldType
             'max_options' => (int) config('commerce.catalog.max_options', 3),
             'max_variants' => (int) config('commerce.catalog.max_variants', 100),
             'link_presets' => ProductValue::LINK_PRESETS,
+            'attribute_taxonomies' => Taxonomy::query()
+                ->whereIn('handle', (array) app(StoreSettings::class)->get('catalog.attribute_taxonomies', []))
+                ->orderBy('title')->get(['handle', 'title'])->toArray(),
+            'tax_classes' => (array) app(StoreSettings::class)->get('taxes.classes', ['standard']),
+            'features' => app(Features::class)->states(),
         ];
 
         return $field;

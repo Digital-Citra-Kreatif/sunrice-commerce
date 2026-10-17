@@ -105,6 +105,7 @@ return [
     'downloads' => [
         'disk' => 'local',
         'attachment_max_mb' => 10,
+        'max_upload_mb' => 512,
     ],
 
     /*

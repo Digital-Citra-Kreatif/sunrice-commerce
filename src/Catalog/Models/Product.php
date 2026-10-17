@@ -7,6 +7,7 @@ namespace Sunrice\Commerce\Catalog\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Sunrice\Commerce\Database\Factories\ProductFactory;
 use Sunrice\Models\Entry;
 
@@ -37,8 +38,8 @@ use Sunrice\Models\Entry;
  * @property string|null $data_hash
  * @property string $sync_status
  * @property string|null $sync_error
- * @property \Illuminate\Support\Carbon|null $synced_at
- * @property \Illuminate\Support\Carbon|null $removed_at
+ * @property Carbon|null $synced_at
+ * @property Carbon|null $removed_at
  */
 class Product extends Model
 {

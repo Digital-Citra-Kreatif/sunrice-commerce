@@ -7,6 +7,7 @@ namespace Sunrice\Commerce\Catalog\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 
 /**
  * A change of a variant's stock, with its reason.
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property int|null $reference_id
  * @property int|null $user_id
  * @property string|null $note
- * @property \Illuminate\Support\Carbon|null $created_at
+ * @property Carbon|null $created_at
  */
 class StockMovement extends Model
 {
