@@ -95,7 +95,7 @@ class CommerceServiceProvider extends PackageServiceProvider
     /** Shop navigation, Settings → Store, admin routes and field types. */
     protected function registerAdmin(): void
     {
-        foreach ([Admin\Fields\MoneyField::class, Admin\Fields\DateTimeRangeField::class, Admin\Fields\RegionField::class] as $field) {
+        foreach ([Admin\Fields\MoneyField::class, Admin\Fields\DateTimeRangeField::class, Admin\Fields\RegionField::class, Catalog\ProductField::class] as $field) {
             Sunrice::registerField($field);
         }
         Admin\ShopNavigation::register();
