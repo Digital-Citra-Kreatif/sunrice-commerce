@@ -7,6 +7,7 @@ namespace Sunrice\Commerce\Settings\Actions;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
+use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Events\StoreSettingsSaved;
 use Sunrice\Commerce\Settings\SettingsRegistry;
 use Sunrice\Commerce\Settings\StoreSettings;
@@ -50,10 +51,13 @@ class SaveStoreSettings
             ?? throw new InvalidArgumentException("Unknown store settings section \"{$sectionKey}\".");
         $settings = app(StoreSettings::class);
 
-        $rules = $section->rules();
+        // The fields' own rules, then the section's.
+        $form = SchemaForm::make($section->fields());
+        $rules = array_merge_recursive($form->rules(), $section->rules());
         $values = Validator::make($input, $rules)->validate();
         // Only keys the section declares are stored.
-        $values = array_intersect_key($values, array_flip(array_map(fn (string $k) => explode('.', $k)[0], array_keys($rules))));
+        $keys = [...array_column($section->fields(), 'handle'), ...array_map(fn (string $k) => explode('.', $k)[0], array_keys($rules))];
+        $values = $form->schema()->normalize(array_intersect_key($values, array_flip($keys)));
 
         $errors = [];
         foreach (static::$guards as $guard) {

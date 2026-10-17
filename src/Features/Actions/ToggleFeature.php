@@ -71,7 +71,7 @@ class ToggleFeature
      * something it can't work without.
      *
      * @param  array<string, bool>  $switches
-     * @param  string|null  $switchedOff  the module being switched off, named in the message
+     * @param  string|null  $switchedOff  the module being switched off (kept for callers; the message names the root cause)
      *
      * @throws ValidationException
      */
@@ -81,10 +81,7 @@ class ToggleFeature
         $registry = app(FeatureRegistry::class);
         foreach (static::ESSENTIAL[$mode] ?? [] as $essential) {
             if (! $features->activeWith($essential, $switches, $mode)) {
-                // Name the module being switched off when it is what's missing.
-                $missing = $switchedOff !== null && ! $features->activeWith($switchedOff, $switches, $mode)
-                    && in_array($switchedOff, static::ESSENTIAL[$mode], true) ? $switchedOff : $essential;
-                $label = $registry->get($missing)->label ?? $missing;
+                $label = $registry->get(static::rootCause($essential, $switches, $mode))->label ?? $essential;
                 $modeLabel = static::MODE_LABELS[$mode] ?? $mode;
 
                 throw ValidationException::withMessages([
@@ -92,5 +89,27 @@ class ToggleFeature
                 ]);
             }
         }
+    }
+
+    /**
+     * The module to blame when $key is inactive: the first switched-off
+     * module down its requirements (Checkout is off because Payments is).
+     *
+     * @param  array<string, bool>  $switches
+     */
+    protected static function rootCause(string $key, array $switches, string $mode): string
+    {
+        $features = app(Features::class);
+        $feature = app(FeatureRegistry::class)->get($key);
+        if ($feature === null || ! ($switches[$key] ?? $feature->default) || ! in_array($mode, $feature->modes, true)) {
+            return $key;
+        }
+        foreach ($features->requirements($feature, $mode) as $required) {
+            if (! $features->activeWith($required, $switches, $mode)) {
+                return static::rootCause($required, $switches, $mode);
+            }
+        }
+
+        return $key;
     }
 }

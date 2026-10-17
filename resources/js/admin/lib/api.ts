@@ -49,6 +49,7 @@ export const api: SunriceCommerceApi = {
     components: {},
 };
 
+
 /** Install window.SunriceCommerce and run the calls queued before it existed. */
 export function installCommerceApi(): void {
     window.SunriceCommerce = api;

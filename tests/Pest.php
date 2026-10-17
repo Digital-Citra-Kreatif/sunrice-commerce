@@ -23,3 +23,21 @@ function actingAsSuperAdmin(): User
 
     return $user;
 }
+
+/**
+ * Sign in to the admin as a user whose role has these permissions (plus
+ * sunrice.access-admin).
+ *
+ * @param  array<int, string>  $permissions
+ */
+function actingAsUserWith(array $permissions, string $email = 'staff@example.com'): User
+{
+    test()->artisan('sunrice:sync-permissions');
+    $role = Role::findOrCreate('Role '.md5($email), config('sunrice.auth.guard', 'web'));
+    $role->givePermissionTo(['sunrice.access-admin', ...$permissions]);
+    $user = User::query()->create(['name' => 'Staff', 'email' => $email, 'password' => bcrypt('password')]);
+    $user->assignRole($role);
+    test()->actingAs($user, config('sunrice.auth.guard', 'web'));
+
+    return $user;
+}

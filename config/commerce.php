@@ -236,6 +236,7 @@ return [
             'compare_max' => 4,
             'compare_fields' => [],
             'price_range' => 'range',
+            'attribute_taxonomies' => [],
         ],
         'checkout' => [
             'guest_checkout' => true,

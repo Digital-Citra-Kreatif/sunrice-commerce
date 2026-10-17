@@ -9,6 +9,7 @@ use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Sunrice\Facades\Sunrice;
@@ -37,6 +38,8 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->scoped(Support\MoneyFormatter::class);
         $this->app->singleton(Storefront\Slots::class);
         $this->app->singleton(Health\HealthRegistry::class);
+        $this->app->singleton(Admin\Setup\SetupChecklist::class);
+        $this->app->singleton(Admin\Dashboard\DashboardCards::class);
     }
 
     public function packageBooted(): void
@@ -47,6 +50,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         Permissions\CommercePermissions::register();
         $this->registerStorefront();
         $this->registerHealthAndSchedule();
+        $this->registerAdmin();
         Event::listen(JobProcessing::class, function (): void {
             $this->app->forgetScopedInstances();
         });
@@ -85,6 +89,25 @@ class CommerceServiceProvider extends PackageServiceProvider
             }
 
             return $classes;
+        });
+    }
+
+    /** Shop navigation, Settings → Store, admin routes and field types. */
+    protected function registerAdmin(): void
+    {
+        foreach ([Admin\Fields\MoneyField::class, Admin\Fields\DateTimeRangeField::class, Admin\Fields\RegionField::class] as $field) {
+            Sunrice::registerField($field);
+        }
+        Admin\ShopNavigation::register();
+        Settings\Sections\BuiltinSections::register($this->app->make(Settings\SettingsRegistry::class));
+        Admin\Setup\SetupChecklist::registerBuiltin($this->app->make(Admin\Setup\SetupChecklist::class));
+
+        // The store's money format, for the admin's money inputs and figures.
+        Inertia::share('commerce', fn (): array => ['currency' => (array) $this->app->make(Settings\StoreSettings::class)->get('general.currency', [])]);
+
+        Sunrice::addSettingsTab('store', 'Store', 'commerce/settings', fn (mixed $user): bool => Http\Controllers\Admin\SettingsController::menu($user) !== []);
+        Sunrice::adminRoutes(function (): void {
+            require __DIR__.'/../routes/admin.php';
         });
     }
 

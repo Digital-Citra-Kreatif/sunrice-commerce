@@ -45,6 +45,7 @@ export interface SunriceApi {
             isDirty: boolean;
             post: (url: string, options?: Record<string, unknown>) => void;
             put: (url: string, options?: Record<string, unknown>) => void;
+            patch: (url: string, options?: Record<string, unknown>) => void;
             delete: (url: string, options?: Record<string, unknown>) => void;
             reset: (...fields: string[]) => void;
         };
