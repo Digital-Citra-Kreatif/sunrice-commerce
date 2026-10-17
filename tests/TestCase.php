@@ -54,4 +54,12 @@ class TestCase extends Orchestra
     {
         $router->middleware('web')->group(__DIR__.'/../workbench/routes/web.php');
     }
+
+    /** Each request starts with fresh per-request services, as it would in a real request. */
+    public function call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
+    {
+        $this->app->forgetScopedInstances();
+
+        return parent::call($method, $uri, $parameters, $cookies, $files, $server, $content);
+    }
 }

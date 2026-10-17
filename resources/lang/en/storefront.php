@@ -49,6 +49,17 @@ return [
             'name' => 'Name',
         ],
     ],
+    'flash' => [
+        'title' => 'Flash sale',
+        'ends_in' => 'Ends in',
+        'starts_in' => 'Starts in',
+        'sold' => ':sold of :limit sold',
+        'cap' => 'Only :count left at the :sale price; the rest is at the regular price.',
+        'limit' => 'You can buy :count more at the :sale price; the rest is at the regular price.',
+        'running' => 'Now on',
+        'upcoming' => 'Coming soon',
+        'none' => 'No flash sales right now.',
+    ],
     'cta' => [
         'cart' => 'Add to cart',
         'inquiry' => 'Ask about this product',

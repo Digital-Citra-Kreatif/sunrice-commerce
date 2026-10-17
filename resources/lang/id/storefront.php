@@ -49,6 +49,17 @@ return [
             'name' => 'Nama',
         ],
     ],
+    'flash' => [
+        'title' => 'Flash sale',
+        'ends_in' => 'Berakhir dalam',
+        'starts_in' => 'Dimulai dalam',
+        'sold' => 'Terjual :sold dari :limit',
+        'cap' => 'Tinggal :count dengan harga :sale; sisanya dengan harga normal.',
+        'limit' => 'Anda bisa membeli :count lagi dengan harga :sale; sisanya dengan harga normal.',
+        'running' => 'Sedang berlangsung',
+        'upcoming' => 'Segera hadir',
+        'none' => 'Belum ada flash sale saat ini.',
+    ],
     'cta' => [
         'cart' => 'Tambah ke keranjang',
         'inquiry' => 'Tanya produk ini',

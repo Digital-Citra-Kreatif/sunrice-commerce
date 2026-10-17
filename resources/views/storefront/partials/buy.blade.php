@@ -3,6 +3,18 @@
 <div class="commerce-buy" data-commerce-product="{{ $product->id() }}">
     @include(\Sunrice\Commerce\Storefront\Layout::view('partials.badges'))
     @include(\Sunrice\Commerce\Storefront\Layout::view('partials.price'))
+    @if ($product->flashSale)
+        <div class="commerce-flash" data-commerce-flash>
+            <strong>{{ $product->flashSale['badge'] ?: $product->flashSale['name'] }}</strong>
+            @if ($product->flashSale['countdown'])
+                {{ __('commerce::storefront.flash.ends_in') }} @include(\Sunrice\Commerce\Storefront\Layout::view('partials.countdown'), ['until' => $product->flashSale['ends_at']])
+            @endif
+            @if ($product->flashSale['sold_percent'] !== null)
+                <progress max="100" value="{{ $product->flashSale['sold_percent'] }}">{{ $product->flashSale['sold_percent'] }}%</progress>
+                <span>{{ __('commerce::storefront.flash.sold', ['sold' => $product->flashSale['sold'], 'limit' => $product->flashSale['limit']]) }}</span>
+            @endif
+        </div>
+    @endif
 
     @if ($product->tiers !== [])
         <table class="commerce-tiers">

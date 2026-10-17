@@ -17,3 +17,6 @@ Route::get(StorefrontRoutes::path('go').'/{type}/{entry}', Storefront\GoControll
     ->middleware('commerce.noindex')->name('commerce.go'.$suffix);
 
 Route::get(StorefrontRoutes::path('brands'), Storefront\BrandsController::class)->name('commerce.brands'.$suffix);
+
+Route::get(StorefrontRoutes::path('flash_sale'), [Storefront\FlashSaleController::class, 'index'])->name('commerce.flash-sale'.$suffix);
+Route::get(StorefrontRoutes::path('flash_sale').'/{sale}', [Storefront\FlashSaleController::class, 'show'])->name('commerce.flash-sale.show'.$suffix);

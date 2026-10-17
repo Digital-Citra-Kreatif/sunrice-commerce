@@ -28,12 +28,6 @@ class ProductViewFactory
     /** @var array<int, ProductView|null> entry id => view (per request) */
     protected array $memo = [];
 
-    /** @var array<int, Closure(Variant, int): int> */
-    protected static array $priceAdjusters = [];
-
-    /** @var array<int, Closure(ProductView): ProductView> */
-    protected static array $extenders = [];
-
     public function __construct(
         protected StoreSettings $settings,
         protected PriceVisibility $visibility,
@@ -50,7 +44,7 @@ class ProductViewFactory
      */
     public static function adjustPricesUsing(Closure $adjuster): void
     {
-        static::$priceAdjusters[] = $adjuster;
+        app(ProductViewHooks::class)->priceAdjusters[] = $adjuster;
     }
 
     /**
@@ -60,13 +54,7 @@ class ProductViewFactory
      */
     public static function extendUsing(Closure $extender): void
     {
-        static::$extenders[] = $extender;
-    }
-
-    public static function flushHooks(): void
-    {
-        static::$priceAdjusters = [];
-        static::$extenders = [];
+        app(ProductViewHooks::class)->extenders[] = $extender;
     }
 
     public function forEntry(Entry $entry): ?ProductView
@@ -212,7 +200,7 @@ class ProductViewFactory
             variants: $variantRows,
             purchasable: ! $product->syncFailed() && $status !== 'out_of_stock',
         );
-        foreach (static::$extenders as $extend) {
+        foreach (app(ProductViewHooks::class)->extenders as $extend) {
             $view = $extend($view);
         }
 
@@ -259,7 +247,7 @@ class ProductViewFactory
     protected function currentPrice(Product $product, Variant $variant): int
     {
         $price = $this->basePrice($product, $variant);
-        foreach (static::$priceAdjusters as $adjust) {
+        foreach (app(ProductViewHooks::class)->priceAdjusters as $adjust) {
             $price = $adjust($variant, $price);
         }
 

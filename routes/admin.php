@@ -33,6 +33,13 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::put('pricing-rules/{rule}', [Admin\PricingRulesController::class, 'update'])->name('pricing-rules.update');
     Route::delete('pricing-rules/{rule}', [Admin\PricingRulesController::class, 'destroy'])->name('pricing-rules.destroy');
 
+    Route::get('flash-sales', [Admin\FlashSalesController::class, 'index'])->name('flash-sales');
+    Route::get('flash-sales/create', [Admin\FlashSalesController::class, 'create'])->name('flash-sales.create');
+    Route::post('flash-sales', [Admin\FlashSalesController::class, 'store'])->name('flash-sales.store');
+    Route::get('flash-sales/{sale}/edit', [Admin\FlashSalesController::class, 'edit'])->name('flash-sales.edit');
+    Route::put('flash-sales/{sale}', [Admin\FlashSalesController::class, 'update'])->name('flash-sales.update');
+    Route::delete('flash-sales/{sale}', [Admin\FlashSalesController::class, 'destroy'])->name('flash-sales.destroy');
+
     Route::get('settings', [Admin\SettingsController::class, 'index'])->name('settings');
     Route::get('settings/features', [Admin\FeaturesController::class, 'index'])->name('settings.features');
     Route::put('settings/features/{feature}', [Admin\FeaturesController::class, 'update'])->name('settings.features.update');

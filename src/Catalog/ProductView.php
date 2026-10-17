@@ -43,6 +43,12 @@ final class ProductView implements JsonSerializable
         public readonly bool $purchasable = true,
     ) {}
 
+    /** A copy with some properties changed (for ProductViewFactory::extendUsing). */
+    public function with(mixed ...$changes): self
+    {
+        return new self(...[...get_object_vars($this), ...$changes]);
+    }
+
     public function id(): int
     {
         return $this->product->id;

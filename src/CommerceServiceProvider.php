@@ -48,7 +48,9 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->singleton(Catalog\PriceIndex::class);
         $this->app->scoped(Catalog\Catalog::class);
         $this->app->scoped(Catalog\ProductViewFactory::class);
+        $this->app->singleton(Catalog\ProductViewHooks::class);
         $this->app->scoped(Promotions\PriceRules\RuleMatcher::class);
+        $this->app->scoped(Promotions\FlashSales\ActiveSales::class);
         // Optional connections, replaced when their module is built (C4.8, C5.3, C13).
         $this->app->scoped(Contracts\Inventory::class, fn ($app) => $app->make(Features\Features::class)->active('inventory')
             ? $app->make(Inventory\DatabaseInventory::class)
@@ -105,6 +107,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         Blade::component(View\Components\Price::class, 'commerce::price');
         Blade::component(View\Components\Products::class, 'commerce::products');
         Blade::component(View\Components\ProductFilter::class, 'commerce::product-filter');
+        Blade::component(View\Components\FlashSale::class, 'commerce::flash-sale');
 
         // Product pages (and the shop's listings) when the app has no template of its own.
         Sunrice::resolveTemplateUsing(fn (string $view, TemplateContext $context): ?string => Storefront\TemplateFallback::resolve($view, $context));
@@ -139,6 +142,18 @@ class CommerceServiceProvider extends PackageServiceProvider
         $commerce = $this->app->make(Commerce::class);
         $commerce->registerPriceCandidateProvider(Pricing\Providers\ProductTierPrice::class, 10);
         $commerce->registerPriceCandidateProvider(Pricing\Providers\PriceRulePrice::class, 20);
+        $commerce->registerPriceCandidateProvider(Pricing\Providers\FlashSalePrice::class, 5);
+
+        // Running flash sales lower everyone's price on listings and product pages.
+        $flashPrice = function (Catalog\Models\Variant $variant, int $price): int {
+            $item = $this->app->make(Promotions\FlashSales\ActiveSales::class)->for($variant);
+
+            return $item !== null && ($item->remaining() ?? 1) > 0 ? min($price, $item->priceFor($variant->price)) : $price;
+        };
+        $this->app->make(Catalog\PriceIndex::class)->adjustUsing(fn (Catalog\Models\Product $product, Catalog\Models\Variant $variant, int $price) => $flashPrice($variant, $price));
+        Catalog\ProductViewFactory::adjustPricesUsing($flashPrice);
+        Catalog\ProductViewFactory::extendUsing(fn (Catalog\ProductView $view) => Promotions\FlashSales\FlashSaleView::extend($view));
+        $commerce->onTick('flash sales', fn () => (new Promotions\FlashSales\FlashSaleBoundaries)());
     }
 
     /** Product projection on publish. */

@@ -79,7 +79,7 @@ class SchemaForm implements JsonSerializable
 
     /**
      * Validate and normalize posted values: the fields' rules, then
-     * $extraRules (keyed by handle); only the fields' keys are returned.
+     * $extraRules (keyed by handle); every field's key is returned, and only those.
      *
      * @param  array<string, mixed>  $input
      * @param  array<string, mixed>  $extraRules
@@ -97,7 +97,8 @@ class SchemaForm implements JsonSerializable
 
         $handles = array_column($this->fields, 'handle');
 
-        return $this->schema()->normalize(array_intersect_key($validator->validated(), array_flip($handles)));
+        // Every field is returned (normalized), posted or not.
+        return $this->schema()->normalize(array_replace(array_fill_keys($handles, null), array_intersect_key($validator->validated(), array_flip($handles))));
     }
 
     /** Re-key a validation exception's messages under `values.` (keys starting with `section` stay). */
