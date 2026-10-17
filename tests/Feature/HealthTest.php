@@ -72,3 +72,14 @@ it('warns while the full-page cache is on', function () {
     config(['sunrice.cache.full_page' => true]);
     expect($status())->toBe(HealthResult::WARNING);
 });
+
+it('clears old IP addresses when pruning', function () {
+    $old = makeOrder(['ip_address' => '10.0.0.1', 'user_agent' => 'Firefox']);
+    $old->forceFill(['created_at' => now()->subDays(400)])->save();
+    $recent = makeOrder(['ip_address' => '10.0.0.2']);
+
+    $this->artisan('commerce:prune')->assertSuccessful();
+
+    expect($old->fresh()->ip_address)->toBeNull()->and($old->fresh()->user_agent)->toBeNull()
+        ->and($recent->fresh()->ip_address)->toBe('10.0.0.2');
+});

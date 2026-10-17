@@ -182,7 +182,8 @@ return [
     */
 
     'privacy' => [
-        // IP addresses on download logs are cleared after this many days.
+        // IP addresses (and user agents) on orders, download logs and payment
+        // confirmations are cleared after this many days (commerce:prune).
         'ip_retention_days' => 365,
     ],
 

@@ -12,6 +12,7 @@ use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Http\Request;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
@@ -227,6 +228,14 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->make(Commerce::class)->onTick('order expiry', fn () => (new Orders\Expiry)());
         $this->app->make(Commerce::class)->onTick('shipment tracking', fn () => $this->app->make(Shipping\ShipmentTracker::class)());
         RateLimiter::for('commerce-confirm', fn (Request $request) => Limit::perHour(10)->by((string) $request->input('order').'|'.$request->ip()));
+        // Personal data with a shelf life: IP addresses (and user agents) on orders, downloads and confirmations.
+        $commerce->onPrune('ip addresses', function (): int {
+            $before = now()->subDays((int) config('commerce.privacy.ip_retention_days', 365));
+            $count = DB::table('commerce_orders')->whereNotNull('ip_address')->where('created_at', '<', $before)->update(['ip_address' => null, 'user_agent' => null]);
+            $count += DB::table('commerce_download_logs')->whereNotNull('ip_address')->where('created_at', '<', $before)->update(['ip_address' => null, 'user_agent' => null]);
+
+            return $count + DB::table('commerce_payment_confirmations')->whereNotNull('ip_address')->where('created_at', '<', $before)->update(['ip_address' => null]);
+        });
         $commerce->onPrune('payment proofs', function (): int {
             $count = 0;
             Payments\Models\PaymentConfirmation::query()->whereNotNull('proof_path')
@@ -381,6 +390,7 @@ class CommerceServiceProvider extends PackageServiceProvider
             Console\SyncProductsCommand::class,
             Console\ScaffoldCommand::class,
             Console\StatsCommand::class,
+            Console\InstallCommand::class,
         ]);
     }
 
