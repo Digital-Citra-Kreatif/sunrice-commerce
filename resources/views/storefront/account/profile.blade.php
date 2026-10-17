@@ -1,3 +1,6 @@
+{{--
+    My Account → Profile: name, email, phone, password, Google link, deleting the account. $customer, $user, $google.
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::view('account.layout'))
 
 @section('account')

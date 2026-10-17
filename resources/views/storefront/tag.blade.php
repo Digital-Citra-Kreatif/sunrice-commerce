@@ -2,6 +2,7 @@
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     <section class="commerce-term commerce-tag">
         <h1>{{ $term->name }}</h1>
         @php($query = \Sunrice\Commerce\Catalog\ProductQuery::fromRequest(request())->tag($term->id))

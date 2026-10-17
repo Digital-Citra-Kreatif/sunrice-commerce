@@ -2,6 +2,7 @@
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     <section class="commerce-term commerce-category">
         @php($banner = $term->get('banner'))
         @if (is_object($banner))

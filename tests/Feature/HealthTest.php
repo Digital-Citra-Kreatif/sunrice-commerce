@@ -64,3 +64,11 @@ it('runs registered tick and prune steps and schedules them', function () {
     $commands = collect(app(Schedule::class)->events())->map(fn ($e) => $e->command)->implode(' ');
     expect($commands)->toContain('commerce:tick')->toContain('commerce:prune');
 });
+
+it('warns while the full-page cache is on', function () {
+    $status = fn () => app(HealthRegistry::class)->run()['full_page_cache']['result']->status;
+
+    expect($status())->toBe(HealthResult::OK);
+    config(['sunrice.cache.full_page' => true]);
+    expect($status())->toBe(HealthResult::WARNING);
+});

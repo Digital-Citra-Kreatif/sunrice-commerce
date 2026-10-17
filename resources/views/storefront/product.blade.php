@@ -13,8 +13,10 @@
 @endpush
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     <article class="commerce-product">
-        <div class="commerce-product__gallery">
+        @php($variantImages = $product ? collect($product->variants)->filter(fn ($v) => $v['image'])->mapWithKeys(fn ($v) => [$v['id'] => \Sunrice\Models\Asset::query()->find($v['image'])?->url()])->filter()->all() : [])
+        <div class="commerce-product__gallery" data-commerce-gallery="{{ json_encode($variantImages, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }}">
             @foreach ((array) ($entry->get('gallery') ?? []) as $image)
                 @if (is_object($image))
                     <img src="{{ $image->url() }}" alt="{{ $image->alt ?? $entry->title }}" loading="{{ $loop->first ? 'eager' : 'lazy' }}">

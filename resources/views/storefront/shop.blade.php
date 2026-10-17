@@ -2,6 +2,7 @@
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     <section class="commerce-shop">
         <h1>{{ $collection->title ?? __('commerce::storefront.listing.shop') }}</h1>
         <form class="commerce-search" method="GET" action="{{ url()->current() }}" role="search">

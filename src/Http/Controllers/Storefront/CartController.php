@@ -16,6 +16,7 @@ use Sunrice\Commerce\Cart\Actions\UpdateCartItem;
 use Sunrice\Commerce\Cart\CartException;
 use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Cart\CartView;
+use Sunrice\Commerce\Cart\VariantFromOptions;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 
@@ -31,9 +32,14 @@ class CartController
 
     public function add(Request $request, AddToCart $add): RedirectResponse
     {
-        $data = $request->validate(['variant' => ['required', 'integer'], 'quantity' => ['nullable', 'integer', 'min:1', 'max:100000']]);
+        $data = $request->validate(['variant' => ['required_without:options', 'nullable', 'integer'], 'product' => ['nullable', 'integer'], 'options' => ['nullable', 'array'],
+            'quantity' => ['nullable', 'integer', 'min:1', 'max:100000']]);
+        $variant = VariantFromOptions::fromRequest($data);
+        if ($variant === null) {
+            return back()->with('commerce.error', __('commerce::storefront.product.unavailable'));
+        }
         try {
-            $item = $add->handle((int) $data['variant'], (int) ($data['quantity'] ?? 1));
+            $item = $add->handle($variant, (int) ($data['quantity'] ?? 1));
         } catch (CartException $e) {
             return back()->with('commerce.error', $e->getMessage());
         }

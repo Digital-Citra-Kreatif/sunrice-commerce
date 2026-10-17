@@ -1,3 +1,6 @@
+{{--
+    Sale, new, stock and featured badges. $product: ProductView.
+--}}
 @if ($product->badges !== [])
     <ul class="commerce-badges">
         @foreach ($product->badges as $badge)

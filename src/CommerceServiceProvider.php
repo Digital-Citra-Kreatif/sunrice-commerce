@@ -327,7 +327,7 @@ class CommerceServiceProvider extends PackageServiceProvider
     protected function registerHealthAndSchedule(): void
     {
         $health = $this->app->make(Health\HealthRegistry::class);
-        foreach ([Health\Checks\MailCheck::class, Health\Checks\QueueCheck::class, Health\Checks\SchedulerCheck::class] as $check) {
+        foreach ([Health\Checks\MailCheck::class, Health\Checks\QueueCheck::class, Health\Checks\SchedulerCheck::class, Health\Checks\FullPageCacheCheck::class] as $check) {
             $health->register($check);
         }
 
@@ -370,6 +370,8 @@ class CommerceServiceProvider extends PackageServiceProvider
     protected function registerAdminAssets(): void
     {
         $this->publishes([__DIR__.'/../dist' => public_path('vendor/commerce')], 'commerce-assets');
+        $this->publishes(Storefront\Templates::publishable(), 'commerce-templates');
+        $this->publishes([__DIR__.'/../resources/lang' => $this->app->langPath('vendor/commerce')], 'commerce-translations');
 
         $version = static::assetVersion();
         Sunrice::registerAdminScript('vendor/commerce/admin.js?v='.$version);

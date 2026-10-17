@@ -1,3 +1,6 @@
+{{--
+    One of the customer's orders. $order, $payment, $downloads, $canCancel, $invoiceUrl.
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::view('account.layout'))
 
 @section('account')

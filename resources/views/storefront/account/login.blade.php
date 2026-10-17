@@ -1,6 +1,10 @@
+{{--
+    Sign in: password, emailed code, Google. $passwordless, $google.
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     <section class="commerce-auth">
         <h1>{{ __('commerce::account.login.title') }}</h1>
         @include(\Sunrice\Commerce\Storefront\Layout::view('partials.messages'))

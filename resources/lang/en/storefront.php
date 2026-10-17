@@ -63,6 +63,8 @@ return [
         'none' => 'No flash sales right now.',
     ],
     'cart' => [
+        'close' => 'Close',
+        'view' => 'View cart',
         'title' => 'Cart',
         'empty' => 'Your cart is empty.',
         'continue' => 'Continue shopping',
@@ -151,5 +153,8 @@ return [
         'not_enough_stock' => 'Only :count of :product left.',
         'qty_rules' => ':product: choose a valid quantity.',
         'flash_sale_limit' => 'You can buy :count more of :product at the sale price.',
+    ],
+    'header' => [
+        'label' => 'Store',
     ],
 ];

@@ -1737,11 +1737,12 @@ small value objects):
 - **Sunrice's content version** is never bumped by hot paths. Saving store settings bumps it (via
   `Setting::set()`), which is rare.
 - **Query budgets**, guarded by tests that count queries:
-  - product listing: at most +5 queries over Sunrice's own;
-  - product page: at most +8;
-  - cart page: at most 12 total;
-  - checkout render: at most 20;
+  - no page grows with the number of products or cart lines (listing with 12 vs 24 products,
+    cart and checkout with 2 vs 10 lines must run the same number of queries);
+  - ceilings: listing 20, product page 16, cart 26, checkout 28 (a pricing pass alone reads
+    flash sales, price rules, automatic vouchers and tiers once each);
   - placing an order: no N+1 per line.
+  (`tests/Feature/Storefront/QueryBudgetTest.php`.)
 - **Full-page cache**: commerce registers a U11 hook that excludes product, product-taxonomy and
   store pages, and any request with a commerce session or cart cookie. Without U11, store health
   warns when `sunrice.cache.full_page` is on.

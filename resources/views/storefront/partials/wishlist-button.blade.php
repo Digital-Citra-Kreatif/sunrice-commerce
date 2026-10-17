@@ -1,3 +1,6 @@
+{{--
+    <x-commerce::wishlist-button>: add or remove a product from the wishlist. $product, $saved.
+--}}
 @if ($saved)
     <form method="POST" action="{{ commerce_url('commerce.wishlist.remove', ['product' => $productId]) }}" class="commerce-wishlist-button" data-commerce-wishlist>
         @csrf @method('DELETE')

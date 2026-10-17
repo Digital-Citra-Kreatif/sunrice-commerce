@@ -1,6 +1,10 @@
+{{--
+    All running and upcoming flash sales. $sales: FlashSale[].
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     <section class="commerce-flash-sales">
         <h1>{{ __('commerce::storefront.flash.title') }}</h1>
         @forelse ($running as $sale)

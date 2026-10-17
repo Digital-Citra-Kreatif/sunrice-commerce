@@ -9,17 +9,7 @@ use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\ProductQuery;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Models\Entry;
-use Sunrice\Models\Taxonomy;
 use Sunrice\Models\Term;
-
-function term(string $taxonomy, string $name, ?Term $parent = null): Term
-{
-    $taxonomyId = Taxonomy::query()->where('handle', $taxonomy)->value('id') ?? Taxonomy::query()->create(['handle' => $taxonomy, 'title' => ucfirst($taxonomy), 'settings' => []])->id;
-    $term = Term::query()->create(['taxonomy_id' => $taxonomyId, 'parent_id' => $parent?->id, 'sort_order' => 0]);
-    $term->translations()->create(['taxonomy_id' => $taxonomyId, 'locale' => 'id', 'name' => $name, 'slug' => Str::slug($name), 'data' => [], 'is_ready' => true]);
-
-    return $term->fresh();
-}
 
 /** @param array<int, Term> $terms */
 function listed(string $title, int $price, array $terms = [], array $extra = []): Entry

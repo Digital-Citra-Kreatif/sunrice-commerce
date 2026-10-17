@@ -1,3 +1,6 @@
+{{--
+    My Account → Quotes (Quotation mode). $orders (paginated), $type: quote.
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::view('account.layout'))
 
 @section('account')

@@ -1,3 +1,6 @@
+{{--
+    <x-commerce::compare-button>: add a product to the comparison. $product, $added.
+--}}
 @if ($added)
     <form method="POST" action="{{ commerce_url('commerce.compare.remove', ['product' => $productId]) }}" class="commerce-compare-button">
         @csrf @method('DELETE')

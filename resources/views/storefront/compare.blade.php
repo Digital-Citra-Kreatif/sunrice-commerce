@@ -1,6 +1,10 @@
+{{--
+    Product comparison. $products: ProductView[] side by side, $fields: the compared attributes.
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     <section class="commerce-compare">
         <h1>{{ __('commerce::storefront.compare.title') }}</h1>
         @include(\Sunrice\Commerce\Storefront\Layout::view('partials.messages'))

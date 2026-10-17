@@ -1,3 +1,6 @@
+{{--
+    My Account → Orders. $orders (paginated), $type: order.
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::view('account.layout'))
 
 @section('account')

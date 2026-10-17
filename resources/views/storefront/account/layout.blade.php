@@ -2,6 +2,7 @@
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     <section class="commerce-account">
         <nav class="commerce-account__nav" aria-label="{{ __('commerce::account.overview.title') }}">
             <ul>

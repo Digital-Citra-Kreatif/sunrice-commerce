@@ -1,6 +1,10 @@
+{{--
+    Find an order by its number and email.
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     @php($L = \Sunrice\Commerce\Storefront\Layout::class)
     <section class="commerce-track-page">
         <h1>{{ __('commerce::checkout.track.title') }}</h1>

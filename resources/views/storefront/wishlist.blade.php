@@ -1,6 +1,10 @@
+{{--
+    The wishlist page. $items: saved products (ProductView), $shared: whether it is someone's shared list, $shareUrl.
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     <section class="commerce-wishlist">
         <h1>{{ __('commerce::storefront.wishlist.title') }}</h1>
         @include(\Sunrice\Commerce\Storefront\Layout::view('partials.messages'))

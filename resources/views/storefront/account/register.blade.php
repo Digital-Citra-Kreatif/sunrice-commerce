@@ -1,6 +1,10 @@
+{{--
+    Create an account. $passwordless: whether signing up by emailed code is offered.
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     <section class="commerce-auth">
         <h1>{{ __('commerce::account.register.title') }}</h1>
         <form method="POST" action="{{ commerce_url('commerce.account.register.store') }}" class="commerce-form">

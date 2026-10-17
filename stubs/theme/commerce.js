@@ -19,6 +19,7 @@
             el.hidden = cart.count === 0;
         });
         document.dispatchEvent(new CustomEvent('commerce:cart', { detail: cart }));
+        document.dispatchEvent(new CustomEvent('commerce:cart-updated', { detail: cart }));
     }
 
     function toast(message, isError) {
@@ -118,5 +119,64 @@
         var source = button.previousElementSibling && button.previousElementSibling.closest('[data-commerce-copy]') ? button.previousElementSibling : button.parentElement.querySelector('[data-commerce-copy]');
         if (!source || !navigator.clipboard) return;
         navigator.clipboard.writeText(source.dataset.commerceCopy).then(function () { toast(button.dataset.copied || '✓'); });
+    });
+
+    // The variant's own image comes first in the gallery.
+    document.addEventListener('commerce:variant', function (event) {
+        var gallery = document.querySelector('[data-commerce-gallery]');
+        if (!gallery || !event.detail) return;
+        var images = JSON.parse(gallery.dataset.commerceGallery || '{}');
+        var src = images[event.detail.id];
+        var first = gallery.querySelector('img');
+        if (!src || !first) return;
+        if (!first.dataset.original) first.dataset.original = first.src;
+        first.src = src;
+    });
+
+    // The mini cart drawer: a <dialog> listing the cart (focus stays inside; Escape closes and focus returns to the link).
+    document.addEventListener('click', function (event) {
+        var link = event.target.closest('[data-commerce-mini-cart]');
+        var drawer = document.querySelector('[data-commerce-drawer]');
+        if (!link || !drawer || typeof drawer.showModal !== 'function' || event.metaKey || event.ctrlKey) return;
+        event.preventDefault();
+        var body = drawer.querySelector('[data-commerce-drawer-body]');
+        fetch(link.dataset.commerceCartApi, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (json) {
+                var cart = json.cart || json;
+                body.textContent = '';
+                var list = document.createElement('ul');
+                list.className = 'commerce-drawer__lines';
+                (cart.lines || []).forEach(function (line) {
+                    var li = document.createElement('li');
+                    var a = document.createElement('a');
+                    a.href = line.url || '#';
+                    a.textContent = line.quantity + ' × ' + line.title;
+                    var price = document.createElement('span');
+                    price.textContent = line.total.formatted;
+                    li.appendChild(a);
+                    li.appendChild(price);
+                    list.appendChild(li);
+                });
+                body.appendChild(list);
+                if (cart.totals) {
+                    var total = document.createElement('p');
+                    total.className = 'commerce-drawer__total';
+                    total.textContent = cart.totals.total.formatted;
+                    body.appendChild(total);
+                }
+                drawer.showModal();
+                var close = drawer.querySelector('[data-commerce-drawer-close]');
+                if (close) close.focus();
+            })
+            .catch(function () { window.location.href = link.href; });
+        drawer.addEventListener('close', function onClose() {
+            drawer.removeEventListener('close', onClose);
+            link.focus();
+        });
+    });
+    document.addEventListener('click', function (event) {
+        if (event.target.closest('[data-commerce-drawer-close]')) event.target.closest('dialog').close();
+        if (event.target.matches('[data-commerce-drawer]')) event.target.close(); // a click on the backdrop
     });
 })();

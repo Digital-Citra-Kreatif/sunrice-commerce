@@ -1,6 +1,11 @@
+{{--
+    The one-page checkout. $cart (CartView), $state (CalculationState), $data (CheckoutData), $mode (CheckoutMode), $settings,
+    $needsAddress, $paymentMethods, $savedAddresses, $guest, $offerAccount, $accountRequired, $extraFields, $termsUrl, $submitLabel.
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     @php($L = \Sunrice\Commerce\Storefront\Layout::class)
     @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
     <section class="commerce-checkout-page">

@@ -1,6 +1,10 @@
+{{--
+    Choose a new password. $token, $email.
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     <section class="commerce-auth">
         <h1>{{ __('commerce::account.reset.title') }}</h1>
         <form method="POST" action="{{ commerce_url('commerce.account.password.update') }}" class="commerce-form">

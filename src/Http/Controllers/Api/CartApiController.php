@@ -14,6 +14,7 @@ use Sunrice\Commerce\Cart\Actions\UpdateCartItem;
 use Sunrice\Commerce\Cart\CartException;
 use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Cart\CartView;
+use Sunrice\Commerce\Cart\VariantFromOptions;
 
 /**
  * {api}/cart — the cart as JSON for themes (mini cart, AJAX add to cart):
@@ -34,10 +35,12 @@ class CartApiController
 
     public function add(Request $request, AddToCart $add): JsonResponse
     {
-        $data = $request->validate(['variant' => ['required', 'integer'], 'quantity' => ['nullable', 'integer', 'min:1', 'max:100000']]);
+        $data = $request->validate(['variant' => ['required_without:options', 'nullable', 'integer'], 'product' => ['nullable', 'integer'], 'options' => ['nullable', 'array'],
+            'quantity' => ['nullable', 'integer', 'min:1', 'max:100000']]);
 
         return $this->attempt(function () use ($add, $data) {
-            $item = $add->handle((int) $data['variant'], (int) ($data['quantity'] ?? 1));
+            $variant = VariantFromOptions::fromRequest($data) ?? throw new CartException(__('commerce::storefront.product.unavailable'));
+            $item = $add->handle($variant, (int) ($data['quantity'] ?? 1));
 
             return __('commerce::storefront.cart.added', ['product' => (string) ($item->variant->product->entry()?->resolveFor(app()->getLocale())->title ?? '')]);
         });

@@ -1,3 +1,6 @@
+{{--
+    My Account → Downloads. $grants: DownloadGrant[].
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::view('account.layout'))
 
 @section('account')

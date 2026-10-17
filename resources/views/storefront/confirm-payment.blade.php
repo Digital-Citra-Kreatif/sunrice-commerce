@@ -1,6 +1,11 @@
+{{--
+    "I have paid": the lookup form, or the confirmation form for $order and its pending $payment.
+    $accounts (bank accounts paid into), $proofRequired, $captcha (widget data or null).
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     @php($L = \Sunrice\Commerce\Storefront\Layout::class)
     @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
     <section class="commerce-confirm-page">

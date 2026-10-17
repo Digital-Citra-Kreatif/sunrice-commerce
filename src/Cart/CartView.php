@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Cart;
 
+use Illuminate\Support\Facades\DB;
 use JsonSerializable;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Cart\Models\CartItem;
@@ -37,7 +38,7 @@ class CartView implements JsonSerializable
         if ($cart === null) {
             return new self(null, app(Calculator::class)->calculate([], $ctx));
         }
-        $cart->loadMissing('items.variant.product');
+        $cart->loadMissing('items.variant.product.tiers');
         $checkout = (array) $cart->checkout;
         $ctx = $ctx->with(array_filter([
             'email' => $ctx->email ?? ($checkout['email'] ?? null),
@@ -82,10 +83,23 @@ class CartView implements JsonSerializable
     /** Remember the prices shown, so the next change can be noticed. */
     public function acknowledgePrices(): void
     {
+        $changed = [];
         foreach ($this->lines as $row) {
             if ($row['item']->unit_price_seen !== $row['line']->unitPrice) {
-                $row['item']->forceFill(['unit_price_seen' => $row['line']->unitPrice])->saveQuietly();
+                $changed[(int) $row['item']->id] = [$row['item'], (int) $row['line']->unitPrice];
             }
+        }
+        if ($changed === []) {
+            return;
+        }
+        // One statement for all lines; ids and prices are ints, so inlining them is safe.
+        $case = 'CASE id';
+        foreach ($changed as $id => [, $price]) {
+            $case .= ' WHEN '.$id.' THEN '.$price;
+        }
+        CartItem::query()->whereIn('id', array_keys($changed))->update(['unit_price_seen' => DB::raw($case.' END'), 'updated_at' => now()]);
+        foreach ($changed as [$item, $price]) {
+            $item->setAttribute('unit_price_seen', $price)->syncOriginalAttribute('unit_price_seen');
         }
     }
 

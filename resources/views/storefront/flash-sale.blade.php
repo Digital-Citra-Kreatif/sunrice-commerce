@@ -1,6 +1,10 @@
+{{--
+    One flash sale with its products and countdown. $sale: FlashSale, $products: ProductView[].
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     <section class="commerce-flash-sale-page">
         <h1>{{ $sale->name }}</h1>
         @if (filled($description = $sale->descriptionFor()))

@@ -21,6 +21,8 @@ use Sunrice\Commerce\Tests\TestCase;
 use Sunrice\Models\Blueprint;
 use Sunrice\Models\Collection;
 use Sunrice\Models\Entry;
+use Sunrice\Models\Taxonomy;
+use Sunrice\Models\Term;
 use Sunrice\Support\Locales;
 use Workbench\App\Commerce\TestTransfer;
 use Workbench\App\Models\User;
@@ -176,4 +178,13 @@ function seenHash(Cart $cart, array $input): string
     app()->forgetScopedInstances();
 
     return CartView::for($cart->fresh(), CheckoutData::fromCart($cart->fresh())->merge($input)->context())->state->hash();
+}
+
+function term(string $taxonomy, string $name, ?Term $parent = null): Term
+{
+    $taxonomyId = Taxonomy::query()->where('handle', $taxonomy)->value('id') ?? Taxonomy::query()->create(['handle' => $taxonomy, 'title' => ucfirst($taxonomy), 'settings' => []])->id;
+    $term = Term::query()->create(['taxonomy_id' => $taxonomyId, 'parent_id' => $parent?->id, 'sort_order' => 0]);
+    $term->translations()->create(['taxonomy_id' => $taxonomyId, 'locale' => 'id', 'name' => $name, 'slug' => Str::slug($name), 'data' => [], 'is_ready' => true]);
+
+    return $term->fresh();
 }

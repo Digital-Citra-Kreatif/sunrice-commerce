@@ -1,3 +1,6 @@
+{{--
+    My Account → Addresses. $addresses, $editing (the address being edited, or null).
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::view('account.layout'))
 
 @section('account')

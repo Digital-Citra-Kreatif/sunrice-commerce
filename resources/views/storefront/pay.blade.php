@@ -1,6 +1,10 @@
+{{--
+    Pay an unpaid order, or choose another method. $order, $methods.
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     @php($L = \Sunrice\Commerce\Storefront\Layout::class)
     @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
     <section class="commerce-pay-page">

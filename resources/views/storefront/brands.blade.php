@@ -2,6 +2,7 @@
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     <section class="commerce-brands">
         <h1>{{ __('commerce::storefront.listing.brands') }}</h1>
         <ul class="commerce-brands__list">

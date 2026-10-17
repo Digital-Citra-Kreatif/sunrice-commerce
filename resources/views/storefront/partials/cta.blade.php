@@ -1,3 +1,6 @@
+{{--
+    The call to action when the product isn't sold by cart (WhatsApp, external shops, inquiry). $product: ProductView.
+--}}
 @php($cta = $product->cta)
 <div class="commerce-cta commerce-cta--{{ $cta['type'] }}">
     @if ($cta['type'] === 'external')

@@ -63,6 +63,8 @@ return [
         'none' => 'Belum ada flash sale saat ini.',
     ],
     'cart' => [
+        'close' => 'Tutup',
+        'view' => 'Lihat keranjang',
         'title' => 'Keranjang',
         'empty' => 'Keranjang Anda kosong.',
         'continue' => 'Lanjut belanja',
@@ -151,5 +153,8 @@ return [
         'not_enough_stock' => 'Stok :product tinggal :count.',
         'qty_rules' => ':product: pilih jumlah yang valid.',
         'flash_sale_limit' => 'Anda bisa membeli :count lagi :product dengan harga promo.',
+    ],
+    'header' => [
+        'label' => 'Toko',
     ],
 ];

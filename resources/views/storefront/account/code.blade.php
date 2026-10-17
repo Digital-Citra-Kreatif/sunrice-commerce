@@ -1,6 +1,10 @@
+{{--
+    Enter the emailed sign-in code. $email.
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     <section class="commerce-auth">
         <h1>{{ __('commerce::account.code.title') }}</h1>
         @include(\Sunrice\Commerce\Storefront\Layout::view('partials.messages'))

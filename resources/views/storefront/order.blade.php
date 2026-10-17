@@ -1,6 +1,11 @@
+{{--
+    The order or quote page (by its key). $order, $payment, $instructionsView, $payUrl, $whatsappUrl, $openWhatsApp,
+    $downloads, $invoiceUrl, $canCancel, $invite, $registerUrl.
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     @php($L = \Sunrice\Commerce\Storefront\Layout::class)
     @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
     @php($S = \Sunrice\Commerce\Orders\OrderStatus::class)

@@ -1,3 +1,6 @@
+{{--
+    My Account home. $customer, $user, $addresses.
+--}}
 @extends(\Sunrice\Commerce\Storefront\Layout::view('account.layout'))
 
 @section('account')
