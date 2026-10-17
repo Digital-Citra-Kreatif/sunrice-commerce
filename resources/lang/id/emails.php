@@ -22,6 +22,12 @@ return [
         'intro' => 'Pembayaran pesanan :number akan kami periksa dan kabari.',
         'action' => 'Lihat pesanan',
     ],
+    'payment_failed' => [
+        'subject' => 'Pembayaran pesanan :number gagal',
+        'heading' => 'Pembayaran tidak berhasil',
+        'intro' => 'Pembayaran untuk pesanan :number tidak berhasil. Silakan coba lagi atau gunakan metode pembayaran lain.',
+        'action' => 'Bayar lagi',
+    ],
     'payment_rejected' => [
         'subject' => 'Pembayaran :number belum bisa kami konfirmasi',
         'heading' => 'Pembayaran belum terkonfirmasi',

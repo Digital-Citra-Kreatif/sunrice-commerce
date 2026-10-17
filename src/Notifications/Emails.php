@@ -17,6 +17,7 @@ class Emails
             new EmailDefinition('payment_link', 'Payment link', feature: 'payments', description: 'Sent by staff for manual orders and edits: the link to pay.'),
             new EmailDefinition('payment_confirmation_received', 'Payment confirmation received', feature: 'manual_payments', description: 'The customer\'s "I have paid" was received.'),
             new EmailDefinition('payment_rejected', 'Payment confirmation rejected', feature: 'manual_payments', description: 'With the reason and a link to confirm again.'),
+            new EmailDefinition('payment_failed', 'Payment failed', feature: 'payments', description: 'The payment didn\'t go through: a link to try again or pay another way.'),
             new EmailDefinition('payment_received', 'Payment received', feature: 'orders', attachments: ['invoice'], defaultAttachments: ['invoice']),
             new EmailDefinition('order_shipped', 'Order shipped', feature: 'shipping', description: 'With the courier and tracking link.'),
             new EmailDefinition('order_completed', 'Order completed', feature: 'orders'),

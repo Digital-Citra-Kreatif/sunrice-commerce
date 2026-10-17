@@ -236,3 +236,14 @@ it('emails the customer about a confirmation and its rejection, and staff to ver
     });
     expect($sent)->toContain('payment_confirmation_received → rina@example.com', 'staff_payment_confirmation → toko@example.com', 'payment_rejected → rina@example.com');
 });
+
+it('emails a pay-again link when a payment fails', function () {
+    Notification::fake();
+    $order = placeOrderFor($this->mug);
+    app(RecordPaymentResult::class)->handle($order->payments->sole(), PaymentResult::failed());
+
+    expect($order->fresh()->status)->toBe('failed')->and(emailsTo('payment_failed'))->toBe(['rina@example.com']);
+    Notification::assertSentOnDemand(StoreEmail::class, function (StoreEmail $n, array $channels, AnonymousNotifiable $notifiable) use ($order) {
+        return $n->key === 'payment_failed' && str_contains((string) ($n->toMail($notifiable)->viewData['action']['url'] ?? ''), '/order/'.$order->order_key.'/pay');
+    });
+});

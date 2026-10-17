@@ -10,6 +10,7 @@ use Spatie\OneTimePasswords\Enums\ConsumeOneTimePasswordResult;
 use Sunrice\Commerce\Customers\Actions\LinkGuestOrders;
 use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Customers\Notifications\CustomerLoginCode;
+use Sunrice\Commerce\Customers\Notifications\WelcomeCustomer;
 use Sunrice\Commerce\Settings\StoreSettings;
 
 /**
@@ -49,8 +50,12 @@ class LoginCodes
                 default => 'incorrect',
             };
         }
+        // The first code proves the address: like the verification link, it welcomes the new account.
         if ($user->getAttribute('email_verified_at') === null) {
             $user->forceFill(['email_verified_at' => now()])->save();
+            if (method_exists($user, 'notify')) {
+                $user->notify(new WelcomeCustomer(app()->getLocale()));
+            }
         }
         Auth::guard(CurrentCustomer::guard())->login($user, $remember);
         app(LinkGuestOrders::class)->handle($user);

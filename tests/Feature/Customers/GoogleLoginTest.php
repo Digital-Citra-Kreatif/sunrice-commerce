@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Notification;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\GoogleProvider;
 use Laravel\Socialite\Two\User as GoogleUser;
 use Spatie\Permission\Models\Role;
 use Sunrice\Commerce\CommerceServiceProvider;
+use Sunrice\Commerce\Customers\Notifications\WelcomeCustomer;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Http\Controllers\Account\GoogleController;
 use Sunrice\Commerce\Settings\StoreSettings;
@@ -48,9 +50,11 @@ it('creates an account only when registration is open', function () {
     expect(User::query()->where('email', 'new@example.com')->exists())->toBeFalse();
 
     app(StoreSettings::class)->saveSection('accounts', ['registration' => true]);
+    Notification::fake();
     $this->get('/account/login/google/callback')->assertRedirect('/account');
     $user = User::query()->where('email', 'new@example.com')->firstOrFail();
     expect($user->hasRole('Customer'))->toBeTrue()->and($user->email_verified_at)->not->toBeNull();
+    Notification::assertSentTo($user, WelcomeCustomer::class);
 });
 
 it('does not link an unverified Google email', function () {

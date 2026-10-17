@@ -19,6 +19,7 @@ use Sunrice\Commerce\Customers\Actions\LinkGuestOrders;
 use Sunrice\Commerce\Customers\Auth\LoginCodes;
 use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
+use Sunrice\Commerce\Customers\Notifications\WelcomeCustomer;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 use Throwable;
@@ -83,6 +84,7 @@ class GoogleController
             $user->forceFill(['email_verified_at' => now()])->save();
             $roles->handle($user);
             Customer::forUser($user)->forceFill(['meta' => ['password_set' => false]])->save();
+            $user->notify(new WelcomeCustomer($locale));
         }
         if (LoginCodes::isRefusedStaff($user)) {
             return redirect($login)->with('commerce.error', __('commerce::account.staff_refused', [], $locale));

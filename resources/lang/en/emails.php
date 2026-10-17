@@ -22,6 +22,12 @@ return [
         'intro' => 'We will check your payment for order :number and let you know.',
         'action' => 'View your order',
     ],
+    'payment_failed' => [
+        'subject' => 'We couldn\'t take your payment for :number',
+        'heading' => 'Payment didn\'t go through',
+        'intro' => 'The payment for order :number didn\'t go through. You can try again, or pay another way.',
+        'action' => 'Pay again',
+    ],
     'payment_rejected' => [
         'subject' => 'We could not confirm your payment for :number',
         'heading' => 'Payment not confirmed',

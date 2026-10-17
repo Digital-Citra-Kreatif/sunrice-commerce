@@ -28,6 +28,7 @@ table) is on and the email is switched on.
 | `payment_link` | Payment link | `payments` | Staff send a payment link (manual orders, edits) |
 | `payment_confirmation_received` | Payment confirmation received | `manual_payments` | The customer submits "I have paid" |
 | `payment_rejected` | Payment confirmation rejected | `manual_payments` | Staff reject a confirmation: the reason and a link to confirm again |
+| `payment_failed` | Payment failed | `payments` | A pending order's payment fails (the order becomes Failed): a link to pay again or another way |
 | `payment_received` | Payment received | `orders` | The order is paid (not for orders with a zero total, which `order_received` covers) |
 | `order_shipped` | Order shipped | `shipping` | A shipment is added: courier and tracking link |
 | `order_completed` | Order completed | `orders` | The order is completed |
@@ -38,7 +39,7 @@ table) is on and the email is switched on.
 | `downloads_ready` | Downloads ready | `digital` | Digital access is granted: links or files |
 | `quote_received` | Quote request received | `orders` | A quote request is placed (Quotation mode) |
 | `quote_ready` | Quote ready | `orders` | Staff send the priced quote, with the accept link |
-| `account_welcome` | Welcome | `accounts` | An account's email is verified, or right after registering when verification is off |
+| `account_welcome` | Welcome | `accounts` | An account's email is verified (by the link, the first emailed code or Google sign-up), or right after registering when verification is off |
 | `verify_email` | Verify email | `accounts` | Registration, a sign-in attempt before verifying, an email change ([accounts.md](accounts.md#email-verification)) |
 | `login_code` | Sign-in code | `passwordless_login` | The customer asks for a sign-in code |
 | `password_reset` | Password reset | `accounts` | The customer (or staff, from Shop → Customers) asks for a reset link |
@@ -59,7 +60,7 @@ table) is on and the email is switched on.
 customers can't sign in without them. All other emails are on by default.
 
 Emails about an order have a button: the order page for customers (the pay page for
-`payment_link`, the confirmation page for `payment_rejected`) and the admin order page for staff.
+`payment_link` and `payment_failed`, the confirmation page for `payment_rejected`) and the admin order page for staff.
 
 ## Settings → Store → Emails
 

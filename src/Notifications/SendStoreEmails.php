@@ -12,6 +12,7 @@ use Sunrice\Commerce\Inventory\Events\StockOut;
 use Sunrice\Commerce\Orders\Events\OrderCancelled;
 use Sunrice\Commerce\Orders\Events\OrderCompleted;
 use Sunrice\Commerce\Orders\Events\OrderEdited;
+use Sunrice\Commerce\Orders\Events\OrderFailed;
 use Sunrice\Commerce\Orders\Events\OrderNoteAdded;
 use Sunrice\Commerce\Orders\Events\OrderPaid;
 use Sunrice\Commerce\Orders\Events\OrderPlaced;
@@ -68,6 +69,7 @@ class SendStoreEmails
                 $this->notifier->send('order_updated', $e->order, ['changes' => $e->changes]);
             }
         });
+        $events->listen(OrderFailed::class, fn (OrderFailed $e) => $this->notifier->send('payment_failed', $e->order));
         $events->listen(PaymentLinkRequested::class, fn (PaymentLinkRequested $e) => $this->notifier->send('payment_link', $e->order));
         $events->listen(DownloadsGranted::class, fn (DownloadsGranted $e) => $this->notifier->send('downloads_ready', $e->order, ['grants' => $e->grants]));
         $events->listen(StockLow::class, fn (StockLow $e) => $this->notifier->send('staff_low_stock', $e->variant, ['quantity' => $e->after]));
