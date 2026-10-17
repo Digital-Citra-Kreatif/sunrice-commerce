@@ -7,3 +7,6 @@ parameters:
         - src/
         - config/
         - database/
+    ignoreErrors:
+        # Traits for listeners in other packages (and modules added in later phases).
+        - identifier: trait.unused

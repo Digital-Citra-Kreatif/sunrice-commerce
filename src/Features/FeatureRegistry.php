@@ -49,7 +49,7 @@ class FeatureRegistry
      */
     public function dependentsOf(string $key): array
     {
-        return array_values(array_keys(array_filter($this->features, fn (Feature $f) => in_array($key, $f->requires, true)
-            || in_array($key, array_merge([], ...array_values($f->modeRequires)), true))));
+        return array_keys(array_filter($this->features, fn (Feature $f) => in_array($key, $f->requires, true)
+            || in_array($key, array_merge([], ...array_values($f->modeRequires)), true)));
     }
 }

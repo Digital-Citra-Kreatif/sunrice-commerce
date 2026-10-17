@@ -62,14 +62,18 @@ final class CommercePermissions
 
     public static function register(): void
     {
-        foreach (static::all() as $name => [$label, $group]) {
+        foreach (self::all() as $name => [$label, $group]) {
             Sunrice::registerPermission($name, $label, $group);
         }
     }
 
-    /** Any commerce settings permission (who may open Settings → Store). */
+    /**
+     * Any commerce settings permission (who may open Settings → Store).
+     *
+     * @return list<string>
+     */
     public static function settings(): array
     {
-        return array_values(array_filter(array_keys(static::all()), fn (string $n) => str_starts_with($n, 'commerce.settings.')));
+        return array_values(array_filter(array_keys(self::all()), fn (string $n) => str_starts_with($n, 'commerce.settings.')));
     }
 }

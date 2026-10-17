@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Route;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Sunrice\Facades\Sunrice;
@@ -33,6 +35,8 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->scoped(Settings\StoreSettings::class);
         $this->app->scoped(Features\Features::class);
         $this->app->scoped(Support\MoneyFormatter::class);
+        $this->app->singleton(Storefront\Slots::class);
+        $this->app->singleton(Health\HealthRegistry::class);
     }
 
     public function packageBooted(): void
@@ -41,8 +45,59 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->registerAdminAssets();
         $this->registerFeatureGates();
         Permissions\CommercePermissions::register();
+        $this->registerStorefront();
+        $this->registerHealthAndSchedule();
         Event::listen(JobProcessing::class, function (): void {
             $this->app->forgetScopedInstances();
+        });
+    }
+
+    /**
+     * Store routes in every language (registered after the app has booted,
+     * once Sunrice's saved languages apply; Sunrice's catch-all is a
+     * fallback route, so these always win), Blade components and body
+     * classes.
+     */
+    protected function registerStorefront(): void
+    {
+        $router = $this->app['router'];
+        $router->aliasMiddleware('commerce.noindex', Http\Middleware\NoIndex::class);
+
+        $this->app->booted(function (): void {
+            if ($this->app->routesAreCached()) {
+                return;
+            }
+            Storefront\StorefrontRoutes::localized(function (string $suffix): void {
+                require __DIR__.'/../routes/api.php';
+                require __DIR__.'/../routes/storefront.php';
+                require __DIR__.'/../routes/account.php';
+            });
+            Route::group([], __DIR__.'/../routes/webhooks.php');
+        });
+
+        Blade::component(View\Components\Slot::class, 'commerce::slot');
+
+        Sunrice::bodyClassUsing(function (array $classes): array {
+            $name = (string) request()->route()?->getName();
+            if (str_starts_with($name, 'commerce.') && ! str_starts_with($name, 'commerce.api.')) {
+                $page = str_replace('.', '-', substr(preg_replace('/\.locale$/', '', $name) ?? $name, strlen('commerce.')));
+                array_push($classes, 'page-commerce', 'commerce-'.$page);
+            }
+
+            return $classes;
+        });
+    }
+
+    protected function registerHealthAndSchedule(): void
+    {
+        $health = $this->app->make(Health\HealthRegistry::class);
+        foreach ([Health\Checks\MailCheck::class, Health\Checks\QueueCheck::class, Health\Checks\SchedulerCheck::class] as $check) {
+            $health->register($check);
+        }
+
+        $this->callAfterResolving(Schedule::class, function (Schedule $schedule): void {
+            $schedule->command('commerce:tick')->everyMinute()->withoutOverlapping();
+            $schedule->command('commerce:prune')->daily();
         });
     }
 
@@ -63,6 +118,10 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->commands([
             Console\PublishAssetsCommand::class,
             Console\SeedRolesCommand::class,
+            Console\ImportRegionsCommand::class,
+            Console\TickCommand::class,
+            Console\PruneCommand::class,
+            Console\DoctorCommand::class,
         ]);
     }
 

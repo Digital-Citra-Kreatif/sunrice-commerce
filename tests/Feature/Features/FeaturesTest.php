@@ -5,11 +5,11 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
+use Sunrice\Commerce\Facades\Commerce;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Features\Feature;
 use Sunrice\Commerce\Features\FeatureRegistry;
 use Sunrice\Commerce\Features\Features;
-use Sunrice\Commerce\Facades\Commerce;
 use Sunrice\Commerce\Settings\StoreSettings;
 
 function setMode(string $mode): void

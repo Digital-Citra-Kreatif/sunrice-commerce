@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Sunrice\Commerce\Features\Features;
+use Sunrice\Commerce\Storefront\StorefrontRoutes;
 use Sunrice\Commerce\Support\MoneyFormatter;
 
 /*
@@ -22,5 +23,18 @@ if (! function_exists('commerce_feature')) {
     function commerce_feature(string $feature): bool
     {
         return app(Features::class)->active($feature);
+    }
+}
+
+if (! function_exists('commerce_url')) {
+    /**
+     * A store page's URL in the current language: commerce_url('commerce.cart')
+     * gives /cart, or /en/cart on English pages.
+     *
+     * @param  array<string, mixed>  $parameters
+     */
+    function commerce_url(string $name, array $parameters = [], ?string $locale = null): string
+    {
+        return StorefrontRoutes::url($name, $parameters, $locale);
     }
 }

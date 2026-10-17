@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Sunrice\Commerce\Database\Seeders\CommerceRolesSeeder;
+use Sunrice\Commerce\Permissions\CommercePermissions;
 use Sunrice\Models\Blueprint;
 use Sunrice\Models\Collection;
 use Workbench\App\Models\User;
@@ -13,7 +14,7 @@ it('registers commerce permissions with Sunrice', function () {
     $this->artisan('sunrice:sync-permissions')->assertSuccessful();
 
     expect(Permission::query()->where('name', 'commerce.orders.refund')->exists())->toBeTrue()
-        ->and(Permission::query()->where('name', 'like', 'commerce.%')->count())->toBe(count(\Sunrice\Commerce\Permissions\CommercePermissions::all()));
+        ->and(Permission::query()->where('name', 'like', 'commerce.%')->count())->toBe(count(CommercePermissions::all()));
 });
 
 it('seeds a Shop Manager who can open the admin and a Customer who can not', function () {

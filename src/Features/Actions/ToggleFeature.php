@@ -84,7 +84,7 @@ class ToggleFeature
                 // Name the module being switched off when it is what's missing.
                 $missing = $switchedOff !== null && ! $features->activeWith($switchedOff, $switches, $mode)
                     && in_array($switchedOff, static::ESSENTIAL[$mode], true) ? $switchedOff : $essential;
-                $label = $registry->get($missing)?->label ?? $missing;
+                $label = $registry->get($missing)->label ?? $missing;
                 $modeLabel = static::MODE_LABELS[$mode] ?? $mode;
 
                 throw ValidationException::withMessages([

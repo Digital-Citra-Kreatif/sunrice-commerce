@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Settings;
 
 use Illuminate\Support\Arr;
-use Sunrice\Models\Setting;
 use Sunrice\Commerce\Support\Defaults;
+use Sunrice\Models\Setting;
 use Throwable;
 
 /**

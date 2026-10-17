@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce;
 
+use Closure;
 use Sunrice\Commerce\Features\Feature;
 use Sunrice\Commerce\Features\FeatureRegistry;
 use Sunrice\Commerce\Features\Features;
+use Sunrice\Commerce\Health\HealthCheck;
+use Sunrice\Commerce\Health\HealthRegistry;
 use Sunrice\Commerce\Settings\SettingsRegistry;
 use Sunrice\Commerce\Settings\SettingsSection;
 use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Commerce\Storefront\Slots;
 use Sunrice\Commerce\Support\Money;
 
 /**
@@ -56,6 +60,63 @@ class Commerce
     public function settings(): StoreSettings
     {
         return app(StoreSettings::class);
+    }
+
+    // ---- Storefront ------------------------------------------------------------
+
+    /**
+     * Render a partial in a slot of the store templates (e.g.
+     * "checkout.before_submit"); only while $feature is active, when given.
+     */
+    public function registerStorefrontSlot(string $slot, string $view, ?string $feature = null): void
+    {
+        app(Slots::class)->register($slot, $view, $feature);
+    }
+
+    // ---- Health and scheduled work ---------------------------------------
+
+    /** @param  class-string<HealthCheck>  $class */
+    public function registerHealthCheck(string $class): void
+    {
+        app(HealthRegistry::class)->register($class);
+    }
+
+    /** @var array<string, Closure(): mixed> */
+    protected array $tickSteps = [];
+
+    /** @var array<string, Closure(): mixed> */
+    protected array $pruneSteps = [];
+
+    /**
+     * @internal Work for commerce:tick (every minute); modules register theirs.
+     *
+     * @param  Closure(): mixed  $step
+     */
+    public function onTick(string $name, Closure $step): void
+    {
+        $this->tickSteps[$name] = $step;
+    }
+
+    /** @return array<string, Closure(): mixed> */
+    public function tickSteps(): array
+    {
+        return $this->tickSteps;
+    }
+
+    /**
+     * @internal Work for commerce:prune (daily); a step may return how many rows it removed.
+     *
+     * @param  Closure(): mixed  $step
+     */
+    public function onPrune(string $name, Closure $step): void
+    {
+        $this->pruneSteps[$name] = $step;
+    }
+
+    /** @return array<string, Closure(): mixed> */
+    public function pruneSteps(): array
+    {
+        return $this->pruneSteps;
     }
 
     public function money(int $amount): Money
