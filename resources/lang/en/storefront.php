@@ -8,6 +8,8 @@ return [
         'order_message' => "Hello, I'd like to order (#{order_number}):\n{items}\nTotal: {total}\n\nName: {name}\nPhone: {phone}\nAddress: {address}\nShipping: {shipping}\nNotes: {notes}\n{url}",
     ],
     'price' => [
+        'incl_tax' => 'incl. tax',
+        'excl_tax' => 'excl. tax',
         'from' => 'From :price',
         'sale' => 'Sale',
         'new' => 'New',

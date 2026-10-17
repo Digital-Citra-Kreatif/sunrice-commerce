@@ -31,7 +31,7 @@ class UnitPrices implements CalculationStage
             if ($best === null) {
                 continue;
             }
-            $regular = max($base?->amount ?? $best->amount, (int) $line->variant->compare_at_price);
+            $regular = max($base->amount ?? $best->amount, (int) $line->variant->compare_at_price);
             $line->unitPrice = max(0, $best->amount);
             $line->regularUnitPrice = max($regular, $line->unitPrice);
             $line->priceSource = $best->source;

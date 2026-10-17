@@ -40,9 +40,18 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::put('flash-sales/{sale}', [Admin\FlashSalesController::class, 'update'])->name('flash-sales.update');
     Route::delete('flash-sales/{sale}', [Admin\FlashSalesController::class, 'destroy'])->name('flash-sales.destroy');
 
+    Route::get('vouchers', [Admin\VouchersController::class, 'index'])->name('vouchers');
+    Route::get('vouchers/create', [Admin\VouchersController::class, 'create'])->name('vouchers.create');
+    Route::post('vouchers', [Admin\VouchersController::class, 'store'])->name('vouchers.store');
+    Route::get('vouchers/{voucher}/edit', [Admin\VouchersController::class, 'edit'])->name('vouchers.edit');
+    Route::put('vouchers/{voucher}', [Admin\VouchersController::class, 'update'])->name('vouchers.update');
+    Route::delete('vouchers/{voucher}', [Admin\VouchersController::class, 'destroy'])->name('vouchers.destroy');
+
     Route::get('settings', [Admin\SettingsController::class, 'index'])->name('settings');
     Route::get('settings/features', [Admin\FeaturesController::class, 'index'])->name('settings.features');
     Route::put('settings/features/{feature}', [Admin\FeaturesController::class, 'update'])->name('settings.features.update');
+    Route::get('settings/tax-rates', [Admin\TaxRatesController::class, 'edit'])->name('settings.tax-rates');
+    Route::put('settings/tax-rates', [Admin\TaxRatesController::class, 'update'])->name('settings.tax-rates.update');
     Route::get('settings/{section}', [Admin\SettingsController::class, 'show'])->name('settings.show');
     Route::put('settings/{section}', [Admin\SettingsController::class, 'update'])->name('settings.update');
 });

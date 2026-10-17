@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce;
 
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Http\Request;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -51,6 +54,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->singleton(Catalog\ProductViewHooks::class);
         $this->app->scoped(Promotions\PriceRules\RuleMatcher::class);
         $this->app->scoped(Promotions\FlashSales\ActiveSales::class);
+        $this->app->scoped(Promotions\TargetMatcher::class);
         // Optional connections, replaced when their module is built (C4.8, C5.3, C13).
         $this->app->scoped(Contracts\Inventory::class, fn ($app) => $app->make(Features\Features::class)->active('inventory')
             ? $app->make(Inventory\DatabaseInventory::class)
@@ -58,7 +62,9 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->singleton(Pricing\Calculator::class);
         $this->app->singleton(Pricing\PriceProviders::class);
         $this->app->singletonIf(Contracts\ShippingQuoter::class, Support\Nulls\NullShippingQuoter::class);
-        $this->app->singletonIf(Contracts\TaxCalculator::class, Support\Nulls\NullTaxCalculator::class);
+        $this->app->scoped(Contracts\TaxCalculator::class, fn ($app) => $app->make(Features\Features::class)->active('taxes')
+            ? $app->make(Taxes\TableRateTaxCalculator::class)
+            : $app->make(Support\Nulls\NullTaxCalculator::class));
         $this->app->singletonIf(Contracts\Tracking::class, Support\Nulls\NullTracking::class);
         $this->app->singletonIf(Contracts\SaleLimits::class, Support\Nulls\NullSaleLimits::class);
     }
@@ -153,6 +159,12 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->make(Catalog\PriceIndex::class)->adjustUsing(fn (Catalog\Models\Product $product, Catalog\Models\Variant $variant, int $price) => $flashPrice($variant, $price));
         Catalog\ProductViewFactory::adjustPricesUsing($flashPrice);
         Catalog\ProductViewFactory::extendUsing(fn (Catalog\ProductView $view) => Promotions\FlashSales\FlashSaleView::extend($view));
+        $commerce->registerDiscountProvider(Promotions\Vouchers\AutomaticDiscountProvider::class);
+        $commerce->registerDiscountProvider(Promotions\Vouchers\VoucherDiscountProvider::class);
+        $commerce->registerShippingDiscountProvider(Promotions\Vouchers\FreeShippingProvider::class);
+        // Voucher code attempts: 10 a minute per cart and IP address.
+        RateLimiter::for('commerce-voucher', fn (Request $request) => Limit::perMinute(10)
+            ->by((string) $request->cookie((string) config('commerce.cart.cookie', 'commerce_cart')).'|'.$request->ip()));
         $commerce->onTick('flash sales', fn () => (new Promotions\FlashSales\FlashSaleBoundaries)());
     }
 

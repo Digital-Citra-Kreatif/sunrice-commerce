@@ -152,7 +152,7 @@ class FlashSalesController extends Controller
             'name' => $sale->name, 'slug' => $sale->slug, 'active' => $sale->active, 'badge' => $sale->badge, 'description' => $sale->description ?? [],
             'banner' => $sale->banner_asset_id, 'show_countdown' => $sale->show_countdown, 'show_progress' => $sale->show_progress, 'show_teaser' => $sale->show_teaser,
             'per_customer_limit' => $sale->per_customer_limit,
-            'dates' => ['start' => $sale->starts_at?->toIso8601String(), 'end' => $sale->ends_at?->toIso8601String()],
+            'dates' => ['start' => $sale->starts_at->toIso8601String(), 'end' => $sale->ends_at->toIso8601String()],
             'items' => $items->values()->map(fn (FlashSaleItem $i, int $n) => [
                 'target' => [$targets[$n]], 'discount_type' => $i->discount_type,
                 'percent' => $i->discount_type === 'percent_off' ? $i->discount_value / 100 : null,
@@ -192,7 +192,7 @@ class FlashSalesController extends Controller
                 throw SchemaForm::prefixed(ValidationException::withMessages(["items.{$i}.percent" => 'Enter a percentage between 0 and 100.']));
             }
             $items[] = [
-                'product_id' => $variant?->product_id ?? (int) $target['id'], 'variant_id' => $variant?->id,
+                'product_id' => $variant->product_id ?? (int) $target['id'], 'variant_id' => $variant?->id,
                 'discount_type' => $type, 'discount_value' => $value,
                 'quantity_limit' => $item['quantity_limit'] ?? null, 'per_customer_limit' => $item['per_customer_limit'] ?? null, 'position' => $i,
             ];

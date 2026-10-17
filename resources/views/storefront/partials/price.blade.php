@@ -11,5 +11,8 @@
             <del class="commerce-price__compare" data-commerce-compare>{{ $product->price['compareFormatted'] }}</del>
         @endif
         <span class="commerce-price__amount" data-commerce-amount>{{ $product->price['formatted'] }}</span>
+        @if ($product->price['taxSuffix'] ?? null)
+            <small class="commerce-price__tax">{{ $product->price['taxSuffix'] }}</small>
+        @endif
     @endif
 </div>

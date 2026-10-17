@@ -136,6 +136,9 @@ class ProductViewFactory
             'signIn' => $hidden && $this->visibility->signInReveals(),
             'formatted' => $hidden ? '' : $formatted,
             'compareFormatted' => $hidden || $compareAt === null ? null : $this->money->format($compareAt),
+            'taxSuffix' => $hidden || ! app(Features::class)->active('taxes') ? null : match ($this->settings->get('taxes.display_prices', 'incl')) {
+                'incl' => __('commerce::storefront.price.incl_tax'), 'excl' => __('commerce::storefront.price.excl_tax'), default => null,
+            },
         ];
 
         // Stock

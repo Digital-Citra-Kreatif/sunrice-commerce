@@ -30,6 +30,7 @@ final class BuiltinSections
             'order_number_format' => [self::formatRule()],
             'quote_number_format' => [self::formatRule()],
         ]));
+        $registry->register(new SettingsSection('taxes', 'Taxes', fn () => self::taxes(), feature: 'taxes', position: 50));
         $registry->register(new SettingsSection('accounts', 'Accounts', fn () => self::accounts(), feature: 'accounts', position: 60));
         $registry->register(new SettingsSection('documents', 'Documents', fn () => self::documents(), feature: 'documents', position: 80, rules: [
             'invoice_number_format' => [self::formatRule()],
@@ -156,6 +157,19 @@ final class BuiltinSections
             ['handle' => 'quote_valid_days', 'type' => 'number', 'label' => 'Quotes are valid for (days)', 'config' => ['min' => 1, 'max' => 365], 'validation' => ['integer']],
             ['handle' => 'auto_complete_shipped', 'type' => 'toggle', 'label' => 'Complete orders when shipped'],
             ['handle' => 'auto_complete_digital', 'type' => 'toggle', 'label' => 'Complete digital-only orders when paid'],
+        ];
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    protected static function taxes(): array
+    {
+        return [
+            ['handle' => 'prices_include_tax', 'type' => 'toggle', 'label' => 'Prices include tax', 'instructions' => 'On: tax is part of the prices you enter (usual in Indonesia). Off: tax is added at checkout.'],
+            ['handle' => 'display_prices', 'type' => 'select', 'label' => 'Show prices', 'config' => ['options' => self::options(['incl' => 'Including tax', 'excl' => 'Excluding tax', 'none' => 'Without a tax note'])]],
+            ['handle' => 'based_on', 'type' => 'select', 'label' => 'Tax by', 'config' => ['options' => self::options(['shipping' => 'The shipping address', 'store' => 'The store address'])]],
+            ['handle' => 'classes', 'type' => 'select', 'label' => 'Tax classes', 'instructions' => 'Products choose one; "standard" always exists. Type to add (e.g. "exempt").', 'config' => ['multiple' => true, 'options' => array_map(
+                fn (string $c) => ['value' => $c, 'label' => $c], array_values(array_unique(['standard', 'reduced', 'exempt', ...(array) app(StoreSettings::class)->get('taxes.classes', [])])),
+            )]],
         ];
     }
 

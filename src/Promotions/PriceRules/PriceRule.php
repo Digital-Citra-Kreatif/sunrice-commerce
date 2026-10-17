@@ -23,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property string $scope all | products | variants | categories | brands
  * @property string $quantity_basis variant | product | rule
  * @property array<int, array{min_qty: int, type: string, value: int}> $tiers
+ * @property Carbon|null $updated_at
  */
 class PriceRule extends Model
 {

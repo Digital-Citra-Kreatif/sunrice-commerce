@@ -49,7 +49,10 @@ class FlashSale extends Model
         return $this->hasMany(FlashSaleItem::class)->orderBy('position');
     }
 
-    /** @param  Builder<FlashSale>  $query  @return Builder<FlashSale> */
+    /**
+     * @param  Builder<FlashSale>  $query
+     * @return Builder<FlashSale>
+     */
     public function scopeRunning(Builder $query, ?\DateTimeInterface $at = null): Builder
     {
         $at ??= now();
@@ -57,7 +60,10 @@ class FlashSale extends Model
         return $query->where('active', true)->where('starts_at', '<=', $at)->where('ends_at', '>', $at);
     }
 
-    /** @param  Builder<FlashSale>  $query  @return Builder<FlashSale> */
+    /**
+     * @param  Builder<FlashSale>  $query
+     * @return Builder<FlashSale>
+     */
     public function scopeUpcoming(Builder $query): Builder
     {
         return $query->where('active', true)->where('starts_at', '>', now());

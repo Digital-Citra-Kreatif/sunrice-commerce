@@ -8,6 +8,8 @@ return [
         'order_message' => "Halo, saya ingin memesan (#{order_number}):\n{items}\nTotal: {total}\n\nNama: {name}\nTelepon: {phone}\nAlamat: {address}\nPengiriman: {shipping}\nCatatan: {notes}\n{url}",
     ],
     'price' => [
+        'incl_tax' => 'termasuk pajak',
+        'excl_tax' => 'belum termasuk pajak',
         'from' => 'Mulai :price',
         'sale' => 'Promo',
         'new' => 'Baru',
