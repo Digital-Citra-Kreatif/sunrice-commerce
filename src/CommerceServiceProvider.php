@@ -55,6 +55,9 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->scoped(Promotions\PriceRules\RuleMatcher::class);
         $this->app->scoped(Promotions\FlashSales\ActiveSales::class);
         $this->app->scoped(Promotions\TargetMatcher::class);
+        $this->app->scoped(Cart\CartManager::class);
+        $this->app->scoped(Wishlist\WishlistManager::class);
+        $this->app->scoped(Cart\CompareList::class);
         // Optional connections, replaced when their module is built (C4.8, C5.3, C13).
         $this->app->scoped(Contracts\Inventory::class, fn ($app) => $app->make(Features\Features::class)->active('inventory')
             ? $app->make(Inventory\DatabaseInventory::class)
@@ -80,6 +83,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->registerAdmin();
         $this->registerCatalog();
         $this->registerPromotions();
+        $this->registerCart();
         Event::listen(JobProcessing::class, function (): void {
             $this->app->forgetScopedInstances();
         });
@@ -114,6 +118,10 @@ class CommerceServiceProvider extends PackageServiceProvider
         Blade::component(View\Components\Products::class, 'commerce::products');
         Blade::component(View\Components\ProductFilter::class, 'commerce::product-filter');
         Blade::component(View\Components\FlashSale::class, 'commerce::flash-sale');
+        Blade::component(View\Components\Cart::class, 'commerce::cart');
+        Blade::component(View\Components\MiniCart::class, 'commerce::mini-cart');
+        Blade::component(View\Components\WishlistButton::class, 'commerce::wishlist-button');
+        Blade::component(View\Components\CompareButton::class, 'commerce::compare-button');
 
         // Product pages (and the shop's listings) when the app has no template of its own.
         Sunrice::resolveTemplateUsing(fn (string $view, TemplateContext $context): ?string => Storefront\TemplateFallback::resolve($view, $context));
@@ -142,6 +150,18 @@ class CommerceServiceProvider extends PackageServiceProvider
         }
     }
 
+    /** Carts: pruning abandoned ones. */
+    protected function registerCart(): void
+    {
+        $this->app->make(Commerce::class)->onPrune('abandoned carts', function (): int {
+            $days = (int) config('commerce.cart.prune_days', 30);
+            $marked = Cart\Models\Cart::query()->where('status', 'active')->where('last_activity_at', '<', now()->subDays($days))->update(['status' => 'abandoned']);
+            $deleted = Cart\Models\Cart::query()->whereIn('status', ['abandoned', 'merged'])->where('last_activity_at', '<', now()->subDays($days * 2))->delete();
+
+            return $marked + $deleted;
+        });
+    }
+
     /** Pricing rules, flash sales and vouchers. */
     protected function registerPromotions(): void
     {
@@ -162,6 +182,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $commerce->registerDiscountProvider(Promotions\Vouchers\AutomaticDiscountProvider::class);
         $commerce->registerDiscountProvider(Promotions\Vouchers\VoucherDiscountProvider::class);
         $commerce->registerShippingDiscountProvider(Promotions\Vouchers\FreeShippingProvider::class);
+        RateLimiter::for('commerce-cart', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
         // Voucher code attempts: 10 a minute per cart and IP address.
         RateLimiter::for('commerce-voucher', fn (Request $request) => Limit::perMinute(10)
             ->by((string) $request->cookie((string) config('commerce.cart.cookie', 'commerce_cart')).'|'.$request->ip()));

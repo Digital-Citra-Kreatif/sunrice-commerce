@@ -29,8 +29,9 @@
 
     @if ($product->cta['type'] === 'cart')
         @php($action = Route::has('commerce.cart.add') ? commerce_url('commerce.cart.add') : null)
-        <form class="commerce-add" method="POST" action="{{ $action }}" data-commerce-add>
+        <form class="commerce-add" method="POST" action="{{ $action }}" data-commerce-add data-commerce-cart-api="{{ Route::has('commerce.api.cart.add') ? commerce_url('commerce.api.cart.add') : '' }}">
             @csrf
+            <x-honeypot />
             <input type="hidden" name="variant" value="{{ $default?->id }}" data-commerce-variant>
             @if ($product->isVariable())
                 @include(\Sunrice\Commerce\Storefront\Layout::view('partials.variant-picker'))

@@ -27,6 +27,10 @@
                 <p class="commerce-product__excerpt">{{ $entry->get('excerpt') }}</p>
             @endif
             <x-commerce::product :entry="$entry" />
+            <div class="commerce-product__actions">
+                <x-commerce::wishlist-button :entry="$entry" />
+                <x-commerce::compare-button :entry="$entry" />
+            </div>
             <x-commerce::slot name="product.after-buy" :entry="$entry" />
         </div>
         <div class="commerce-product__details">
@@ -37,7 +41,7 @@
                 <h2>{{ __('commerce::storefront.product.specifications') }}</h2>
                 <dl class="commerce-specs">
                     @foreach ($specs as $row)
-                        <dt>{{ $row['label'] ?? '' }}</dt><dd>{{ $row['value'] ?? '' }}</dd>
+                        <dt>{{ data_get($row, 'label') }}</dt><dd>{{ data_get($row, 'value') }}</dd>
                     @endforeach
                 </dl>
             @endif
@@ -47,7 +51,7 @@
             @if (filled($faq = $entry->get('faq')))
                 <h2>{{ __('commerce::storefront.product.faq') }}</h2>
                 @foreach ($faq as $row)
-                    <details class="commerce-faq"><summary>{{ $row['question'] ?? '' }}</summary><p>{{ $row['answer'] ?? '' }}</p></details>
+                    <details class="commerce-faq"><summary>{{ data_get($row, 'question') }}</summary><p>{{ data_get($row, 'answer') }}</p></details>
                 @endforeach
             @endif
         </div>
