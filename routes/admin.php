@@ -80,6 +80,10 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::post('confirmations/{confirmation}/approve', [Admin\ConfirmationsController::class, 'approve'])->name('confirmations.approve');
     Route::post('confirmations/{confirmation}/reject', [Admin\ConfirmationsController::class, 'reject'])->name('confirmations.reject');
 
+    Route::get('reports', [Admin\ReportsController::class, 'index'])->name('reports');
+    Route::get('reports/{report}', [Admin\ReportsController::class, 'show'])->name('reports.show');
+    Route::get('reports/{report}/export', [Admin\ReportsController::class, 'export'])->name('reports.export');
+
     Route::get('customers', [Admin\CustomersController::class, 'index'])->name('customers');
     Route::get('customers/{customer}', [Admin\CustomersController::class, 'show'])->name('customers.show');
     Route::put('customers/{customer}', [Admin\CustomersController::class, 'update'])->name('customers.update');

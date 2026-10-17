@@ -7,6 +7,7 @@ namespace Sunrice\Commerce\Cart;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Str;
 use Sunrice\Commerce\Cart\Models\Cart;
+use Sunrice\Commerce\Contracts\Tracking;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Settings\StoreSettings;
 
@@ -70,6 +71,7 @@ class CartManager
             'last_activity_at' => now(),
         ]);
         $this->remember($cart);
+        app(Tracking::class)->track('cart_created');
 
         return $cart;
     }

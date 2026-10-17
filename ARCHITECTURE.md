@@ -1449,6 +1449,14 @@ interface BooksShipments  { public function book(Order $order, Shipment $shipmen
 - **CTA clicks**: `/go/{type}/{product}` (`type` = `whatsapp` | `external` | `inquiry`) increments
   and redirects. External targets are only the product's own links (no open redirect).
 - **Days** follow the site timezone (Sunrice's Settings → General).
+- **Two kinds of columns**: sales columns (orders, items, money, customers, quotes) are recomputed
+  from orders and refunds by `StatsRecorder` (`RecomputeStatsDay`, unique per date); counters
+  (views, add-to-carts, CTA clicks, carts created, checkouts started) are upsert-increments by
+  `StatsTracking`, and recomputing never touches them. Counted orders are `Analytics\CountedOrders`.
+  Refunds of orders that no longer count (cancelled, trashed) are not counted either.
+- **Total sales** is what customers paid (order totals) less refunds; taxes are informational, as
+  they are already inside the totals when prices include tax.
+- **Store card** (U2): registered only when `Sunrice::addDashboardCard()` exists.
 - **Reports**:
   - `Reports\*` classes return series and tables from the daily tables, with drill-down into
     orders;
@@ -1739,7 +1747,7 @@ small value objects):
 - **Query budgets**, guarded by tests that count queries:
   - no page grows with the number of products or cart lines (listing with 12 vs 24 products,
     cart and checkout with 2 vs 10 lines must run the same number of queries);
-  - ceilings: listing 20, product page 16, cart 26, checkout 28 (a pricing pass alone reads
+  - ceilings: listing 20, product page 18 (2 of them count the view after the response), cart 26, checkout 28 (a pricing pass alone reads
     flash sales, price rules, automatic vouchers and tiers once each);
   - placing an order: no N+1 per line.
   (`tests/Feature/Storefront/QueryBudgetTest.php`.)

@@ -32,6 +32,8 @@ export interface SunriceApi {
     ReactDOM: typeof ReactDOMTypes;
     registerField(type: string, component: ReactTypes.ComponentType<FieldProps<any>>): void; // eslint-disable-line @typescript-eslint/no-explicit-any
     registerPage(name: string, component: AnyComponent): void;
+    /** Sunrice's dashboard cards (U2); absent on Sunrice versions without them. */
+    registerDashboardCard?(name: string, component: AnyComponent): void;
     inertia: {
         router: InertiaRouter;
         Link: AnyComponent;

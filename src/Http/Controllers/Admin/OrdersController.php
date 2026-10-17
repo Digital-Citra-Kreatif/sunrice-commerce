@@ -18,6 +18,7 @@ use Spatie\SimpleExcel\SimpleExcelWriter;
 use Sunrice\Admin\Table\Column;
 use Sunrice\Admin\Table\TableQuery;
 use Sunrice\Commerce\Admin\SchemaForm;
+use Sunrice\Commerce\Analytics\Day;
 use Sunrice\Commerce\Digital\Models\DownloadGrant;
 use Sunrice\Commerce\Documents\Documents;
 use Sunrice\Commerce\Orders\Actions\AddOrderNote;
@@ -684,7 +685,10 @@ class OrdersController extends Controller
                 '30d' => $q->where('placed_at', '>=', now()->subDays(30)->startOfDay()),
                 'month' => $q->where('placed_at', '>=', now()->startOfMonth()),
                 'last_month' => $q->whereBetween('placed_at', [now()->subMonthNoOverflow()->startOfMonth(), now()->subMonthNoOverflow()->endOfMonth()]),
-                default => $q,
+                // "2026-03-01..2026-03-31": local dates, from report drill-downs.
+                default => is_string($v) && preg_match('/^(\d{4}-\d{2}-\d{2})\.\.(\d{4}-\d{2}-\d{2})$/', $v, $m) === 1
+                    ? $q->where('placed_at', '>=', Day::bounds($m[1])[0])->where('placed_at', '<', Day::bounds($m[2])[1])
+                    : $q,
             })
             ->filter('trashed', fn (Builder $q, mixed $v) => $v === 'only' ? $q->whereNotNull('deleted_at') : $q)
             ->sortable(['number', 'placed_at', 'total', 'status'])

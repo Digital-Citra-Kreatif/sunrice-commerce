@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Sunrice\Commerce;
 
 use Closure;
+use Sunrice\Commerce\Analytics\Reports\Report;
+use Sunrice\Commerce\Analytics\Reports\Reports;
 use Sunrice\Commerce\Features\Feature;
 use Sunrice\Commerce\Features\FeatureRegistry;
 use Sunrice\Commerce\Features\Features;
@@ -79,6 +81,12 @@ class Commerce
     public function registerHealthCheck(string $class): void
     {
         app(HealthRegistry::class)->register($class);
+    }
+
+    /** @param  class-string<Report>  $class  a report on Shop → Reports */
+    public function registerReport(string $class): void
+    {
+        app(Reports::class)->register($class);
     }
 
     /** @var array<string, Closure(): mixed> */

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Admin\Dashboard;
 
 use Closure;
+use Sunrice\Commerce\Analytics\Period;
 
 /**
  * Figures (KPIs) and to-dos on the store dashboard, provided by the
@@ -12,16 +13,17 @@ use Closure;
  */
 class DashboardCards
 {
-    /** @var array<string, Closure(mixed): ?array<string, mixed>> */
+    /** @var array<string, Closure(mixed, Period): ?array<string, mixed>> */
     protected array $kpis = [];
 
     /** @var array<string, Closure(mixed): ?array<string, mixed>> */
     protected array $todo = [];
 
     /**
-     * A figure: the closure gets the user and returns {label, value, hint?, href?} or null to hide it.
+     * A figure: the closure gets the user and the dashboard's Period and
+     * returns {label, value, hint?, href?, change?} or null to hide it.
      *
-     * @param  Closure(mixed): ?array<string, mixed>  $card
+     * @param  Closure(mixed, Period): ?array<string, mixed>  $card
      */
     public function kpi(string $key, Closure $card): void
     {
@@ -39,9 +41,9 @@ class DashboardCards
     }
 
     /** @return array<int, array<string, mixed>> */
-    public function kpis(mixed $user): array
+    public function kpis(mixed $user, ?Period $period = null): array
     {
-        return $this->resolve($this->kpis, $user);
+        return $this->resolve($this->kpis, $user, $period ?? Period::preset('7d'));
     }
 
     /** @return array<int, array<string, mixed>> */
@@ -51,14 +53,14 @@ class DashboardCards
     }
 
     /**
-     * @param  array<string, Closure(mixed): ?array<string, mixed>>  $cards
+     * @param  array<string, Closure(mixed): ?array<string, mixed>>|array<string, Closure(mixed, Period): ?array<string, mixed>>  $cards
      * @return array<int, array<string, mixed>>
      */
-    protected function resolve(array $cards, mixed $user): array
+    protected function resolve(array $cards, mixed $user, ?Period $period = null): array
     {
         $out = [];
         foreach ($cards as $key => $card) {
-            $value = $card($user);
+            $value = $card($user, $period);
             if ($value !== null) {
                 $out[] = ['key' => $key, ...$value];
             }

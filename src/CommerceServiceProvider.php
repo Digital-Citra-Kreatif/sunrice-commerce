@@ -8,6 +8,7 @@ use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Http\Request;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Blade;
@@ -51,6 +52,17 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->singleton(Health\HealthRegistry::class);
         $this->app->singleton(Admin\Setup\SetupChecklist::class);
         $this->app->singleton(Admin\Dashboard\DashboardCards::class);
+        $this->app->singleton(Analytics\Reports\Reports::class, function (): Analytics\Reports\Reports {
+            $reports = new Analytics\Reports\Reports;
+            foreach ([Analytics\Reports\SalesReport::class, Analytics\Reports\ProductsReport::class, Analytics\Reports\CategoriesReport::class,
+                Analytics\Reports\BrandsReport::class, Analytics\Reports\VouchersReport::class, Analytics\Reports\CustomersReport::class,
+                Analytics\Reports\StockReport::class, Analytics\Reports\CtasReport::class] as $report) {
+                $reports->register($report);
+            }
+
+            return $reports;
+        });
+        $this->callAfterResolving(Admin\Dashboard\DashboardCards::class, fn (Admin\Dashboard\DashboardCards $cards) => Admin\Dashboard\BuiltinTodos::register($cards));
         $this->app->singleton(Catalog\PriceIndex::class);
         $this->app->scoped(Catalog\Catalog::class);
         $this->app->scoped(Catalog\ProductViewFactory::class);
@@ -85,7 +97,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->scoped(Contracts\TaxCalculator::class, fn ($app) => $app->make(Features\Features::class)->active('taxes')
             ? $app->make(Taxes\TableRateTaxCalculator::class)
             : $app->make(Support\Nulls\NullTaxCalculator::class));
-        $this->app->singletonIf(Contracts\Tracking::class, Support\Nulls\NullTracking::class);
+        $this->app->singletonIf(Contracts\Tracking::class, Analytics\StatsTracking::class);
         $this->app->singletonIf(Contracts\SaleLimits::class, Support\Nulls\NullSaleLimits::class);
     }
 
@@ -227,6 +239,10 @@ class CommerceServiceProvider extends PackageServiceProvider
         });
         Event::listen(Orders\Events\OrderPaid::class, Digital\Listeners\GrantDownloads::class);
         Event::subscribe(Notifications\SendStoreEmails::class);
+        Event::subscribe(Analytics\Listeners\QueueStatsRecompute::class);
+        $this->app->singleton(Analytics\Listeners\RecordProductView::class);
+        Event::listen(RequestHandled::class, Analytics\Listeners\RecordProductView::class);
+        $this->app->terminating(fn () => $this->app->make(Analytics\Listeners\RecordProductView::class)->flush());
         Event::listen(Orders\Events\OrderPlaced::class, Documents\AssignInvoiceNumber::class);
         Event::listen(Orders\Events\OrderPaid::class, Documents\AssignInvoiceNumber::class);
         $this->publishes([__DIR__.'/../resources/views/documents' => resource_path('views/vendor/commerce/documents')], 'commerce-documents');
@@ -326,6 +342,7 @@ class CommerceServiceProvider extends PackageServiceProvider
 
     protected function registerHealthAndSchedule(): void
     {
+        Admin\Dashboard\StoreCard::register();
         $health = $this->app->make(Health\HealthRegistry::class);
         foreach ([Health\Checks\MailCheck::class, Health\Checks\QueueCheck::class, Health\Checks\SchedulerCheck::class, Health\Checks\FullPageCacheCheck::class] as $check) {
             $health->register($check);
@@ -334,6 +351,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule): void {
             $schedule->command('commerce:tick')->everyMinute()->withoutOverlapping();
             $schedule->command('commerce:prune')->daily();
+            $schedule->command('commerce:stats')->dailyAt('00:20');
         });
     }
 
@@ -360,6 +378,7 @@ class CommerceServiceProvider extends PackageServiceProvider
             Console\DoctorCommand::class,
             Console\SyncProductsCommand::class,
             Console\ScaffoldCommand::class,
+            Console\StatsCommand::class,
         ]);
     }
 

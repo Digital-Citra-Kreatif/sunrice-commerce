@@ -26,7 +26,7 @@ it('shows the Shop items a user may open, while their module is active', functio
     ShopNavigation::add('Wishlists', 'commerce/wishlists', 'heart', 'commerce.reports.view', 'wishlist');
     actingAsUserWith(['commerce.dashboard.view', 'commerce.reports.view', 'commerce.settings.features']);
 
-    expect(shopItems())->toMatchArray(['Dashboard', 'Wishlists']);
+    expect(shopItems())->toMatchArray(['Dashboard', 'Reports', 'Wishlists']);
 
     app(ToggleFeature::class)->handle('wishlist', false);
     expect(shopItems())->toContain('Dashboard')->not->toContain('Wishlists');

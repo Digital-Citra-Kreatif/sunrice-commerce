@@ -11,6 +11,8 @@ const shim = (name: string) => fileURLToPath(new URL(`./resources/js/admin/shims
  */
 export default defineConfig({
     plugins: [tailwindcss()],
+    // Library mode leaves process.env in dependencies (recharts, redux); the browser has none.
+    define: { 'process.env.NODE_ENV': JSON.stringify('production') },
     resolve: {
         alias: [
             { find: /^react\/jsx-runtime$/, replacement: shim('jsx-runtime') },
