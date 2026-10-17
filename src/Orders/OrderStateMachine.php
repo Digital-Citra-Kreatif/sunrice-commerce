@@ -68,6 +68,9 @@ class OrderStateMachine
         }
 
         return match ($to) {
+            // Processing means paid (or cash on delivery, or free): record the payment first.
+            OrderStatus::PROCESSING => in_array($from, [OrderStatus::PENDING, OrderStatus::FAILED], true) && $order->isUnpaid()
+                && $order->payment_method !== 'cod' && $order->total > 0 ? __('commerce::orders.transition.unpaid_processing') : null,
             OrderStatus::CANCELLED => $order->paid_total > $order->refunded_total ? __('commerce::orders.transition.refund_first') : null,
             OrderStatus::COMPLETED => $order->isPaid() || $order->payment_method === 'cod' || $order->total === 0 ? null : __('commerce::orders.transition.unpaid'),
             OrderStatus::REFUNDED => $order->paid_total > 0 && $order->refunded_total >= $order->paid_total ? null : __('commerce::orders.transition.not_refunded'),

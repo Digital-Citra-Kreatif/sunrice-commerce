@@ -36,6 +36,7 @@ return [
         'hold_back' => 'An order on hold can only go back to :status.',
         'refund_first' => 'This order is paid: refund it before cancelling.',
         'unpaid' => 'An unpaid order can\'t be completed.',
+        'unpaid_processing' => 'Record the payment first (Mark as paid): an unpaid order can\'t be processed.',
         'not_refunded' => 'The refunds don\'t reach the amount paid yet.',
     ],
     'timeline' => [

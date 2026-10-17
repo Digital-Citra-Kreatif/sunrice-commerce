@@ -7,6 +7,7 @@ use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
 use Sunrice\Commerce\Checkout\CheckoutData;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Orders\Models\Order;
+use Sunrice\Commerce\Payments\Actions\PayWithMethod;
 use Sunrice\Commerce\Payments\PaymentContext;
 use Sunrice\Commerce\Payments\PaymentManager;
 use Sunrice\Commerce\Payments\UniqueCodes;
@@ -76,4 +77,23 @@ it('offers methods by their availability rules', function () {
     app(ToggleFeature::class)->handle('manual_payments', false);
     app()->forgetScopedInstances();
     expect($keys(['country' => 'ID', 'province_code' => '32']))->toBe([]);
+});
+
+it('moves the unique code with the method when the customer switches on the pay page', function () {
+    $settings = app(StoreSettings::class);
+    $payments = (array) $settings->stored()['payments'];
+    $payments['methods']['test_transfer'] = ['active' => true];
+    $settings->saveSection('payments', $payments);
+    app()->forgetScopedInstances();
+    $order = placeWith($this->mug, 'bank_transfer');
+    expect($order->total)->toBeGreaterThan(60000)->toBeLessThanOrEqual(60003);
+
+    app(PayWithMethod::class)->handle($order, 'test_transfer');
+    expect($order->refresh()->total)->toBe(60000)
+        ->and($order->adjustments()->where('kind', 'unique_code')->exists())->toBeFalse();
+
+    app(PayWithMethod::class)->handle($order, 'bank_transfer');
+    $code = (int) $order->adjustments()->where('kind', 'unique_code')->value('amount');
+    expect($code)->toBeBetween(1, 3)->and($order->refresh()->total)->toBe(60000 + $code)
+        ->and($order->payments()->where('status', 'pending')->sole()->amount)->toBe(60000 + $code);
 });

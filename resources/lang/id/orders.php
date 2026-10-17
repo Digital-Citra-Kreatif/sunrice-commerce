@@ -36,6 +36,7 @@ return [
         'hold_back' => 'Pesanan yang ditahan hanya bisa kembali ke :status.',
         'refund_first' => 'Pesanan ini sudah dibayar: kembalikan dananya sebelum membatalkan.',
         'unpaid' => 'Pesanan yang belum dibayar tidak bisa diselesaikan.',
+        'unpaid_processing' => 'Catat pembayarannya dulu (Tandai sudah dibayar): pesanan yang belum dibayar tidak bisa diproses.',
         'not_refunded' => 'Pengembalian dana belum mencapai jumlah yang dibayar.',
     ],
     'timeline' => [

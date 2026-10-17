@@ -260,7 +260,7 @@ Staff mark the order paid from the admin once payment is settled in the chat.
 | Limiter | Limit | Used by |
 | --- | --- | --- |
 | `commerce-checkout` | 20 a minute per IP | `POST /checkout`, `POST /order/{key}/pay` |
-| `commerce-cart` | 120 a minute per IP | `POST /checkout/refresh`, cancelling an order, accepting or declining a quote, the cart |
+| `commerce-cart` | 120 a minute per IP | `POST /checkout/refresh`, cancelling an order, accepting or declining a quote, the cart JSON API |
 | `commerce-voucher` | 10 a minute per cart and IP | Applying a voucher code |
 | `commerce-confirm` | 10 an hour per order and IP | Submitting a payment confirmation |
 

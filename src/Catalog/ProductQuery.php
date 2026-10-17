@@ -199,8 +199,10 @@ class ProductQuery
 
     // ---- Results -----------------------------------------------------------
 
-    /** @return LengthAwarePaginator<int, Entry> entries, in listing order, with views preloaded */
-    /** @param  int|null  $page  null: from the request's ?{$pageName} */
+    /**
+     * @param  int|null  $page  null: from the request's ?{$pageName}
+     * @return LengthAwarePaginator<int, Entry> entries, in listing order, with views preloaded
+     */
     public function paginate(int $perPage = 24, string $pageName = 'page', ?int $page = null): LengthAwarePaginator
     {
         $products = $this->products()->select('commerce_products.entry_id')->paginate($perPage, ['commerce_products.entry_id'], $pageName, $page);

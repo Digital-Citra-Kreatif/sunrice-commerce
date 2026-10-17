@@ -121,3 +121,19 @@ it('locks the currency once an order exists', function () {
     expect(fn () => $save('IDR'))->toThrow(ValidationException::class, 'can\'t be changed once the store has orders');
     $save('USD'); // unchanged is fine
 });
+
+it('moves an order to Processing only once it is paid (or cash on delivery, or free)', function () {
+    $states = app(OrderStateMachine::class);
+    $unpaid = makeOrder();
+    $cod = makeOrder(['payment_method' => 'cod']);
+    $paid = makeOrder(['payment_status' => 'paid', 'paid_total' => 100000]);
+
+    expect($states->can($unpaid, 'processing'))->toBeFalse()
+        ->and($states->can($cod, 'processing'))->toBeTrue()
+        ->and($states->can($paid, 'processing'))->toBeTrue();
+
+    // The admin's bulk action skips it too.
+    actingAsUserWith(['commerce.orders.view', 'commerce.orders.edit']);
+    $this->post('/cms/commerce/orders/bulk', ['action' => 'processing', 'ids' => [$unpaid->id, $paid->id]])->assertRedirect();
+    expect($unpaid->fresh()->status)->toBe('pending')->and($paid->fresh()->status)->toBe('processing');
+});

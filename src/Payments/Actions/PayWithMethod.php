@@ -9,12 +9,14 @@ use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\OrderStatus;
 use Sunrice\Commerce\Orders\Timeline;
+use Sunrice\Commerce\Payments\Contracts\AddsUniqueCode;
 use Sunrice\Commerce\Payments\Models\Payment;
 use Sunrice\Commerce\Payments\PaymentContext;
 use Sunrice\Commerce\Payments\PaymentManager;
 use Sunrice\Commerce\Payments\PaymentMethodBase;
 use Sunrice\Commerce\Payments\PaymentResult;
 use Sunrice\Commerce\Payments\PaymentStart;
+use Sunrice\Commerce\Payments\UniqueCodes;
 use Sunrice\Commerce\Support\DomainException;
 
 /**
@@ -63,9 +65,19 @@ class PayWithMethod
             if ($fee !== null && $newFee > 0) {
                 $order->adjustments()->create(['kind' => 'fee', 'source_type' => 'payment_fee', 'source_id' => $key, 'label' => $fee->label, 'amount' => $newFee, 'created_at' => now()]);
             }
+            // So does the unique transfer code (kept when staying with the same method).
+            $oldCode = (int) $order->adjustments()->where('source_type', 'unique_code')->sum('amount');
+            $order->adjustments()->where('source_type', 'unique_code')->delete();
+            $base = $order->total - $oldCode + $newFee;
+            $code = $method instanceof AddsUniqueCode && ($range = $method->uniqueCodeRange()) !== null
+                ? ($key === $order->payment_method && $oldCode !== 0 ? $oldCode : app(UniqueCodes::class)->pick($base, $range, $key)) : 0;
+            if ($code !== 0) {
+                $order->adjustments()->create(['kind' => 'unique_code', 'source_type' => 'unique_code', 'label' => __('commerce::payments.unique_code'),
+                    'amount' => $code, 'created_at' => now()]);
+            }
             $order->forceFill([
                 'fee_total' => $order->fee_total + $newFee,
-                'total' => $order->total + $newFee,
+                'total' => $base + $code,
                 'payment_method' => $key,
                 'payment_method_title' => PaymentManager::titleOf($method),
                 'version' => $order->version + 1,
