@@ -84,10 +84,10 @@ disagree, follow this file and record the conflict in the pull request.
   - Taxonomies:
     | Handle | Kind | Term pages | Blueprint fields |
     | --- | --- | --- | --- |
-    | `product-categories` | hierarchical | `/products/category/{slug}` | image, banner, description |
-    | `product-tags` | flat | `/products/tag/{slug}` | — |
+    | `product_categories` | hierarchical | `/products/category/{slug}` | image, banner, description |
+    | `product_tags` | flat | `/products/tag/{slug}` | — |
     | `brands` | flat | `/brands/{slug}` | logo, banner, description, website |
-  - Form `product-inquiry`: name, email, phone, quantity, message, plus hidden product fields. It
+  - Form `product_inquiry`: name, email, phone, quantity, message, plus hidden product fields. It
     notifies the store email.
   - Legal pages, created only when a `pages` collection exists and saved as drafts: Privacy Policy,
     Terms & Conditions, Returns & Refunds, Shipping Policy. Each has starter text in Indonesian and
