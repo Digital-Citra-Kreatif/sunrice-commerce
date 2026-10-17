@@ -18,6 +18,8 @@ use Spatie\SimpleExcel\SimpleExcelWriter;
 use Sunrice\Admin\Table\Column;
 use Sunrice\Admin\Table\TableQuery;
 use Sunrice\Commerce\Admin\SchemaForm;
+use Sunrice\Commerce\Digital\Models\DownloadGrant;
+use Sunrice\Commerce\Documents\Documents;
 use Sunrice\Commerce\Orders\Actions\AddOrderNote;
 use Sunrice\Commerce\Orders\Actions\CreateManualOrder;
 use Sunrice\Commerce\Orders\Actions\CreateShipment;
@@ -128,14 +130,17 @@ class OrdersController extends Controller
         ];
     }
 
-    public function bulk(Request $request, OrderStateMachine $states): RedirectResponse
+    public function bulk(Request $request, OrderStateMachine $states): RedirectResponse|\Symfony\Component\HttpFoundation\Response
     {
         $this->guard();
         $data = $request->validate([
-            'action' => ['required', Rule::in(['processing', 'completed', 'trash'])],
+            'action' => ['required', Rule::in(['processing', 'completed', 'trash', 'packing_slips'])],
             'ids' => ['required', 'array', 'max:200'],
             'ids.*' => ['integer'],
         ]);
+        if ($data['action'] === 'packing_slips') {
+            return Inertia::location(route('sunrice.admin.commerce.orders.packing-slips', ['ids' => implode(',', $data['ids'])]));
+        }
         $this->authorize($data['action'] === 'trash' ? 'commerce.orders.delete' : 'commerce.orders.edit');
         $done = 0;
         $skipped = 0;
@@ -399,7 +404,15 @@ class OrdersController extends Controller
                     'items' => collect((array) $s->items)->map(fn ($row) => ['name' => $order->items->firstWhere('id', $row['order_item_id'])?->title(), 'quantity' => $row['quantity']])->all()])->values()->all(),
                 'refunds' => $order->refunds->map(fn ($r) => ['id' => $r->id, 'amount' => $f($r->amount), 'reason' => $r->reason, 'restock' => $r->restock,
                     'created_at' => $r->created_at?->toIso8601String()])->values()->all(),
-                'documents' => $order->documents->map(fn ($d) => ['id' => $d->id, 'type' => $d->type, 'number' => $d->number])->values()->all(),
+                'downloads' => DownloadGrant::query()->with('file')->where('order_id', $order->id)->get()->map(fn ($g) => [
+                    'id' => $g->id, 'name' => $g->file->name, 'count' => $g->download_count, 'remaining' => $g->downloads_remaining,
+                    'expires_at' => $g->expires_at?->toIso8601String(), 'revoked' => $g->revoked_at !== null, 'state' => $g->refusal() ?? 'active',
+                ])->all(),
+                'documents' => commerce_feature('documents') && $user->can('commerce.documents.view') ? array_values(array_filter([
+                    $order->isQuote() ? null : ['type' => 'invoice', 'label' => 'Invoice', 'number' => $order->documents->firstWhere('type', 'invoice')?->number, 'url' => route('sunrice.admin.commerce.orders.document', [$order, 'invoice'], false)],
+                    $order->needsShipping() && ! $order->isQuote() ? ['type' => 'packing_slip', 'label' => 'Packing slip', 'number' => null, 'url' => route('sunrice.admin.commerce.orders.document', [$order, 'packing-slip'], false)] : null,
+                    $order->isQuote() ? ['type' => 'quotation', 'label' => 'Quotation', 'number' => $order->quote_number, 'url' => route('sunrice.admin.commerce.orders.document', [$order, 'quotation'], false)] : null,
+                ])) : [],
                 'timeline' => $order->events->sortByDesc('id')->values()->map(fn (OrderEvent $e) => ['id' => $e->id, 'type' => $e->type, 'visibility' => $e->visibility,
                     'message' => $e->message, 'source' => $e->source, 'actor' => $e->data['actor'] ?? null, 'created_at' => $e->created_at?->toIso8601String()])->all(),
                 'storefront_url' => $order->url(),
@@ -582,6 +595,33 @@ class OrdersController extends Controller
         return back()->with('success', 'Refund recorded.');
     }
 
+    /** A document of the order, shown in the browser. */
+    public function document(Order $order, string $type, Documents $documents): \Illuminate\Http\Response
+    {
+        $this->guard();
+        $this->authorizeFeature('documents');
+        $this->authorize('commerce.documents.view');
+        abort_unless(in_array($type, ['invoice', 'packing-slip', 'quotation'], true), 404);
+        $type = str_replace('-', '_', $type);
+        abort_if(($type === 'quotation') !== $order->isQuote() && $type !== 'packing_slip', 404);
+
+        return response($documents->pdf($order, $type), 200, ['Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.str_replace('/', '-', $order->displayNumber()).'-'.$type.'.pdf"']);
+    }
+
+    /** Packing slips of several orders in one PDF (?ids=1,2,3). */
+    public function packingSlips(Request $request, Documents $documents): \Illuminate\Http\Response
+    {
+        $this->guard();
+        $this->authorizeFeature('documents');
+        $this->authorize('commerce.documents.view');
+        $ids = array_slice(array_filter(array_map('intval', explode(',', (string) $request->query('ids')))), 0, 200);
+        $orders = Order::query()->whereIn('id', $ids)->orderBy('id')->get();
+        abort_if($orders->isEmpty(), 404);
+
+        return response($documents->bulkPdf($orders), 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="packing-slips.pdf"']);
+    }
+
     public function destroy(Request $request, Order $order, TrashOrder $trash): RedirectResponse
     {
         $this->guard();
@@ -743,6 +783,9 @@ class OrdersController extends Controller
         if ($request->user()->can('commerce.orders.edit')) {
             $actions[] = ['key' => 'processing', 'label' => 'Mark processing'];
             $actions[] = ['key' => 'completed', 'label' => 'Mark completed'];
+        }
+        if (commerce_feature('documents') && $request->user()->can('commerce.documents.view')) {
+            $actions[] = ['key' => 'packing_slips', 'label' => 'Print packing slips'];
         }
         if ($request->user()->can('commerce.orders.delete')) {
             $actions[] = ['key' => 'trash', 'label' => 'Move to trash', 'variant' => 'destructive', 'confirm' => 'Move the selected orders to the trash?'];

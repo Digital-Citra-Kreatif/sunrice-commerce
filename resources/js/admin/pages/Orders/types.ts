@@ -28,7 +28,8 @@ export interface OrderData {
     shipments: Array<{ id: number; courier: string | null; service: string | null; tracking_number: string | null; tracking_url: string | null; status: string;
         shipped_at: string | null; delivered_at: string | null; items: Array<{ name: string | null; quantity: number }> }>;
     refunds: Array<{ id: number; amount: string; reason: string | null; restock: boolean; created_at: string | null }>;
-    documents: Array<{ id: number; type: string; number: string | null }>;
+    documents: Array<{ type: string; label: string; number: string | null; url: string }>;
+    downloads: Array<{ id: number; name: string; count: number; remaining: number | null; expires_at: string | null; revoked: boolean; state: string }>;
     timeline: Array<{ id: number; type: string; visibility: string; message: string | null; source: string; actor: string | null; created_at: string | null }>;
     storefront_url: string;
 }

@@ -81,6 +81,9 @@ class SettingsController extends Controller
         if (commerce_feature('shipping') && $user->can('commerce.settings.shipping')) {
             $menu[] = ['key' => 'shipping', 'label' => 'Shipping', 'href' => 'commerce/settings/shipping'];
         }
+        if ($user->can('commerce.settings.emails')) {
+            $menu[] = ['key' => 'emails', 'label' => 'Emails', 'href' => 'commerce/settings/emails'];
+        }
         if (commerce_feature('taxes') && $user->can('commerce.settings.taxes')) {
             $menu[] = ['key' => 'tax-rates', 'label' => 'Tax rates', 'href' => 'commerce/settings/tax-rates'];
         }

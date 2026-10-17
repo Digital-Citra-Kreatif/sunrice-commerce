@@ -57,8 +57,16 @@
         @endif
         <x-commerce::slot name="order.after_payment" />
 
+        @if ($downloads->isNotEmpty())
+            <h2>{{ __('commerce::digital.ready') }}</h2>
+            @include($L::view('partials.downloads'), ['grants' => $downloads])
+        @endif
+
         <h2>{{ __('commerce::checkout.order.items') }}</h2>
         @include($L::view('partials.order-items'), ['order' => $order])
+        @if ($invoiceUrl ?? null)
+            <p><a href="{{ $invoiceUrl }}" target="_blank" rel="noopener">{{ __('commerce::documents.download') }}</a></p>
+        @endif
 
         @if ($order->shipping_address)
             <div class="commerce-order__address">

@@ -69,7 +69,9 @@ class CommerceServiceProvider extends PackageServiceProvider
             : $app->make(Support\Nulls\NullInventory::class));
         $this->app->singleton(Pricing\Calculator::class);
         $this->app->singleton(Pricing\PriceProviders::class);
+        $this->app->bindIf(Documents\DocumentRenderer::class, Documents\DompdfRenderer::class);
         $this->app->singleton(Payments\PaymentRegistry::class);
+        $this->app->singleton(Notifications\Emails::class);
         $this->app->singleton(Checkout\CheckoutFields::class);
         $this->app->singleton(Orders\OrderPanels::class);
         $this->app->singleton(Checkout\Completion\Completions::class);
@@ -179,6 +181,8 @@ class CommerceServiceProvider extends PackageServiceProvider
         $nav->register('orders', fn () => __('commerce::account.orders.title'), 'commerce.account.orders', 'orders', position: 20);
         $nav->register('quotes', fn () => __('commerce::account.orders.quotes'), 'commerce.account.quotes',
             fn (): bool => commerce_feature('orders') && $this->app->make(Settings\StoreSettings::class)->get('general.selling_mode') === 'quote', position: 25);
+        $nav->register('downloads', fn () => __('commerce::digital.title'), 'commerce.account.downloads',
+            fn (): bool => Digital\Models\DownloadGrant::query()->whereHas('order', fn ($q) => $q->where('user_id', commerce_customer()?->getAuthIdentifier()))->exists(), position: 30);
         $nav->register('addresses', fn () => __('commerce::account.addresses.title'), 'commerce.account.addresses', position: 70);
 
         // Users lists staff: users whose roles are all customer roles are customers.
@@ -221,6 +225,13 @@ class CommerceServiceProvider extends PackageServiceProvider
 
             return $count;
         });
+        Event::listen(Orders\Events\OrderPaid::class, Digital\Listeners\GrantDownloads::class);
+        Event::subscribe(Notifications\SendStoreEmails::class);
+        Event::listen(Orders\Events\OrderPlaced::class, Documents\AssignInvoiceNumber::class);
+        Event::listen(Orders\Events\OrderPaid::class, Documents\AssignInvoiceNumber::class);
+        $this->publishes([__DIR__.'/../resources/views/documents' => resource_path('views/vendor/commerce/documents')], 'commerce-documents');
+        Event::listen(Orders\Events\OrderCompleted::class, Digital\Listeners\GrantDownloads::class);
+        RateLimiter::for('commerce-downloads', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
         RateLimiter::for('commerce-webhooks', fn (Request $request) => Limit::perMinute(300)->by($request->ip()));
         RateLimiter::for('commerce-checkout', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));
         Settings\Actions\SaveStoreSettings::guardUsing(function (string $section, array $values, Settings\StoreSettings $settings): array {

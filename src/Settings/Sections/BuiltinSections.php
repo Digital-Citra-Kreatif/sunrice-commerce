@@ -32,6 +32,7 @@ final class BuiltinSections
         ]));
         $registry->register(new SettingsSection('taxes', 'Taxes', fn () => self::taxes(), feature: 'taxes', position: 50));
         $registry->register(new SettingsSection('accounts', 'Accounts', fn () => self::accounts(), feature: 'accounts', position: 60));
+        $registry->register(new SettingsSection('digital', 'Digital products', fn () => self::digital(), feature: 'digital', permission: 'commerce.settings.catalog', position: 25));
         $registry->register(new SettingsSection('documents', 'Documents', fn () => self::documents(), feature: 'documents', position: 80, rules: [
             'invoice_number_format' => [self::formatRule()],
         ]));
@@ -44,6 +45,19 @@ final class BuiltinSections
     protected static function options(array $labels): array
     {
         return array_map(fn ($value, $label) => ['value' => (string) $value, 'label' => $label], array_keys($labels), $labels);
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    protected static function digital(): array
+    {
+        return [
+            ['handle' => 'delivery', 'type' => 'select', 'label' => 'Delivery', 'instructions' => 'How files reach customers when the product doesn\'t say.', 'config' => ['multiple' => true, 'options' => self::options([
+                'attachment' => 'Attached to the email (small files)', 'link' => 'A download link in the email', 'account' => 'In My Account → Downloads',
+            ])]],
+            ['handle' => 'grant_on', 'type' => 'select', 'label' => 'Give access when the order is', 'config' => ['options' => self::options(['paid' => 'Paid', 'completed' => 'Completed'])]],
+            ['handle' => 'download_limit', 'type' => 'number', 'label' => 'Downloads per file', 'instructions' => 'Empty: unlimited.', 'config' => ['min' => 1], 'validation' => ['nullable', 'integer']],
+            ['handle' => 'expiry_days', 'type' => 'number', 'label' => 'Links expire after (days)', 'instructions' => 'Empty: never.', 'config' => ['min' => 1], 'validation' => ['nullable', 'integer']],
+        ];
     }
 
     /** @return array<int, array<string, mixed>> */

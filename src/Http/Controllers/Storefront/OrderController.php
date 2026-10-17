@@ -7,12 +7,16 @@ namespace Sunrice\Commerce\Http\Controllers\Storefront;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Sunrice\Commerce\Customers\Auth\Throttle;
+use Sunrice\Commerce\Digital\Models\DownloadGrant;
+use Sunrice\Commerce\Documents\Documents;
 use Sunrice\Commerce\Orders\Actions\CancelOrderByCustomer;
 use Sunrice\Commerce\Orders\InvalidTransition;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Actions\PayWithMethod;
 use Sunrice\Commerce\Payments\PaymentManager;
+use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 
@@ -42,6 +46,21 @@ class OrderController
         }
 
         return back()->with('commerce.success', __('commerce::checkout.order.cancelled'));
+    }
+
+    public function invoice(string $key, Documents $documents): Response
+    {
+        $order = $this->find($key, 'order');
+        abort_unless($this->invoiceAvailable($order), 404);
+
+        return response($documents->pdf($order, 'invoice'), 200, ['Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.str_replace('/', '-', (string) $order->number).'.pdf"']);
+    }
+
+    protected function invoiceAvailable(Order $order): bool
+    {
+        return ! $order->isQuote() && commerce_feature('documents') && $order->isPaid()
+            && (bool) app(StoreSettings::class)->get('documents.customer_invoice_download', true);
     }
 
     public function trackForm(): View
@@ -88,6 +107,8 @@ class OrderController
             'openWhatsApp' => $request->boolean('whatsapp') && $order->meta('whatsapp_url') !== null,
             'payUrl' => commerce_feature('payments') && app(PayWithMethod::class)->payable($order) && $order->payment_method !== 'whatsapp'
                 ? commerce_url('commerce.order.pay', ['key' => $order->order_key]) : null,
+            'downloads' => DownloadGrant::query()->with('file')->where('order_id', $order->id)->whereNull('revoked_at')->get(),
+            'invoiceUrl' => $this->invoiceAvailable($order) ? commerce_url('commerce.order.invoice', ['key' => $order->order_key]) : null,
             'canCancel' => app(CancelOrderByCustomer::class)->allowed($order),
             'invite' => commerce_customer() === null && $order->user_id === null && commerce_feature('accounts'),
             'registerUrl' => commerce_feature('accounts') ? StorefrontRoutes::url('commerce.account.register') : null,

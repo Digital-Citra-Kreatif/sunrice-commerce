@@ -7,6 +7,7 @@ import InventoryIndex from './Inventory/Index';
 import OrderEditor from './Orders/Editor';
 import OrderShow from './Orders/Show';
 import ProductsIndex from './Products/Index';
+import SettingsEmails from './Settings/Emails';
 import SettingsFeatures from './Settings/Features';
 import SettingsPayments from './Settings/Payments';
 import SettingsSection from './Settings/Section';
@@ -26,6 +27,7 @@ const pages: Record<string, Page> = {
     'Commerce/Orders/Show': OrderShow,
     'Commerce/Products/Index': ProductsIndex,
     'Commerce/Settings/Section': SettingsSection,
+    'Commerce/Settings/Emails': SettingsEmails,
     'Commerce/Settings/Features': SettingsFeatures,
     'Commerce/Settings/Payments': SettingsPayments,
     'Commerce/Settings/Shipping': SettingsShipping,

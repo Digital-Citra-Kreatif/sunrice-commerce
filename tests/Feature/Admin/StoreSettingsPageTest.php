@@ -14,7 +14,7 @@ it('opens the first section the user may edit from the Store tab', function () {
     $this->get('/cms/commerce/settings/catalog')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
         ->component('Commerce/Settings/Section', false)
         ->where('section.key', 'catalog')
-        ->where('sections', [['key' => 'catalog', 'label' => 'Catalog', 'href' => 'commerce/settings/catalog']])
+        ->where('sections', [['key' => 'catalog', 'label' => 'Catalog', 'href' => 'commerce/settings/catalog'], ['key' => 'digital', 'label' => 'Digital products', 'href' => 'commerce/settings/digital']])
         ->where('form.values.price_visibility', 'everyone')
         ->where('settingsTabs.0.key', 'store'));
     $this->get('/cms/commerce/settings/general')->assertForbidden();

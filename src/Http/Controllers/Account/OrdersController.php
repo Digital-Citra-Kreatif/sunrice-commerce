@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Sunrice\Commerce\Cart\Actions\AddToCart;
 use Sunrice\Commerce\Cart\CartException;
 use Sunrice\Commerce\Customers\CurrentCustomer;
+use Sunrice\Commerce\Digital\Models\DownloadGrant;
 use Sunrice\Commerce\Http\Controllers\Storefront\OrderController;
 use Sunrice\Commerce\Orders\Actions\CancelOrderByCustomer;
 use Sunrice\Commerce\Orders\InvalidTransition;
@@ -81,6 +82,15 @@ class OrdersController
         }
 
         return back()->with('commerce.success', __('commerce::checkout.order.cancelled'));
+    }
+
+    public function downloads(AccountController $account): View
+    {
+        $grants = DownloadGrant::query()->with(['file', 'item', 'order'])
+            ->whereHas('order', fn ($q) => $q->where('user_id', $this->current->user()?->getAuthIdentifier()))
+            ->latest('id')->get();
+
+        return $account->page('downloads', __('commerce::digital.title'), ['grants' => $grants]);
     }
 
     protected function list(AccountController $account, string $type, string $page): View

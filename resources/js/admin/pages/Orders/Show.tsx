@@ -155,6 +155,27 @@ export default function OrderShow(props: OrderPageProps) {
                         </Card>
                     )}
 
+                    {order.downloads.length > 0 && (
+                        <Card>
+                            <CardHeader><CardTitle>Downloads</CardTitle></CardHeader>
+                            <CardContent className="cm:grid cm:gap-2 cm:text-sm">
+                                {order.downloads.map((d) => (
+                                    <div key={d.id} className="cm:flex cm:flex-wrap cm:items-center cm:justify-between cm:gap-2 cm:rounded-md cm:border cm:p-3">
+                                        <span><span className="cm:font-medium">{d.name}</span> · {d.count} downloaded{d.remaining !== null ? ` · ${d.remaining} left` : ''}{d.expires_at ? ` · until ${dateTime(d.expires_at)}` : ''}</span>
+                                        <span className="cm:flex cm:items-center cm:gap-1">
+                                            <StatusBadge tone={d.state === 'active' ? 'ok' : 'warning'}>{d.state.replace('_', ' ')}</StatusBadge>
+                                            {can.edit && (['resend', 'extend', 'reset', 'revoke'] as const).map((action) => (
+                                                <Button key={action} size="sm" variant="ghost" onClick={() => router.post(adminUrl(`${base}/downloads/${d.id}`), { action }, { preserveScroll: true })}>
+                                                    {{ resend: 'Resend', extend: '+7 days', reset: 'Reset count', revoke: 'Revoke' }[action]}
+                                                </Button>
+                                            ))}
+                                        </span>
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {order.refunds.length > 0 && (
                         <Card>
                             <CardHeader><CardTitle>Refunds</CardTitle></CardHeader>
@@ -237,7 +258,11 @@ export default function OrderShow(props: OrderPageProps) {
                             {order.completed_at && <p>Completed {dateTime(order.completed_at)}</p>}
                             {order.cancelled_at && <p>Cancelled {dateTime(order.cancelled_at)}{order.cancel_reason ? ` — ${order.cancel_reason}` : ''}</p>}
                             {order.quote_valid_until && <p>Quote valid until {dateTime(order.quote_valid_until)}</p>}
-                            {order.documents.map((d) => <p key={d.id}>{d.type.replace('_', ' ')} {d.number}</p>)}
+                            {order.documents.length > 0 && (
+                                <div className="cm:mt-2 cm:flex cm:flex-wrap cm:gap-2">
+                                    {order.documents.map((d) => <Button key={d.type} size="sm" variant="outline" asChild><a href={d.url} target="_blank" rel="noreferrer">{d.label}{d.number ? ` ${d.number}` : ''}</a></Button>)}
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>

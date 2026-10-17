@@ -218,6 +218,14 @@ class Commerce
         app(Payments\PaymentRegistry::class)->register($class);
     }
 
+    // ---- Emails ---------------------------------------------------------------
+
+    /** An email of a package's own, listed in Settings → Emails and sent with Notifier::send(). */
+    public function registerEmail(Notifications\EmailDefinition $email): void
+    {
+        app(Notifications\Emails::class)->register($email);
+    }
+
     // ---- Shipping -------------------------------------------------------------
 
     /** @param  class-string<Shipping\Contracts\ShippingMethodType>  $class */

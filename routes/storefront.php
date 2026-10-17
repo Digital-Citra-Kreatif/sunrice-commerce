@@ -56,6 +56,7 @@ Route::middleware(['commerce.feature:orders', 'commerce.noindex'])->group(functi
     Route::get(StorefrontRoutes::path('order').'/{key}/pay', [Storefront\PayController::class, 'show'])->middleware('commerce.feature:payments')->name('commerce.order.pay'.$suffix);
     Route::post(StorefrontRoutes::path('order').'/{key}/pay', [Storefront\PayController::class, 'pay'])->middleware(['commerce.feature:payments', 'throttle:commerce-checkout'])->name('commerce.order.pay.submit'.$suffix);
     Route::get(StorefrontRoutes::path('order').'/{key}/payment/return', [Storefront\PayController::class, 'return'])->middleware('commerce.feature:payments')->name('commerce.order.payment-return'.$suffix);
+    Route::get(StorefrontRoutes::path('order').'/{key}/invoice', [Storefront\OrderController::class, 'invoice'])->name('commerce.order.invoice'.$suffix);
     Route::post(StorefrontRoutes::path('order').'/{key}/cancel', [Storefront\OrderController::class, 'cancel'])->middleware('throttle:commerce-cart')->name('commerce.order.cancel'.$suffix);
     Route::get(StorefrontRoutes::path('quote').'/{key}', [Storefront\QuoteController::class, 'show'])->name('commerce.quote'.$suffix);
     Route::post(StorefrontRoutes::path('quote').'/{key}/accept', [Storefront\QuoteController::class, 'accept'])->middleware('throttle:commerce-cart')->name('commerce.quote.accept'.$suffix);
@@ -69,3 +70,7 @@ Route::middleware(['commerce.feature:manual_payments', 'commerce.noindex'])->pre
     Route::post('lookup', [Storefront\ConfirmPaymentController::class, 'lookup'])->middleware(ProtectAgainstSpam::class)->name('commerce.confirm-payment.lookup'.$suffix);
     Route::post('/', [Storefront\ConfirmPaymentController::class, 'submit'])->middleware([ProtectAgainstSpam::class, 'throttle:commerce-confirm'])->name('commerce.confirm-payment.submit'.$suffix);
 });
+
+// Downloads keep working while the digital module is off: what was bought stays available.
+Route::get(StorefrontRoutes::path('downloads').'/{token}', Storefront\DownloadController::class)
+    ->middleware(['commerce.noindex', 'throttle:commerce-downloads'])->name('commerce.download'.$suffix);

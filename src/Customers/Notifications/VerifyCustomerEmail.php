@@ -9,18 +9,18 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\URL;
+use Sunrice\Commerce\Notifications\ConfiguredEmail;
 
 /** The storefront's email verification link (a signed route, valid 3 days). */
 class VerifyCustomerEmail extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use ConfiguredEmail, Queueable;
 
     public function __construct(public readonly string $lang = 'id') {}
 
-    /** @return array<int, string> */
-    public function via(mixed $notifiable): array
+    protected function emailKey(): string
     {
-        return ['mail'];
+        return 'verify_email';
     }
 
     public static function url(mixed $notifiable, string $locale): string
@@ -35,7 +35,7 @@ class VerifyCustomerEmail extends Notification implements ShouldQueue
     public function toMail(mixed $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(__('commerce::account.verify.subject', ['store' => commerce_store_name()], $this->lang))
+            ->subject($this->configuredSubject(__('commerce::account.verify.subject', ['store' => commerce_store_name()], $this->lang)))
             ->line(__('commerce::account.verify.intro', [], $this->lang))
             ->action(__('commerce::account.verify.action', [], $this->lang), static::url($notifiable, $this->lang));
     }

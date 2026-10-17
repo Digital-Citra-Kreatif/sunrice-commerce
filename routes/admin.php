@@ -50,6 +50,8 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::get('orders', [Admin\OrdersController::class, 'index'])->name('orders');
     Route::get('orders/export', [Admin\OrdersController::class, 'export'])->name('orders.export');
     Route::post('orders/bulk', [Admin\OrdersController::class, 'bulk'])->name('orders.bulk');
+    Route::get('orders/packing-slips', [Admin\OrdersController::class, 'packingSlips'])->name('orders.packing-slips');
+    Route::get('orders/{order}/documents/{type}', [Admin\OrdersController::class, 'document'])->whereNumber('order')->name('orders.document');
     Route::get('orders/create', [Admin\OrdersController::class, 'create'])->name('orders.create');
     Route::post('orders', [Admin\OrdersController::class, 'store'])->name('orders.store');
     Route::post('orders/preview', [Admin\OrdersController::class, 'preview'])->name('orders.preview');
@@ -68,6 +70,7 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::put('orders/{order}/shipments/{shipment}', [Admin\OrdersController::class, 'updateShipment'])->whereNumber('order')->name('orders.shipments.update');
     Route::post('orders/{order}/shipments/{shipment}/delivered', [Admin\OrdersController::class, 'deliveredShipment'])->whereNumber('order')->name('orders.shipments.delivered');
     Route::post('orders/{order}/refunds', [Admin\OrdersController::class, 'storeRefund'])->whereNumber('order')->name('orders.refunds.store');
+    Route::post('orders/{order}/downloads/{grant}', [Admin\DownloadGrantsController::class, 'update'])->whereNumber('order')->name('orders.downloads.update');
     Route::delete('orders/{order}', [Admin\OrdersController::class, 'destroy'])->whereNumber('order')->name('orders.destroy');
     Route::post('orders/{order}/restore', [Admin\OrdersController::class, 'restore'])->whereNumber('order')->name('orders.restore');
     Route::delete('orders/{order}/force', [Admin\OrdersController::class, 'forceDelete'])->whereNumber('order')->name('orders.force-delete');
@@ -89,6 +92,12 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::put('settings/features/{feature}', [Admin\FeaturesController::class, 'update'])->name('settings.features.update');
     Route::get('settings/tax-rates', [Admin\TaxRatesController::class, 'edit'])->name('settings.tax-rates');
     Route::put('settings/tax-rates', [Admin\TaxRatesController::class, 'update'])->name('settings.tax-rates.update');
+    Route::get('settings/emails', [Admin\EmailsSettingsController::class, 'index'])->name('settings.emails');
+    Route::get('settings/emails/{key}', [Admin\EmailsSettingsController::class, 'edit'])->name('settings.emails.edit');
+    Route::put('settings/emails/{key}', [Admin\EmailsSettingsController::class, 'update'])->name('settings.emails.update');
+    Route::put('settings/emails/{key}/enabled', [Admin\EmailsSettingsController::class, 'toggle'])->name('settings.emails.toggle');
+    Route::get('settings/emails/{key}/preview', [Admin\EmailsSettingsController::class, 'preview'])->name('settings.emails.preview');
+    Route::post('settings/emails/{key}/test', [Admin\EmailsSettingsController::class, 'test'])->name('settings.emails.test');
     Route::get('settings/payments', [Admin\PaymentsSettingsController::class, 'index'])->name('settings.payments');
     Route::post('settings/payments/move', [Admin\PaymentsSettingsController::class, 'move'])->name('settings.payments.move');
     Route::post('settings/payments/instances', [Admin\PaymentsSettingsController::class, 'addInstance'])->name('settings.payments.instances.store');
