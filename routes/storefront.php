@@ -53,7 +53,10 @@ Route::middleware(['commerce.feature:checkout', 'commerce.noindex'])->prefix(Sto
 
 Route::middleware(['commerce.feature:orders', 'commerce.noindex'])->group(function () use ($suffix): void {
     Route::get(StorefrontRoutes::path('order').'/{key}', [Storefront\OrderController::class, 'show'])->name('commerce.order'.$suffix);
+    Route::post(StorefrontRoutes::path('order').'/{key}/cancel', [Storefront\OrderController::class, 'cancel'])->middleware('throttle:commerce-cart')->name('commerce.order.cancel'.$suffix);
     Route::get(StorefrontRoutes::path('quote').'/{key}', [Storefront\QuoteController::class, 'show'])->name('commerce.quote'.$suffix);
+    Route::post(StorefrontRoutes::path('quote').'/{key}/accept', [Storefront\QuoteController::class, 'accept'])->middleware('throttle:commerce-cart')->name('commerce.quote.accept'.$suffix);
+    Route::post(StorefrontRoutes::path('quote').'/{key}/decline', [Storefront\QuoteController::class, 'decline'])->middleware('throttle:commerce-cart')->name('commerce.quote.decline'.$suffix);
     Route::get(StorefrontRoutes::path('track_order'), [Storefront\OrderController::class, 'trackForm'])->name('commerce.track-order'.$suffix);
     Route::post(StorefrontRoutes::path('track_order'), [Storefront\OrderController::class, 'track'])->middleware(ProtectAgainstSpam::class)->name('commerce.track-order.submit'.$suffix);
 });

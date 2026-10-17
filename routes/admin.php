@@ -47,6 +47,31 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::put('vouchers/{voucher}', [Admin\VouchersController::class, 'update'])->name('vouchers.update');
     Route::delete('vouchers/{voucher}', [Admin\VouchersController::class, 'destroy'])->name('vouchers.destroy');
 
+    Route::get('orders', [Admin\OrdersController::class, 'index'])->name('orders');
+    Route::get('orders/export', [Admin\OrdersController::class, 'export'])->name('orders.export');
+    Route::post('orders/bulk', [Admin\OrdersController::class, 'bulk'])->name('orders.bulk');
+    Route::get('orders/create', [Admin\OrdersController::class, 'create'])->name('orders.create');
+    Route::post('orders', [Admin\OrdersController::class, 'store'])->name('orders.store');
+    Route::post('orders/preview', [Admin\OrdersController::class, 'preview'])->name('orders.preview');
+    Route::get('orders/{order}/edit', [Admin\OrdersController::class, 'edit'])->whereNumber('order')->name('orders.edit');
+    Route::put('orders/{order}', [Admin\OrdersController::class, 'update'])->whereNumber('order')->name('orders.update');
+    Route::get('orders/{order}/quote', [Admin\OrdersController::class, 'editQuote'])->whereNumber('order')->name('orders.quote');
+    Route::put('orders/{order}/quote', [Admin\OrdersController::class, 'updateQuote'])->whereNumber('order')->name('orders.quote.update');
+    Route::post('orders/{order}/payment-link', [Admin\OrdersController::class, 'sendLink'])->whereNumber('order')->name('orders.payment-link');
+    Route::get('orders/{order}', [Admin\OrdersController::class, 'show'])->whereNumber('order')->withTrashed()->name('orders.show');
+    Route::post('orders/{order}/transition', [Admin\OrdersController::class, 'transition'])->whereNumber('order')->name('orders.transition');
+    Route::post('orders/{order}/notes', [Admin\OrdersController::class, 'note'])->whereNumber('order')->name('orders.notes');
+    Route::get('orders/{order}/addresses', [Admin\OrdersController::class, 'editAddresses'])->whereNumber('order')->name('orders.addresses.edit');
+    Route::put('orders/{order}/addresses', [Admin\OrdersController::class, 'addresses'])->whereNumber('order')->name('orders.addresses');
+    Route::post('orders/{order}/mark-paid', [Admin\OrdersController::class, 'markPaid'])->whereNumber('order')->name('orders.mark-paid');
+    Route::post('orders/{order}/shipments', [Admin\OrdersController::class, 'storeShipment'])->whereNumber('order')->name('orders.shipments.store');
+    Route::put('orders/{order}/shipments/{shipment}', [Admin\OrdersController::class, 'updateShipment'])->whereNumber('order')->name('orders.shipments.update');
+    Route::post('orders/{order}/shipments/{shipment}/delivered', [Admin\OrdersController::class, 'deliveredShipment'])->whereNumber('order')->name('orders.shipments.delivered');
+    Route::post('orders/{order}/refunds', [Admin\OrdersController::class, 'storeRefund'])->whereNumber('order')->name('orders.refunds.store');
+    Route::delete('orders/{order}', [Admin\OrdersController::class, 'destroy'])->whereNumber('order')->name('orders.destroy');
+    Route::post('orders/{order}/restore', [Admin\OrdersController::class, 'restore'])->whereNumber('order')->name('orders.restore');
+    Route::delete('orders/{order}/force', [Admin\OrdersController::class, 'forceDelete'])->whereNumber('order')->name('orders.force-delete');
+
     Route::get('customers', [Admin\CustomersController::class, 'index'])->name('customers');
     Route::get('customers/{customer}', [Admin\CustomersController::class, 'show'])->name('customers.show');
     Route::put('customers/{customer}', [Admin\CustomersController::class, 'update'])->name('customers.update');

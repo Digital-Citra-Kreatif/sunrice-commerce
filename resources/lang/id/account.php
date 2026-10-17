@@ -129,4 +129,15 @@ return [
         'notes' => 'Catatan untuk kurir',
         'choose' => 'Pilih…',
     ],
+    'orders' => [
+        'title' => 'Pesanan',
+        'quotes' => 'Penawaran',
+        'empty' => 'Anda belum pernah memesan.',
+        'no_quotes' => 'Anda belum pernah meminta penawaran.',
+        'number' => 'Nomor',
+        'details' => 'Halaman pesanan',
+        'buy_again' => 'Beli lagi',
+        'added_again' => 'Produknya sudah masuk keranjang lagi.',
+        'unavailable' => 'Sudah tidak tersedia: :products.',
+    ],
 ];

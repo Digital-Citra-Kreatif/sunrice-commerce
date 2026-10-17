@@ -52,6 +52,13 @@ class AnonymizeCustomer
             $customer->addresses()->delete();
             Wishlist::query()->where('customer_id', $customer->id)->delete();
             DB::table('commerce_voucher_customers')->where('customer_id', $customer->id)->orWhere('email', $customer->email)->delete();
+            // Orders keep their amounts for the books, without the person.
+            $scrubbed = ['customer_name' => 'Deleted customer', 'email' => $placeholder, 'phone' => null, 'shipping_address' => null, 'billing_address' => null,
+                'dropship' => null, 'fields' => null, 'customer_note' => null, 'ip_address' => null, 'user_agent' => null];
+            DB::table('commerce_orders')->where('customer_id', $customer->id)
+                ->when($user !== null, fn ($q) => $q->orWhere('user_id', $user->getAuthIdentifier()))
+                ->update([...$scrubbed, 'updated_at' => now()]);
+            DB::table('commerce_payment_confirmations')->where('customer_id', $customer->id)->update(['sender_name' => 'Deleted customer', 'note' => null, 'ip_address' => null]);
             foreach (static::$orderScrubbers as $scrub) {
                 $scrub($customer, $placeholder);
             }

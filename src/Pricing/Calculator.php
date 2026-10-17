@@ -21,9 +21,12 @@ class Calculator
     protected array $stages = [
         Stages\ResolveLines::class => 10,
         Stages\UnitPrices::class => 20,
+        Stages\StaffPrices::class => 25,
         Stages\Subtotals::class => 30,
         Stages\Discounts::class => 40,
+        Stages\StaffDiscount::class => 45,
         Stages\Shipping::class => 50,
+        Stages\StaffShipping::class => 55,
         Stages\ShippingDiscounts::class => 60,
         Stages\Fees::class => 70,
         Stages\Taxes::class => 80,

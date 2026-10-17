@@ -19,6 +19,8 @@ use Sunrice\Admin\Table\TableQuery;
 use Sunrice\Commerce\Customers\Actions\AnonymizeCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Customers\Notifications\CustomerResetPassword;
+use Sunrice\Commerce\Orders\Models\Order;
+use Sunrice\Commerce\Orders\OrderStatus;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\ActivityRecorder;
 use Sunrice\Commerce\Support\Address;
@@ -98,7 +100,9 @@ class CustomersController extends Controller
                 'google' => DB::table('commerce_social_accounts')->where('user_id', $user->getAuthIdentifier())->value('email'),
             ],
             'roleOptions' => array_values(array_unique([...$customerRoles, ...Role::query()->whereDoesntHave('permissions', fn ($q) => $q->where('name', 'sunrice.access-admin'))->pluck('name')->all()])),
-            'orders' => [],
+            'orders' => Order::query()->where('customer_id', $customer->id)->latest('placed_at')->limit(20)->get()
+                ->map(fn ($o) => ['id' => $o->id, 'number' => $o->displayNumber(), 'date' => $o->placed_at?->toIso8601String(),
+                    'status' => OrderStatus::label($o->status), 'total' => $money->format($o->total), 'href' => "commerce/orders/{$o->id}"])->all(),
             'can' => [
                 'edit' => $request->user()->can('commerce.customers.edit'),
                 'delete' => $request->user()->can('commerce.customers.delete'),

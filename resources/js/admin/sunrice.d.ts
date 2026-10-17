@@ -48,6 +48,7 @@ export interface SunriceApi {
             patch: (url: string, options?: Record<string, unknown>) => void;
             delete: (url: string, options?: Record<string, unknown>) => void;
             reset: (...fields: string[]) => void;
+            transform: (callback: (data: T) => Record<string, unknown>) => void;
         };
     };
     adminUrl(path?: string): string;

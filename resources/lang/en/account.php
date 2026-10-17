@@ -129,4 +129,15 @@ return [
         'notes' => 'Notes for the courier',
         'choose' => 'Choose…',
     ],
+    'orders' => [
+        'title' => 'Orders',
+        'quotes' => 'Quotes',
+        'empty' => 'You haven\'t ordered yet.',
+        'no_quotes' => 'You haven\'t requested a quote yet.',
+        'number' => 'Number',
+        'details' => 'Order page',
+        'buy_again' => 'Buy again',
+        'added_again' => 'The products are back in your cart.',
+        'unavailable' => 'No longer available: :products.',
+    ],
 ];

@@ -17,6 +17,7 @@ final class PricingContext
     /**
      * @param  array<int, string>  $roles
      * @param  array<string, mixed>|null  $destination  address: country, province_code, city_code, district_code, postal_code
+     * @param  array{shipping?: array{label: string, cost: int}, discount?: array{label: string, amount: int}}  $overrides  staff-set shipping and discount (admin and quote channels)
      */
     public function __construct(
         public readonly ?Authenticatable $customer = null,
@@ -30,6 +31,7 @@ final class PricingContext
         public readonly ?string $email = null,
         public readonly ?string $phone = null,
         public readonly bool $placing = false,
+        public readonly array $overrides = [],
     ) {}
 
     public static function guest(): self
@@ -55,6 +57,12 @@ final class PricingContext
             channel: $channel,
             email: $customer?->getAttribute('email'),
         );
+    }
+
+    /** Staff are pricing it (manual orders, editing, quotes): line prices and totals may be set by hand. */
+    public function isStaff(): bool
+    {
+        return in_array($this->channel, ['admin', 'quote'], true);
     }
 
     public function isGuest(): bool

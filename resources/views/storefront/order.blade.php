@@ -7,7 +7,22 @@
     <section class="commerce-order-page" data-commerce-order="{{ $order->order_key }}">
         @include($L::view('partials.messages'))
         <h1>{{ $order->isQuote() ? __('commerce::checkout.order.quote_title', ['number' => $order->displayNumber()]) : __('commerce::checkout.order.title', ['number' => $order->displayNumber()]) }}</h1>
-        <p class="commerce-order__thanks">{{ $order->isQuote() ? __('commerce::checkout.order.quote_thanks') : __('commerce::checkout.order.thanks') }}</p>
+        @if ($order->isQuote() && $order->status === $S::QUOTED)
+            <p class="commerce-order__thanks">{{ __('commerce::checkout.quote.intro') }}
+                @if ($order->quote_valid_until) {{ __('commerce::checkout.quote.valid_until', ['date' => $order->quote_valid_until->translatedFormat('j F Y')]) }}@endif</p>
+            @if (! $order->quote_valid_until?->isPast())
+                <div class="commerce-order__quote-actions">
+                    <form method="POST" action="{{ commerce_url('commerce.quote.accept', ['key' => $order->order_key]) }}">@csrf
+                        <button type="submit" class="commerce-button commerce-button--primary">{{ __('commerce::checkout.quote.accept') }}</button></form>
+                    <form method="POST" action="{{ commerce_url('commerce.quote.decline', ['key' => $order->order_key]) }}" onsubmit="return confirm(@js(__('commerce::checkout.quote.decline_confirm')))">@csrf
+                        <button type="submit" class="commerce-button commerce-button--secondary">{{ __('commerce::checkout.quote.decline') }}</button></form>
+                </div>
+            @endif
+        @elseif ($order->isQuote() && $order->status === $S::REQUESTED)
+            <p class="commerce-order__thanks">{{ session('commerce.success') ? __('commerce::checkout.order.quote_thanks') : __('commerce::checkout.quote.requested') }}</p>
+        @elseif (! $order->isQuote())
+            <p class="commerce-order__thanks">{{ __('commerce::checkout.order.thanks') }}</p>
+        @endif
 
         <dl class="commerce-order__states">
             <div><dt>{{ __('commerce::checkout.order.status') }}</dt><dd>{{ $S::label($order->status) }}</dd></div>
@@ -66,6 +81,14 @@
                 @endif
             </div>
         @endforeach
+
+        @if ($canCancel ?? false)
+            <form method="POST" action="{{ commerce_url('commerce.order.cancel', ['key' => $order->order_key]) }}" class="commerce-order__cancel"
+                onsubmit="return confirm(@js(__('commerce::checkout.order.cancel_confirm')))">
+                @csrf
+                <button type="submit" class="commerce-button commerce-button--secondary">{{ __('commerce::checkout.order.cancel') }}</button>
+            </form>
+        @endif
 
         @if ($invite && $registerUrl)
             <p class="commerce-order__invite">{{ __('commerce::checkout.order.invite') }} <a href="{{ $registerUrl }}">{{ __('commerce::checkout.order.create_account') }}</a></p>

@@ -199,6 +199,17 @@ class Commerce
         Orders\Numbering::orderNumbersUsing($generator);
     }
 
+    /**
+     * A panel on the admin order page; its bundle renders it with
+     * SunriceCommerce.registerOrderPanel(key, Component), receiving `data`.
+     *
+     * @param  (Closure(Orders\Models\Order): array<string, mixed>)|null  $data
+     */
+    public function registerOrderPanel(string $key, string $label, ?Closure $data = null, ?string $permission = null, int $position = 100): void
+    {
+        app(Orders\OrderPanels::class)->register($key, $label, $data, $permission, $position);
+    }
+
     // ---- Payments -------------------------------------------------------------
 
     /** @param  class-string<Payments\Contracts\PaymentMethod>  $class */

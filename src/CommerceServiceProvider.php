@@ -71,6 +71,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->singleton(Pricing\PriceProviders::class);
         $this->app->singleton(Payments\PaymentRegistry::class);
         $this->app->singleton(Checkout\CheckoutFields::class);
+        $this->app->singleton(Orders\OrderPanels::class);
         $this->app->singleton(Checkout\Completion\Completions::class);
         $this->app->scoped(Payments\PaymentManager::class);
         $this->app->singleton(Shipping\ShippingTypes::class);
@@ -175,6 +176,9 @@ class CommerceServiceProvider extends PackageServiceProvider
         $nav = $this->app->make(Customers\AccountNavigation::class);
         $nav->register('overview', fn () => __('commerce::account.overview.title'), 'commerce.account', position: 10);
         $nav->register('profile', fn () => __('commerce::account.profile.title'), 'commerce.account.profile', position: 80);
+        $nav->register('orders', fn () => __('commerce::account.orders.title'), 'commerce.account.orders', 'orders', position: 20);
+        $nav->register('quotes', fn () => __('commerce::account.orders.quotes'), 'commerce.account.quotes',
+            fn (): bool => commerce_feature('orders') && $this->app->make(Settings\StoreSettings::class)->get('general.selling_mode') === 'quote', position: 25);
         $nav->register('addresses', fn () => __('commerce::account.addresses.title'), 'commerce.account.addresses', position: 70);
 
         // Users lists staff: users whose roles are all customer roles are customers.
@@ -191,6 +195,15 @@ class CommerceServiceProvider extends PackageServiceProvider
     {
         // Amounts are stored in the currency's minor units: changing it would change every order.
         $this->app->make(Commerce::class)->registerFeeProvider(Payments\PaymentFeeProvider::class);
+        Event::listen(Orders\Events\OrderCancelled::class, Orders\Listeners\ReleaseReservations::class);
+        Event::listen(Orders\Events\OrderPaid::class, Orders\Listeners\AutoCompleteOrder::class);
+        Event::listen(Orders\Events\ShipmentCreated::class, Orders\Listeners\AutoCompleteOrder::class);
+        foreach ([Orders\Events\OrderPaid::class, Orders\Events\OrderRefunded::class, Orders\Events\OrderCancelled::class] as $event) {
+            Event::listen($event, Orders\Listeners\UpdateCustomerStats::class);
+        }
+        Event::listen(Orders\Events\OrderPaid::class, Orders\Listeners\RecordSalesCount::class);
+        Event::listen(Orders\Events\OrderRefunded::class, Orders\Listeners\RecordSalesCount::class);
+        $this->app->make(Commerce::class)->onTick('order expiry', fn () => (new Orders\Expiry)());
         RateLimiter::for('commerce-checkout', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));
         Settings\Actions\SaveStoreSettings::guardUsing(function (string $section, array $values, Settings\StoreSettings $settings): array {
             $code = $values['currency']['code'] ?? null;

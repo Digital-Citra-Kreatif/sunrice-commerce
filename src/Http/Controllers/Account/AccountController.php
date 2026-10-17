@@ -22,7 +22,10 @@ use Sunrice\Commerce\Storefront\Layout;
 /** My Account: overview, profile, password, addresses, account deletion. */
 class AccountController
 {
-    public function __construct(protected CurrentCustomer $current) {}
+    // Per request (the router keeps controller instances).
+    protected CurrentCustomer $current {
+        get => app(CurrentCustomer::class);
+    }
 
     public function overview(): View
     {
@@ -99,7 +102,7 @@ class AccountController
     }
 
     /** @param  array<string, mixed>  $data */
-    protected function page(string $name, string $title, array $data = []): View
+    public function page(string $name, string $title, array $data = []): View
     {
         return view(Layout::view('account.'.$name), [
             ...$data,

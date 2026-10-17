@@ -8,6 +8,8 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Sunrice\Commerce\Customers\Auth\Throttle;
+use Sunrice\Commerce\Orders\Actions\CancelOrderByCustomer;
+use Sunrice\Commerce\Orders\InvalidTransition;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\PaymentManager;
 use Sunrice\Commerce\Storefront\Layout;
@@ -19,11 +21,26 @@ use Sunrice\Commerce\Storefront\StorefrontRoutes;
  */
 class OrderController
 {
-    public function show(Request $request, string $key): View
+    public function show(Request $request, string $key): View|RedirectResponse
     {
         $order = $this->find($key, 'order');
+        if ($order->isQuote()) {
+            return redirect($order->url());
+        }
 
         return view(Layout::view('order'), $this->data($request, $order) + ['seoTitle' => __('commerce::checkout.order.title', ['number' => $order->displayNumber()])]);
+    }
+
+    public function cancel(Request $request, string $key, CancelOrderByCustomer $cancel): RedirectResponse
+    {
+        $order = $this->find($key, 'order');
+        try {
+            $cancel->handle($order, $request->string('reason')->limit(250)->toString() ?: null);
+        } catch (InvalidTransition $e) {
+            return back()->with('commerce.error', $e->getMessage());
+        }
+
+        return back()->with('commerce.success', __('commerce::checkout.order.cancelled'));
     }
 
     public function trackForm(): View
@@ -68,6 +85,7 @@ class OrderController
             'instructionsView' => $method?->instructionsView(),
             'whatsappUrl' => $order->meta('whatsapp_url'),
             'openWhatsApp' => $request->boolean('whatsapp') && $order->meta('whatsapp_url') !== null,
+            'canCancel' => app(CancelOrderByCustomer::class)->allowed($order),
             'invite' => commerce_customer() === null && $order->user_id === null && commerce_feature('accounts'),
             'registerUrl' => commerce_feature('accounts') ? StorefrontRoutes::url('commerce.account.register') : null,
         ];
