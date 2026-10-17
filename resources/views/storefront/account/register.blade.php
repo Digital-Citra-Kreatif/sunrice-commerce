@@ -1,5 +1,5 @@
 {{--
-    Create an account. $passwordless: whether signing up by emailed code is offered.
+    Create an account (signing up by emailed code is offered while that feature is on).
 --}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 

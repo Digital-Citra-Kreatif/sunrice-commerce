@@ -200,9 +200,10 @@ class ProductQuery
     // ---- Results -----------------------------------------------------------
 
     /** @return LengthAwarePaginator<int, Entry> entries, in listing order, with views preloaded */
-    public function paginate(int $perPage = 24, string $pageName = 'page'): LengthAwarePaginator
+    /** @param  int|null  $page  null: from the request's ?{$pageName} */
+    public function paginate(int $perPage = 24, string $pageName = 'page', ?int $page = null): LengthAwarePaginator
     {
-        $products = $this->products()->select('commerce_products.entry_id')->paginate($perPage, ['commerce_products.entry_id'], $pageName);
+        $products = $this->products()->select('commerce_products.entry_id')->paginate($perPage, ['commerce_products.entry_id'], $pageName, $page);
         $ids = $products->getCollection()->pluck('entry_id')->map(fn ($id) => (int) $id)->all();
         $entries = $ids === [] ? collect() : EntryQuery::collection($this->collection)->where('id', 'in', $ids)->get()->keyBy('id');
         $ordered = collect($ids)->map(fn (int $id) => $entries->get($id))->filter()->values();
@@ -214,7 +215,8 @@ class ProductQuery
     /** @return Collection<int, Entry> */
     public function get(int $limit = 24): Collection
     {
-        return $this->paginate($limit)->getCollection();
+        // Always the first products, whatever ?page the host page has.
+        return $this->paginate($limit, page: 1)->getCollection();
     }
 
     public function count(): int

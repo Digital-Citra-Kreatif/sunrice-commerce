@@ -226,7 +226,7 @@ A quote request comes from checkout in Quotation mode (see [checkout.md](checkou
 
 | Step | Who | Action | Result |
 | --- | --- | --- | --- |
-| Respond | Staff with `commerce.quotes.respond` | `Orders\Actions\RespondToQuote` | Lines, unit prices, shipping, discount and the validity date are set. "Send" makes it Quoted and emails "quote ready" (with the quotation PDF). Saving without sending keeps it as is. |
+| Respond | Staff with `commerce.quotes.respond` | `Orders\Actions\RespondToQuote` | Lines, unit prices, shipping, discount and the validity date are set. "Send" makes it Quoted and emails "quote ready" (with the quotation PDF). Saving without sending stores the prices and leaves the status. |
 | Accept | The customer, on `/quote/{key}` | `Orders\Actions\AcceptQuote` | Must be Quoted and still valid, and every product still available. Stock is reserved at the quoted prices; it gets an order number and becomes an order: Pending payment (or Processing / Paid when it costs nothing). Dispatches `QuoteAccepted` and `OrderPlaced`. |
 | Decline | The customer, or staff | `Orders\Actions\DeclineQuote` | Requested or Quoted → Declined, with an optional reason. |
 | Expire | `commerce:tick` | `Orders\Expiry::quotes()` | Quoted → Expired after `quote_valid_until`. |

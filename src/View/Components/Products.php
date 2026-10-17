@@ -50,8 +50,9 @@ class Products extends Component
         if ($sort !== null && ! request()->filled('sort')) {
             $this->query->sort($sort);
         }
-        $this->query->featured($featured)->onSale($onSale || request()->boolean('on_sale'));
-        $this->products = $this->query->paginate($limit)->withQueryString();
+        // A fixed block ("first 8 products") ignores the host page's ?page and ?on_sale.
+        $this->query->featured($featured)->onSale($onSale || ($paginate && request()->boolean('on_sale')));
+        $this->products = $this->query->paginate($limit, page: $paginate ? null : 1)->withQueryString();
     }
 
     public function render(): View

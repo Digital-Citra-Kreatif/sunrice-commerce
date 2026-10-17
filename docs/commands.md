@@ -28,7 +28,7 @@ imports regions and prints the next steps. Safe to run again.
 
 | Option | |
 | --- | --- |
-| `--templates` | Also publish the storefront templates to `resources/views/vendor/commerce` |
+| `--templates` | Also publish the storefront templates (to `resources/views/sunrice` and `resources/views/commerce`) and the theme (to `public/commerce-theme`) |
 | `--demo` | Add the demo store (once) |
 | `--no-regions` | Don't import regions (it asks otherwise; non-interactive runs import) |
 | `--regions=` | How deep: `province`, `city`, `district` (default) or `village` |

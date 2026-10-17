@@ -1,5 +1,5 @@
 {{--
-    The wishlist page. $items: saved products (ProductView), $shared: whether it is someone's shared list, $shareUrl.
+    The wishlist page. $wishlist, $products: the saved product entries, $shareUrl, $readOnly: someone's shared list.
 --}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 

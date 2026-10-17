@@ -1,5 +1,5 @@
 {{--
-    All running and upcoming flash sales. $sales: FlashSale[].
+    All running and upcoming flash sales. $running, $upcoming: FlashSale[].
 --}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 

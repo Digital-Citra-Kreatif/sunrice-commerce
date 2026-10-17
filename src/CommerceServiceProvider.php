@@ -408,7 +408,8 @@ class CommerceServiceProvider extends PackageServiceProvider
 
     protected function registerAdminAssets(): void
     {
-        $this->publishes([__DIR__.'/../dist' => public_path('vendor/commerce')], 'commerce-assets');
+        // The admin bundle, and the storefront theme as it ships (a published, customized copy in public/commerce-theme wins).
+        $this->publishes([__DIR__.'/../dist' => public_path('vendor/commerce'), __DIR__.'/../stubs/theme' => public_path('vendor/commerce/theme')], 'commerce-assets');
         $this->publishes(Storefront\Templates::publishable(), 'commerce-templates');
         $this->publishes([__DIR__.'/../resources/lang' => $this->app->langPath('vendor/commerce')], 'commerce-translations');
 

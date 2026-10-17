@@ -1,5 +1,5 @@
 {{--
-    Product comparison. $products: ProductView[] side by side, $fields: the compared attributes.
+    Product comparison. $entries: the products side by side, $fields: the compared attributes, $specLabels.
 --}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 

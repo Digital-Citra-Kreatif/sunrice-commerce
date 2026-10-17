@@ -8,6 +8,7 @@ use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\ProductQuery;
 use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Commerce\View\Components\Products;
 use Sunrice\Models\Entry;
 use Sunrice\Models\Term;
 
@@ -104,4 +105,16 @@ it('lists a page of products in a fixed number of queries', function () {
     $queries = count(DB::getQueryLog());
 
     expect($page->count())->toBe(23)->and($queries)->toBeLessThanOrEqual(15);
+});
+
+it('keeps a fixed product block on the first products whatever the page asks', function () {
+    foreach (range(1, 5) as $i) {
+        listed("Extra {$i}", 1000 * $i, [$this->bags]);
+    }
+    request()->query->set('page', '2');
+    request()->query->set('on_sale', '1');
+    $block = new Products(sort: 'name', limit: 3, paginate: false);
+
+    expect($block->products->currentPage())->toBe(1)->and($block->products->count())->toBe(3)
+        ->and(ProductQuery::make()->sort('name')->get(3)->map(fn ($e) => $e->title)->all())->toBe(['Extra 1', 'Extra 2', 'Extra 3']);
 });

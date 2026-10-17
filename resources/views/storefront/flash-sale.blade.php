@@ -1,5 +1,5 @@
 {{--
-    One flash sale with its products and countdown. $sale: FlashSale, $products: ProductView[].
+    One flash sale with its products and countdown. $sale: FlashSale, $products: the product entries.
 --}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 

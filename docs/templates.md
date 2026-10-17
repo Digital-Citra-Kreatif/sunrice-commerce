@@ -272,9 +272,11 @@ Shown on the order and pay pages for a payment's method ([payments.md](payments.
 
 ## Theme assets
 
-Publishing the templates copies two files to `public/commerce-theme/`. `partials.assets` links
-them, with a version from the file time, only when they exist. Without them the store still works:
-forms post normally.
+The theme ships with the admin assets in `public/vendor/commerce/theme/` (`commerce:install` and
+`commerce:publish-assets` copy it). Publishing the templates also copies it to
+`public/commerce-theme/` for you to edit; `partials.assets` links that copy when it exists, else the
+shipped one, with a version from the file time. Without JavaScript the store still works: forms post
+normally.
 
 **`commerce.css`** styles the `commerce-*` classes. It uses the variables of Sunrice's starter
 theme (`--fg`, `--muted`, `--line`, `--accent`) and four of its own:
@@ -370,7 +372,7 @@ Rebuild the route cache (`php artisan route:cache`) after a change. Always build
   the page number, so filtered views aren't indexed as copies.
 - **Sitemap.** Products, the shop and product terms are Sunrice entries and terms, so they are in
   Sunrice's `sitemap.xml` with their translations. Commerce's own routes aren't in it.
-- **Titles.** Store pages pass `$seoTitle` (for example the cart's title, or "Order #…").
+- **Titles.** Store pages pass `$seoTitle` (the cart page passes "Cart", an order page its number).
 
 ## Accessibility
 
@@ -405,9 +407,8 @@ otherwise: Sunrice's query cache only stores entry ids.
 
 ## Theming without publishing
 
-You don't need to publish templates to restyle the store. Note that the theme CSS and JS are only
-linked once `public/commerce-theme/` exists, so without publishing you style the store from your
-own stylesheet.
+You don't need to publish templates to restyle the store: the shipped theme is linked on every
+store page, and your own stylesheet can override the `commerce-*` classes and the variables below.
 
 **Classes** are BEM-ish and all start with `commerce-`: a block (`commerce-product`,
 `commerce-cart`, `commerce-card`, `commerce-filters`, `commerce-drawer`…), its elements

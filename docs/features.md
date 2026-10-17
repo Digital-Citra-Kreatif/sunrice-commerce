@@ -184,7 +184,7 @@ In Blade:
 
 ```blade
 @commerceFeature('wishlist')
-    <x-commerce::wishlist-button :product="$entry" />
+    <a href="{{ commerce_url('commerce.wishlist') }}">{{ __('Wishlist') }}</a>
 @endcommerceFeature
 ```
 

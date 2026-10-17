@@ -19,7 +19,7 @@ use Sunrice\Commerce\Support\UserModelTraits;
 class InstallCommand extends Command
 {
     protected $signature = 'commerce:install
-        {--templates : Publish the storefront templates to resources/views/vendor/commerce}
+        {--templates : Publish the storefront templates (resources/views/sunrice and resources/views/commerce) and theme (public/commerce-theme)}
         {--demo : Add a demo store (products, payments, shipping, a voucher, a flash sale and an order)}
         {--no-regions : Skip importing Indonesian regions}
         {--regions=district : How deep to import regions: province, city, district or village}

@@ -1,5 +1,5 @@
 {{--
-    Sign in: password, emailed code, Google. $passwordless, $google.
+    Sign in: password, emailed code and Google (each shown while its feature is on).
 --}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
