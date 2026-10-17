@@ -39,7 +39,10 @@ use Sunrice\Commerce\Support\Phone;
  */
 class AuthController
 {
-    public function __construct(protected StoreSettings $settings) {}
+    // Per request (the router keeps controller instances).
+    protected StoreSettings $settings {
+        get => app(StoreSettings::class);
+    }
 
     public function showLogin(): View|RedirectResponse
     {

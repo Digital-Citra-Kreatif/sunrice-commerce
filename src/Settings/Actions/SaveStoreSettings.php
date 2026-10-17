@@ -20,18 +20,23 @@ use Sunrice\Commerce\Support\ActivityRecorder;
  */
 class SaveStoreSettings
 {
-    /** @var array<int, callable(string, array<string, mixed>, StoreSettings): array<string, string>> */
+    /** @var array<int|string, callable(string, array<string, mixed>, StoreSettings): array<string, string>> */
     protected static array $guards = [];
 
     /**
      * A check for every section save: returns [field => message] for each
      * value it refuses (used for locked settings such as the currency).
+     * A named guard replaces an earlier one with the same name.
      *
      * @param  callable(string, array<string, mixed>, StoreSettings): array<string, string>  $guard
      */
-    public static function guardUsing(callable $guard): void
+    public static function guardUsing(callable $guard, ?string $name = null): void
     {
-        static::$guards[] = $guard;
+        if ($name === null) {
+            static::$guards[] = $guard;
+        } else {
+            static::$guards[$name] = $guard;
+        }
     }
 
     public static function flushGuards(): void

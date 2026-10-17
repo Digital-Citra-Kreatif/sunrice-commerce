@@ -26,7 +26,7 @@ class CustomerPurchases
             ->where('i.flash_sale_item_id', $item->id)
             ->whereNotIn('o.status', ['cancelled', 'expired'])
             ->where(fn ($q) => $q
-                ->when($ctx->customerId() !== null, fn ($w) => $w->orWhere('o.customer_id', $ctx->customerId()))
+                ->when($ctx->customerId() !== null, fn ($w) => $w->orWhere('o.user_id', $ctx->customerId()))
                 ->when($ctx->email !== null, fn ($w) => $w->orWhere('o.email', mb_strtolower((string) $ctx->email)))
                 ->when($ctx->phone !== null, fn ($w) => $w->orWhere('o.phone', $ctx->phone)))
             ->sum('i.quantity');

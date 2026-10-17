@@ -69,7 +69,16 @@ class CommerceServiceProvider extends PackageServiceProvider
             : $app->make(Support\Nulls\NullInventory::class));
         $this->app->singleton(Pricing\Calculator::class);
         $this->app->singleton(Pricing\PriceProviders::class);
-        $this->app->singletonIf(Contracts\ShippingQuoter::class, Support\Nulls\NullShippingQuoter::class);
+        $this->app->singleton(Payments\PaymentRegistry::class);
+        $this->app->singleton(Checkout\CheckoutFields::class);
+        $this->app->singleton(Checkout\Completion\Completions::class);
+        $this->app->scoped(Payments\PaymentManager::class);
+        $this->app->singleton(Shipping\ShippingTypes::class);
+        $this->app->singleton(Shipping\Couriers::class);
+        $this->app->scoped(Shipping\ZoneMatcher::class);
+        $this->app->bind(Contracts\ShippingQuoter::class, fn ($app) => $app->make(Features\Features::class)->active('shipping')
+            ? $app->make(Shipping\ShippingManager::class)
+            : $app->make(Support\Nulls\NullShippingQuoter::class));
         $this->app->scoped(Contracts\TaxCalculator::class, fn ($app) => $app->make(Features\Features::class)->active('taxes')
             ? $app->make(Taxes\TableRateTaxCalculator::class)
             : $app->make(Support\Nulls\NullTaxCalculator::class));
@@ -90,6 +99,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->registerPromotions();
         $this->registerCart();
         $this->registerCustomers();
+        $this->registerOrders();
         Event::listen(JobProcessing::class, function (): void {
             $this->app->forgetScopedInstances();
         });
@@ -174,6 +184,22 @@ class CommerceServiceProvider extends PackageServiceProvider
             return $query->where(fn ($q) => $q->whereDoesntHave('roles')->orWhereHas('roles', fn ($r) => $r->whereNotIn('name', $customerRoles)));
         });
         $this->app->make(Commerce::class)->registerHealthCheck(Health\Checks\AccountsCheck::class);
+    }
+
+    /** Orders: the currency lock, lifecycle listeners and scheduled expiry. */
+    protected function registerOrders(): void
+    {
+        // Amounts are stored in the currency's minor units: changing it would change every order.
+        $this->app->make(Commerce::class)->registerFeeProvider(Payments\PaymentFeeProvider::class);
+        RateLimiter::for('commerce-checkout', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));
+        Settings\Actions\SaveStoreSettings::guardUsing(function (string $section, array $values, Settings\StoreSettings $settings): array {
+            $code = $values['currency']['code'] ?? null;
+            if ($section !== 'general' || $code === null || $code === $settings->get('general.currency.code')) {
+                return [];
+            }
+
+            return Orders\Models\Order::withTrashed()->exists() ? ['currency.code' => __('commerce::orders.currency_locked')] : [];
+        }, 'currency');
     }
 
     /** Carts: pruning abandoned ones. */

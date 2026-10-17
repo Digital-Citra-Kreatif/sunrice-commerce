@@ -71,7 +71,7 @@ class VoucherEligibility
             }
         }
         if (! empty($voucher->shipping_methods)) {
-            // Rate ids are "method:service"; the chosen one is known before rates are quoted.
+            // Rate ids start with the method type ("flat:3:default"); the chosen one is known before rates are quoted.
             $method = $state->shipping['rate']['method'] ?? ($state->ctx->shippingRate !== null ? explode(':', $state->ctx->shippingRate)[0] : null);
             if ($method === null) {
                 $pending[] = 'shipping_method';

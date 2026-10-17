@@ -22,7 +22,10 @@ use Sunrice\Commerce\Cart\CartView;
  */
 class CartApiController
 {
-    public function __construct(protected CartManager $carts) {}
+    // Per request (the router keeps controller instances).
+    protected CartManager $carts {
+        get => app(CartManager::class);
+    }
 
     public function show(): JsonResponse
     {

@@ -59,6 +59,18 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::put('settings/features/{feature}', [Admin\FeaturesController::class, 'update'])->name('settings.features.update');
     Route::get('settings/tax-rates', [Admin\TaxRatesController::class, 'edit'])->name('settings.tax-rates');
     Route::put('settings/tax-rates', [Admin\TaxRatesController::class, 'update'])->name('settings.tax-rates.update');
+    Route::get('settings/shipping', [Admin\ShippingController::class, 'index'])->name('settings.shipping');
+    Route::post('settings/shipping/move', [Admin\ShippingController::class, 'move'])->name('settings.shipping.move');
+    Route::get('settings/shipping/zones/create', [Admin\ShippingController::class, 'createZone'])->name('settings.shipping.zones.create');
+    Route::post('settings/shipping/zones', [Admin\ShippingController::class, 'storeZone'])->name('settings.shipping.zones.store');
+    Route::get('settings/shipping/zones/{zone}/edit', [Admin\ShippingController::class, 'editZone'])->name('settings.shipping.zones.edit');
+    Route::put('settings/shipping/zones/{zone}', [Admin\ShippingController::class, 'updateZone'])->name('settings.shipping.zones.update');
+    Route::delete('settings/shipping/zones/{zone}', [Admin\ShippingController::class, 'destroyZone'])->name('settings.shipping.zones.destroy');
+    Route::get('settings/shipping/zones/{zone}/methods/create', [Admin\ShippingController::class, 'createMethod'])->name('settings.shipping.methods.create');
+    Route::post('settings/shipping/zones/{zone}/methods', [Admin\ShippingController::class, 'storeMethod'])->name('settings.shipping.methods.store');
+    Route::get('settings/shipping/methods/{method}/edit', [Admin\ShippingController::class, 'editMethod'])->name('settings.shipping.methods.edit');
+    Route::put('settings/shipping/methods/{method}', [Admin\ShippingController::class, 'updateMethod'])->name('settings.shipping.methods.update');
+    Route::delete('settings/shipping/methods/{method}', [Admin\ShippingController::class, 'destroyMethod'])->name('settings.shipping.methods.destroy');
     Route::get('settings/{section}', [Admin\SettingsController::class, 'show'])->name('settings.show');
     Route::put('settings/{section}', [Admin\SettingsController::class, 'update'])->name('settings.update');
 });

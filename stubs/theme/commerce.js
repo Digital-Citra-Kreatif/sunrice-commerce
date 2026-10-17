@@ -51,4 +51,63 @@
             .catch(function () { form.submit(); })
             .finally(function () { if (button) button.disabled = false; });
     });
+
+    // Checkout: show/hide toggled parts, and refresh rates, payments and totals on change.
+    document.querySelectorAll('[data-commerce-checkout]').forEach(function (form) {
+        function syncToggles() {
+            form.querySelectorAll('[data-commerce-toggle]').forEach(function (box) {
+                var name = box.dataset.commerceToggle;
+                var show = name === 'billing' ? !box.checked : box.checked;
+                form.querySelectorAll('[data-commerce-toggled="' + name + '"]').forEach(function (el) { el.hidden = !show; });
+            });
+            var rate = form.querySelector('input[name=shipping_rate]:checked');
+            var address = form.querySelector('[data-commerce-shipping-address]');
+            if (address) address.hidden = !!(rate && rate.dataset.pickup === '1');
+        }
+        var timer = null;
+        function refresh() {
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                var data = new FormData(form);
+                data.delete('password');
+                fetch(form.dataset.refresh, {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
+                    body: data,
+                    credentials: 'same-origin',
+                })
+                    .then(function (response) { return response.json(); })
+                    .then(function (json) {
+                        [['[data-commerce-rates]', json.rates_html], ['[data-commerce-payments]', json.payments_html], ['[data-commerce-summary]', json.summary]].forEach(function (pair) {
+                            var el = form.querySelector(pair[0]);
+                            if (el && typeof pair[1] === 'string') el.outerHTML = pair[1];
+                        });
+                        var hash = form.querySelector('[data-commerce-hash]');
+                        if (hash) hash.value = json.hash;
+                        syncToggles();
+                    })
+                    .catch(function () { /* the "Update shipping" button still works */ });
+            }, 300);
+        }
+        form.addEventListener('change', function (event) {
+            var t = event.target;
+            if (t.matches('[data-commerce-saved-address]') && t.selectedOptions[0] && t.selectedOptions[0].dataset.address) {
+                var address = JSON.parse(t.selectedOptions[0].dataset.address);
+                Object.keys(address).forEach(function (key) {
+                    var input = form.querySelector('[name="shipping_address[' + key + ']"]');
+                    if (!input || address[key] === null) return;
+                    if (input.tagName === 'SELECT' && !Array.prototype.some.call(input.options, function (o) { return o.value === address[key]; })) {
+                        input.add(new Option(address[key + ''] || address[key], address[key], true, true));
+                    }
+                    input.value = address[key];
+                });
+            }
+            syncToggles();
+            if (t.name === 'password' || t.name === 'notes' || t.name === 'terms') return;
+            refresh();
+        });
+        var update = form.querySelector('[data-commerce-update]');
+        if (update) update.hidden = true;
+        syncToggles();
+    });
 })();

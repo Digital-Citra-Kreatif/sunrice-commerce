@@ -160,7 +160,7 @@ class VouchersController extends Controller
             ['handle' => 'roles', 'type' => 'select', 'label' => 'Roles', 'config' => ['options' => $roles, 'multiple' => true]],
             ['handle' => 'emails', 'type' => 'textarea', 'label' => 'Customer emails', 'instructions' => 'One per line.', 'config' => ['max' => 20000]],
             ['handle' => 'payment_methods', 'type' => 'text', 'label' => 'Only with payment methods', 'translatable' => false, 'instructions' => 'Method keys, comma separated (e.g. bank_transfer). Empty: any.'],
-            ['handle' => 'shipping_methods', 'type' => 'text', 'label' => 'Only with shipping methods', 'translatable' => false, 'instructions' => 'Method keys, comma separated. Empty: any.'],
+            ['handle' => 'shipping_methods', 'type' => 'text', 'label' => 'Only with shipping methods', 'translatable' => false, 'instructions' => 'Method types, comma separated (e.g. flat, weight, pickup). Empty: any.'],
             ['handle' => 'destinations', 'type' => 'repeater', 'label' => 'Only for shipping to', 'config' => ['max' => 50, 'fields' => [
                 ['handle' => 'region', 'type' => 'commerce_region', 'label' => 'Country / province', 'config' => ['depth' => 'city']],
             ]]],

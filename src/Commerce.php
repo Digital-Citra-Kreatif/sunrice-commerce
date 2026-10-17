@@ -171,6 +171,56 @@ class Commerce
         app(Customers\AccountNavigation::class)->register($key, $label, $route, $feature, $position);
     }
 
+    // ---- Checkout -------------------------------------------------------------
+
+    /**
+     * Extra checkout fields (stored on the order in `fields`).
+     *
+     * @param  Closure(Checkout\CheckoutData, Pricing\CalculationState): array<int, array<string, mixed>>  $fields
+     */
+    public function checkoutFieldsUsing(Closure $fields): void
+    {
+        app(Checkout\CheckoutFields::class)->add($fields);
+    }
+
+    /** @param  class-string<Checkout\Completion\CheckoutCompletion>  $class */
+    public function registerCheckoutCompletion(string $class): void
+    {
+        app(Checkout\Completion\Completions::class)->register($class);
+    }
+
+    /**
+     * Replace order numbering entirely.
+     *
+     * @param  Closure(Orders\Models\Order|null): string  $generator
+     */
+    public function orderNumberUsing(Closure $generator): void
+    {
+        Orders\Numbering::orderNumbersUsing($generator);
+    }
+
+    // ---- Payments -------------------------------------------------------------
+
+    /** @param  class-string<Payments\Contracts\PaymentMethod>  $class */
+    public function registerPaymentMethod(string $class): void
+    {
+        app(Payments\PaymentRegistry::class)->register($class);
+    }
+
+    // ---- Shipping -------------------------------------------------------------
+
+    /** @param  class-string<Shipping\Contracts\ShippingMethodType>  $class */
+    public function registerShippingMethodType(string $class): void
+    {
+        app(Shipping\ShippingTypes::class)->register($class);
+    }
+
+    /** A courier preset for shipments; {tracking} in the URL is replaced with the tracking number. */
+    public function registerCourier(string $key, string $name, ?string $trackingUrl = null): void
+    {
+        app(Shipping\Couriers::class)->register($key, $name, $trackingUrl);
+    }
+
     public function money(int $amount): Money
     {
         return Money::of($amount);

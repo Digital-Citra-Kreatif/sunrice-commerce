@@ -44,3 +44,16 @@ Route::middleware(['commerce.feature:compare', 'commerce.noindex'])->prefix(Stor
     Route::post('items', [Storefront\CompareController::class, 'add'])->name('commerce.compare.add'.$suffix);
     Route::delete('items/{product}', [Storefront\CompareController::class, 'remove'])->whereNumber('product')->name('commerce.compare.remove'.$suffix);
 });
+
+Route::middleware(['commerce.feature:checkout', 'commerce.noindex'])->prefix(StorefrontRoutes::path('checkout'))->group(function () use ($suffix): void {
+    Route::get('/', [Storefront\CheckoutController::class, 'show'])->name('commerce.checkout'.$suffix);
+    Route::post('/', [Storefront\CheckoutController::class, 'submit'])->middleware('throttle:commerce-checkout')->name('commerce.checkout.submit'.$suffix);
+    Route::post('refresh', [Storefront\CheckoutController::class, 'refresh'])->middleware('throttle:commerce-cart')->name('commerce.checkout.refresh'.$suffix);
+});
+
+Route::middleware(['commerce.feature:orders', 'commerce.noindex'])->group(function () use ($suffix): void {
+    Route::get(StorefrontRoutes::path('order').'/{key}', [Storefront\OrderController::class, 'show'])->name('commerce.order'.$suffix);
+    Route::get(StorefrontRoutes::path('quote').'/{key}', [Storefront\QuoteController::class, 'show'])->name('commerce.quote'.$suffix);
+    Route::get(StorefrontRoutes::path('track_order'), [Storefront\OrderController::class, 'trackForm'])->name('commerce.track-order'.$suffix);
+    Route::post(StorefrontRoutes::path('track_order'), [Storefront\OrderController::class, 'track'])->middleware(ProtectAgainstSpam::class)->name('commerce.track-order.submit'.$suffix);
+});

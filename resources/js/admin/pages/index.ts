@@ -6,6 +6,7 @@ import InventoryIndex from './Inventory/Index';
 import ProductsIndex from './Products/Index';
 import SettingsFeatures from './Settings/Features';
 import SettingsSection from './Settings/Section';
+import SettingsShipping from './Settings/Shipping';
 import SharedSchemaForm from './Shared/SchemaForm';
 import SharedResourceIndex from './Shared/ResourceIndex';
 
@@ -19,6 +20,7 @@ const pages: Record<string, Page> = {
     'Commerce/Products/Index': ProductsIndex,
     'Commerce/Settings/Section': SettingsSection,
     'Commerce/Settings/Features': SettingsFeatures,
+    'Commerce/Settings/Shipping': SettingsShipping,
     'Commerce/Shared/SchemaForm': SharedSchemaForm,
     'Commerce/Shared/ResourceIndex': SharedResourceIndex,
 };
