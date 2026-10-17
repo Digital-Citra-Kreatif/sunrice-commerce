@@ -15,3 +15,5 @@ use Sunrice\Commerce\Storefront\StorefrontRoutes;
 Route::get(StorefrontRoutes::path('go').'/{type}/{entry}', Storefront\GoController::class)
     ->whereIn('type', ['whatsapp', 'external', 'inquiry'])->whereNumber('entry')
     ->middleware('commerce.noindex')->name('commerce.go'.$suffix);
+
+Route::get(StorefrontRoutes::path('brands'), Storefront\BrandsController::class)->name('commerce.brands'.$suffix);

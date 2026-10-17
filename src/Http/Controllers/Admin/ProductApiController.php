@@ -79,7 +79,7 @@ class ProductApiController extends Controller
 
         return response()->json(['data' => $variants->map(fn ($v) => [
             'id' => $v->id,
-            'label' => trim($v->product.($v->variant ? ' — '.$v->variant : '')),
+            'label' => trim($v->getAttribute('product').($v->getAttribute('variant') ? ' — '.$v->getAttribute('variant') : '')),
             'sku' => $v->sku,
             'price' => (int) $v->price,
         ])]);

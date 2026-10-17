@@ -35,7 +35,11 @@ class ProductField extends FieldType
         }];
     }
 
-    /** "Variant M / Red: " for a message about variants.3.sku. */
+    /**
+     * "Variant 2 (SKU): " for a message about variants.1.sku.
+     *
+     * @param  array<string, mixed>  $value
+     */
     protected static function where(string $path, array $value): string
     {
         if (preg_match('/^variants\.(\d+)/', $path, $m) === 1 && ($value['type'] ?? null) === 'variable') {

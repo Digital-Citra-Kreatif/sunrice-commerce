@@ -49,7 +49,9 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->scoped(Catalog\Catalog::class);
         $this->app->scoped(Catalog\ProductViewFactory::class);
         // Optional connections, replaced when their module is built (C4.8, C5.3, C13).
-        $this->app->singletonIf(Contracts\Inventory::class, Support\Nulls\NullInventory::class);
+        $this->app->scoped(Contracts\Inventory::class, fn ($app) => $app->make(Features\Features::class)->active('inventory')
+            ? $app->make(Inventory\DatabaseInventory::class)
+            : $app->make(Support\Nulls\NullInventory::class));
         $this->app->singletonIf(Contracts\Tracking::class, Support\Nulls\NullTracking::class);
         $this->app->singletonIf(Contracts\SaleLimits::class, Support\Nulls\NullSaleLimits::class);
     }
@@ -95,6 +97,8 @@ class CommerceServiceProvider extends PackageServiceProvider
         Blade::component(View\Components\Slot::class, 'commerce::slot');
         Blade::component(View\Components\Product::class, 'commerce::product');
         Blade::component(View\Components\Price::class, 'commerce::price');
+        Blade::component(View\Components\Products::class, 'commerce::products');
+        Blade::component(View\Components\ProductFilter::class, 'commerce::product-filter');
 
         // Product pages (and the shop's listings) when the app has no template of its own.
         Sunrice::resolveTemplateUsing(fn (string $view, TemplateContext $context): ?string => Storefront\TemplateFallback::resolve($view, $context));

@@ -39,7 +39,7 @@ class ProductProjector
     /** The live (published) value of the entry's product field. */
     public static function liveValue(Entry $entry): mixed
     {
-        $data = (array) ($entry->mainTranslation()?->data ?? []);
+        $data = (array) ($entry->mainTranslation()->data ?? []);
 
         return $data[(string) config('commerce.catalog.field', 'product')] ?? null;
     }
@@ -177,7 +177,7 @@ class ProductProjector
             }
             $variant->stock_status = $v['track_stock'] ? $variant->computedStockStatus() : $v['stock_status'];
             if ($variant->trashed()) {
-                $variant->deleted_at = null;
+                $variant->setAttribute('deleted_at', null);
             }
             $variant->save();
             if ($initial !== null && ($initial !== 0 || $isNew)) {
@@ -252,9 +252,9 @@ class ProductProjector
         $stock = $existing !== null ? $existing->variants()->get()->keyBy('uid') : collect();
 
         $labels = [];
-        $options = collect($value['options'])->map(function (array $option, int $position) use (&$labels) {
+        $options = collect((array) $value['options'])->map(function (array $option, int $position) use (&$labels) {
             $row = new ProductOption(['uid' => $option['id'], 'name' => $option['name'], 'position' => $position]);
-            $row->setRelation('values', collect($option['values'])->map(function (array $v, int $i) use ($option, &$labels) {
+            $row->setRelation('values', collect((array) $option['values'])->map(function (array $v, int $i) use ($option, &$labels) {
                 $labels[$option['id']][$v['id']] = $v['label'] ?? '';
 
                 return new ProductOptionValue(['uid' => $v['id'], 'label' => $v['label'] ?? null, 'term_id' => $v['term_id'] ?? null, 'position' => $i]);
@@ -264,13 +264,13 @@ class ProductProjector
         });
         $product->setRelation('options', $options);
 
-        $variants = collect($value['variants'])->map(function (array $v, int $position) use ($value, $stock, $labels, $product) {
+        $variants = collect((array) $value['variants'])->map(function (array $v, int $position) use ($value, $stock, $labels, $product) {
             $saved = $stock->get($v['id']);
             $variant = new Variant([
                 'uid' => $v['id'], 'sku' => $v['sku'], 'price' => $v['price'], 'compare_at_price' => $v['compare_at_price'],
                 'title' => implode(' / ', array_filter(array_map(fn ($option) => $labels[$option['id']][$v['options'][$option['id']] ?? ''] ?? '', $value['options']))),
                 'weight' => $v['weight'], 'image_asset_id' => $v['image'], 'track_stock' => $v['track_stock'],
-                'stock_quantity' => $saved?->stock_quantity ?? ($v['track_stock'] ? (int) ($v['initial_stock'] ?? 0) : null),
+                'stock_quantity' => $saved->stock_quantity ?? ($v['track_stock'] ? (int) ($v['initial_stock'] ?? 0) : null),
                 'backorders' => $v['backorders'], 'low_stock_threshold' => $v['low_stock_threshold'],
                 'min_qty' => $v['min_qty'], 'max_qty' => $v['max_qty'], 'qty_step' => $v['qty_step'],
                 'position' => $position, 'is_default' => $position === 0, 'active' => $v['active'],
@@ -285,7 +285,7 @@ class ProductProjector
             return $variant;
         });
         $product->setRelation('variants', $variants);
-        $product->setRelation('tiers', collect($value['tiers'])->map(fn (array $t) => new PriceTier(['min_qty' => $t['min_qty'], 'type' => $t['type'], 'value' => $t['value']])));
+        $product->setRelation('tiers', collect((array) $value['tiers'])->map(fn (array $t) => new PriceTier(['min_qty' => $t['min_qty'], 'type' => $t['type'], 'value' => $t['value']])));
 
         $prices = $variants->where('active', true)->pluck('price');
         $product->forceFill(['min_price' => $prices->min(), 'max_price' => $prices->max(), 'in_stock' => $variants->contains(fn (Variant $v) => $v->active && $v->stock_status !== 'out_of_stock')]);

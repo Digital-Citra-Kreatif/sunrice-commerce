@@ -6,6 +6,8 @@ namespace Sunrice\Commerce\Admin;
 
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Facades\Sunrice;
+use Sunrice\Models\Collection;
+use Sunrice\Models\Entry;
 
 /**
  * The admin sidebar's Shop group. Each item shows only while its module
@@ -27,6 +29,10 @@ final class ShopNavigation
     public static function register(): void
     {
         self::add('Dashboard', 'commerce', 'shopping-bag', 'commerce.dashboard.view');
+        Sunrice::addNavigationItem('Products', 'commerce/products', 'package', self::GROUP, fn (mixed $user): bool => Collection::query()
+            ->whereIn('handle', (array) config('commerce.catalog.collections', ['products']))->pluck('id')
+            ->contains(fn (int $id) => $user->can('viewAny', [Entry::class, $id])));
+        self::add('Inventory', 'commerce/inventory', 'clipboard-list', 'commerce.inventory.view', 'inventory');
 
         Sunrice::navigationUsing(function (array $groups): array {
             $labels = array_column($groups, 'label');

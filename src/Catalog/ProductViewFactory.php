@@ -102,9 +102,7 @@ class ProductViewFactory
                 $product->entry_id = $entry->id;
             }
             if ($product === null) {
-                if (! $preview) {
-                    $this->memo[$entry->id] = null;
-                }
+                $this->memo[$entry->id] = null; // previews always map a product
 
                 continue;
             }
@@ -175,7 +173,7 @@ class ProductViewFactory
         $options = $product->options->map(fn ($option) => [
             'id' => $option->uid,
             'name' => $option->name,
-            'values' => $option->values->map(fn ($value) => ['id' => $value->uid, 'label' => $value->label ?? (string) ($value->term?->name ?? '')])->values()->all(),
+            'values' => $option->values->map(fn ($value) => ['id' => $value->uid, 'label' => $value->label ?? (string) ($value->term->name ?? '')])->values()->all(),
         ])->values()->all();
         $variantRows = $variants->map(fn (Variant $v) => [
             'id' => $v->id,
@@ -197,7 +195,7 @@ class ProductViewFactory
 
         // Tiers
         $tiers = $hidden ? [] : $product->tiers->map(function (PriceTier $tier) use ($single) {
-            $base = $single?->price ?? 0;
+            $base = $single->price ?? 0;
             $unit = match ($tier->type) {
                 'percent_off' => $base - Money::percentOf($base, $tier->value),
                 'amount_off' => max(0, $base - $tier->value),
@@ -265,7 +263,7 @@ class ProductViewFactory
             return __('commerce::storefront.stock.'.$status);
         }
         $show = (string) $this->settings->get('catalog.show_stock', 'low');
-        $threshold = (int) ($variant?->low_stock_threshold ?? $this->settings->get('catalog.low_stock_threshold', 5));
+        $threshold = (int) ($variant->low_stock_threshold ?? $this->settings->get('catalog.low_stock_threshold', 5));
         if ($quantity !== null && $show === 'always') {
             return __('commerce::storefront.stock.count', ['count' => $quantity]);
         }

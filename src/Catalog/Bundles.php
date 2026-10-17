@@ -46,7 +46,8 @@ class Bundles
         }
         foreach ($items as $item) {
             $component = $item->variant;
-            if ($component->trashed() || ! $component->active) {
+            // A component that is gone, switched off or unpublished stops the bundle.
+            if ($component->trashed() || ! $component->active || $component->product->removed_at !== null || ! app(Catalog::class)->isPublished($component->product)) {
                 return 0;
             }
             if ($component->track_stock && $component->backorders === 'no') {
@@ -88,6 +89,6 @@ class Bundles
     {
         return $bundle->relationLoaded('bundleItems')
             ? $bundle->bundleItems
-            : $bundle->bundleItems()->with('variant')->get();
+            : $bundle->bundleItems()->with('variant.product')->get();
     }
 }

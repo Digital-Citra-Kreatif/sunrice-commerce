@@ -35,10 +35,10 @@ class CallToAction
             'cart' => ['type' => 'cart', 'label' => __('commerce::storefront.cta.cart'), 'url' => null, 'links' => []],
             'whatsapp' => ['type' => 'whatsapp', 'label' => __('commerce::storefront.cta.whatsapp'), 'url' => $go('whatsapp'), 'links' => []],
             'inquiry' => ['type' => 'inquiry', 'label' => __('commerce::storefront.cta.inquiry'), 'url' => $go('inquiry'), 'links' => []],
-            'external' => ['type' => 'external', 'label' => '', 'url' => null, 'links' => array_values(array_map(fn (array $link, int $i) => [
+            'external' => ['type' => 'external', 'label' => '', 'url' => null, 'links' => array_map(fn (array $link, int $i) => [
                 'label' => (string) ($link['label'] ?: __('commerce::storefront.cta.external', ['shop' => ProductValue::LINK_PRESETS[$link['preset'] ?? ''] ?? parse_url((string) $link['url'], PHP_URL_HOST)])),
                 'url' => $go('external', ['link' => $i]),
-            ], (array) $product->external_links, array_keys((array) $product->external_links)))],
+            ], (array) $product->external_links, array_keys((array) $product->external_links))],
             default => ['type' => 'none', 'label' => '', 'url' => null, 'links' => []],
         };
     }

@@ -29,7 +29,11 @@ final class PurchaseModes
         };
     }
 
-    /** The store's catalog call-to-action; "external" needs the product's own links. */
+    /**
+     * The store's catalog call-to-action; "external" needs the product's own links.
+     *
+     * @param  array<int, mixed>  $externalLinks
+     */
     protected static function callToAction(string $cta, array $externalLinks): string
     {
         return match ($cta) {
