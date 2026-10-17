@@ -151,7 +151,7 @@ Commerce uses only Sunrice's public API (see Sunrice `docs/packages.md`), plus t
 | Store page layout and SEO | The site layout `sunrice.layouts.app`, `<x-sunrice::seo>`, `<x-sunrice::code>`, `sunrice_menu()`, `sunrice_global()` |
 | Language prefixes on store routes | `Sunrice\Http\Middleware\SetFrontendLocale`, `Sunrice\Support\Locales`; `Sunrice::frontendRoutes()` (**U12**) when available |
 | Body classes on store pages | `Sunrice::bodyClassUsing()` |
-| Inquiry form | Sunrice forms (`<x-sunrice::form handle="product-inquiry">`), `FormSubmitted` event (**U9**) |
+| Inquiry form | Sunrice forms (`<x-sunrice::form handle="product_inquiry">`), `FormSubmitted` event (**U9**) |
 | Store structure scaffold | `Sunrice::importStructure()` (**U4**) |
 | Store settings storage | `Sunrice\Models\Setting::get()` / `set()` (key `commerce`) |
 | Activity log | `ActivityLogger::record()`, `withSource()` |
@@ -781,7 +781,7 @@ Used by `<x-commerce::products>` and `<x-commerce::product-filter>`.
 
 ```php
 $ids = sunrice_entries('products')
-    ->whereTerm('product-categories', $category, includeChildren: true)  // Sunrice filters
+    ->whereTerm('product_categories', $category, includeChildren: true)  // Sunrice filters
     ->search($q, ['title', 'excerpt'])
     ->toBase()->reorder()->select('sunrice_entries.id');                  // published, not hidden
 
@@ -1592,9 +1592,9 @@ interface BooksShipments  { public function book(Order $order, Shipment $shipmen
 ```
 resources/views/sunrice/products/show.blade.php            product page
 resources/views/sunrice/products/index.blade.php           Shop page (collection listing)
-resources/views/sunrice/taxonomies/product-categories/show.blade.php
+resources/views/sunrice/taxonomies/product_categories/show.blade.php
 resources/views/sunrice/taxonomies/brands/show.blade.php
-resources/views/sunrice/taxonomies/product-tags/show.blade.php
+resources/views/sunrice/taxonomies/product_tags/show.blade.php
 resources/views/commerce/{cart,checkout,order,pay,confirm-payment,track-order,quote,
                           brands,flash-sale,wishlist,compare}.blade.php
 resources/views/commerce/account/{overview,orders,order,downloads,addresses,profile,

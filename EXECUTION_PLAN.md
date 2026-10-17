@@ -786,7 +786,7 @@ kept, new ids added), SKU conflicts, and limits.
 
 **Files:**
 - `resources/structure/commerce.php`: the definition from SPEC § Installation and scaffolding —
-  collection, blueprints (product, product-category, brand), taxonomies, the `product-inquiry`
+  collection, blueprints (product, product_category, brand), taxonomies, the `product_inquiry`
   form, the `shop` menu and the legal pages.
 - `resources/structure/pages/{privacy,terms,returns,shipping}.{id,en}.md`: starter texts.
 - `src/Catalog/Actions/ScaffoldStore.php`, calling `Sunrice::importStructure()`.
@@ -827,7 +827,7 @@ pass.
 **Files:**
 - `src/Catalog/PurchaseModes.php`: the pure resolver (`ARCHITECTURE.md` §7.3).
 - `src/Catalog/PriceVisibility.php`.
-- `src/Catalog/CallToAction.php`: inquiry link to the `product-inquiry` form with product context,
+- `src/Catalog/CallToAction.php`: inquiry link to the `product_inquiry` form with product context,
   WhatsApp link with rotation and the per-language template, external links.
 - `src/Catalog/Catalog.php::check()` with the reason codes. Stock and sale checks go through
   contracts bound to null implementations until C4.8 and C5.3.
