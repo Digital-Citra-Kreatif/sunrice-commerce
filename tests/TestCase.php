@@ -7,8 +7,10 @@ namespace Sunrice\Commerce\Tests;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\ServiceProvider as InertiaServiceProvider;
 use Laravel\Mcp\Server\McpServiceProvider;
+use Laravel\Socialite\SocialiteServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Spatie\Honeypot\HoneypotServiceProvider;
+use Spatie\OneTimePasswords\OneTimePasswordsServiceProvider;
 use Spatie\Permission\PermissionServiceProvider;
 use Spatie\Sitemap\SitemapServiceProvider;
 use Sunrice\Commerce\CommerceServiceProvider;
@@ -28,6 +30,8 @@ class TestCase extends Orchestra
             HoneypotServiceProvider::class,
             SitemapServiceProvider::class,
             McpServiceProvider::class,
+            OneTimePasswordsServiceProvider::class,
+            SocialiteServiceProvider::class,
             CommerceServiceProvider::class,
         ];
     }

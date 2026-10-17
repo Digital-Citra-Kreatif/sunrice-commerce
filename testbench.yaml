@@ -6,6 +6,8 @@ providers:
   - Spatie\Permission\PermissionServiceProvider
   - Spatie\Honeypot\HoneypotServiceProvider
   - Laravel\Mcp\Server\McpServiceProvider
+  - Spatie\OneTimePasswords\OneTimePasswordsServiceProvider
+  - Laravel\Socialite\SocialiteServiceProvider
   - Sunrice\Commerce\CommerceServiceProvider
 
 migrations:

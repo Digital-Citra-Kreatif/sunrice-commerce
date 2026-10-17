@@ -47,6 +47,13 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::put('vouchers/{voucher}', [Admin\VouchersController::class, 'update'])->name('vouchers.update');
     Route::delete('vouchers/{voucher}', [Admin\VouchersController::class, 'destroy'])->name('vouchers.destroy');
 
+    Route::get('customers', [Admin\CustomersController::class, 'index'])->name('customers');
+    Route::get('customers/{customer}', [Admin\CustomersController::class, 'show'])->name('customers.show');
+    Route::put('customers/{customer}', [Admin\CustomersController::class, 'update'])->name('customers.update');
+    Route::post('customers/{customer}/password-reset', [Admin\CustomersController::class, 'sendPasswordReset'])->name('customers.password-reset');
+    Route::post('customers/{customer}/verify', [Admin\CustomersController::class, 'markVerified'])->name('customers.verify');
+    Route::post('customers/{customer}/anonymize', [Admin\CustomersController::class, 'anonymize'])->name('customers.anonymize');
+
     Route::get('settings', [Admin\SettingsController::class, 'index'])->name('settings');
     Route::get('settings/features', [Admin\FeaturesController::class, 'index'])->name('settings.features');
     Route::put('settings/features/{feature}', [Admin\FeaturesController::class, 'update'])->name('settings.features.update');

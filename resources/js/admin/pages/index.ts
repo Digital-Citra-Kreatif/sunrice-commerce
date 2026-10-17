@@ -1,5 +1,6 @@
 import { Sunrice } from '../lib/sunrice';
 import type * as ReactTypes from 'react';
+import CustomerShow from './Customers/Show';
 import Dashboard from './Dashboard';
 import InventoryIndex from './Inventory/Index';
 import ProductsIndex from './Products/Index';
@@ -12,6 +13,7 @@ type Page = ReactTypes.ComponentType<any>; // eslint-disable-line @typescript-es
 
 /** Inertia page name (Commerce/…) → component; filled by each area. */
 const pages: Record<string, Page> = {
+    'Commerce/Customers/Show': CustomerShow,
     'Commerce/Dashboard': Dashboard,
     'Commerce/Inventory/Index': InventoryIndex,
     'Commerce/Products/Index': ProductsIndex,

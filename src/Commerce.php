@@ -161,6 +161,16 @@ class Commerce
         app(Pricing\Calculator::class)->registerStage($class, $priority);
     }
 
+    /**
+     * A page in My Account's menu (a storefront route of yours, under commerce.auth).
+     *
+     * @param  string|Closure(): string  $label
+     */
+    public function registerAccountPage(string $key, string|Closure $label, string $route, ?string $feature = null, int $position = 100): void
+    {
+        app(Customers\AccountNavigation::class)->register($key, $label, $route, $feature, $position);
+    }
+
     public function money(int $amount): Money
     {
         return Money::of($amount);

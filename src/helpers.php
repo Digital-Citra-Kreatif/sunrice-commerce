@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Sunrice\Commerce\Catalog\ProductView;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
 use Sunrice\Commerce\Features\Features;
+use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Models\Entry;
@@ -63,5 +64,13 @@ if (! function_exists('commerce_product')) {
         }
 
         return app(ProductViewFactory::class)->forEntry($entry);
+    }
+}
+
+if (! function_exists('commerce_store_name')) {
+    /** The store's name (Settings → Store → General), or the app's. */
+    function commerce_store_name(): string
+    {
+        return (string) (app(StoreSettings::class)->get('general.name') ?: config('app.name'));
     }
 }

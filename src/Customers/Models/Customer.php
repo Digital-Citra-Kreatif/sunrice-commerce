@@ -29,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $deletion_requested_at
  * @property Carbon|null $anonymized_at
  * @property array<string, mixed>|null $meta
+ * @property Carbon|null $created_at
  */
 class Customer extends Model
 {

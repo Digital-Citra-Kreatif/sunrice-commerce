@@ -32,6 +32,7 @@ final class ShopNavigation
         Sunrice::addNavigationItem('Products', 'commerce/products', 'package', self::GROUP, fn (mixed $user): bool => Collection::query()
             ->whereIn('handle', (array) config('commerce.catalog.collections', ['products']))->pluck('id')
             ->contains(fn (int $id) => $user->can('viewAny', [Entry::class, $id])));
+        self::add('Customers', 'commerce/customers', 'users', 'commerce.customers.view');
         self::add('Vouchers', 'commerce/vouchers', 'credit-card', 'commerce.vouchers.manage', 'vouchers');
         self::add('Flash sales', 'commerce/flash-sales', 'megaphone', 'commerce.flash-sales.manage', 'flash_sales');
         self::add('Pricing rules', 'commerce/pricing-rules', 'chart-column', 'commerce.pricing-rules.manage', 'pricing_rules');

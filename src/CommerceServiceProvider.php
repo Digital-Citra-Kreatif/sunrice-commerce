@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce;
 
+use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Blade;
@@ -20,6 +22,7 @@ use Sunrice\Events\EntryDeleted;
 use Sunrice\Events\EntryPublished;
 use Sunrice\Facades\Sunrice;
 use Sunrice\Frontend\TemplateContext;
+use Sunrice\Http\Middleware\SetFrontendLocale;
 
 class CommerceServiceProvider extends PackageServiceProvider
 {
@@ -56,6 +59,8 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->scoped(Promotions\FlashSales\ActiveSales::class);
         $this->app->scoped(Promotions\TargetMatcher::class);
         $this->app->scoped(Cart\CartManager::class);
+        $this->app->scoped(Customers\CurrentCustomer::class);
+        $this->app->singleton(Customers\AccountNavigation::class);
         $this->app->scoped(Wishlist\WishlistManager::class);
         $this->app->scoped(Cart\CompareList::class);
         // Optional connections, replaced when their module is built (C4.8, C5.3, C13).
@@ -84,6 +89,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->registerCatalog();
         $this->registerPromotions();
         $this->registerCart();
+        $this->registerCustomers();
         Event::listen(JobProcessing::class, function (): void {
             $this->app->forgetScopedInstances();
         });
@@ -99,6 +105,7 @@ class CommerceServiceProvider extends PackageServiceProvider
     {
         $router = $this->app['router'];
         $router->aliasMiddleware('commerce.noindex', Http\Middleware\NoIndex::class);
+        $router->aliasMiddleware('commerce.auth', Http\Middleware\AuthenticateCustomer::class);
 
         $this->app->booted(function (): void {
             if ($this->app->routesAreCached()) {
@@ -110,6 +117,7 @@ class CommerceServiceProvider extends PackageServiceProvider
                 require __DIR__.'/../routes/account.php';
             });
             Route::group([], __DIR__.'/../routes/webhooks.php');
+            Route::middleware([...(array) config('sunrice.frontend.middleware', ['web']), SetFrontendLocale::class])->group(__DIR__.'/../routes/oauth.php');
         });
 
         Blade::component(View\Components\Slot::class, 'commerce::slot');
@@ -148,6 +156,24 @@ class CommerceServiceProvider extends PackageServiceProvider
             $adminGuard = (string) config('sunrice.auth.guard', 'web');
             config(["auth.guards.{$guard}" => ['driver' => 'session', 'provider' => config("auth.guards.{$adminGuard}.provider", 'users')]]);
         }
+    }
+
+    /** Customer accounts: sign-in merges, My Account pages, the Users list scope. */
+    protected function registerCustomers(): void
+    {
+        Event::listen(Login::class, Customers\Listeners\MergeOnSignIn::class);
+        $nav = $this->app->make(Customers\AccountNavigation::class);
+        $nav->register('overview', fn () => __('commerce::account.overview.title'), 'commerce.account', position: 10);
+        $nav->register('profile', fn () => __('commerce::account.profile.title'), 'commerce.account.profile', position: 80);
+        $nav->register('addresses', fn () => __('commerce::account.addresses.title'), 'commerce.account.addresses', position: 70);
+
+        // Users lists staff: users whose roles are all customer roles are customers.
+        Sunrice::usersQueryUsing(function (Builder $query): Builder {
+            $customerRoles = (array) $this->app->make(Settings\StoreSettings::class)->get('accounts.customer_roles', ['Customer']);
+
+            return $query->where(fn ($q) => $q->whereDoesntHave('roles')->orWhereHas('roles', fn ($r) => $r->whereNotIn('name', $customerRoles)));
+        });
+        $this->app->make(Commerce::class)->registerHealthCheck(Health\Checks\AccountsCheck::class);
     }
 
     /** Carts: pruning abandoned ones. */
