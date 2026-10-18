@@ -263,3 +263,11 @@ status, error, payment):
 Gateway packages register their own methods with `Commerce::registerPaymentMethod()`: redirects,
 embedded widgets or virtual accounts, with returns, webhooks, refunds, cancelling, status checks
 and unique codes as optional contracts. See [extending.md](extending.md#payments).
+
+| Package | Gateway |
+| --- | --- |
+| [`sunrice/midtrans`](https://github.com/Digital-Citra-Kreatif/sunrice-midtrans) | Midtrans Snap: cards, e-wallets, QRIS, virtual accounts |
+| [`sunrice/xendit`](https://github.com/Digital-Citra-Kreatif/sunrice-xendit) | Xendit invoices: virtual accounts, e-wallets, QRIS, cards |
+
+Each adds a module (Settings → Store → Modules, Payments) and a method under Settings → Store →
+Payments; its README covers the keys and the webhook URL.

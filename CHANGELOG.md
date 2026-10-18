@@ -48,6 +48,9 @@ to the MCP server's instructions and keeps store pages out of the full-page cach
 - The `Commerce` registration API, contracts for payments, shipping, pricing (including
   `ReservesDiscounts`), checkout completions, inventory, taxes and documents, events, and
   `window.SunriceCommerce` for the admin; documented in `docs/extending.md`.
+- `Payments\Methods\GatewayMethod`, the base for redirect gateway packages (`sunrice/midtrans`,
+  `sunrice/xendit`): sandbox keys from `.env`, a payment page created once per payment, status
+  checks on return, and the amount checked against the payment.
 - `commerce:install [--templates] [--demo]`, `commerce:doctor`, `commerce:stats` and the other
   commands in `docs/commands.md`.
 - Documentation in `docs/`.
