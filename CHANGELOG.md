@@ -2,8 +2,10 @@
 
 ## Unreleased — 1.0.0
 
-The first release. Needs Sunrice CMS with the settings tabs, users scope and structure import
-changes, PHP 8.4 and Laravel 13.
+The first release. Needs Sunrice CMS 1.x with the settings tabs, users scope and structure import
+changes, PHP 8.4 and Laravel 13. On Sunrice versions with dashboard cards, MCP instructions and
+full-page cache control, commerce also adds a Store card to Sunrice's dashboard, adds its guidance
+to the MCP server's instructions and keeps store pages out of the full-page cache.
 
 ### Store
 - Products as Sunrice entries with a Product data field: simple, variable (up to 3 options),
@@ -25,10 +27,15 @@ changes, PHP 8.4 and Laravel 13.
   presets and tracking.
 - Customer accounts: password, emailed sign-in codes and Google; orders, quotes, downloads,
   addresses and deletion requests; anonymization for staff.
-- Emails for every order event, editable in Settings → Store → Emails.
+- Taxes by shipping, billing or store address, with prices shown including or excluding tax.
+- Emails for every order event, editable in Settings → Store → Emails, with the store logo and
+  brand color.
+- My Account overview with recent orders and quick links; terms and captcha at registration.
+- Customers admin with filters by role, orders, spending and sign-up date, and CSV export.
 - Analytics: daily statistics, a dashboard with KPIs, a sales chart and to-dos, eight reports with
   CSV export, and view and click tracking without personal data.
-- 23 store tools for AI agents on Sunrice's MCP server.
+- 23 store tools for AI agents on Sunrice's MCP server; refunds, payment reviews, cancelling,
+  store features and price-changing saves need `confirm: true`.
 - Storefront templates (publishable), Blade components, slots, SEO (JSON-LD, canonical URLs,
   noindex on private pages) and query budgets guarded by tests.
 
