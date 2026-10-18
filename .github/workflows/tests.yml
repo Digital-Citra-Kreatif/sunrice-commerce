@@ -1,8 +1,16 @@
 name: tests
 
+# Branches with a pull request are tested once, through the pull request;
+# pushes to main test what was merged. A newer push cancels the run it
+# replaces (this repository is private, so runner minutes count).
 on:
   push:
+    branches: [main]
   pull_request:
+
+concurrency:
+  group: tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   tests:

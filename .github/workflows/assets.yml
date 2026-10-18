@@ -3,6 +3,10 @@ name: assets
 on:
   pull_request:
 
+concurrency:
+  group: assets-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   assets:
     runs-on: ubuntu-latest
