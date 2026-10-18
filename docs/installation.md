@@ -95,10 +95,19 @@ Google** in Settings → Store → Features. See [accounts.md](accounts.md).
 
 ## Set up the store
 
-Everything the store needs sits in the admin sidebar's **Shop** group: the dashboard, orders,
-payments to verify, products with their categories, brands and tags, customers, promotions,
-inventory, reports and Store settings. The product collection and taxonomies leave Content and
-Taxonomies for it.
+Everything the store needs sits in the admin sidebar's **Shop** group, related pages sharing a
+submenu:
+
+- Dashboard
+- Orders ▸ All orders, Payments to verify
+- Products ▸ All products, Product categories, Brands, Product tags, Inventory
+- Customers
+- Promotions ▸ Vouchers, Flash sales, Pricing rules
+- Marketing ▸ Campaigns, Automations
+- Reports and Store settings
+
+The product collection and taxonomies leave Content and Taxonomies for it. A submenu with one page
+you may open shows that page alone (Sunrice versions without sidebar submenus list them all).
 
 Open the admin → **Shop → Dashboard**. Until everything is done, a checklist leads you through:
 

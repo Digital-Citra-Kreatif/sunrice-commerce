@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Admin;
 
+use ReflectionMethod;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Http\Controllers\Admin\SettingsController;
 use Sunrice\Commerce\Settings\StoreSettings;
@@ -14,19 +15,35 @@ use Sunrice\Models\Entry;
 /**
  * The admin sidebar's Shop group: everything the store needs, products,
  * their categories, brands and tags, and the store settings included.
- * Each item shows only while its module is active and the user has its
- * permission; the group sits right after Content.
+ * Related pages share a submenu (Orders, Products, Promotions, Marketing)
+ * on Sunrice versions with submenus. Each item shows only while its
+ * module is active and the user has its permission; the group sits right
+ * after Content.
  */
 final class ShopNavigation
 {
     public const GROUP = 'Shop';
 
-    /** Add a Shop item (admin path relative to the admin, e.g. "commerce/orders"). */
-    public static function add(string $label, string $href, string $icon, string $permission, ?string $feature = null): void
+    /**
+     * Add a Shop item (admin path relative to the admin, e.g. "commerce/orders"),
+     * optionally in the submenu of the item labelled $parent.
+     */
+    public static function add(string $label, string $href, string $icon, string $permission, ?string $feature = null, ?string $parent = null): void
     {
-        Sunrice::addNavigationItem($label, $href, $icon, self::GROUP, function (mixed $user) use ($permission, $feature): bool {
+        $can = function (mixed $user) use ($permission, $feature): bool {
             return ($feature === null || app(Features::class)->active($feature)) && $user->can($permission);
-        });
+        };
+        if ($parent !== null && self::nests()) {
+            Sunrice::addNavigationItem($label, $href, $icon, self::GROUP, $can, parent: $parent);
+        } else {
+            Sunrice::addNavigationItem($label, $href, $icon, self::GROUP, $can);
+        }
+    }
+
+    /** Whether Sunrice's sidebar has submenus (addNavigationItem's `parent`). */
+    public static function nests(): bool
+    {
+        return collect((new ReflectionMethod(\Sunrice\Sunrice::class, 'addNavigationItem'))->getParameters())->contains(fn ($p) => $p->getName() === 'parent');
     }
 
     /**
@@ -69,7 +86,20 @@ final class ShopNavigation
 
         $items = $groups[$shop]['items'];
         $products = array_search('commerce/products', array_column($items, 'href'), true);
-        array_splice($items, $products === false ? count($items) : (int) $products + 1, 0, array_values($moved));
+        if ($products !== false && self::nests()) {
+            // Products ▸ All products, the product taxonomies, Inventory…
+            $own = $items[$products]['items'] ?? [array_diff_key($items[$products], ['items' => true])];
+            array_splice($own, 1, 0, array_values($moved));
+            $items[$products]['items'] = $own;
+        } else {
+            array_splice($items, $products === false ? count($items) : (int) $products + 1, 0, array_values($moved));
+        }
+        // A submenu's own page is its first link: "All orders", "All products".
+        foreach ($items as $i => $item) {
+            if (count($item['items'] ?? []) > 1 && ($item['items'][0]['href'] ?? null) === $item['href'] && $item['items'][0]['label'] === $item['label']) {
+                $items[$i]['items'][0]['label'] = 'All '.mb_strtolower($item['label']);
+            }
+        }
         if ($user !== null && SettingsController::menu($user) !== []) {
             $items[] = ['label' => 'Store settings', 'href' => 'commerce/settings', 'icon' => 'settings'];
         }
@@ -88,16 +118,17 @@ final class ShopNavigation
     {
         self::add('Dashboard', 'commerce', 'shopping-bag', 'commerce.dashboard.view');
         self::add('Orders', 'commerce/orders', 'shopping-cart', 'commerce.orders.view', 'orders');
-        self::add('Payments to verify', 'commerce/confirmations', 'credit-card', 'commerce.payments.verify', 'manual_payments');
+        self::add('Payments to verify', 'commerce/confirmations', 'credit-card', 'commerce.payments.verify', 'manual_payments', parent: 'Orders');
         Sunrice::addNavigationItem('Products', 'commerce/products', 'package', self::GROUP, fn (mixed $user): bool => Collection::query()
             ->whereIn('handle', (array) config('commerce.catalog.collections', ['products']))->pluck('id')
             ->contains(fn (int $id) => $user->can('viewAny', [Entry::class, $id])));
+        self::add('Inventory', 'commerce/inventory', 'clipboard-list', 'commerce.inventory.view', 'inventory', parent: 'Products');
         self::add('Customers', 'commerce/customers', 'users', 'commerce.customers.view');
-        self::add('Vouchers', 'commerce/vouchers', 'credit-card', 'commerce.vouchers.manage', 'vouchers');
-        self::add('Flash sales', 'commerce/flash-sales', 'megaphone', 'commerce.flash-sales.manage', 'flash_sales');
-        self::add('Pricing rules', 'commerce/pricing-rules', 'chart-column', 'commerce.pricing-rules.manage', 'pricing_rules');
-        self::add('Inventory', 'commerce/inventory', 'clipboard-list', 'commerce.inventory.view', 'inventory');
-        self::add('Marketing', 'commerce/marketing', 'mail', 'commerce.marketing.manage', 'marketing');
+        self::add('Vouchers', 'commerce/vouchers', 'megaphone', 'commerce.vouchers.manage', 'vouchers', parent: 'Promotions');
+        self::add('Flash sales', 'commerce/flash-sales', 'megaphone', 'commerce.flash-sales.manage', 'flash_sales', parent: 'Promotions');
+        self::add('Pricing rules', 'commerce/pricing-rules', 'megaphone', 'commerce.pricing-rules.manage', 'pricing_rules', parent: 'Promotions');
+        self::add('Campaigns', 'commerce/marketing/campaigns', 'mail', 'commerce.marketing.manage', 'marketing', parent: 'Marketing');
+        self::add('Automations', 'commerce/marketing/automations', 'mail', 'commerce.marketing.manage', 'marketing', parent: 'Marketing');
         self::add('Reports', 'commerce/reports', 'chart-column', 'commerce.reports.view', 'analytics');
 
         Sunrice::navigationUsing(fn (array $groups, mixed $user): array => self::arrange($groups, $user));

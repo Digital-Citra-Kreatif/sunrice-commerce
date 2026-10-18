@@ -49,17 +49,12 @@ class MarketingController extends Controller
         $statuses = $automation ? ['draft', 'active', 'paused'] : ['draft', 'scheduled', 'sending', 'sent', 'cancelled'];
 
         return Inertia::render('Commerce/Shared/ResourceIndex', [
-            'title' => 'Marketing',
+            'title' => $automation ? 'Automations' : 'Campaigns',
             'description' => $automation
                 ? 'Emails sent by themselves when something happens: a cart left behind, a customer who hasn\'t ordered for a while…'
                 : 'Emails to customers who accept marketing ('.number_format(Audience::reachable()->count()).' now).',
             'createUrl' => $automation ? 'commerce/marketing/automations/create' : 'commerce/marketing/campaigns/create',
             'createLabel' => $automation ? 'New automation' : 'New campaign',
-            'tabs' => [
-                ['key' => 'campaign', 'label' => 'Campaigns', 'href' => 'commerce/marketing/campaigns'],
-                ['key' => 'automation', 'label' => 'Automations', 'href' => 'commerce/marketing/automations'],
-            ],
-            'currentTab' => $type,
             ...$this->tableProps('commerce-marketing-'.$type, $table, [
                 new Column('name', 'Name', sortable: true),
                 $automation ? new Column('trigger', 'When') : new Column('when', 'Date'),
