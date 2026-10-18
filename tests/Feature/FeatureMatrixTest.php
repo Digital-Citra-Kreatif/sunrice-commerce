@@ -42,7 +42,7 @@ const MODULE_SURFACES = [
     'google_login' => [['/account/login/google'], []],
     'wishlist' => [['/wishlist'], []],
     'compare' => [['/compare'], []],
-    'marketing' => [['/cms/commerce/marketing/campaigns', '/cms/commerce/marketing/automations'], ['Marketing']],
+    'marketing' => [['/cms/commerce/marketing/campaigns', '/cms/commerce/marketing/automations'], ['Campaigns', 'Automations']],
     'analytics' => [['/cms/commerce/reports/sales'], ['Reports']],
     'ai_tools' => [[], []],
 ];
@@ -67,7 +67,10 @@ function shopMenu(): array
     test()->get('/cms/commerce')->assertInertia(function (AssertableInertia $page) use (&$items) {
         foreach ($page->toArray()['props']['navigation'] as $group) {
             if ($group['label'] === 'Shop') {
-                $items = array_column($group['items'], 'label');
+                // Submenus' links too.
+                foreach ($group['items'] as $item) {
+                    $items = [...$items, $item['label'], ...array_column($item['items'] ?? [], 'label')];
+                }
             }
         }
     });

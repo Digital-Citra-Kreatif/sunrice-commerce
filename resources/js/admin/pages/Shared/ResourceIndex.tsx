@@ -1,7 +1,5 @@
 import { adminUrl, components, inertia, Sunrice, ui } from '../../lib/sunrice';
 import { PageHeader } from '../../components/PageHeader';
-import { PageTabs } from '../../components/PageTabs';
-import type { MenuItem } from '../../lib/store';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useCommerceShared } from '../../lib/store';
 
@@ -9,10 +7,9 @@ import { useCommerceShared } from '../../lib/store';
  * A list page for commerce records (vouchers, pricing rules, flash sales…):
  * Inertia::render('Commerce/Shared/ResourceIndex', [title, description, createUrl, …DataTable props]).
  * Rows link to row.href; columns of type "badge" read row[key + '_tone'] for their color. An
- * exportUrl adds an "Export CSV" button that carries the list's current filters and search. `tabs`
- * (with `currentTab`) links the pages of one menu entry, like Marketing → Campaigns, Automations.
+ * exportUrl adds an "Export CSV" button that carries the list's current filters and search.
  */
-export default function ResourceIndex(props: Record<string, unknown> & { title: string; description?: string; createUrl?: string | null; createLabel?: string; bulkUrl?: string; exportUrl?: string | null; tabs?: MenuItem[]; currentTab?: string }) {
+export default function ResourceIndex(props: Record<string, unknown> & { title: string; description?: string; createUrl?: string | null; createLabel?: string; bulkUrl?: string; exportUrl?: string | null }) {
     const { DataTable } = components;
     const { Button } = ui;
     const { Link } = inertia;
@@ -28,7 +25,6 @@ export default function ResourceIndex(props: Record<string, unknown> & { title: 
                         {props.createUrl ? <Button asChild><Link href={adminUrl(props.createUrl)}>{props.createLabel ?? 'New'}</Link></Button> : null}
                     </div>
                 ) : null} />
-            {props.tabs && props.tabs.length > 1 && <PageTabs items={props.tabs} current={props.currentTab ?? ''} label={props.title} />}
             <DataTable
                 {...props}
                 bulkUrl={props.bulkUrl ? adminUrl(props.bulkUrl) : undefined}
