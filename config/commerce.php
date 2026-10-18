@@ -100,6 +100,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Full-page cache
+    |--------------------------------------------------------------------------
+    |
+    | With Sunrice's full-page cache on, product, shop and product term pages
+    | are cached for visitors without a cart, wishlist, comparison or
+    | account, for this many seconds. Selling out, running low, coming back
+    | and price changes clear them at once; stock counts shown on the page
+    | and pricing rules that start or end on a schedule catch up within it.
+    | 0 leaves these pages out of the cache.
+    |
+    */
+
+    'cache' => [
+        'product_pages_ttl' => (int) env('COMMERCE_PRODUCT_PAGES_TTL', 300),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Digital downloads
     |--------------------------------------------------------------------------
     |

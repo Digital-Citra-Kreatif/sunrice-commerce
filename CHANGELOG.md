@@ -62,6 +62,12 @@ to the MCP server's instructions and keeps store pages out of the full-page cach
 - The customer page only gives or takes away roles with less access than the staff member's own
   (Sunrice's permission ranking); other roles the account has are kept.
 - The Shop Manager role gets `sunrice.guide.view` (run `php artisan commerce:seed-roles`).
+- Full-page cache: product, shop and product term pages are cached for anonymous visitors for
+  `commerce.cache.product_pages_ttl` seconds (300), and cleared when a product sells out, runs
+  low or comes back, and when prices change. Visitors with a cart, wishlist, comparison or
+  customer account are never served a cached page, so they don't see someone else's header or an
+  empty cart count. Needs Sunrice's `bypassPageCacheUsing()`; on older versions product pages
+  stay out of the cache.
 - A gateway payment confirmed after its deadline cancelled the order is recorded paid, but the order
   stays cancelled and isn't fulfilled (no downloads, invoice number or "payment received"):
   `PaymentAfterCancellation` fires and staff get the new `staff_paid_after_cancel` email.

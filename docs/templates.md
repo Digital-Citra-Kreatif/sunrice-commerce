@@ -400,13 +400,27 @@ Keep these when you edit published templates.
 ## Full-page cache
 
 On Sunrice versions with full-page cache control, you can keep Sunrice's full-page cache
-(`sunrice.cache.full_page`) on: commerce leaves out its own pages (cart, checkout, account, order
-pages…), product pages, the shop and product category, brand and tag pages, any page that shows a
-product (a products block on the home page), and every page for a visitor with a cart or signed in
-as a customer. This works with Sunrice's cache profile (`Sunrice\Cache\FullPageCacheProfile`,
-used unless your site set its own `responsecache.cache_profile`). The decision is
-`Sunrice\Commerce\Storefront\PageCache::cacheable()`; a custom component that shows prices or
-stock calls `PageCache::markDynamic()`.
+(`sunrice.cache.full_page`) on. Commerce decides what it may keep
+(`Sunrice\Commerce\Storefront\PageCache`):
+
+- **Commerce's own pages** (cart, checkout, account, order pages…) are never cached.
+- **Visitors with something of their own** — a cart, a wishlist, a comparison, or signed in as a
+  customer — always get a freshly rendered page, and theirs isn't kept. So a cached page is always
+  the one an anonymous visitor sees: no one is shown another shopper's cart count or account.
+- **Product, shop and product term pages**, and any page that shows a product (a products block on
+  the home page), are cached for anonymous visitors for `commerce.cache.product_pages_ttl` seconds
+  (default 300; `0` leaves them out). They're cleared at once when a product sells out, runs low or
+  comes back in stock, when a product is saved, and when pricing rules or flash sales change or a
+  flash sale starts or ends. A stock count shown on the page ("Only 3 left") and a pricing rule
+  that starts or ends on a schedule catch up within the lifetime. Prices, stock and the totals check
+  at checkout always use live data.
+
+A custom component that shows prices or stock calls `PageCache::markDynamic()`, so its page gets
+the shorter lifetime. Keeping product pages in the cache needs Sunrice's
+`Sunrice::bypassPageCacheUsing()`; on Sunrice versions without it, product pages and the visitors
+above are left out as before. This works with Sunrice's cache profile
+(`Sunrice\Cache\FullPageCacheProfile`, used unless your site set its own
+`responsecache.cache_profile`).
 
 On older Sunrice versions, or with another cache profile, keep the full-page cache off while the
 store is open: product pages, the header cart count, prices for signed-in customers and stock would

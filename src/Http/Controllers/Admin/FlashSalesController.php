@@ -15,6 +15,7 @@ use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Promotions\Actions\SaveFlashSale;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSaleBoundaries;
+use Sunrice\Commerce\Storefront\PageCache;
 use Sunrice\Commerce\Support\ActivityRecorder;
 
 /** Shop → Flash sales. */
@@ -94,6 +95,7 @@ class FlashSalesController extends Controller
         $id = $sale->id;
         FlashSaleBoundaries::refresh([$id]);
         $sale->delete();
+        PageCache::forget('flash_sale_deleted');
         app(ActivityRecorder::class)->record('deleted', "Flash sale: {$sale->name}", [], 'flash_sale');
 
         return redirect()->route('sunrice.admin.commerce.flash-sales')->with('success', 'Flash sale deleted.');

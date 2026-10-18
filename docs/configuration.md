@@ -63,6 +63,12 @@ Publish the file with `php artisan vendor:publish --tag=commerce-config` (the in
 | `cart.lifetime_days` | `30` | How long the cookie lives |
 | `cart.prune_days` | `30` | Abandoned carts older than this are deleted by `commerce:prune` |
 
+### cache
+
+| Key | Default | |
+| --- | --- | --- |
+| `cache.product_pages_ttl` | `300` (`COMMERCE_PRODUCT_PAGES_TTL`) | With Sunrice's full-page cache on: seconds product, shop and product term pages are kept for anonymous visitors; `0` leaves them out ([Full-page cache](templates.md#full-page-cache)) |
+
 ### downloads
 
 | Key | Default | |
