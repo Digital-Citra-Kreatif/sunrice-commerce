@@ -103,3 +103,25 @@ away are given back, so build custom roles for narrower access.
 
 Copies the prebuilt admin bundle to `public/vendor/commerce`. Run it after every upgrade
 ([upgrading.md](upgrading.md)).
+
+## Load testing the package
+
+For developing commerce itself (not for stores): the workbench has a large-store seeder,
+`Workbench\Database\Seeders\LoadTestSeeder`. On top of the demo store it adds 2,000 products
+(simple, variable with up to three attribute options and 100 variants, digital and bundles, every
+tenth with a very long name), categories four levels deep, 150 brands, tags, 300 vouchers, flash
+sales (one running), 30 pricing rules, 5,000 customers with addresses, 20,000 orders over the past
+year in every status (with payments, shipments, events and voucher discounts; a few with 50–200
+lines) and a year of product view counters, plus the customer account `customer@example.com` /
+`password`. Catalog and promotions go through the same actions as the admin; customers and orders
+are bulk inserted. Scale it with `LOADTEST_PRODUCTS`, `LOADTEST_ORDERS`, `LOADTEST_CUSTOMERS` and
+`LOADTEST_SEED`:
+
+```bash
+vendor/bin/testbench workbench:build
+LOADTEST_ORDERS=20000 vendor/bin/testbench db:seed --class='Workbench\Database\Seeders\LoadTestSeeder'
+vendor/bin/testbench commerce:stats --rebuild
+```
+
+At the default size it takes about four minutes and 110 MB in PostgreSQL. Point the workbench at
+PostgreSQL or MySQL with the usual `DB_*` variables in the environment.
