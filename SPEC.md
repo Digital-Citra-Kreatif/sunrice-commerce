@@ -182,6 +182,7 @@ switch them on and off.
 | Customers | `google_login` | Sign in with Google | accounts | all | off |
 | Customers | `wishlist` | Wishlist | catalog | all | on |
 | Customers | `compare` | Product comparison | catalog | all | on |
+| Customers | `marketing` | Marketing emails | catalog | all | off |
 | Insights & AI | `analytics` | Store analytics and reports | catalog | all | on |
 | Insights & AI | `ai_tools` | Store tools for AI agents (MCP) | catalog | all | on |
 
@@ -833,6 +834,24 @@ Google), earlier guest orders with that email join the account.
   specifications (matched by label) and any fields chosen in settings.
 - The list is stored in the session, so it works for guests.
 
+### Marketing emails (`marketing`)
+
+- Email campaigns: one email to an audience of customers who accept marketing, sent now or at a
+  chosen time; templates to start from; a live count of the audience; sent campaigns can't change.
+- Audience rules, all or any: days since the last order, ordered recently, never ordered, order
+  count, total spent, bought products or categories/brands, joined recently or long ago, account
+  type, role, language, province or city, cart or wishlist with products, opened marketing email
+  recently or not, received an earlier campaign or not.
+- Automations: a trigger and a delay (abandoned cart, welcome, no first order yet, after an order,
+  win back), optional audience rules, one email per cart, customer or order; turning one on starts
+  from that moment.
+- Texts per language (subject, preview text, rich text, button) with smart tags and fallbacks;
+  preview and test sends.
+- Open and click tracking (clicks redirect only to the email's own links); one-click unsubscribe
+  (RFC 8058) with a confirmation page; consent checked again when each email is sent.
+- Sent by queued jobs in batches, optionally spread to a per-minute limit, on their own queue and
+  mailer if configured. Details in `docs/marketing.md`.
+
 ### Store dashboard and analytics (`analytics`)
 
 **Shop → Dashboard** (in the Sunrice admin, `commerce.dashboard.view`)
@@ -1084,6 +1103,7 @@ groups (registered with `Sunrice::registerPermission()`):
 | `commerce.customers.view`, `.edit`, `.delete`, `.export` | Customers (`delete` = anonymize) |
 | `commerce.inventory.view`, `.adjust` | Stock levels; adjusting them |
 | `commerce.vouchers.manage` | Vouchers and automatic discounts |
+| `commerce.marketing.manage` | Email campaigns and automations |
 | `commerce.flash-sales.manage` | Flash sales |
 | `commerce.pricing-rules.manage` | Pricing rules |
 | `commerce.reports.view`, `.export` | Reports; exporting them |
@@ -1137,7 +1157,7 @@ Deliberately not used:
 - Product reviews and ratings; product Q&A.
 - Subscriptions, memberships, gift cards, store credit and loyalty points (loyalty is a separate
   package).
-- Abandoned-cart emails, back-in-stock and price-drop alerts, product feeds (Google Merchant, Meta).
+- Back-in-stock and price-drop alerts, product feeds (Google Merchant, Meta).
 - Configurable bundles (customer-picked components), product add-ons and personalization fields,
   deposits and installments.
 - A returns/RMA workflow and exchanges; refunds are recorded by hand.

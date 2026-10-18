@@ -17,8 +17,8 @@ class TargetsApiController extends Controller
 {
     public function __invoke(Request $request): JsonResponse
     {
-        // The pickers of vouchers, flash sales and pricing rules.
-        $this->authorizeAny($request->user(), ['commerce.vouchers.manage', 'commerce.flash-sales.manage', 'commerce.pricing-rules.manage']);
+        // The pickers of vouchers, flash sales, pricing rules and marketing audiences.
+        $this->authorizeAny($request->user(), ['commerce.vouchers.manage', 'commerce.flash-sales.manage', 'commerce.pricing-rules.manage', 'commerce.marketing.manage']);
         $q = trim((string) $request->query('q', ''));
         $types = array_intersect((array) $request->query('types', ['product', 'variant', 'term']), ['product', 'variant', 'term']);
         $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $q).'%';

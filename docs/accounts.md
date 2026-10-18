@@ -397,6 +397,7 @@ groups:
 | `commerce.inventory.view` | Stock levels |
 | `commerce.inventory.adjust` | Adjusting stock |
 | `commerce.vouchers.manage` | Vouchers and automatic discounts |
+| `commerce.marketing.manage` | Email campaigns and automations ([marketing.md](marketing.md)) |
 | `commerce.flash-sales.manage` | Flash sales |
 | `commerce.pricing-rules.manage` | Pricing rules |
 | `commerce.reports.view` | Reports |

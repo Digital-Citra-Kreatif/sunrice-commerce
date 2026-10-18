@@ -42,6 +42,7 @@ const MODULE_SURFACES = [
     'google_login' => [['/account/login/google'], []],
     'wishlist' => [['/wishlist'], []],
     'compare' => [['/compare'], []],
+    'marketing' => [['/cms/commerce/marketing/campaigns', '/cms/commerce/marketing/automations'], ['Marketing']],
     'analytics' => [['/cms/commerce/reports/sales'], ['Reports']],
     'ai_tools' => [[], []],
 ];

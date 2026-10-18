@@ -37,6 +37,8 @@ final class CommercePermissions
             'commerce.customers.delete' => ['Anonymize customers', 'Store: Customers'],
             'commerce.customers.export' => ['Export customers', 'Store: Customers'],
 
+            'commerce.marketing.manage' => ['Send marketing emails and manage automations', 'Store: Marketing'],
+
             'commerce.inventory.view' => ['View stock levels', 'Store: Catalog'],
             'commerce.inventory.adjust' => ['Adjust stock', 'Store: Catalog'],
 

@@ -234,6 +234,12 @@ class Commerce
         app(Notifications\Emails::class)->register($email);
     }
 
+    /** Add an automation trigger (Marketing → Automations): who becomes due, and when. */
+    public function registerMarketingTrigger(Marketing\Automations\Trigger $trigger): void
+    {
+        app(Marketing\Automations\Triggers::class)->register($trigger);
+    }
+
     /**
      * Replace an email's view: with a key, that email's body (the part between
      * the heading and the order summary, or the whole message of an account
