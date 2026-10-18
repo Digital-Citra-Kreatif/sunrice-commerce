@@ -100,6 +100,11 @@ Notes:
 
 ## Asking first: `confirm: true`
 
+On Sunrice versions with MCP instructions, the server's instructions get a **Store** section (the
+text is `Sunrice\Commerce\Mcp\StoreTools::INSTRUCTIONS`): start with `get_store_info`, ask before
+the actions below, and edit products as entries. On older versions the same guidance is in the tool
+descriptions.
+
 Some actions change money or what customers see. Their tools refuse until the agent calls again with
 `confirm: true`, and the refusal tells the agent to ask the user first:
 

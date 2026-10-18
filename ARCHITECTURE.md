@@ -1654,11 +1654,13 @@ public/commerce-theme/commerce.css · commerce.js
 - `Mcp\StoreTools::ALL` lists the 23 tools. Promotions save through `Promotions\Actions\Save*`
   (also used by the admin pages): without `values` the tool returns the form's fields and current
   values; with `values` they are merged over the current ones.
-- **Instructions** (U6) are appended to the server's instructions (until U6 lands, the same
-  guidance is in `get_store_info` and the tool descriptions):
+- **Instructions** (U6): `StoreTools::INSTRUCTIONS` is added with `Sunrice::addMcpInstructions()`
+  when it exists (on older Sunrice the same guidance is in `get_store_info` and the tool
+  descriptions):
 
   > Store tools start with get_store_info. Ask the user before approving payments, refunding,
-  > cancelling orders, switching store features or changing many prices. Products are Sunrice
+  > cancelling orders, switching store features or changing many prices (pricing rules, flash
+  > sales); those tools need confirm: true. Products are Sunrice
   > entries: change their content and Product data with update_entry (field `product`); get_product
   > shows the field's shape.
 
@@ -1782,9 +1784,11 @@ small value objects):
     flash sales, price rules, automatic vouchers and tiers once each);
   - placing an order: no N+1 per line.
   (`tests/Feature/Storefront/QueryBudgetTest.php`.)
-- **Full-page cache**: once Sunrice has U11, commerce will register a hook that excludes product,
-  product-taxonomy and store pages, and any request with a commerce session or cart cookie. Until
-  then, store health warns when `sunrice.cache.full_page` is on (`FullPageCacheCheck`).
+- **Full-page cache**: with U11, `Storefront\PageCache` registers a `cachePageUsing` hook that
+  excludes store routes (`commerce.*`), product, shop and product-taxonomy pages, any page that
+  built a product view (`PageCache::DYNAMIC` request attribute), and any request with a cart cookie
+  or a signed-in customer. Without U11, or with a site's own cache profile, store health warns when
+  `sunrice.cache.full_page` is on (`FullPageCacheCheck`).
 - **Regions** are cached forever per dataset version; the JSON endpoint sends long-lived cache
   headers.
 

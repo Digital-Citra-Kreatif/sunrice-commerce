@@ -6,6 +6,7 @@ use Sunrice\Activity\ActivityLogger;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Features\Features;
+use Sunrice\Commerce\Mcp\StoreTools;
 use Sunrice\Commerce\Mcp\Tools;
 use Sunrice\Commerce\Orders\Events\OrderPaid;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
@@ -146,4 +147,13 @@ it('quotes shipping to a destination', function () {
 
     app(ToggleFeature::class)->handle('shipping', false);
     expect((new Tools\QuoteShippingTool)->shouldRegister())->toBeFalse();
+});
+
+it('adds the store guidance to the MCP server instructions', function () {
+    $sunrice = app(Sunrice\Sunrice::class);
+    if (! method_exists($sunrice, 'mcpInstructions')) {
+        $this->markTestSkipped('Needs Sunrice with MCP instructions (U6).');
+    }
+
+    expect($sunrice->mcpInstructions())->toContain(StoreTools::INSTRUCTIONS);
 });

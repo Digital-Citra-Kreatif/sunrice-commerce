@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\DB;
 use Sunrice\Commerce\Admin\Setup\SetupChecklist;
 use Sunrice\Commerce\Facades\Commerce;
@@ -11,6 +13,7 @@ use Sunrice\Commerce\Health\HealthRegistry;
 use Sunrice\Commerce\Health\HealthResult;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Shipping\Models\ShippingMethod;
+use Sunrice\Commerce\Storefront\PageCache;
 
 class FailingCheck implements HealthCheck
 {
@@ -74,8 +77,32 @@ it('warns while the full-page cache is on', function () {
     $status = fn () => app(HealthRegistry::class)->run()['full_page_cache']['result']->status;
 
     expect($status())->toBe(HealthResult::OK);
-    config(['sunrice.cache.full_page' => true]);
+    config(['sunrice.cache.full_page' => true, 'responsecache.cache_profile' => null]);
     expect($status())->toBe(HealthResult::WARNING);
+
+    // With Sunrice's cache profile, commerce leaves store pages out.
+    if (PageCache::supported() && class_exists('Spatie\\ResponseCache\\CacheProfiles\\CacheAllSuccessfulGetRequests')) {
+        config(['responsecache.cache_profile' => 'Sunrice\\Cache\\FullPageCacheProfile']);
+        expect($status())->toBe(HealthResult::OK);
+    }
+});
+
+it('keeps store pages and visitors with a cart or account out of the full-page cache', function () {
+    $request = fn (string $uri = '/about') => tap(Request::create($uri), fn (Request $r) => $r->setRouteResolver(fn () => null));
+
+    expect(PageCache::cacheable($request(), null))->toBeTrue();
+
+    $cart = $request();
+    $cart->cookies->set('commerce_cart', 'token');
+    expect(PageCache::cacheable($cart, null))->toBeFalse();
+
+    $product = $request();
+    $product->attributes->set(PageCache::DYNAMIC, true);
+    expect(PageCache::cacheable($product, null))->toBeFalse();
+
+    $store = $request('/cart');
+    $store->setRouteResolver(fn () => (new Route('GET', 'cart', []))->name('commerce.cart.show'));
+    expect(PageCache::cacheable($store, null))->toBeFalse();
 });
 
 it('clears old IP addresses when pruning', function () {

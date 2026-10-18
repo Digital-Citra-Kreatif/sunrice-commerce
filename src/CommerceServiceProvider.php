@@ -357,6 +357,7 @@ class CommerceServiceProvider extends PackageServiceProvider
     protected function registerHealthAndSchedule(): void
     {
         Admin\Dashboard\StoreCard::register();
+        Storefront\PageCache::register();
         $health = $this->app->make(Health\HealthRegistry::class);
         foreach ([Health\Checks\MailCheck::class, Health\Checks\QueueCheck::class, Health\Checks\SchedulerCheck::class, Health\Checks\FullPageCacheCheck::class, Health\Checks\StoreReadinessCheck::class, Health\Checks\CatalogDataCheck::class] as $check) {
             $health->register($check);
@@ -415,6 +416,11 @@ class CommerceServiceProvider extends PackageServiceProvider
     {
         foreach (Mcp\StoreTools::ALL as $tool) {
             Sunrice::registerMcpTool($tool);
+        }
+        // Sunrice::addMcpInstructions() arrives with U6; before it, get_store_info carries the guidance.
+        $add = [$this->app->make(\Sunrice\Sunrice::class), 'addMcpInstructions'];
+        if (is_callable($add)) {
+            $add(Mcp\StoreTools::INSTRUCTIONS);
         }
     }
 

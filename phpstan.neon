@@ -13,3 +13,10 @@ parameters:
     ignoreErrors:
         # Traits for listeners in other packages (and modules added in later phases).
         - identifier: trait.unused
+        # Guards for Sunrice API added upstream (U2, U6, U11): always true on new Sunrice, needed on older.
+        - identifier: function.alreadyNarrowedType
+          paths:
+              - src/CommerceServiceProvider.php
+              - src/Storefront/PageCache.php
+              - src/Admin/Dashboard/StoreCard.php
+          reportUnmatched: false

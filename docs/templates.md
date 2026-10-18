@@ -399,11 +399,20 @@ Keep these when you edit published templates.
 
 ## Full-page cache
 
-Don't turn on Sunrice's full-page cache (`sunrice.cache.full_page`) while the store is open.
-Commerce can't exclude its pages from it yet, so product pages, the header cart count, prices for
-signed-in customers and stock would be served stale. The store health check `full_page_cache`
-warns about it on the store dashboard and in `php artisan commerce:doctor`. Prices are never cached
-otherwise: Sunrice's query cache only stores entry ids.
+On Sunrice versions with full-page cache control, you can keep Sunrice's full-page cache
+(`sunrice.cache.full_page`) on: commerce leaves out its own pages (cart, checkout, account, order
+pages…), product pages, the shop and product category, brand and tag pages, any page that shows a
+product (a products block on the home page), and every page for a visitor with a cart or signed in
+as a customer. This works with Sunrice's cache profile (`Sunrice\Cache\FullPageCacheProfile`,
+used unless your site set its own `responsecache.cache_profile`). The decision is
+`Sunrice\Commerce\Storefront\PageCache::cacheable()`; a custom component that shows prices or
+stock calls `PageCache::markDynamic()`.
+
+On older Sunrice versions, or with another cache profile, keep the full-page cache off while the
+store is open: product pages, the header cart count, prices for signed-in customers and stock would
+be served stale. The store health check `full_page_cache` warns about it on the store dashboard and
+in `php artisan commerce:doctor`. Prices are never cached otherwise: Sunrice's query cache only
+stores entry ids.
 
 ## Theming without publishing
 

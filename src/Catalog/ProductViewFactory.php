@@ -15,6 +15,7 @@ use Sunrice\Commerce\Pricing\PricingContext;
 use Sunrice\Commerce\Promotions\PriceRules\RuleMatcher;
 use Sunrice\Commerce\Promotions\Tiers;
 use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Commerce\Storefront\PageCache;
 use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Commerce\Taxes\TaxDisplay;
 use Sunrice\Models\Entry;
@@ -109,6 +110,7 @@ class ProductViewFactory
 
     protected function build(Entry $entry, Product $product, bool $preview): ProductView
     {
+        PageCache::markDynamic();
         $hidden = ! $this->visibility->visible();
         $variants = $product->variants->filter(fn (Variant $v) => $v->active)->values();
         $current = $variants->mapWithKeys(fn (Variant $v) => [$v->uid => $this->currentPrice($product, $v)]);
