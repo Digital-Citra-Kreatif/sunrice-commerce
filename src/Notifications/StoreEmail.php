@@ -52,8 +52,11 @@ class StoreEmail extends Notification implements ShouldQueue
         $settings = app(EmailSettings::class);
         $mail = (new MailMessage)
             ->subject($settings->text($this->key, 'subject', $this->lang, $data['replace']))
-            ->markdown('commerce::emails.store', $data)
-            ->theme('commerce::emails.theme');
+            ->markdown(app(Templates::class)->frameView(), $data)
+            ->theme(app(Templates::class)->themeView());
+        if (($copies = $settings->copies($this->key)) !== []) {
+            $mail->bcc($copies);
+        }
         $replyTo = app(StoreSettings::class)->get('general.email');
         if (is_string($replyTo) && $replyTo !== '' && str_starts_with($this->key, 'staff_') === false) {
             $mail->replyTo($replyTo, commerce_store_name());
@@ -86,6 +89,7 @@ class StoreEmail extends Notification implements ShouldQueue
             'action' => $this->action($settings, $replace),
             'store' => ['name' => commerce_store_name(), 'url' => url('/'), 'logo' => self::logoUrl()],
             'brand' => self::brandColor(),
+            'body' => app(Templates::class)->bodyView($this->key),
         ];
     }
 

@@ -9,6 +9,7 @@ and text changed per language, without touching code.
 - [The emails](#the-emails)
 - [Settings → Store → Emails](#settings--store--emails)
 - [Staff recipients](#staff-recipients)
+- [Copies of customer emails](#copies-of-customer-emails)
 - [Attachments](#attachments)
 - [Languages](#languages)
 - [Delivery](#delivery)
@@ -73,6 +74,7 @@ Open an email to change:
 | --- | --- |
 | Send this email | The switch (not on locked emails) |
 | Send to, And to users with the roles | Staff emails only; see [Staff recipients](#staff-recipients) |
+| Also send a copy to | Customer emails (not codes and reset links); see [Copies](#copies-of-customer-emails) |
 | Subject | Per site language |
 | Heading, Text | Per site language; the heading and the opening paragraph |
 | Attachments | Emails that can carry files; see [Attachments](#attachments) |
@@ -107,6 +109,13 @@ Each staff email goes to:
 When **Send to** is empty and no roles have been saved for the email, it goes to the store email
 (Settings → Store → General) and to the Shop Managers. When you choose roles but no addresses, it
 goes to those users only. Each address gets the email once.
+
+## Copies of customer emails
+
+Customer emails have **Also send a copy to**: addresses (comma separated) that get a hidden copy
+(BCC) of every one sent, for example the owner's inbox for order confirmations. The emails with a
+sign-in code, a verification link or a password reset link have no copies: those stay the
+customer's alone.
 
 ## Attachments
 
@@ -196,6 +205,26 @@ cp vendor/sunrice/commerce/resources/views/emails/parts/order_shipped.blade.php 
 
 Copy `emails/store.blade.php` the same way to change the frame of every store email. A part for an
 email that has none (for example `order_completed.blade.php`) is picked up too.
+
+From a service provider (a site or a package) you can point commerce at views of your own instead
+of copying files:
+
+```php
+use Sunrice\Commerce\Facades\Commerce;
+
+Commerce::emailTemplate('emails.order-shipped', 'order_shipped'); // one email's body
+Commerce::emailTemplate('emails.store-frame');                     // the frame of every store email
+Commerce::emailTemplate('emails.welcome', 'account_welcome');      // a whole account email
+Commerce::emailTheme('emails.theme');                              // the CSS emails are inlined with
+```
+
+A store email's body view gets the frame's variables (`$order`, `$customer`, `$context`, `$lang`,
+`$store`, `$heading`, `$intro`, `$action`). A replaced account email (`account_welcome`,
+`verify_email`, `login_code`, `password_reset`) is a whole markdown mail view
+(`<x-mail::message>…</x-mail::message>`) and gets `$lang`, `$store`, `$brand` and its own values:
+`$name` and `$url` (welcome), `$url` (verify, reset), `$code` and `$minutes` (sign-in code).
+Subjects still come from Settings → Store → Emails. For invoices, packing slips and quotations see
+[documents.md](documents.md#customizing-the-templates).
 
 `php artisan vendor:publish --tag=commerce-views` copies all of commerce's views at once. Prefer
 copying only the files you change, so the others keep getting updates.

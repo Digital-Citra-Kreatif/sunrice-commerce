@@ -46,8 +46,10 @@ class EmailsSettingsController extends Controller
         $this->guard();
         $email = $this->email($emails, $key);
         $values = $settings->for($key);
-        if (is_array($values['addresses'] ?? null)) {
-            $values['addresses'] = implode(', ', $values['addresses']);
+        foreach (['addresses', 'copies'] as $list) {
+            if (is_array($values[$list] ?? null)) {
+                $values[$list] = implode(', ', $values[$list]);
+            }
         }
         $values['enabled'] = $settings->enabled($key);
         $values['attachments'] ??= $email->defaultAttachments;
@@ -64,11 +66,14 @@ class EmailsSettingsController extends Controller
         $this->guard();
         $email = $this->email($emails, $key);
         $values = SchemaForm::make($this->fields($email))->validate((array) $request->input('values', []));
-        if (array_key_exists('addresses', $values)) {
-            $values['addresses'] = array_values(array_filter(array_map('trim', preg_split('/[\s,;]+/', (string) $values['addresses']) ?: [])));
-            foreach ($values['addresses'] as $address) {
+        foreach (['addresses', 'copies'] as $list) {
+            if (! array_key_exists($list, $values)) {
+                continue;
+            }
+            $values[$list] = array_values(array_filter(array_map('trim', preg_split('/[\s,;]+/', (string) $values[$list]) ?: [])));
+            foreach ($values[$list] as $address) {
                 if (! filter_var($address, FILTER_VALIDATE_EMAIL)) {
-                    throw ValidationException::withMessages(['values.addresses' => "\"{$address}\" isn't an email address."]);
+                    throw ValidationException::withMessages(["values.{$list}" => "\"{$address}\" isn't an email address."]);
                 }
             }
         }
@@ -174,6 +179,10 @@ class EmailsSettingsController extends Controller
             $fields[] = ['handle' => 'addresses', 'type' => 'text', 'label' => 'Send to', 'translatable' => false, 'instructions' => 'Email addresses, comma separated. Empty: the store email.'];
             $fields[] = ['handle' => 'roles', 'type' => 'select', 'label' => 'And to users with the roles', 'config' => ['multiple' => true,
                 'options' => Role::query()->orderBy('name')->pluck('name')->map(fn ($n) => ['value' => $n, 'label' => $n])->all()]];
+        }
+        if ($email->audience !== 'staff' && ! $email->locked) {
+            $fields[] = ['handle' => 'copies', 'type' => 'text', 'label' => 'Also send a copy to', 'translatable' => false,
+                'instructions' => 'Email addresses, comma separated, sent a hidden copy (BCC) of each one. Empty: only the customer.'];
         }
         $fields[] = $perLanguage('subject', 'Subject');
         if ($this->usesStoreEmail($email->key)) {

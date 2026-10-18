@@ -27,10 +27,10 @@ class CustomerResetPassword extends Notification implements ShouldQueue
     {
         $url = StorefrontRoutes::url('commerce.account.password.reset', ['token' => $this->token, 'email' => $notifiable->getEmailForPasswordReset()], $this->lang);
 
-        return (new MailMessage)
+        return $this->finish((new MailMessage)
             ->subject($this->configuredSubject(__('commerce::account.reset.subject', ['store' => commerce_store_name()], $this->lang)))
             ->line(__('commerce::account.reset.intro', [], $this->lang))
             ->action(__('commerce::account.reset.action', [], $this->lang), $url)
-            ->line(__('commerce::account.reset.expires', ['minutes' => config('auth.passwords.'.config('commerce.auth.passwords', 'users').'.expire', 60)], $this->lang));
+            ->line(__('commerce::account.reset.expires', ['minutes' => config('auth.passwords.'.config('commerce.auth.passwords', 'users').'.expire', 60)], $this->lang)), ['url' => $url]);
     }
 }

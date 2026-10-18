@@ -279,8 +279,13 @@ app(Notifier::class)->send('points_expiring', $customer, ['points' => 120]); // 
 ```
 
 The owner can switch it off, change the subject and text (Settings → Store → Emails), preview it and
-send a test. The body part is the view `commerce::emails.parts.points_expiring` (publish your own
-namespace and register it).
+send a test. The body part is the view `commerce::emails.parts.points_expiring`, or one of your own:
+`Commerce::emailTemplate('loyalty::emails.points-expiring', 'points_expiring')`.
+
+Replace commerce's views from your package too: `Commerce::emailTemplate($view, $key)` (one email's
+body, or the frame of every store email without a key), `Commerce::emailTheme($view)` and
+`Commerce::documentTemplate('invoice' | 'packing_slip' | 'quotation' | 'layout', $view)`. See
+[emails.md](emails.md#customizing-templates) and [documents.md](documents.md#customizing-the-templates).
 
 ## Scheduled work
 

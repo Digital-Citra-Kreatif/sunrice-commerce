@@ -31,6 +31,11 @@ to the MCP server's instructions and keeps store pages out of the full-page cach
 - Emails for every order event, editable in Settings → Store → Emails, with the store logo and
   brand color.
 - My Account overview with recent orders and quick links; terms and captcha at registration.
+- Everything the store needs in the admin's Shop group: products with their categories, brands
+  and tags, and Store settings.
+- Hidden copies of customer emails; `Commerce::emailTemplate()`, `emailTheme()` and
+  `documentTemplate()` replace email bodies, the email frame, account emails, invoices, packing
+  slips and quotations with a site's or package's own views.
 - Customers admin with filters by role, orders, spending and sign-up date, and CSV export.
 - Analytics: daily statistics, a dashboard with KPIs, a sales chart and to-dos, eight reports with
   CSV export, and view and click tracking without personal data.

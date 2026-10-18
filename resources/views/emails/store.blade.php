@@ -1,5 +1,6 @@
 {{--
-    Every store email. $key, $heading, $intro, $action, $order, $store (name, url, logo: image URL or null).
+    Every store email. $key, $heading, $intro, $action, $order, $store (name, url, logo: image URL or null),
+    $body (the email's body view: commerce::emails.parts.{key} or one set with Commerce::emailTemplate()).
     The colors come from emails/theme.blade.php.
 --}}
 @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
@@ -20,7 +21,7 @@
 {{ $intro }}
 @endif
 
-@includeIf('commerce::emails.parts.'.$key)
+@includeIf($body ?? 'commerce::emails.parts.'.$key)
 
 @if ($order && in_array($key, ['order_received', 'payment_received', 'order_completed', 'order_cancelled', 'quote_received', 'quote_ready', 'payment_link', 'order_updated', 'staff_new_order', 'staff_new_quote', 'staff_order_cancelled'], true))
 @include('commerce::emails.parts.summary')

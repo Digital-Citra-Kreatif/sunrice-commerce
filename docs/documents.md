@@ -142,6 +142,13 @@ They are copied to `resources/views/vendor/commerce/documents/` and used instead
 | `partials/lines.blade.php` | The items (`$prices` shows or hides prices) |
 | `partials/totals.blade.php` | Subtotal, discounts, shipping, fees, taxes and totals |
 
+Or, from a service provider, replace one view without publishing the rest:
+
+```php
+Commerce::documentTemplate('invoice', 'pdf.invoice');        // also packing_slip, quotation
+Commerce::documentTemplate('layout', 'pdf.layout');          // the page and styles around them
+```
+
 The document views receive:
 
 | Variable | |

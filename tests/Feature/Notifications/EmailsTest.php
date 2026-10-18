@@ -5,13 +5,17 @@ declare(strict_types=1);
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\View;
 use Spatie\Permission\Models\Role;
 use Sunrice\Commerce\Catalog\Models\DownloadFile;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
 use Sunrice\Commerce\Checkout\CheckoutData;
 use Sunrice\Commerce\Customers\Events\AccountDeletionRequested;
+use Sunrice\Commerce\Customers\Notifications\WelcomeCustomer;
 use Sunrice\Commerce\Digital\Models\DownloadGrant;
+use Sunrice\Commerce\Documents\Documents;
+use Sunrice\Commerce\Facades\Commerce;
 use Sunrice\Commerce\Inventory\Events\StockLow;
 use Sunrice\Commerce\Inventory\Events\StockOut;
 use Sunrice\Commerce\Notifications\EmailSettings;
@@ -261,4 +265,39 @@ it('emails a pay-again link when a payment fails', function () {
     Notification::assertSentOnDemand(StoreEmail::class, function (StoreEmail $n, array $channels, AnonymousNotifiable $notifiable) use ($order) {
         return $n->key === 'payment_failed' && str_contains((string) ($n->toMail($notifiable)->viewData['action']['url'] ?? ''), '/order/'.$order->order_key.'/pay');
     });
+});
+
+it('sends hidden copies of customer emails, never of codes and reset links', function () {
+    actingAsUserWith(['commerce.settings.emails']);
+    $this->put('/cms/commerce/settings/emails/order_received', ['values' => ['enabled' => true, 'copies' => 'owner@example.com, nope']])
+        ->assertSessionHasErrors('values.copies');
+    $this->put('/cms/commerce/settings/emails/order_received', ['values' => ['enabled' => true, 'copies' => 'Owner@example.com, admin@example.com']])
+        ->assertSessionHasNoErrors();
+    $this->get('/cms/commerce/settings/emails/password_reset')->assertInertia(fn ($page) => $page
+        ->where('form.fields', fn ($fields) => ! collect($fields)->contains('handle', 'copies')));
+
+    $mail = (new StoreEmail('order_received', placeOrderFor($this->mug), lang: 'id'))->toMail(null);
+    expect(array_column($mail->bcc, 0))->toBe(['owner@example.com', 'admin@example.com']);
+
+    // Stored by hand for a locked email: still nobody else gets the link.
+    $settings = app(StoreSettings::class);
+    $settings->saveSection('emails', [...(array) ($settings->stored()['emails'] ?? []), 'password_reset' => ['copies' => ['owner@example.com']]]);
+    expect(app(EmailSettings::class)->copies('password_reset'))->toBe([]);
+});
+
+it('lets developers replace an email body, the frame, account emails and documents', function () {
+    View::getFinder()->prependLocation(__DIR__.'/../../Fixtures/views');
+    $order = placeOrderFor($this->mug);
+
+    Commerce::emailTemplate('custom.email-body', 'order_shipped');
+    $html = (string) (new StoreEmail('order_shipped', $order, lang: 'id'))->toMail(null)->render();
+    expect($html)->toContain("Custom body for {$order->number}.");
+
+    Commerce::emailTemplate('custom.welcome', 'account_welcome');
+    $user = User::query()->create(['name' => 'Rina', 'email' => 'rina@example.com', 'password' => 'secret-pass']);
+    $welcome = (string) (new WelcomeCustomer('id'))->toMail($user)->render();
+    expect($welcome)->toContain('Custom welcome, Rina, from Toko Sunrice.');
+
+    Commerce::documentTemplate('invoice', 'custom.invoice');
+    expect(app(Documents::class)->html(collect([$order]), 'invoice'))->toContain('Custom invoice');
 });

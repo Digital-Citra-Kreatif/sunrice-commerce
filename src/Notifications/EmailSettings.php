@@ -70,11 +70,31 @@ class EmailSettings
     /** @return array<int, string> staff addresses: configured ones, or the store email */
     public function addresses(string $key): array
     {
-        $list = $this->for($key)['addresses'] ?? null;
-        $addresses = is_string($list) ? preg_split('/[\s,;]+/', $list) : (array) $list;
-        $addresses = array_values(array_filter(array_map(fn ($a) => mb_strtolower(trim((string) $a)), (array) $addresses), fn ($a) => filter_var($a, FILTER_VALIDATE_EMAIL)));
+        $addresses = $this->list($key, 'addresses');
 
         return $addresses !== [] || ! empty($this->for($key)['roles']) ? $addresses : array_filter([mb_strtolower((string) $this->settings->get('general.email'))]);
+    }
+
+    /**
+     * Who gets a hidden copy (BCC) of a customer email; never for the locked
+     * account emails, whose codes and links are the customer's alone.
+     *
+     * @return array<int, string>
+     */
+    public function copies(string $key): array
+    {
+        $email = $this->emails->get($key);
+
+        return $email === null || $email->locked || $email->audience === 'staff' ? [] : $this->list($key, 'copies');
+    }
+
+    /** @return array<int, string> valid, lower-cased addresses stored under emails.{key}.{list} */
+    protected function list(string $key, string $list): array
+    {
+        $stored = $this->for($key)[$list] ?? null;
+        $addresses = is_string($stored) ? preg_split('/[\s,;]+/', $stored) : (array) $stored;
+
+        return array_values(array_filter(array_map(fn ($a) => mb_strtolower(trim((string) $a)), (array) $addresses), fn ($a) => filter_var($a, FILTER_VALIDATE_EMAIL)));
     }
 
     /** @return array<int, string> */

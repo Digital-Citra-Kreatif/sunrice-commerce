@@ -85,6 +85,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->bindIf(Documents\DocumentRenderer::class, Documents\DompdfRenderer::class);
         $this->app->singleton(Payments\PaymentRegistry::class);
         $this->app->singleton(Notifications\Emails::class);
+        $this->app->singleton(Notifications\Templates::class);
         $this->app->singleton(Checkout\CheckoutFields::class);
         $this->app->singleton(Orders\OrderPanels::class);
         $this->app->singleton(Checkout\Completion\Completions::class);

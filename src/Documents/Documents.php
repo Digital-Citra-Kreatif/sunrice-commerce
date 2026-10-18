@@ -7,6 +7,7 @@ namespace Sunrice\Commerce\Documents;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Sunrice\Commerce\Notifications\Templates;
 use Sunrice\Commerce\Orders\Models\Document;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\Numbering;
@@ -89,13 +90,13 @@ class Documents
             $previous = app()->getLocale();
             app()->setLocale((string) ($order->locale ?: $previous));
             try {
-                $pages[] = view('commerce::documents.'.str_replace('_', '-', $type), $this->data($order, $type))->render();
+                $pages[] = view(app(Templates::class)->documentView($type), $this->data($order, $type))->render();
             } finally {
                 app()->setLocale($previous);
             }
         }
 
-        return view('commerce::documents.layout', ['pages' => $pages, 'title' => $type])->render();
+        return view(app(Templates::class)->documentView('layout'), ['pages' => $pages, 'title' => $type])->render();
     }
 
     /** @return array<string, mixed> */

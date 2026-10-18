@@ -34,9 +34,9 @@ class VerifyCustomerEmail extends Notification implements ShouldQueue
 
     public function toMail(mixed $notifiable): MailMessage
     {
-        return (new MailMessage)
+        return $this->finish((new MailMessage)
             ->subject($this->configuredSubject(__('commerce::account.verify.subject', ['store' => commerce_store_name()], $this->lang)))
             ->line(__('commerce::account.verify.intro', [], $this->lang))
-            ->action(__('commerce::account.verify.action', [], $this->lang), static::url($notifiable, $this->lang));
+            ->action(__('commerce::account.verify.action', [], $this->lang), static::url($notifiable, $this->lang)), ['url' => static::url($notifiable, $this->lang)]);
     }
 }

@@ -234,6 +234,30 @@ class Commerce
         app(Notifications\Emails::class)->register($email);
     }
 
+    /**
+     * Replace an email's view: with a key, that email's body (the part between
+     * the heading and the order summary, or the whole message of an account
+     * email); without, the frame of every store email.
+     */
+    public function emailTemplate(string $view, ?string $key = null): void
+    {
+        app(Notifications\Templates::class)->email($view, $key);
+    }
+
+    /** Replace the CSS view emails are inlined with (default commerce::emails.theme). */
+    public function emailTheme(string $view): void
+    {
+        app(Notifications\Templates::class)->theme($view);
+    }
+
+    // ---- Documents ------------------------------------------------------------
+
+    /** Replace a document's view: "invoice", "packing_slip", "quotation", or "layout" (the page around them). */
+    public function documentTemplate(string $type, string $view): void
+    {
+        app(Notifications\Templates::class)->document($type, $view);
+    }
+
     // ---- Shipping -------------------------------------------------------------
 
     /** @param  class-string<Shipping\Contracts\ShippingMethodType>  $class */

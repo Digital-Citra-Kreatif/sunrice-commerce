@@ -24,10 +24,10 @@ class WelcomeCustomer extends Notification implements ShouldQueue
 
     public function toMail(mixed $notifiable): MailMessage
     {
-        return (new MailMessage)
+        return $this->finish((new MailMessage)
             ->subject($this->configuredSubject(__('commerce::account.welcome.subject', ['store' => commerce_store_name()], $this->lang)))
             ->greeting(__('commerce::account.welcome.greeting', ['name' => $notifiable->getAttribute('name')], $this->lang))
             ->line(__('commerce::account.welcome.intro', ['store' => commerce_store_name()], $this->lang))
-            ->action(__('commerce::account.welcome.action', [], $this->lang), StorefrontRoutes::url('commerce.account', [], $this->lang));
+            ->action(__('commerce::account.welcome.action', [], $this->lang), StorefrontRoutes::url('commerce.account', [], $this->lang)), ['name' => $notifiable->getAttribute('name'), 'url' => StorefrontRoutes::url('commerce.account', [], $this->lang)]);
     }
 }

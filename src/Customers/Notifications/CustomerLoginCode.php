@@ -25,11 +25,11 @@ class CustomerLoginCode extends Notification
     {
         $minutes = max(1, (int) round(now()->diffInMinutes($this->code->getAttribute('expires_at'), true)));
 
-        return (new MailMessage)
+        return $this->finish((new MailMessage)
             ->subject($this->configuredSubject(__('commerce::account.code.subject', ['code' => $this->code->getAttribute('password'), 'store' => commerce_store_name()], $this->lang)))
             ->line(__('commerce::account.code.intro', [], $this->lang))
             ->line('**'.$this->code->getAttribute('password').'**')
             ->line(__('commerce::account.code.expires', ['minutes' => $minutes], $this->lang))
-            ->line(__('commerce::account.code.ignore', [], $this->lang));
+            ->line(__('commerce::account.code.ignore', [], $this->lang)), ['code' => $this->code->getAttribute('password'), 'minutes' => $minutes]);
     }
 }
