@@ -63,6 +63,8 @@ class OrdersController extends Controller
     {
         $this->guard();
         $table = $this->table($request);
+        // The items column: summed in the page query rather than once per row.
+        $table->builder()->withSum(['items as items_quantity' => fn (Builder $q) => $q->whereNull('parent_id')], 'quantity');
         $rows = $table->defaultPerPage(TablePreferencesController::perPageFor($request, self::TABLE, 25))->paginate($request);
         $columns = $this->columns();
 
@@ -748,7 +750,7 @@ class OrdersController extends Controller
             'payment_tone' => $tone($order->payment_status),
             'fulfillment' => $order->isQuote() ? null : OrderStatus::label($order->fulfillment_status, 'fulfillment'), 'fulfillment_tone' => $tone($order->fulfillment_status),
             'total' => $money->format($order->total),
-            'items' => (string) $order->items()->whereNull('parent_id')->sum('quantity'),
+            'items' => (string) (int) ($order->getAttribute('items_quantity') ?? $order->items()->whereNull('parent_id')->sum('quantity')),
             'payment_method' => $order->payment_method_title,
             'shipping_method' => $order->shipping_method['label'] ?? null,
             'city' => $order->shipping_address['city'] ?? null,

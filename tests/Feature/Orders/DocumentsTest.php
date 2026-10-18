@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Sunrice\Commerce\Documents\Documents;
 use Sunrice\Commerce\Orders\Models\Document;
+use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Settings\StoreSettings;
 
 beforeEach(function () {
@@ -73,4 +76,29 @@ it('serves documents to staff with the permission and invoices to customers by k
     $this->get("/order/{$this->order->order_key}/invoice")->assertOk()->assertHeader('Content-Type', 'application/pdf');
     app(StoreSettings::class)->saveSection('documents', ['customer_invoice_download' => false]);
     $this->get("/order/{$this->order->order_key}/invoice")->assertNotFound();
+});
+
+it('loads the orders of bulk packing slips together, not one by one', function () {
+    $documents = app(Documents::class);
+    $orders = function (int $count): Collection {
+        foreach (range(1, $count) as $i) {
+            $order = makeOrder(['shipping_address' => ['name' => 'Rina', 'country' => 'ID', 'line1' => "Jl. Uji {$i}"]]);
+            $order->items()->create(['name' => "Produk {$i}", 'sku' => "P{$i}", 'quantity' => 1]);
+        }
+
+        return Order::query()->orderBy('id')->get();
+    };
+    $measure = function ($orders) use ($documents): int {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $documents->html($orders, 'packing_slip');
+        $count = count(DB::getQueryLog());
+        DB::disableQueryLog();
+
+        return $count;
+    };
+    $documents->html(Order::query()->get(), 'packing_slip'); // store settings, read once
+    $few = $measure($orders(1));
+
+    expect($measure($orders(8)))->toBe($few);
 });

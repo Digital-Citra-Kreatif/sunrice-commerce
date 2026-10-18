@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Documents;
 
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -85,8 +86,9 @@ class Documents
     public function html(Collection $orders, string $type): string
     {
         $pages = [];
+        // Loaded for all orders at once: bulk packing slips print up to 200.
+        (new EloquentCollection($orders->all()))->loadMissing(['items.children', 'adjustments', 'shipments']);
         foreach ($orders as $order) {
-            $order->loadMissing(['items.children', 'adjustments', 'shipments']);
             $previous = app()->getLocale();
             app()->setLocale((string) ($order->locale ?: $previous));
             try {
