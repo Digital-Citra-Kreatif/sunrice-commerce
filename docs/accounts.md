@@ -295,7 +295,12 @@ aren't listed.
 account (Registered, Guest or Deletion requested).
 
 - Search by name, email or phone.
-- Filters: account (registered or guests), marketing consent, deletion requested.
+- Filters: account (registered or guests), role (the customer roles), number of orders (none, 1,
+  2 or more, 5 or more), total spent, sign-up date (last 7 or 30 days, this month, this year),
+  marketing consent, deletion requested.
+- **Export CSV** (with `commerce.customers.export`) downloads the list as it is filtered and
+  searched: name, email, phone, account, orders, spent (smallest currency unit), last order,
+  marketing consent, sign-up date, city and province. Exports are recorded in the activity log.
 - Sort by name, email, orders, amount spent, last order or sign-up date.
 
 **A customer's page**: profile, language, addresses, statistics, the 20 latest orders, the staff
@@ -379,7 +384,7 @@ groups:
 | `commerce.customers.view` | Viewing customers |
 | `commerce.customers.edit` | Editing customers |
 | `commerce.customers.delete` | Anonymizing customers |
-| `commerce.customers.export` | Exporting customers (there is no customer export screen yet) |
+| `commerce.customers.export` | Exporting customers (Shop → Customers → Export CSV) |
 | `commerce.inventory.view` | Stock levels |
 | `commerce.inventory.adjust` | Adjusting stock |
 | `commerce.vouchers.manage` | Vouchers and automatic discounts |

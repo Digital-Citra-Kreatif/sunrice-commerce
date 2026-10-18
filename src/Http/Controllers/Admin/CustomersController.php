@@ -14,6 +14,7 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
+use Spatie\SimpleExcel\SimpleExcelWriter;
 use Sunrice\Admin\Table\Column;
 use Sunrice\Admin\Table\TableQuery;
 use Sunrice\Commerce\Customers\Actions\AnonymizeCustomer;
@@ -26,6 +27,7 @@ use Sunrice\Commerce\Support\ActivityRecorder;
 use Sunrice\Commerce\Support\Address;
 use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Commerce\Support\Phone;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Shop → Customers: everyone who registered or ordered. */
 class CustomersController extends Controller
@@ -33,22 +35,14 @@ class CustomersController extends Controller
     public function index(Request $request, MoneyFormatter $money): Response
     {
         $this->authorize('commerce.customers.view');
-        $table = TableQuery::for(Customer::query()->whereNull('anonymized_at'))
-            ->searchable(['name', 'email', 'phone'])
-            ->filter('account', fn (Builder $q, mixed $v) => $v === 'registered' ? $q->whereNotNull('user_id') : $q->whereNull('user_id'))
-            ->filter('marketing', fn (Builder $q, mixed $v) => $q->where('accepts_marketing', $v === 'yes'))
-            ->filter('deletion', fn (Builder $q) => $q->whereNotNull('deletion_requested_at'))
-            ->sortable(['name', 'email', 'orders_count', 'total_spent', 'last_order_at', 'created_at'])
-            ->apply($request);
-        if ($table->meta()['sort'] === null) {
-            $table->builder()->latest('id');
-        }
+        $table = $this->table($request);
         $rows = $table->defaultPerPage(25)->paginate($request);
 
         return Inertia::render('Commerce/Shared/ResourceIndex', [
             'title' => 'Customers',
             'description' => 'Everyone who registered or ordered.',
             'createUrl' => null,
+            'exportUrl' => $request->user()->can('commerce.customers.export') ? route('sunrice.admin.commerce.customers.export', [], false) : null,
             ...$this->tableProps('commerce-customers', $table, [
                 new Column('name', 'Name', sortable: true),
                 new Column('email', 'Email', sortable: true),
@@ -71,9 +65,115 @@ class CustomersController extends Controller
             ] : []), [
                 ['key' => 'account', 'label' => 'Account', 'type' => 'select', 'options' => [['value' => 'registered', 'label' => 'Registered'], ['value' => 'guest', 'label' => 'Guests']]],
                 ['key' => 'marketing', 'label' => 'Marketing', 'type' => 'select', 'options' => [['value' => 'yes', 'label' => 'Accepts marketing'], ['value' => 'no', 'label' => "Doesn't"]]],
+                ['key' => 'role', 'label' => 'Role', 'type' => 'select', 'options' => array_map(fn (string $r) => ['value' => $r, 'label' => $r],
+                    (array) app(StoreSettings::class)->get('accounts.customer_roles', ['Customer']))],
+                ['key' => 'orders', 'label' => 'Orders', 'type' => 'select', 'options' => [
+                    ['value' => 'none', 'label' => 'No orders'], ['value' => 'one', 'label' => '1 order'], ['value' => 'repeat', 'label' => '2 or more'], ['value' => 'loyal', 'label' => '5 or more'],
+                ]],
+                ['key' => 'spent', 'label' => 'Spent', 'type' => 'select', 'options' => array_map(fn (array $b) => ['value' => $b[0], 'label' => $b[1]($money)], self::spentBands())],
+                ['key' => 'joined', 'label' => 'Signed up', 'type' => 'select', 'options' => [
+                    ['value' => '7d', 'label' => 'Last 7 days'], ['value' => '30d', 'label' => 'Last 30 days'], ['value' => 'month', 'label' => 'This month'], ['value' => 'year', 'label' => 'This year'],
+                ]],
                 ['key' => 'deletion', 'label' => 'Requests', 'type' => 'select', 'options' => [['value' => 'yes', 'label' => 'Deletion requested']]],
             ]),
         ]);
+    }
+
+    /** The filtered list as CSV (the same filters and search as the list). */
+    public function export(Request $request): StreamedResponse
+    {
+        $this->authorize('commerce.customers.export');
+        $query = $this->table($request)->builder();
+        app(ActivityRecorder::class)->record('exported', 'Customers', [], 'customers');
+
+        return response()->streamDownload(function () use ($query): void {
+            $writer = SimpleExcelWriter::streamDownload('customers.csv');
+            $query->reorder()->with('addresses')->chunkById(500, function ($customers) use ($writer): void {
+                foreach ($customers as $c) {
+                    if ($c instanceof Customer) {
+                        $address = $c->addresses->firstWhere('default_shipping', true) ?? $c->addresses->first();
+                        $writer->addRow([
+                            'name' => $c->name, 'email' => $c->email, 'phone' => $c->phone,
+                            'account' => $c->user_id ? 'registered' : 'guest',
+                            'orders' => $c->orders_count, 'spent' => $c->total_spent,
+                            'last_order' => $c->last_order_at?->toDateTimeString(),
+                            'accepts_marketing' => $c->accepts_marketing ? 'yes' : 'no',
+                            'signed_up' => $c->created_at?->toDateTimeString(),
+                            'city' => $address?->city, 'province' => $address?->province,
+                        ]);
+                    }
+                }
+            });
+            $writer->close();
+        }, 'customers-'.now()->format('Ymd-His').'.csv', ['Content-Type' => 'text/csv']);
+    }
+
+    /** The list's query: search, filters and sort. */
+    protected function table(Request $request): TableQuery
+    {
+        $factor = 10 ** (int) app(StoreSettings::class)->get('general.currency.decimals', 0);
+        $table = TableQuery::for(Customer::query()->whereNull('anonymized_at'))
+            ->searchable(['name', 'email', 'phone'])
+            ->filter('account', fn (Builder $q, mixed $v) => $v === 'registered' ? $q->whereNotNull('user_id') : $q->whereNull('user_id'))
+            ->filter('marketing', fn (Builder $q, mixed $v) => $q->where('accepts_marketing', $v === 'yes'))
+            ->filter('deletion', fn (Builder $q) => $q->whereNotNull('deletion_requested_at'))
+            ->filter('role', fn (Builder $q, mixed $v) => $q->whereIn('user_id', DB::table('model_has_roles')
+                ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')->where('roles.name', (string) $v)
+                ->where('model_has_roles.model_type', self::userMorphClass())->select('model_has_roles.model_id')))
+            ->filter('orders', fn (Builder $q, mixed $v) => match ($v) {
+                'none' => $q->where('orders_count', 0), 'one' => $q->where('orders_count', 1),
+                'repeat' => $q->where('orders_count', '>=', 2), 'loyal' => $q->where('orders_count', '>=', 5), default => $q,
+            })
+            ->filter('spent', function (Builder $q, mixed $v) use ($factor) {
+                foreach (self::spentBands() as [$key, , $min, $max]) {
+                    if ($key === $v) {
+                        $q->where('total_spent', '>=', $min * $factor);
+                        if ($max !== null) {
+                            $q->where('total_spent', '<', $max * $factor);
+                        }
+                    }
+                }
+
+                return $q;
+            })
+            ->filter('joined', fn (Builder $q, mixed $v) => match ($v) {
+                '7d' => $q->where('created_at', '>=', now()->subDays(7)->startOfDay()),
+                '30d' => $q->where('created_at', '>=', now()->subDays(30)->startOfDay()),
+                'month' => $q->where('created_at', '>=', now()->startOfMonth()),
+                'year' => $q->where('created_at', '>=', now()->startOfYear()),
+                default => $q,
+            })
+            ->sortable(['name', 'email', 'orders_count', 'total_spent', 'last_order_at', 'created_at'])
+            ->apply($request);
+        if ($table->meta()['sort'] === null) {
+            $table->builder()->latest('id');
+        }
+
+        return $table;
+    }
+
+    protected static function userMorphClass(): string
+    {
+        $class = (string) config('sunrice.auth.user_model');
+
+        return class_exists($class) && is_subclass_of($class, Model::class) ? (new $class)->getMorphClass() : $class;
+    }
+
+    /**
+     * Total-spent bands for the filter, in whole currency units: [key, label, min, max).
+     *
+     * @return array<int, array{0: string, 1: \Closure(MoneyFormatter): string, 2: int, 3: int|null}>
+     */
+    protected static function spentBands(): array
+    {
+        $factor = fn () => 10 ** (int) app(StoreSettings::class)->get('general.currency.decimals', 0);
+
+        return [
+            ['none', fn (MoneyFormatter $m) => 'Nothing yet', 0, 1],
+            ['under_1m', fn (MoneyFormatter $m) => 'Under '.$m->format(1_000_000 * $factor()), 1, 1_000_000],
+            ['1m', fn (MoneyFormatter $m) => $m->format(1_000_000 * $factor()).' – '.$m->format(5_000_000 * $factor()), 1_000_000, 5_000_000],
+            ['5m', fn (MoneyFormatter $m) => $m->format(5_000_000 * $factor()).' or more', 5_000_000, null],
+        ];
     }
 
     public function show(Request $request, Customer $customer, MoneyFormatter $money): Response

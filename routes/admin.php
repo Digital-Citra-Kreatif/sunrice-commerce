@@ -85,6 +85,7 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::get('reports/{report}/export', [Admin\ReportsController::class, 'export'])->name('reports.export');
 
     Route::get('customers', [Admin\CustomersController::class, 'index'])->name('customers');
+    Route::get('customers/export', [Admin\CustomersController::class, 'export'])->name('customers.export');
     Route::get('customers/{customer}', [Admin\CustomersController::class, 'show'])->name('customers.show');
     Route::put('customers/{customer}', [Admin\CustomersController::class, 'update'])->name('customers.update');
     Route::post('customers/{customer}/password-reset', [Admin\CustomersController::class, 'sendPasswordReset'])->name('customers.password-reset');
