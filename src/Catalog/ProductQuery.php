@@ -74,7 +74,7 @@ class ProductQuery
     {
         $query = new self($collection);
         foreach (['category' => 'category_taxonomy', 'brand' => 'brand_taxonomy', 'tag' => 'tag_taxonomy'] as $param => $config) {
-            if (filled($value = $request->query($param))) {
+            if (filled($value = $request->query($param)) && ($param !== 'brand' || commerce_feature('brands'))) {
                 $query->whereTerms((string) config("commerce.catalog.{$config}"), (array) $value, $param === 'category');
             }
         }
@@ -235,7 +235,7 @@ class ProductQuery
     public function facets(): array
     {
         $taxonomies = array_values(array_filter([
-            config('commerce.catalog.category_taxonomy'), config('commerce.catalog.brand_taxonomy'), config('commerce.catalog.tag_taxonomy'),
+            config('commerce.catalog.category_taxonomy'), commerce_feature('brands') ? config('commerce.catalog.brand_taxonomy') : null, config('commerce.catalog.tag_taxonomy'),
             ...(array) app(StoreSettings::class)->get('catalog.attribute_taxonomies', []),
         ]));
         $key = md5(json_encode([$this->state(), $taxonomies, app()->getLocale()]) ?: '');

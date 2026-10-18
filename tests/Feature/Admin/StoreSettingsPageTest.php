@@ -61,6 +61,23 @@ it('refuses a selling mode the switched-on modules cannot serve, and logs saves'
         ->and(ActivityLog::query()->where('subject_label', 'Store settings: General')->exists())->toBeTrue();
 });
 
+it('refuses WhatsApp orders without a number and the online store without a payment method', function () {
+    actingAsSuperAdmin();
+    $general = ['name' => 'Toko', 'currency' => ['code' => 'IDR', 'symbol' => 'Rp', 'decimals' => 0]];
+    $this->put('/cms/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'catalog']])->assertSessionHasNoErrors();
+
+    $this->put('/cms/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'whatsapp', 'whatsapp' => ['numbers' => []]]])
+        ->assertSessionHasErrors(['section' => 'Add a WhatsApp number to take orders by WhatsApp.']);
+    $this->put('/cms/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'whatsapp', 'whatsapp' => ['numbers' => [['number' => '0812 0000 0000']]]]])
+        ->assertSessionHasNoErrors();
+
+    $this->put('/cms/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'shop']])
+        ->assertSessionHasErrors(['section' => 'Turn on a payment method (Settings → Store → Payments) before switching to the online store.']);
+    app(StoreSettings::class)->saveSection('payments', ['methods' => ['cod' => ['active' => true]]]);
+    $this->put('/cms/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'shop']])->assertSessionHasNoErrors();
+    expect(app(StoreSettings::class)->get('general.selling_mode'))->toBe('shop');
+});
+
 it('hides sections of inactive modules', function () {
     actingAsSuperAdmin();
     app(ToggleFeature::class)->handle('documents', false);

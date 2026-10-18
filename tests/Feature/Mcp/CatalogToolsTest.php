@@ -81,15 +81,20 @@ it('saves vouchers through the admin form, describing it first', function () {
     expect((new Tools\SaveVoucherTool)->shouldRegister())->toBeFalse();
 });
 
-it('saves flash sales and pricing rules', function () {
-    $sale = mcpTool(Tools\SaveFlashSaleTool::class, ['values' => ['name' => 'Payday', 'active' => true,
+it('saves flash sales and pricing rules once the user agrees', function () {
+    $values = ['name' => 'Payday', 'active' => true,
         'dates' => ['start' => now()->addDay()->toIso8601String(), 'end' => now()->addDays(2)->toIso8601String()],
-        'items' => [['target' => [['type' => 'product', 'id' => $this->mug->product_id]], 'discount_type' => 'percent_off', 'percent' => 20]]]]);
+        'items' => [['target' => [['type' => 'product', 'id' => $this->mug->product_id]], 'discount_type' => 'percent_off', 'percent' => 20]]];
+    expect(mcpTool(Tools\SaveFlashSaleTool::class, ['values' => $values])['error'])->toContain('confirm: true')
+        ->and(FlashSale::query()->count())->toBe(0);
+    $sale = mcpTool(Tools\SaveFlashSaleTool::class, ['values' => $values, 'confirm' => true]);
     expect($sale)->toMatchArray(['saved' => true, 'name' => 'Payday', 'items' => 1])
         ->and(mcpTool(Tools\ListFlashSalesTool::class)['flash_sales'][0])->toMatchArray(['name' => 'Payday', 'state' => 'upcoming']);
 
-    $rule = mcpTool(Tools\SavePricingRuleTool::class, ['values' => ['name' => 'Grosir', 'active' => true, 'audience' => 'everyone', 'scope' => 'all',
-        'quantity_basis' => 'product', 'tiers' => [['min_qty' => 10, 'type' => 'percent_off', 'percent' => 5]]]]);
+    $values = ['name' => 'Grosir', 'active' => true, 'audience' => 'everyone', 'scope' => 'all',
+        'quantity_basis' => 'product', 'tiers' => [['min_qty' => 10, 'type' => 'percent_off', 'percent' => 5]]];
+    expect(mcpTool(Tools\SavePricingRuleTool::class, ['values' => $values])['error'])->toContain('every product');
+    $rule = mcpTool(Tools\SavePricingRuleTool::class, ['values' => $values, 'confirm' => true]);
     expect($rule['saved'])->toBeTrue()->and(PriceRule::query()->sole()->tiers)->toBe([['min_qty' => 10, 'type' => 'percent_off', 'value' => 500]]);
 
     staffWith(['commerce.vouchers.manage']);

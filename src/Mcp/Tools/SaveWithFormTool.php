@@ -34,7 +34,7 @@ abstract class SaveWithFormTool extends CommerceTool
 
     protected function run(Request $request): Response
     {
-        $args = $request->validate(['id' => ['nullable', 'integer'], 'values' => ['nullable', 'array']]);
+        $args = $request->validate(['id' => ['nullable', 'integer'], 'values' => ['nullable', 'array'], 'confirm' => ['boolean']]);
         $model = $this->record(isset($args['id']) ? (int) $args['id'] : null);
         if ($model === null) {
             return $this->notFound('Record');
@@ -43,9 +43,24 @@ abstract class SaveWithFormTool extends CommerceTool
         if (! isset($args['values'])) {
             return $this->json(['fields' => self::describe($action->fields()), 'values' => $action->values($model)]);
         }
-        $saved = $action->handle($model, array_replace($action->values($model), $args['values']));
+        $values = array_replace($action->values($model), $args['values']);
+        if (($what = $this->needsConfirmation($values)) !== null && ($refused = $this->unconfirmed($request, $what)) !== null) {
+            return $refused;
+        }
+        $saved = $action->handle($model, $values);
 
         return $this->json(['saved' => true, ...$this->present($saved->refresh())]);
+    }
+
+    /**
+     * What saving these values does that the user must agree to first (it
+     * changes many prices), or null.
+     *
+     * @param  array<string, mixed>  $values
+     */
+    protected function needsConfirmation(array $values): ?string
+    {
+        return null;
     }
 
     /**
@@ -71,6 +86,7 @@ abstract class SaveWithFormTool extends CommerceTool
             'values' => $schema->object()->description('Form values to change (merged over the current ones). Leave out to get the fields and current values first. '
                 .'Money is an integer in the smallest currency unit; percents are numbers (12.5); dates are {start, end} ISO 8601; '
                 .'product targets are [{type: product | variant | term, id}].'),
+            'confirm' => $schema->boolean()->description('Saving an active pricing rule or flash sale changes many prices: ask the user, then send true.'),
         ];
     }
 }

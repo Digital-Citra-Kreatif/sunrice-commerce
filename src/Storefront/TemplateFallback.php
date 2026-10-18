@@ -10,7 +10,7 @@ use Sunrice\Frontend\TemplateContext;
  * Swaps Sunrice's generic templates for commerce's store views on product
  * pages, the shop page and product term pages. Templates the app
  * publishes (sunrice/products/show.blade.php, …) are found first by
- * Sunrice and kept.
+ * Sunrice and kept. With Brands off, brand term pages answer 404.
  */
 final class TemplateFallback
 {
@@ -18,6 +18,10 @@ final class TemplateFallback
 
     public static function resolve(string $view, TemplateContext $context): ?string
     {
+        // With Brands off, brand pages don't exist (published templates included).
+        if ($context->pageType === 'term' && $context->taxonomy?->handle === config('commerce.catalog.brand_taxonomy') && ! commerce_feature('brands')) {
+            abort(404);
+        }
         if (! in_array($view, self::GENERIC, true)) {
             return null;
         }

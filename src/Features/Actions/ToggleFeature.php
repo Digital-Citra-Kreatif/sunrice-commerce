@@ -6,6 +6,7 @@ namespace Sunrice\Commerce\Features\Actions;
 
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
+use Sunrice\Commerce\Customers\Auth\LoginCodes;
 use Sunrice\Commerce\Events\FeatureToggled;
 use Sunrice\Commerce\Features\FeatureRegistry;
 use Sunrice\Commerce\Features\Features;
@@ -43,6 +44,10 @@ class ToggleFeature
 
         if ($feature->core && ! $on) {
             throw ValidationException::withMessages(['feature' => "{$feature->label} can't be switched off."]);
+        }
+
+        if ($key === 'passwordless_login' && $on && ! app(LoginCodes::class)->supported()) {
+            throw ValidationException::withMessages(['feature' => 'Sign in with an emailed code needs the HasOneTimePasswords trait on your user model. Run php artisan commerce:install, or add use Spatie\\OneTimePasswords\\Models\\Concerns\\HasOneTimePasswords; to it.']);
         }
 
         $switches = (array) $settings->get('features', []);

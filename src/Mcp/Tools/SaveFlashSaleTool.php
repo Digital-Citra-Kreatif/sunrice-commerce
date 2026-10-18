@@ -10,7 +10,7 @@ use Sunrice\Commerce\Promotions\Actions\SaveFlashSale;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 
 /** @extends SaveWithFormTool<FlashSale> */
-#[Description('Create or change a flash sale, like Shop → Flash sales: name, dates (start and end), and items (each a product or variant target with discount_type percent_off, amount_off or fixed_price and its percent or amount, optionally a unit cap). Call without values to see the fields, then send what changes. A product can be in one active sale at a time.')]
+#[Description('Create or change a flash sale, like Shop → Flash sales: name, dates (start and end), and items (each a product or variant target with discount_type percent_off, amount_off or fixed_price and its percent or amount, optionally a unit cap). Call without values to see the fields, then send what changes. A product can be in one active sale at a time. Saving an active sale with items needs confirm: true — ask the user first.')]
 class SaveFlashSaleTool extends SaveWithFormTool
 {
     protected string $name = 'save_flash_sale';
@@ -33,5 +33,12 @@ class SaveFlashSaleTool extends SaveWithFormTool
     protected function present(Model $m): array
     {
         return ['id' => $m->id, 'name' => $m->name, 'slug' => $m->slug, 'active' => (bool) $m->active, 'starts_at' => $m->starts_at->toIso8601String(), 'ends_at' => $m->ends_at->toIso8601String(), 'items' => $m->items()->count()];
+    }
+
+    protected function needsConfirmation(array $values): ?string
+    {
+        $items = count((array) ($values['items'] ?? []));
+
+        return ($values['active'] ?? false) && $items > 0 ? "save an active flash sale that changes the prices of {$items} item(s)" : null;
     }
 }

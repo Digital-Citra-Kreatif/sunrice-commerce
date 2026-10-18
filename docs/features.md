@@ -32,7 +32,9 @@ Choose the mode in Settings → Store → General → **Selling mode** (setting
 - Each product can override what its button does (its purchase mode), in any selling mode.
 - Changing the mode never deletes data. A save that would leave the new mode without a module it
   needs is refused, with the reason, for example "Online store mode needs Payment methods. Choose
-  another selling mode first, or switch on what it needs."
+  another selling mode first, or switch on what it needs." WhatsApp order mode also needs at least
+  one WhatsApp number, and switching to Online store needs an active payment method (Settings →
+  Store → Payments).
 - An unknown value in the settings is treated as `shop`.
 
 How each mode checks out is in [checkout.md](checkout.md).
@@ -69,13 +71,15 @@ Settings → Store → **Features** lists the modules by group. You need the per
 Switching a module off that others need asks you to confirm and lists what becomes inactive. After
 the change, the message names the modules that went off with it.
 
-Two switches are refused:
+Three switches are refused:
 
 - switching off a core module (Products, prices and product pages);
 - a switch that leaves the current selling mode without a module it can't work without. Online
   store mode needs Cart, Orders, Checkout and Payment methods; Quotation and WhatsApp order need
   Cart, Orders and Checkout; Catalog mode needs nothing. The message names the root cause, for
-  example the switched-off module further down the chain.
+  example the switched-off module further down the chain;
+- switching on Sign in with an emailed code while the user model lacks the `HasOneTimePasswords`
+  trait (`commerce:install` adds it).
 
 Every switch is recorded in Sunrice's activity log, and `Sunrice\Commerce\Events\FeatureToggled`
 is dispatched with `$feature`, `$on`, `$deactivated` and `$activated` (the keys whose active state
@@ -144,7 +148,7 @@ now off still shows its saved instructions.
 | `variants` | The product editor refuses to save a product of type Variable ("Variable products are switched off"). Variable products already in the store keep their variants until they are synced again; `commerce:sync-products` then marks them failed. |
 | `bundles` | The same for the Bundle type. |
 | `digital` | File uploads in the product editor are refused and the Digital products settings section is hidden. Download links already granted keep working. |
-| `brands` | The brands index (`/brands`) answers 404. |
+| `brands` | The brands index (`/brands`) and brand pages answer 404, published brand templates included; the brand filter and its `brand` parameter are ignored. |
 | `inventory` | Stock is not counted: only each variant's manual stock status matters, and orders don't take stock. Shop → Inventory is hidden. Stock quantities are kept. |
 | `cart` | Cart pages and the cart JSON endpoints answer 404; `<x-commerce::cart>` and `<x-commerce::mini-cart>` render nothing. Nothing can be added to a cart, and product buttons show the store's call to action instead. Checkout and Vouchers become inactive. |
 | `orders` | Shop → Orders is hidden; the order, pay, quote and track-order pages and My Account → Orders answer 404. Checkout, Documents, Payments, Shipping and Digital products become inactive. |

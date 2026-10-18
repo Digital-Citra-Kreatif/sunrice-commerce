@@ -240,7 +240,11 @@ final class BuiltinSections
         };
     }
 
-    /** The selling mode needs its essential modules (e.g. Online store needs Payments). */
+    /**
+     * The selling mode needs its essential modules (e.g. Online store needs
+     * Payments), WhatsApp orders a number, and switching to the online
+     * store an active payment method.
+     */
     protected static function checkSellingMode(): Closure
     {
         return function (array $values, StoreSettings $current): ?string {
@@ -249,6 +253,19 @@ final class BuiltinSections
                 ToggleFeature::ensureModeUsable($mode, (array) $current->get('features', []));
             } catch (ValidationException $e) {
                 return (string) collect($e->errors())->flatten()->first();
+            }
+            if ($mode === 'whatsapp') {
+                $numbers = array_filter(array_map(fn ($n) => trim((string) (is_array($n) ? ($n['number'] ?? '') : $n)), (array) data_get($values, 'whatsapp.numbers', $current->get('general.whatsapp.numbers', []))));
+                if ($numbers === []) {
+                    return 'Add a WhatsApp number to take orders by WhatsApp.';
+                }
+            }
+            $changed = $mode !== (string) $current->get('general.selling_mode', 'shop');
+            if ($mode === 'shop' && $changed) {
+                // The stored switches: methods register only while the mode takes payments.
+                if (! collect((array) $current->get('payments.methods', []))->contains(fn ($method) => (bool) data_get($method, 'active'))) {
+                    return 'Turn on a payment method (Settings → Store → Payments) before switching to the online store.';
+                }
             }
 
             return null;

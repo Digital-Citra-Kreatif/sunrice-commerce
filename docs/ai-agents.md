@@ -109,6 +109,8 @@ Some actions change money or what customers see. Their tools refuse until the ag
 | `refund_order` | Every refund |
 | `review_payment_confirmation` | Approving and rejecting |
 | `set_store_feature` | Switching any module on or off |
+| `save_pricing_rule` | Saving an active rule (it changes prices) |
+| `save_flash_sale` | Saving an active sale with items |
 
 Agents are told to check the bank account before approving a transfer. The proof image is only in
 the admin (Shop → Payments to verify).

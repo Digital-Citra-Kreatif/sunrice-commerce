@@ -7,6 +7,8 @@ use Illuminate\Support\Str;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\ProductQuery;
+use Sunrice\Commerce\Features\Actions\ToggleFeature;
+use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\View\Components\Products;
 use Sunrice\Models\Entry;
@@ -93,6 +95,15 @@ it('renders the shop, brand and category pages', function () {
     $this->get('/brands/nusa')->assertOk()->assertSee('Kaos Merah')->assertDontSee('Kaos Biru')->assertDontSee('Tas Kanvas');
     $this->get('/products/category/pakaian')->assertOk()->assertSee('Kaos Biru')->assertSee('Kaos Merah')->assertDontSee('Tas Kanvas');
     $this->get('/brands')->assertOk()->assertSee('Acme')->assertSee('Nusa');
+});
+
+it('hides brand pages, the index and the brand filter with Brands off', function () {
+    app(ToggleFeature::class)->handle('brands', false);
+    app(Features::class)->flush();
+
+    $this->get('/brands/nusa')->assertNotFound();
+    $this->get('/brands')->assertNotFound();
+    $this->get('/products?brand='.$this->nusa->id)->assertOk()->assertSee('Kaos Biru')->assertDontSeeText('Acme (2)');
 });
 
 it('lists a page of products in a fixed number of queries', function () {
