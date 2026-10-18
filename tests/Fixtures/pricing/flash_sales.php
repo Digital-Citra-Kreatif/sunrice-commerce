@@ -45,7 +45,8 @@ return [
         'setup' => fn ($v) => $sale($v, ['per_customer_limit' => 2]),
         'customer' => 'customer',
         'cart' => [['MUG', 3]],
-        'expect' => ['lines' => ['MUG' => [50000, 150000]], 'notices' => ['flash_sale_limit']],
+        // The line is cut to what this customer may still buy at the sale price.
+        'expect' => ['lines' => ['MUG' => [40000, 80000]], 'notices' => ['flash_sale_limit']],
     ],
     'a sale on one variant leaves the others' => [
         'products' => ['MUG' => 50000, 'TEA' => 20000],

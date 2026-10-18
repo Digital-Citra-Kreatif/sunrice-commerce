@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Event;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
+use Sunrice\Commerce\Catalog\Catalog;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Promotions\FlashSales\Events\FlashSaleEnded;
@@ -83,4 +85,21 @@ it('manages sales in the admin and refuses overlaps', function () {
     $this->put("/cms/commerce/flash-sales/{$sale->id}", ['values' => $values('Harbolnas 2')])->assertSessionHasNoErrors();
     expect(FlashSaleItem::query()->count())->toBe(1);
     $this->delete("/cms/commerce/flash-sales/{$sale->id}")->assertRedirect();
+});
+
+it('refuses adding more than the per-customer limit while the sale price applies', function () {
+    $this->withoutMiddleware(ValidateCsrfToken::class);
+    config(['honeypot.enabled' => false]);
+    $variant = Variant::query()->where('sku', 'MUG')->firstOrFail();
+    saleWithMug($this->product, [], ['per_customer_limit' => 2]);
+    app()->forgetScopedInstances();
+
+    expect(app(Catalog::class)->check($variant, 3)->reason)->toBe('flash_sale_limit')
+        ->and(app(Catalog::class)->check($variant, 2)->isOk())->toBeTrue();
+    $this->post('/cart/items', ['variant' => $variant->id, 'quantity' => 3])->assertSessionHas('commerce.error');
+
+    // A sale whose quantity ran out is back at the normal price: no limit.
+    FlashSaleItem::query()->update(['quantity_limit' => 5, 'sold_quantity' => 5]);
+    app()->forgetScopedInstances();
+    expect(app(Catalog::class)->check($variant, 3)->isOk())->toBeTrue();
 });

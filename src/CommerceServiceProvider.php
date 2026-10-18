@@ -99,7 +99,9 @@ class CommerceServiceProvider extends PackageServiceProvider
             ? $app->make(Taxes\TableRateTaxCalculator::class)
             : $app->make(Support\Nulls\NullTaxCalculator::class));
         $this->app->singletonIf(Contracts\Tracking::class, Analytics\StatsTracking::class);
-        $this->app->singletonIf(Contracts\SaleLimits::class, Support\Nulls\NullSaleLimits::class);
+        $this->app->bindIf(Contracts\SaleLimits::class, fn ($app) => $app->make(Features\Features::class)->active('flash_sales')
+            ? $app->make(Promotions\FlashSales\FlashSaleSaleLimits::class)
+            : $app->make(Support\Nulls\NullSaleLimits::class));
     }
 
     public function packageBooted(): void

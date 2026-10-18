@@ -45,10 +45,10 @@ class ResolveLines implements CalculationStage
             }
             if ($availability !== null && ! $availability->isOk()) {
                 $title = $this->title($line->variant);
-                // Too few left: keep what can be bought.
-                if ($availability->reason === 'out_of_stock' && ($availability->details['available'] ?? 0) >= $line->variant->min_qty) {
+                // Too few left (stock, or the flash sale's per-customer limit): keep what can be bought.
+                if (in_array($availability->reason, ['out_of_stock', 'flash_sale_limit'], true) && ($availability->details['available'] ?? 0) >= $line->variant->min_qty) {
                     $line->quantity = (int) $availability->details['available'];
-                    $state->notice('quantity_reduced', $availability->message($title), $key);
+                    $state->notice($availability->reason === 'flash_sale_limit' ? 'flash_sale_limit' : 'quantity_reduced', $availability->message($title), $key);
                 } else {
                     $state->notice($availability->reason ?? 'unavailable', $availability->message($title), $key);
                     unset($state->lines[$key]);
