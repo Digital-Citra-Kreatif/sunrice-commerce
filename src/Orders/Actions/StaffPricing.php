@@ -23,10 +23,11 @@ class StaffPricing
      * @param  array<int, array{variant_id: int|string, quantity: int|string, unit_price?: int|string|null, item_id?: int|string|null, frozen?: int, frozen_source?: string}>  $lines
      * @param  array{shipping?: array{label: string, cost: int}, discount?: array{label: string, amount: int}}  $overrides
      * @param  array<string, mixed>|null  $destination
+     * @param  array<string, mixed>|null  $billing
      *
      * @throws ValidationException
      */
-    public function calculate(array $lines, ?Authenticatable $customer, ?array $destination, array $overrides, mixed $staff, string $channel = 'admin', ?string $email = null, bool $pricesAllowed = false): CalculationState
+    public function calculate(array $lines, ?Authenticatable $customer, ?array $destination, array $overrides, mixed $staff, string $channel = 'admin', ?string $email = null, bool $pricesAllowed = false, ?array $billing = null): CalculationState
     {
         $calc = [];
         $variants = Variant::withTrashed()->with('product')->whereIn('id', array_column($lines, 'variant_id'))->get()->keyBy('id');
@@ -47,7 +48,7 @@ class StaffPricing
             $calc['l'.($i + 1)] = [$variant, (int) $line['quantity'], $meta];
         }
         $ctx = PricingContext::for($customer, $channel)->with(array_filter([
-            'destination' => $destination, 'overrides' => $overrides, 'email' => $email,
+            'destination' => $destination, 'billingAddress' => $billing, 'overrides' => $overrides, 'email' => $email,
         ], fn ($v) => $v !== null && $v !== []));
         $state = app(Calculator::class)->calculate($calc, $ctx);
 

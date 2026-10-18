@@ -316,9 +316,16 @@ Settings → Store → Taxes:
 | Setting | Key | Default |
 | --- | --- | --- |
 | Prices include tax | `taxes.prices_include_tax` | on (usual in Indonesia) |
-| Show prices | `taxes.display_prices`: `incl` ("incl. tax" note), `excl` ("excl. tax" note), `none` | `incl` |
-| Tax by | `taxes.based_on`: `shipping` (the shipping address) or `store` (the store address) | `shipping` |
+| Show prices | `taxes.display_prices`: `incl` (including tax, with an "incl. tax" note), `excl` (excluding tax, with an "excl. tax" note), `none` (as entered, no note) | `incl` |
+| Tax by | `taxes.based_on`: `shipping` (the shipping address), `billing` (the billing address; the shipping address while there is none) or `store` (the store address) | `shipping` |
 | Tax classes | `taxes.classes`; `standard` always exists | `['standard']` |
+
+When prices are shown differently from how they are entered (entered including tax, shown excluding
+it, or the other way round), the store converts them: product pages, cards and variant prices with
+the rates of the product's tax class at the store address (the visitor's address isn't known yet),
+cart lines with the tax worked out for them. Totals, orders and invoices always show what is
+charged. In templates, `app(\Sunrice\Commerce\Taxes\TaxDisplay::class)` does the conversion
+(`price($amount, $taxClass)`, `line($calcLine, $amount)`).
 
 Each product picks a **tax class** (`tax_class` in product data; empty is `standard`).
 

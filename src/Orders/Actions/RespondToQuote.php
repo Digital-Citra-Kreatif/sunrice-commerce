@@ -49,7 +49,7 @@ class RespondToQuote
         }
         unset($line);
         $state = $this->pricing->calculate($lines, $quote->customer?->user(), $quote->shipping_address, array_filter(['shipping' => $shipping, 'discount' => $discount]),
-            $staff, channel: 'quote', email: $quote->email, pricesAllowed: true);
+            $staff, channel: 'quote', email: $quote->email, pricesAllowed: true, billing: $quote->billing_address);
         if ($state->isEmpty()) {
             throw ValidationException::withMessages(['lines' => 'A quote needs at least one product.']);
         }

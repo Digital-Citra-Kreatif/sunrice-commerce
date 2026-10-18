@@ -13,7 +13,7 @@ use Sunrice\Commerce\Support\Money;
 
 /**
  * Taxes from the rate table (Settings → Store → Taxes): per line, the
- * rates of its tax class for the address (shipping or store), compound
+ * rates of its tax class for the address (shipping, billing or store), compound
  * rates on top of the others, rounded per line. With prices including
  * tax the tax is taken out of the price; otherwise it is added.
  */
@@ -27,9 +27,11 @@ class TableRateTaxCalculator implements TaxCalculator
     public function apply(CalculationState $state): void
     {
         $inclusive = (bool) $this->settings->get('taxes.prices_include_tax', true);
-        $address = $this->settings->get('taxes.based_on') === 'store'
-            ? $this->storeAddress()
-            : ($state->ctx->destination ?? $this->storeAddress());
+        $address = match ($this->settings->get('taxes.based_on')) {
+            'store' => $this->storeAddress(),
+            'billing' => $state->ctx->billingAddress ?? $state->ctx->destination ?? $this->storeAddress(),
+            default => $state->ctx->destination ?? $this->storeAddress(),
+        };
         $added = 0;
 
         foreach ($state->lines as $line) {
@@ -107,6 +109,12 @@ class TableRateTaxCalculator implements TaxCalculator
         }
 
         return $taxes;
+    }
+
+    /** The tax on an amount of a class at the store address (prices shown in the catalog). */
+    public function taxOn(int $amount, string $class, bool $inclusive): int
+    {
+        return array_sum(array_column($this->taxes($amount, $this->ratesFor($class, $this->storeAddress()), $inclusive), 'amount'));
     }
 
     /**

@@ -80,7 +80,7 @@ class CreateManualOrder
                 ? ['label' => (string) ($data['shipping']['label'] ?? __('commerce::checkout.sections.shipping_method')), 'cost' => (int) ($data['shipping']['cost'] ?? 0)] : null,
             'discount' => ($data['discount']['amount'] ?? 0) > 0 ? ['label' => (string) ($data['discount']['label'] ?? ''), 'amount' => (int) $data['discount']['amount']] : null,
         ]);
-        $state = $this->pricing->calculate($data['lines'], $user, $shippingAddress, $overrides, $staff, email: $customer->email);
+        $state = $this->pricing->calculate($data['lines'], $user, $shippingAddress, $overrides, $staff, email: $customer->email, billing: $billingAddress);
         if ($state->isEmpty()) {
             throw ValidationException::withMessages(['lines' => 'Add at least one product.']);
         }

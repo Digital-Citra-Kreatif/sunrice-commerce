@@ -181,7 +181,7 @@ final class BuiltinSections
         return [
             ['handle' => 'prices_include_tax', 'type' => 'toggle', 'label' => 'Prices include tax', 'instructions' => 'On: tax is part of the prices you enter (usual in Indonesia). Off: tax is added at checkout.'],
             ['handle' => 'display_prices', 'type' => 'select', 'label' => 'Show prices', 'config' => ['options' => self::options(['incl' => 'Including tax', 'excl' => 'Excluding tax', 'none' => 'Without a tax note'])]],
-            ['handle' => 'based_on', 'type' => 'select', 'label' => 'Tax by', 'config' => ['options' => self::options(['shipping' => 'The shipping address', 'store' => 'The store address'])]],
+            ['handle' => 'based_on', 'type' => 'select', 'label' => 'Tax by', 'config' => ['options' => self::options(['shipping' => 'The shipping address', 'billing' => 'The billing address', 'store' => 'The store address'])]],
             ['handle' => 'classes', 'type' => 'select', 'label' => 'Tax classes', 'instructions' => 'Products choose one; "standard" always exists. Type to add (e.g. "exempt").', 'config' => ['multiple' => true, 'options' => array_map(
                 fn (string $c) => ['value' => $c, 'label' => $c], array_values(array_unique(['standard', 'reduced', 'exempt', ...(array) app(StoreSettings::class)->get('taxes.classes', [])])),
             )]],

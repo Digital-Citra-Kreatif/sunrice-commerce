@@ -16,6 +16,7 @@ use Sunrice\Commerce\Promotions\PriceRules\RuleMatcher;
 use Sunrice\Commerce\Promotions\Tiers;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\MoneyFormatter;
+use Sunrice\Commerce\Taxes\TaxDisplay;
 use Sunrice\Models\Entry;
 
 /**
@@ -117,7 +118,7 @@ class ProductViewFactory
         $from = $prices->min();
         $to = $prices->max();
         $single = $variants->first();
-        $regular = $single !== null ? max($this->basePrice($product, $single), (int) $single->compare_at_price) : null;
+        $regular = $single !== null ? $this->shown($product, max($this->basePrice($product, $single), (int) $single->compare_at_price)) : null;
         $isRange = $from !== null && $from !== $to && $this->settings->get('catalog.price_range', 'range') !== 'min';
         $amount = $isRange ? null : $from;
         $compareAt = ! $isRange && $regular !== null && $amount !== null && $regular > $amount ? $regular : null;
@@ -149,7 +150,7 @@ class ProductViewFactory
 
         // Badges
         $badges = [];
-        if (! $hidden && ($compareAt !== null || $variants->contains(fn (Variant $v) => $v->compare_at_price > ($current[$v->uid] ?? 0)))) {
+        if (! $hidden && ($compareAt !== null || $variants->contains(fn (Variant $v) => $v->compare_at_price !== null && $this->shown($product, (int) $v->compare_at_price) > ($current[$v->uid] ?? 0)))) {
             $badges[] = 'sale';
         }
         $newDays = (int) $this->settings->get('catalog.new_badge_days', 14);
@@ -179,7 +180,7 @@ class ProductViewFactory
             ])->all(),
             'price' => $hidden ? null : $current[$v->uid],
             'price_formatted' => $hidden ? null : $this->money->format($current[$v->uid]),
-            'compare_at' => $hidden || $v->compare_at_price === null || $v->compare_at_price <= $current[$v->uid] ? null : $this->money->format($v->compare_at_price),
+            'compare_at' => $hidden || $v->compare_at_price === null || $this->shown($product, $v->compare_at_price) <= $current[$v->uid] ? null : $this->money->format($this->shown($product, $v->compare_at_price)),
             'stock' => $this->stockStatus($product, $v),
             'min_qty' => $v->min_qty,
             'max_qty' => $v->max_qty,
@@ -254,7 +255,13 @@ class ProductViewFactory
             $price = $adjust($variant, $price);
         }
 
-        return $price;
+        return $this->shown($product, $price);
+    }
+
+    /** A price as the store shows it: including or excluding tax (Settings → Store → Taxes). */
+    protected function shown(Product $product, int $price): int
+    {
+        return app(TaxDisplay::class)->price($price, $product->tax_class);
     }
 
     protected function stockStatus(Product $product, Variant $variant): string

@@ -1,5 +1,6 @@
 {{-- <x-commerce::cart>: $cart (Sunrice\Commerce\Cart\CartView). --}}
 @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
+@php($taxDisplay = app(\Sunrice\Commerce\Taxes\TaxDisplay::class))
 <div class="commerce-cart" data-commerce-cart>
     @include(\Sunrice\Commerce\Storefront\Layout::view('partials.messages'))
     @foreach (collect($cart->state->notices)->whereNotIn('code', ['voucher_conditional']) as $notice)
@@ -23,8 +24,8 @@
                             @if ($line->priceSource['type'] === 'flash_sale')<span class="commerce-badge commerce-badge--sale">{{ $line->priceSource['label'] ?? '' }}</span>@endif
                         </td>
                         <td class="commerce-cart__price">
-                            @if ($line->regularUnitPrice > $line->unitPrice)<del>{{ $money->format($line->regularUnitPrice) }}</del>@endif
-                            {{ $money->format($line->unitPrice) }}
+                            @if ($line->regularUnitPrice > $line->unitPrice)<del>{{ $money->format($taxDisplay->line($line, $line->regularUnitPrice)) }}</del>@endif
+                            {{ $money->format($taxDisplay->line($line, $line->unitPrice)) }}
                         </td>
                         <td class="commerce-cart__qty">
                             <form method="POST" action="{{ commerce_url('commerce.cart.update', ['item' => $row['item']->id]) }}">
@@ -34,8 +35,8 @@
                             </form>
                         </td>
                         <td class="commerce-cart__total">
-                            @if ($line->discount() > 0)<del>{{ $money->format($line->subtotal) }}</del>@endif
-                            {{ $money->format($line->net()) }}
+                            @if ($line->discount() > 0)<del>{{ $money->format($taxDisplay->line($line, $line->subtotal)) }}</del>@endif
+                            {{ $money->format($taxDisplay->line($line, $line->net())) }}
                         </td>
                         <td>
                             <form method="POST" action="{{ commerce_url('commerce.cart.remove', ['item' => $row['item']->id]) }}">

@@ -133,7 +133,8 @@ final class CheckoutData
 
     /**
      * The pricing context changes this data implies: destination (none
-     * for pickup), chosen rate and payment method, email and phone.
+     * for pickup), billing address, chosen rate and payment method, email
+     * and phone.
      *
      * @return array<string, mixed>
      */
@@ -143,6 +144,7 @@ final class CheckoutData
 
         return array_filter([
             'destination' => $destination,
+            'billingAddress' => $this->billingAddress(),
             'shippingRate' => $this->shippingRate(),
             'paymentMethod' => $this->paymentMethod(),
             'email' => $this->email(),

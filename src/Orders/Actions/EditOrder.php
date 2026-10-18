@@ -61,7 +61,7 @@ class EditOrder
         $discount ??= ($existingDiscount = (int) -$order->adjustments()->where('kind', 'discount')->sum('amount')) > 0
             ? ['label' => (string) __('commerce::checkout.manual_discount'), 'amount' => $existingDiscount] : null;
         $user = $order->customer?->user();
-        $state = $this->pricing->calculate($lines, $user, $order->shipping_address, array_filter(['shipping' => $shipping, 'discount' => $discount]), $staff, email: $order->email);
+        $state = $this->pricing->calculate($lines, $user, $order->shipping_address, array_filter(['shipping' => $shipping, 'discount' => $discount]), $staff, email: $order->email, billing: $order->billing_address);
         if ($state->isEmpty()) {
             throw ValidationException::withMessages(['lines' => 'An order needs at least one product.']);
         }
