@@ -17,6 +17,7 @@ return [
     'exact_amount' => 'Transfer exactly :amount (the last digits help us find your payment).',
     'code' => 'Unique code :code',
     'cod' => 'Pay the courier in cash when your order arrives.',
+    'continue_gateway' => 'Continue to payment',
     'confirm_link' => 'I have paid',
     'confirm' => [
         'title' => 'Confirm your payment',

@@ -153,6 +153,21 @@ Optional contracts:
   expires, so a payment the webhook missed isn't lost;
 - `AddsUniqueCode::uniqueCodeRange(): ?array` — a unique amount for bank transfers.
 
+A redirect gateway can extend `Payments\Methods\GatewayMethod` instead, as `sunrice/midtrans` and
+`sunrice/xendit` do. It gives a sandbox switch that names which `.env` keys are set (never their
+values) and the webhook URL, per-language instructions, a gateway page created once per payment
+and reused, `handleReturn()` through the status check, the instructions partial with a
+"Continue to payment" link (also in the order email), and `paidResult()`, which refuses an
+amount other than the payment's. The package implements:
+
+| Method | |
+| --- | --- |
+| `currencies()` | The currencies the gateway takes; the method is hidden for others |
+| `configured()` | The keys for the current mode are set (and the SDK is installed) |
+| `createPayment(Order, Payment, string $reference)` | Create the gateway page: `['url' => …, 'meta' => […]]` |
+| `check(Payment)` | Ask the gateway for the payment's state |
+| `parseWebhook(Request)` | Verify and map the notification |
+
 Results are `PaymentResult::paid($amount, $reference)`, `failed()`, `pending()`, `expired()`,
 `cancelled()`, `awaitingConfirmation()` or `refunded($amount)`. Only
 `Payments\Actions\RecordPaymentResult` changes payment state; never update orders or payments

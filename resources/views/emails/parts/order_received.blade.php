@@ -11,4 +11,8 @@
 @if (! empty($i['instructions']))
 {{ $i['instructions'] }}
 @endif
+
+@if (! empty($i['url']))
+[{{ __('commerce::payments.continue_gateway') }}]({{ $i['url'] }})
+@endif
 @endif
