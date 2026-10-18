@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Catalog;
 
 use Illuminate\Support\Facades\Cache;
+use Sunrice\Commerce\Storefront\PageCache;
 
 /**
  * A counter bumped whenever listings may change (a product synced, stock
  * changed, content published); cached facets and listings are keyed by it.
+ * Bumping it also clears the full-page cache's product pages.
  */
 final class CatalogVersion
 {
@@ -22,6 +24,7 @@ final class CatalogVersion
     public static function bump(): void
     {
         Cache::forever(self::KEY, self::current() + 1);
+        PageCache::forget('catalog_changed');
     }
 
     /** @param  \Closure(): mixed  $callback */

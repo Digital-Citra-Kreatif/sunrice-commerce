@@ -360,6 +360,10 @@ class CommerceServiceProvider extends PackageServiceProvider
     {
         Admin\Dashboard\StoreCard::register();
         Storefront\PageCache::register();
+        // Product pages show availability and "only a few left": clear them when it changes.
+        foreach ([Inventory\Events\StockOut::class, Inventory\Events\StockLow::class, Inventory\Events\StockBackIn::class] as $event) {
+            Event::listen($event, fn () => Storefront\PageCache::forget('stock_changed'));
+        }
         $health = $this->app->make(Health\HealthRegistry::class);
         foreach ([Health\Checks\MailCheck::class, Health\Checks\QueueCheck::class, Health\Checks\SchedulerCheck::class, Health\Checks\FullPageCacheCheck::class, Health\Checks\StoreReadinessCheck::class, Health\Checks\CatalogDataCheck::class] as $check) {
             $health->register($check);

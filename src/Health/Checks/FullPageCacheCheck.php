@@ -30,7 +30,9 @@ class FullPageCacheCheck implements HealthCheck
     {
         $profile = (string) config('responsecache.cache_profile');
         if (config('sunrice.cache.full_page') && PageCache::supported() && class_exists('Spatie\\ResponseCache\\CacheProfiles\\CacheAllSuccessfulGetRequests') && is_a($profile, 'Sunrice\\Cache\\FullPageCacheProfile', true)) {
-            return HealthResult::ok('The full-page cache is on; store pages, product pages and visitors with a cart or account are left out of it.');
+            return PageCache::bypassSupported() && PageCache::productPagesTtl() > 0
+                ? HealthResult::ok('The full-page cache is on; store pages and visitors with a cart, wishlist or account are left out of it, and product pages are kept for '.PageCache::productPagesTtl().' seconds at most.')
+                : HealthResult::ok('The full-page cache is on; store pages, product pages and visitors with a cart or account are left out of it.');
         }
         if (config('sunrice.cache.full_page')) {
             return HealthResult::warning('Sunrice\'s full-page cache is on; product pages may show old prices, stock and cart contents.', 'Update Sunrice (its cache profile leaves store pages out), use Sunrice\\Cache\\FullPageCacheProfile as responsecache.cache_profile, or set sunrice.cache.full_page to false.');

@@ -96,9 +96,10 @@ it('keeps store pages and visitors with a cart or account out of the full-page c
     $cart->cookies->set('commerce_cart', 'token');
     expect(PageCache::cacheable($cart, null))->toBeFalse();
 
+    // Pages showing products are kept for anonymous visitors when Sunrice can send the others past the cache.
     $product = $request();
     $product->attributes->set(PageCache::DYNAMIC, true);
-    expect(PageCache::cacheable($product, null))->toBeFalse();
+    expect(PageCache::cacheable($product, null))->toBe(PageCache::bypassSupported());
 
     $store = $request('/cart');
     $store->setRouteResolver(fn () => (new Route('GET', 'cart', []))->name('commerce.cart.show'));

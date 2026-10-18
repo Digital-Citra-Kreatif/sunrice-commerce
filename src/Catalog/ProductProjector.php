@@ -15,6 +15,7 @@ use Sunrice\Commerce\Catalog\Models\ProductOption;
 use Sunrice\Commerce\Catalog\Models\ProductOptionValue;
 use Sunrice\Commerce\Catalog\Models\StockMovement;
 use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Storefront\PageCache;
 use Sunrice\Models\Entry;
 use Sunrice\Models\Scopes\HiddenWithParent;
 use Sunrice\Models\Taxonomy;
@@ -228,6 +229,8 @@ class ProductProjector
 
         $product->forceFill(['data_hash' => $hash, 'sync_status' => 'ok', 'sync_error' => null, 'synced_at' => now()])->save();
         app(PriceIndex::class)->refresh($product);
+        // Projection can run after the publish cleared the page cache (queued).
+        PageCache::forget('product_synced');
     }
 
     /**
