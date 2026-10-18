@@ -3,7 +3,7 @@
 ## Unreleased — 1.0.0
 
 The first release. Needs Sunrice CMS 1.x with the settings tabs, users scope and structure import
-changes, PHP 8.4 and Laravel 13. On Sunrice versions with dashboard cards, MCP instructions and
+changes (`dev-main` until Sunrice is tagged), PHP 8.4 and Laravel 13. On Sunrice versions with dashboard cards, MCP instructions and
 full-page cache control, commerce also adds a Store card to Sunrice's dashboard, adds its guidance
 to the MCP server's instructions and keeps store pages out of the full-page cache.
 
