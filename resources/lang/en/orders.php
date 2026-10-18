@@ -1,0 +1,62 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'status' => [
+        'pending' => 'Pending payment',
+        'on_hold' => 'On hold',
+        'processing' => 'Processing',
+        'completed' => 'Completed',
+        'cancelled' => 'Cancelled',
+        'refunded' => 'Refunded',
+        'failed' => 'Failed',
+        'requested' => 'Requested',
+        'quoted' => 'Quoted',
+        'accepted' => 'Accepted',
+        'declined' => 'Declined',
+        'expired' => 'Expired',
+    ],
+    'payment' => [
+        'unpaid' => 'Unpaid',
+        'awaiting_confirmation' => 'Awaiting confirmation',
+        'paid' => 'Paid',
+        'partially_refunded' => 'Partially refunded',
+        'refunded' => 'Refunded',
+        'failed' => 'Failed',
+    ],
+    'fulfillment' => [
+        'unfulfilled' => 'Unfulfilled',
+        'partially_shipped' => 'Partially shipped',
+        'shipped' => 'Shipped',
+        'not_required' => 'Not required',
+    ],
+    'transition' => [
+        'not_allowed' => 'An order can\'t go from :from to :to.',
+        'hold_back' => 'An order on hold can only go back to :status.',
+        'refund_first' => 'This order is paid: refund it before cancelling.',
+        'unpaid' => 'An unpaid order can\'t be completed.',
+        'unpaid_processing' => 'Record the payment first (Mark as paid): an unpaid order can\'t be processed.',
+        'not_refunded' => 'The refunds don\'t reach the amount paid yet.',
+    ],
+    'timeline' => [
+        'status' => 'Status changed from :from to :to',
+        'placed' => 'Order placed',
+        'quote_requested' => 'Quote requested',
+        'payment' => 'Payment :status (:amount)',
+        'payment_recorded' => ':method payment recorded as :status',
+        'shipment' => 'Shipped with :courier',
+        'shipment_updated' => 'Shipment updated',
+        'delivered' => 'Shipment delivered',
+        'refund' => 'Refunded :amount',
+        'edited' => 'Order edited',
+        'addresses' => 'Addresses updated',
+        'expired' => 'Payment deadline passed',
+        'paid_after_cancel' => 'Payment of :amount received after the order was cancelled: refund it or reinstate the order',
+        'underpaid' => ':method reported :amount paid, less than the :expected due: not recorded as paid',
+        'customer_cancelled' => 'Cancelled by the customer',
+        'quote_sent' => 'Quote sent',
+        'quote_accepted' => 'Quote accepted',
+    ],
+    'currency_locked' => 'The currency can\'t be changed once the store has orders.',
+];

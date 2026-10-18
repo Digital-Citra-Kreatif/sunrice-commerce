@@ -1,0 +1,28 @@
+/*
+ * Utilities for the commerce admin pages: Tailwind 4 with the `cm:` prefix
+ * and no preflight, so nothing clashes with Sunrice's own stylesheet. The
+ * colors are Sunrice's theme variables, so light/dark mode and the
+ * branding accent follow the admin.
+ */
+@import "tailwindcss/theme" layer(theme) prefix(cm);
+@import "tailwindcss/utilities" layer(utilities) prefix(cm);
+
+@source "./";
+
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-border: var(--border);
+    --color-ring: var(--ring);
+}

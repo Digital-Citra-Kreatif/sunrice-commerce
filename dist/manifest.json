@@ -1,0 +1,31 @@
+{
+  "_main-Bi1nuhYb.js": {
+    "file": "main-Bi1nuhYb.js",
+    "name": "main",
+    "dynamicImports": [
+      "resources/js/admin/components/ChartImpl.tsx"
+    ]
+  },
+  "resources/js/admin/components/ChartImpl.tsx": {
+    "file": "ChartImpl-BR4UHoT6.js",
+    "name": "ChartImpl",
+    "src": "resources/js/admin/components/ChartImpl.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_main-Bi1nuhYb.js"
+    ]
+  },
+  "resources/js/admin/main.tsx": {
+    "file": "admin.js",
+    "name": "main",
+    "src": "resources/js/admin/main.tsx",
+    "isEntry": true,
+    "imports": [
+      "_main-Bi1nuhYb.js"
+    ]
+  },
+  "style.css": {
+    "file": "admin.css",
+    "src": "style.css"
+  }
+}

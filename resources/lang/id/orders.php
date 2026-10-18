@@ -1,0 +1,62 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'status' => [
+        'pending' => 'Menunggu pembayaran',
+        'on_hold' => 'Ditahan',
+        'processing' => 'Diproses',
+        'completed' => 'Selesai',
+        'cancelled' => 'Dibatalkan',
+        'refunded' => 'Dikembalikan',
+        'failed' => 'Gagal',
+        'requested' => 'Diminta',
+        'quoted' => 'Penawaran dikirim',
+        'accepted' => 'Diterima',
+        'declined' => 'Ditolak',
+        'expired' => 'Kedaluwarsa',
+    ],
+    'payment' => [
+        'unpaid' => 'Belum dibayar',
+        'awaiting_confirmation' => 'Menunggu konfirmasi',
+        'paid' => 'Lunas',
+        'partially_refunded' => 'Dikembalikan sebagian',
+        'refunded' => 'Dikembalikan',
+        'failed' => 'Gagal',
+    ],
+    'fulfillment' => [
+        'unfulfilled' => 'Belum dikirim',
+        'partially_shipped' => 'Dikirim sebagian',
+        'shipped' => 'Dikirim',
+        'not_required' => 'Tidak perlu dikirim',
+    ],
+    'transition' => [
+        'not_allowed' => 'Pesanan tidak bisa berubah dari :from ke :to.',
+        'hold_back' => 'Pesanan yang ditahan hanya bisa kembali ke :status.',
+        'refund_first' => 'Pesanan ini sudah dibayar: kembalikan dananya sebelum membatalkan.',
+        'unpaid' => 'Pesanan yang belum dibayar tidak bisa diselesaikan.',
+        'unpaid_processing' => 'Catat pembayarannya dulu (Tandai sudah dibayar): pesanan yang belum dibayar tidak bisa diproses.',
+        'not_refunded' => 'Pengembalian dana belum mencapai jumlah yang dibayar.',
+    ],
+    'timeline' => [
+        'status' => 'Status berubah dari :from ke :to',
+        'placed' => 'Pesanan dibuat',
+        'quote_requested' => 'Permintaan penawaran',
+        'payment' => 'Pembayaran :status (:amount)',
+        'payment_recorded' => 'Pembayaran :method dicatat sebagai :status',
+        'shipment' => 'Dikirim dengan :courier',
+        'shipment_updated' => 'Pengiriman diperbarui',
+        'delivered' => 'Paket diterima',
+        'refund' => 'Dana dikembalikan :amount',
+        'edited' => 'Pesanan diubah',
+        'addresses' => 'Alamat diperbarui',
+        'expired' => 'Batas waktu pembayaran lewat',
+        'paid_after_cancel' => 'Pembayaran :amount diterima setelah pesanan dibatalkan: kembalikan dana atau aktifkan kembali pesanan',
+        'underpaid' => ':method melaporkan pembayaran :amount, kurang dari :expected yang harus dibayar: tidak dicatat sebagai lunas',
+        'customer_cancelled' => 'Dibatalkan oleh pelanggan',
+        'quote_sent' => 'Penawaran dikirim',
+        'quote_accepted' => 'Penawaran diterima',
+    ],
+    'currency_locked' => 'Mata uang tidak bisa diubah setelah toko memiliki pesanan.',
+];
