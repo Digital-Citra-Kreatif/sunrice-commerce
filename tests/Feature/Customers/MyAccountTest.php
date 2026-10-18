@@ -51,14 +51,22 @@ it('changes the profile; a new email must be verified again', function () {
         ->assertSessionHas('commerce.success', 'Profil disimpan.');
     expect($this->customer->fresh()->phone)->toBe('+62811111111')->and($this->customer->fresh()->accepts_marketing)->toBeTrue();
 
-    $this->put('/account/profile', ['name' => 'Ana Putri', 'email' => 'new@example.com'])->assertSessionHas('commerce.success');
+    // A new email needs the current password, so a stolen session can't take the account.
+    $this->put('/account/profile', ['name' => 'Ana Putri', 'email' => 'new@example.com'])->assertSessionHasErrors('current_password');
+    $this->put('/account/profile', ['name' => 'Ana Putri', 'email' => 'new@example.com', 'current_password' => 'wrong'])->assertSessionHasErrors('current_password');
+    expect($this->user->fresh()->email)->toBe('ana@example.com');
+
+    $this->put('/account/profile', ['name' => 'Ana Putri', 'email' => 'new@example.com', 'current_password' => 'secret-pass'])->assertSessionHas('commerce.success');
     expect($this->user->fresh()->email_verified_at)->toBeNull();
     Notification::assertSentTo($this->user->fresh(), VerifyCustomerEmail::class);
 });
 
 it('changes the password with the current one, and asks for deletion', function () {
     $this->put('/account/password', ['current_password' => 'wrong', 'password' => 'new-password-1', 'password_confirmation' => 'new-password-1'])->assertSessionHasErrors('current_password');
+    $this->user->forceFill(['remember_token' => 'old-remember-token'])->save();
     $this->put('/account/password', ['current_password' => 'secret-pass', 'password' => 'new-password-1', 'password_confirmation' => 'new-password-1'])->assertSessionHasNoErrors();
+    // "Remember me" on other devices stops working.
+    expect($this->user->fresh()->remember_token)->not->toBe('old-remember-token');
 
     $this->post('/account/delete', ['confirm' => 1])->assertSessionHas('commerce.success');
     expect($this->customer->fresh()->deletion_requested_at)->not->toBeNull();

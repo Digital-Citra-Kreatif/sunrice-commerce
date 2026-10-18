@@ -27,6 +27,8 @@ use Sunrice\Commerce\Support\ActivityRecorder;
 use Sunrice\Commerce\Support\Address;
 use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Commerce\Support\Phone;
+use Sunrice\Permissions\PermissionRank;
+use Sunrice\Support\CsvCell;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Shop → Customers: everyone who registered or ordered. */
@@ -92,7 +94,7 @@ class CustomersController extends Controller
                 foreach ($customers as $c) {
                     if ($c instanceof Customer) {
                         $address = $c->addresses->firstWhere('default_shipping', true) ?? $c->addresses->first();
-                        $writer->addRow([
+                        $writer->addRow(array_map(CsvCell::safe(...), [
                             'name' => $c->name, 'email' => $c->email, 'phone' => $c->phone,
                             'account' => $c->user_id ? 'registered' : 'guest',
                             'orders' => $c->orders_count, 'spent' => $c->total_spent,
@@ -100,7 +102,7 @@ class CustomersController extends Controller
                             'accepts_marketing' => $c->accepts_marketing ? 'yes' : 'no',
                             'signed_up' => $c->created_at?->toDateTimeString(),
                             'city' => $address?->city, 'province' => $address?->province,
-                        ]);
+                        ]));
                     }
                 }
             });
@@ -199,7 +201,7 @@ class CustomersController extends Controller
                 'roles' => method_exists($user, 'getRoleNames') ? $user->getRoleNames()->all() : [],
                 'google' => DB::table('commerce_social_accounts')->where('user_id', $user->getAuthIdentifier())->value('email'),
             ],
-            'roleOptions' => array_values(array_unique([...$customerRoles, ...Role::query()->whereDoesntHave('permissions', fn ($q) => $q->where('name', 'sunrice.access-admin'))->pluck('name')->all()])),
+            'roleOptions' => array_values(array_unique([...$customerRoles, ...self::givableRoles($request->user())])),
             'orders' => Order::query()->where('customer_id', $customer->id)->latest('placed_at')->limit(20)->get()
                 ->map(fn ($o) => ['id' => $o->id, 'number' => $o->displayNumber(), 'date' => $o->placed_at?->toIso8601String(),
                     'status' => OrderStatus::label($o->status), 'total' => $money->format($o->total), 'href' => "commerce/orders/{$o->id}"])->all(),
@@ -227,14 +229,29 @@ class CustomersController extends Controller
         ])->save();
         $user = $customer->user();
         if ($user !== null && array_key_exists('roles', $data) && method_exists($user, 'syncRoles')) {
-            // Only roles without admin access can be given here.
-            $allowed = Role::query()->whereIn('name', (array) $data['roles'])->whereDoesntHave('permissions', fn ($q) => $q->where('name', 'sunrice.access-admin'))->pluck('name')->all();
-            $staff = $user->roles()->whereHas('permissions', fn ($q) => $q->where('name', 'sunrice.access-admin'))->pluck('name')->all();
-            $user->syncRoles([...$staff, ...$allowed]);
+            // Only roles without admin access, and with less access than yours, are given or taken
+            // away here; the others the account has are kept.
+            $givable = self::givableRoles($request->user());
+            $allowed = array_values(array_intersect((array) $data['roles'], $givable));
+            $kept = array_values(array_diff($user->getRoleNames()->all(), $givable));
+            $user->syncRoles([...$kept, ...$allowed]);
         }
         app(ActivityRecorder::class)->record('updated', "Customer: {$customer->email}", [], 'customer');
 
         return back()->with('success', 'Customer saved.');
+    }
+
+    /**
+     * Roles staff may give customers here: no admin access, and (with
+     * Sunrice's PermissionRank) less access than their own.
+     *
+     * @return array<int, string>
+     */
+    protected static function givableRoles(mixed $staff): array
+    {
+        return Role::query()->with('permissions')->whereDoesntHave('permissions', fn ($q) => $q->where('name', 'sunrice.access-admin'))->get()
+            ->filter(fn (Role $role) => ! class_exists(PermissionRank::class) || PermissionRank::roleBelow($role, $staff))
+            ->pluck('name')->values()->all();
     }
 
     public function sendPasswordReset(Customer $customer): RedirectResponse

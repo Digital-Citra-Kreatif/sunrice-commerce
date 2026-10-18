@@ -51,6 +51,7 @@ use Sunrice\Commerce\Support\Address;
 use Sunrice\Commerce\Support\DomainException;
 use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Http\Controllers\Admin\TablePreferencesController;
+use Sunrice\Support\CsvCell;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Shop → Orders: the list (search, filters, columns, bulk actions, export) and the order page. */
@@ -92,7 +93,8 @@ class OrdersController extends Controller
             $query->with('items')->chunk(500, function ($orders) use ($writer): void {
                 foreach ($orders as $order) {
                     if ($order instanceof Order) {
-                        $writer->addRow($this->exportRow($order));
+                        // Customer-typed text (names, addresses) must not run as a spreadsheet formula.
+                        $writer->addRow(array_map(CsvCell::safe(...), $this->exportRow($order)));
                     }
                 }
             });

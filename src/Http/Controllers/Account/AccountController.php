@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Validation\ValidationException;
 use Sunrice\Commerce\Customers\AccountNavigation;
@@ -47,7 +48,7 @@ class AccountController
 
     public function updateProfile(Request $request, UpdateProfile $update): RedirectResponse
     {
-        $sent = $update->handle($this->current->user(), $this->current->get(), $request->only(['name', 'email', 'phone', 'accepts_marketing']));
+        $sent = $update->handle($this->current->user(), $this->current->get(), $request->only(['name', 'email', 'phone', 'accepts_marketing', 'current_password']));
 
         return back()->with('commerce.success', __($sent ? 'commerce::account.profile.verify_new_email' : 'commerce::account.profile.saved'));
     }
@@ -61,7 +62,8 @@ class AccountController
         if (($customer->meta['password_set'] ?? true) !== false && ! Hash::check((string) ($data['current_password'] ?? ''), (string) $user->getAuthPassword())) {
             throw ValidationException::withMessages(['current_password' => __('commerce::account.password.current_wrong')]);
         }
-        $user->forceFill(['password' => Hash::make($data['password'])])->save();
+        // A new remember token signs out "remember me" on other devices.
+        $user->forceFill(['password' => Hash::make($data['password']), 'remember_token' => Str::random(60)])->save();
         $customer->forceFill(['meta' => [...(array) $customer->meta, 'password_set' => true]])->save();
         $request->session()->regenerate();
 

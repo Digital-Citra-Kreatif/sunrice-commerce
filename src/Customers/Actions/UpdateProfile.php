@@ -5,13 +5,18 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Customers\Actions;
 
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Customers\Notifications\VerifyCustomerEmail;
 use Sunrice\Commerce\Support\Phone;
 
-/** Name, phone, marketing consent and email (a new email must be verified again). */
+/**
+ * Name, phone, marketing consent and email. A new email needs the current
+ * password (accounts that have one) and must be verified again.
+ */
 class UpdateProfile
 {
     /**
@@ -30,6 +35,11 @@ class UpdateProfile
 
         $email = mb_strtolower($data['email']);
         $changed = $email !== mb_strtolower((string) $user->getAttribute('email'));
+        // Someone with a stolen session can't move the account to their own address.
+        if ($changed && ($customer->meta['password_set'] ?? true) !== false
+            && ! Hash::check((string) ($input['current_password'] ?? ''), (string) $user->getAuthPassword())) {
+            throw ValidationException::withMessages(['current_password' => __('commerce::account.profile.email_needs_password')]);
+        }
         $user->forceFill(['name' => $data['name'], 'email' => $email, ...($changed ? ['email_verified_at' => null] : [])])->save();
         $consent = (bool) ($data['accepts_marketing'] ?? false);
         $customer->forceFill([

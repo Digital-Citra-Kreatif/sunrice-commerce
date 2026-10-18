@@ -114,8 +114,10 @@ it('resets passwords by email without telling who has an account', function () {
         return true;
     });
 
+    $user->forceFill(['remember_token' => 'old-remember-token'])->save();
     $this->post('/account/reset-password', ['token' => $token, 'email' => 'ana@example.com', 'password' => 'brand-new-1', 'password_confirmation' => 'brand-new-1'])
         ->assertRedirect('/account/login');
+    expect($user->fresh()->remember_token)->not->toBe('old-remember-token');
     $this->post('/account/login', ['email' => 'ana@example.com', 'password' => 'brand-new-1'])->assertRedirect('/account');
 });
 

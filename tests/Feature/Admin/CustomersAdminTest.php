@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Inertia\Testing\AssertableInertia;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Sunrice\Commerce\Customers\Models\Address;
 use Sunrice\Commerce\Customers\Models\Customer;
@@ -34,6 +35,19 @@ it('lists, filters, edits and anonymizes customers', function () {
     $this->put("/cms/commerce/customers/{$registered->id}", ['name' => 'Budi S', 'phone' => '0812 1111 2222', 'accepts_marketing' => true, 'roles' => ['Customer', 'Reseller']])
         ->assertSessionHasNoErrors();
     expect($registered->fresh()->phone)->toBe('+6281211112222')->and($user->fresh()->getRoleNames()->sort()->values()->all())->toBe(['Customer', 'Reseller']);
+
+    // A role with access the staff member lacks is neither offered, given nor taken away.
+    $super = auth()->user();
+    actingAsUserWith(['commerce.customers.view', 'commerce.customers.edit'], 'support@example.com');
+    Role::findOrCreate('Agent', 'web')->givePermissionTo(Permission::findOrCreate('sunrice.ai-access', 'web'));
+    $this->get("/cms/commerce/customers/{$registered->id}")->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('roleOptions', fn ($options) => ! collect($options)->contains('Agent') && collect($options)->contains('Reseller')));
+    $this->put("/cms/commerce/customers/{$registered->id}", ['roles' => ['Customer', 'Agent']])->assertSessionHasNoErrors();
+    expect($user->fresh()->hasRole('Agent'))->toBeFalse();
+    $user->assignRole('Agent');
+    $this->put("/cms/commerce/customers/{$registered->id}", ['roles' => ['Customer']])->assertSessionHasNoErrors();
+    expect($user->fresh()->getRoleNames()->sort()->values()->all())->toBe(['Agent', 'Customer']);
+    $this->actingAs($super);
 
     $this->post("/cms/commerce/customers/{$registered->id}/anonymize")->assertRedirect('/cms/commerce/customers');
     $registered->refresh();

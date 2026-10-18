@@ -53,6 +53,15 @@ to the MCP server's instructions and keeps store pages out of the full-page cach
 - Documentation in `docs/`.
 
 ### Fixes
+- CSV exports (orders, customers, reports) write text that starts like a formula as plain text, so a
+  customer's name can't run in Excel or Sheets.
+- Changing or resetting a storefront password signs out "remember me" on other devices, and
+  changing the email needs the current password. Sites that published `account/profile.blade.php`
+  need its new `current_password` field (`php artisan vendor:publish --tag=commerce-templates`, or
+  copy it in).
+- The customer page only gives or takes away roles with less access than the staff member's own
+  (Sunrice's permission ranking); other roles the account has are kept.
+- The Shop Manager role gets `sunrice.guide.view` (run `php artisan commerce:seed-roles`).
 - A gateway payment confirmed after its deadline cancelled the order is recorded paid, but the order
   stays cancelled and isn't fulfilled (no downloads, invoice number or "payment received"):
   `PaymentAfterCancellation` fires and staff get the new `staff_paid_after_cancel` email.

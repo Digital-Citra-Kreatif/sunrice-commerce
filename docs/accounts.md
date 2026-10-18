@@ -189,7 +189,12 @@ The verification email is sent:
 - after registering (with verification on);
 - when an unverified account tries to sign in with its password;
 - when someone registers again with an unverified email;
-- when a customer changes their email in their profile (the new address must be verified).
+- when a customer changes their email in their profile (the new address must be verified). Changing
+  it needs the current password, for accounts that have one (not those made by code or Google
+  without a password yet), so a stolen session can't move the account to another address.
+
+Changing or resetting the password gives the account a new remember token, so "remember me" stops
+working on other devices.
 
 Following the link marks the email verified, sends the welcome email (the first time), links earlier
 guest orders and signs the customer in. Laravel's `Verified` event is dispatched when the user model
@@ -316,7 +321,9 @@ account.
 | Mark email verified | `commerce.customers.edit` | Verifies the email without the link |
 | Anonymize | `commerce.customers.delete` | Removes personal data (below) |
 
-Only roles without admin access can be given here, and a staff member's admin roles are kept. Staff
+Only roles without admin access, and with less access than your own (Sunrice's
+[who can manage whom](https://github.com/Digital-Citra-Kreatif/sunrice-cms/blob/main/docs/permissions.md#who-can-manage-whom)),
+can be given or taken away here; the account's other roles, including staff roles, are kept. Staff
 accounts can't be anonymized here: they are managed in Users. Edits, verifications and
 anonymizations are recorded in Sunrice's activity log (type `customer`).
 

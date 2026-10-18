@@ -14,6 +14,7 @@ use Sunrice\Commerce\Analytics\Reports\Report;
 use Sunrice\Commerce\Analytics\Reports\Reports;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Support\CsvCell;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Shop → Reports: one page for every report, with a date range, comparison and CSV export. */
@@ -63,7 +64,7 @@ class ReportsController extends Controller
                     $value = $row[$column['key']] ?? null;
                     $line[$column['label']] = $column['kind'] === 'money' && is_numeric($value) ? round((float) $value / (10 ** $decimals), $decimals) : $value;
                 }
-                $writer->addRow($line);
+                $writer->addRow(array_map(CsvCell::safe(...), $line));
             }
             $writer->close();
         }, $name, ['Content-Type' => 'text/csv']);

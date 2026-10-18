@@ -92,6 +92,8 @@ return [
         'save' => 'Save',
         'saved' => 'Your profile was saved.',
         'verify_new_email' => 'Saved. Confirm your new email with the link we sent.',
+        'email_needs_password' => 'Enter your current password to change your email.',
+        'current_password_for_email' => 'Current password (only to change your email)',
         'google_linked' => 'Linked to Google: :email',
     ],
     'password' => [

@@ -92,6 +92,8 @@ return [
         'save' => 'Simpan',
         'saved' => 'Profil disimpan.',
         'verify_new_email' => 'Disimpan. Konfirmasikan email baru Anda lewat tautan yang kami kirim.',
+        'email_needs_password' => 'Masukkan kata sandi sekarang untuk mengganti email.',
+        'current_password_for_email' => 'Kata sandi sekarang (hanya untuk mengganti email)',
         'google_linked' => 'Terhubung ke Google: :email',
     ],
     'password' => [
