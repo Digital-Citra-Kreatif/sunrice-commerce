@@ -319,12 +319,18 @@ class CommerceServiceProvider extends PackageServiceProvider
         $commerce->registerPriceCandidateProvider(Pricing\Providers\PriceRulePrice::class, 20);
         $commerce->registerPriceCandidateProvider(Pricing\Providers\FlashSalePrice::class, 5);
 
-        // Running flash sales lower everyone's price on listings and product pages. The sale applies to
-        // the price it is given: a bundle's from its pricing mode (its variant price is 0).
+        // Running flash sales lower everyone's price on listings and product pages. The sale starts from
+        // the product's own price (a bundle's from its pricing mode; its variant price is 0), never
+        // from a price another adjuster already lowered, so discounts don't stack.
         $flashPrice = function (Catalog\Models\Variant $variant, int $price): int {
             $item = $this->app->make(Promotions\FlashSales\ActiveSales::class)->for($variant);
+            if ($item === null || ($item->remaining() ?? 1) <= 0) {
+                return $price;
+            }
+            $product = $variant->product;
+            $base = $product->isBundle() ? $this->app->make(Catalog\Bundles::class)->price($product, $variant) : $variant->price;
 
-            return $item !== null && ($item->remaining() ?? 1) > 0 ? min($price, $item->priceFor($price)) : $price;
+            return min($price, $item->priceFor($base));
         };
         $this->app->make(Catalog\PriceIndex::class)->adjustUsing(fn (Catalog\Models\Product $product, Catalog\Models\Variant $variant, int $price) => $flashPrice($variant, $price));
         Catalog\ProductViewFactory::adjustPricesUsing($flashPrice);

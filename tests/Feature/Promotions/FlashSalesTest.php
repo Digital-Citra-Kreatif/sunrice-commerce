@@ -8,6 +8,8 @@ use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Catalog;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Catalog\ProductViewFactory;
+use Sunrice\Commerce\Catalog\ProductViewHooks;
 use Sunrice\Commerce\Promotions\FlashSales\ActiveSales;
 use Sunrice\Commerce\Promotions\FlashSales\Events\FlashSaleEnded;
 use Sunrice\Commerce\Promotions\FlashSales\Events\FlashSaleStarted;
@@ -15,6 +17,7 @@ use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSaleBoundaries;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSaleItem;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSaleReservations;
+use Sunrice\Models\Entry;
 
 beforeEach(function () {
     app(ScaffoldStore::class)->handle();
@@ -123,4 +126,15 @@ it('finds a variant\'s running item by key: its own item first, then its product
     $sale->update(['ends_at' => now()->subMinute()]);
     $sales->flush();
     expect($sales->for($small))->toBeNull();
+});
+
+it('takes the sale off the product price, not off a price another adjuster lowered', function () {
+    saleWithMug($this->product);   // 20% off 50.000
+    app(ActiveSales::class)->flush(); // publishing read the (then empty) running items
+    $hooks = app(ProductViewHooks::class);
+    array_unshift($hooks->priceAdjusters, fn (Variant $variant, int $price) => $price - 5000);   // runs before the sale
+    app()->forgetScopedInstances();
+
+    $view = app(ProductViewFactory::class)->forEntry(Entry::query()->findOrFail($this->product->entry_id));
+    expect($view->price['amount'])->toBe(40000);   // the sale's 40.000 beats 45.000; 20% off 45.000 would be 36.000
 });
