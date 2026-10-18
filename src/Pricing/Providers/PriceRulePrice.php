@@ -37,7 +37,7 @@ class PriceRulePrice implements PriceCandidateProvider
         $best = null;
         foreach ($this->matcher->for($line->variant, $state->ctx) as $rule) {
             $qty = $this->countedQuantity($rule, $line, $state);
-            $tier = Tiers::best($rule->tiers, $qty, $line->variant->price);
+            $tier = Tiers::best($rule->tiers, $qty, $line->basePrice());
             if ($tier !== null && ($best === null || $tier['price'] < $best[1]['price'])) {
                 $best = [$rule, $tier];
             }

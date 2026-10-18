@@ -258,13 +258,14 @@ class ProductViewFactory
         }
         $thresholds = array_values(array_unique(array_filter(array_map(fn (array $t) => (int) $t['min_qty'], $sources), fn (int $q) => $q > 1)));
         sort($thresholds);
+        $base = $this->basePrice($product, $variant);
         $rows = [];
         foreach ($thresholds as $qty) {
-            $best = Tiers::best($sources, $qty, $variant->price);
+            $best = Tiers::best($sources, $qty, $base);
             if ($best !== null && $best['price'] < $current) {
                 $rows[] = [
                     'min_qty' => $qty,
-                    'label' => $variant->price > 0 ? '-'.rtrim(rtrim(number_format(100 * ($variant->price - $best['price']) / $variant->price, 1, ',', '.'), '0'), ',').'%' : '',
+                    'label' => $base > 0 ? '-'.rtrim(rtrim(number_format(100 * ($base - $best['price']) / $base, 1, ',', '.'), '0'), ',').'%' : '',
                     'price' => $this->money->format($best['price']),
                 ];
             }
