@@ -53,13 +53,15 @@ class VoucherAmounts
         $buyQty = max(1, (int) $config['buy_qty']);
         $getQty = max(1, (int) $config['get_qty']);
         $buyTargets = $voucher->targets->where('mode', 'buy');
-        $getTargets = $voucher->targets->where('mode', 'get');
+        // An empty "Get from" means the same products as "Buy from".
+        $getTargets = $voucher->targets->where('mode', 'get')->whenEmpty(fn () => $buyTargets);
         $isBuy = fn (string $k) => $buyTargets->isEmpty() || $this->targets->matches($buyTargets, $state->lines[$k]->variant);
         $isGet = fn (string $k) => $getTargets->isEmpty() || $this->targets->matches($getTargets, $state->lines[$k]->variant);
 
         $buyUnits = array_sum(array_map(fn (string $k) => $isBuy($k) ? $state->lines[$k]->quantity : 0, $lines));
         $getLines = array_values(array_filter($lines, $isGet));
-        $same = $buyTargets->pluck('target_type', 'target_id')->all() === $getTargets->pluck('target_type', 'target_id')->all();
+        $key = fn ($targets) => $targets->map(fn ($t) => $t->target_type.':'.$t->target_id)->sort()->values()->all();
+        $same = $key($buyTargets) === $key($getTargets);
         $freeUnits = $same ? intdiv($buyUnits, $buyQty + $getQty) * $getQty : intdiv($buyUnits, $buyQty) * $getQty;
         if ($freeUnits <= 0 || $getLines === []) {
             return [];

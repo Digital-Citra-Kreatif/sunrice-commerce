@@ -262,9 +262,15 @@ then the voucher applies with the notice "HEMAT10 applies at checkout if the pay
 3. Each one works on what is left of the eligible lines after the earlier ones, and is spread over
    them in proportion, exactly to the smallest unit, so per-line refunds and taxes stay right.
 
-A voucher joins those already applied only if it and each of them are marked **combinable**, and
-none of them is **exclusive**. New vouchers are combinable by default. To keep codes from stacking
-with an automatic discount, untick combinable on either, or mark one exclusive.
+A voucher joins those already applied when, for each of them:
+
+- neither is **exclusive** (an exclusive voucher always stands alone);
+- one of the two is an automatic discount (automatic discounts combine with codes), or both are
+  marked **combinable** (new vouchers are), or
+- one is a free-shipping code and it is the only other code, while **A free-shipping code can be
+  used with one other code** is on (Settings → Store → Checkout, on by default).
+
+To keep codes from stacking with an automatic discount, mark one of them exclusive.
 
 ### Why a code doesn't apply
 

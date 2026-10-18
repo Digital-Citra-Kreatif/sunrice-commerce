@@ -258,6 +258,7 @@ return [
             'order_notes' => true,
             'dropshipper' => false,
             'terms_page' => null,
+            'free_shipping_combines' => true,
             'customer_cancel' => true,
             'order_number_format' => 'ORD-{Y}{m}{d}-{seq:4}',
             'order_number_reset' => 'daily',

@@ -7,6 +7,7 @@ namespace Sunrice\Commerce\Promotions\Vouchers;
 use Sunrice\Commerce\Pricing\CalcLine;
 use Sunrice\Commerce\Pricing\CalculationState;
 use Sunrice\Commerce\Promotions\TargetMatcher;
+use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\MoneyFormatter;
 
 /**
@@ -116,11 +117,23 @@ class VoucherEligibility
             return new Eligibility('min_quantity', params: ['count' => $voucher->min_quantity]);
         }
 
-        // 7. Combination
+        // 7. Combination (SPEC.md, vouchers): exclusive vouchers stand alone; automatic discounts
+        // combine with anything else; two codes need both marked combinable, except that a
+        // free-shipping code may join one other code (checkout.free_shipping_combines).
+        $codes = array_values(array_filter($applied, fn (Voucher $v) => ! $v->automatic));
         foreach ($applied as $other) {
-            if ($other->exclusive || $voucher->exclusive || ! $voucher->combinable || ! $other->combinable) {
+            if ($other->exclusive || $voucher->exclusive) {
                 return new Eligibility('not_combinable', params: ['code' => $other->label()]);
             }
+            if ($voucher->automatic || $other->automatic || ($voucher->combinable && $other->combinable)) {
+                continue;
+            }
+            $freeShippingPair = ($voucher->type === 'free_shipping') !== ($other->type === 'free_shipping');
+            if ($freeShippingPair && count($codes) === 1 && (bool) app(StoreSettings::class)->get('checkout.free_shipping_combines', true)) {
+                continue;
+            }
+
+            return new Eligibility('not_combinable', params: ['code' => $other->label()]);
         }
 
         return new Eligibility(null, $lines, $pending);

@@ -131,6 +131,27 @@ return [
         'cart' => [['MUG', 2]],
         'expect' => ['codes' => [], 'notices' => ['voucher_not_combinable'], 'totals' => ['discount' => 15000]],
     ],
+    'automatic discounts combine with codes unless exclusive' => [
+        'products' => $products,
+        'setup' => function () use ($voucher) {
+            $voucher(['code' => null, 'automatic' => true, 'name' => 'Ramadan', 'value' => 1000, 'combinable' => false]);
+            $voucher(['code' => 'SOLO', 'value' => 1000, 'combinable' => false]);
+        },
+        'codes' => ['SOLO'],
+        'cart' => [['MUG', 2]],
+        'expect' => ['codes' => ['SOLO'], 'notices' => [], 'totals' => ['discount' => 19000]],
+    ],
+    'a free-shipping code joins one other code' => [
+        'products' => $products,
+        'setup' => function () use ($voucher) {
+            $voucher(['code' => 'SOLO', 'value' => 1000, 'combinable' => false]);
+            $voucher(['code' => 'ONGKIR', 'type' => 'free_shipping', 'value' => 0, 'combinable' => false]);
+            $voucher(['code' => 'LAGI', 'value' => 500, 'combinable' => false]);
+        },
+        'codes' => ['SOLO', 'ONGKIR', 'LAGI'],
+        'cart' => [['MUG', 2]],
+        'expect' => ['codes' => ['SOLO', 'ONGKIR'], 'notices' => ['voucher_not_combinable']],
+    ],
     'conditions known only at checkout are noted' => [
         'products' => $products,
         'setup' => fn () => $voucher(['payment_methods' => ['bank_transfer']]),
@@ -161,6 +182,15 @@ return [
         'cart' => [['MUG', 3], ['TEA', 2], ['PEN', 1]],
         // 6 units → 2 sets → the 2 cheapest units are free: PEN (3333) and one TEA (25000)
         'expect' => ['lines' => ['MUG' => [50000, 150000, 0], 'TEA' => [25000, 50000, 25000], 'PEN' => [3333, 3333, 3333]], 'totals' => ['discount' => 28333]],
+    ],
+    'buy 2 mugs get 1 free: an empty "get from" means the same products' => [
+        'products' => $products,
+        'setup' => fn ($v) => $voucher(['type' => 'buy_x_get_y', 'value' => 0, 'bxgy' => ['buy_qty' => 2, 'get_qty' => 1, 'get_type' => 'free', 'get_value' => 0]],
+            [['buy', 'product', $v['MUG']->product_id]]),
+        'codes' => ['HEMAT'],
+        'cart' => [['MUG', 3], ['TEA', 1]],
+        // 3 mugs = one set of 2 + 1: one mug free; tea isn't in the offer
+        'expect' => ['lines' => ['MUG' => [50000, 150000, 50000], 'TEA' => [25000, 25000, 0]], 'totals' => ['discount' => 50000]],
     ],
     'buy a mug, get tea half price' => [
         'products' => $products,

@@ -112,7 +112,7 @@ Each section is a page under Settings → Store with its own permission
 | `features` (Features) | One switch per module — see [features.md](features.md) |
 | `catalog` (Catalog) | `price_visibility`, `price_visibility_roles`, `call_to_action`, `show_stock`, `low_stock_threshold`, `hide_out_of_stock`, `new_badge_days`, `price_range`, `attribute_taxonomies`, `compare_max`, `compare_fields` |
 | `digital` (Digital products; catalog permission) | `delivery`, `grant_on`, `download_limit`, `expiry_days` |
-| `checkout` (Checkout) | `guest_checkout`, `create_account`, `require_phone`, `company_fields`, `address_line2`, `require_postal_code`, `village_level`, `order_notes`, `dropshipper`, `minimum_order`, `terms_page`, `customer_cancel`, `order_number_format`, `order_number_reset`, `quote_number_format`, `quote_number_reset`, `quote_valid_days`, `auto_complete_shipped`, `auto_complete_digital` |
+| `checkout` (Checkout) | `guest_checkout`, `create_account`, `require_phone`, `company_fields`, `address_line2`, `require_postal_code`, `village_level`, `order_notes`, `dropshipper`, `minimum_order`, `terms_page`, `free_shipping_combines`, `customer_cancel`, `order_number_format`, `order_number_reset`, `quote_number_format`, `quote_number_reset`, `quote_valid_days`, `auto_complete_shipped`, `auto_complete_digital` |
 | `payments` (Payments page) | `methods.<key>` (each method's settings, `active`, `title`…), `order` — see [payments.md](payments.md) |
 | `shipping` (Shipping page) | Zones and methods are database records — see [shipping.md](shipping.md) |
 | `taxes` (Taxes) | `prices_include_tax`, `display_prices`, `based_on`, `classes`; rates on their own page |
