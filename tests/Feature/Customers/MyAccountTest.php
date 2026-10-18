@@ -70,3 +70,15 @@ it('lists pages registered by extensions', function () {
 
     $this->get('/account')->assertOk()->assertSee('Poin saya');
 });
+
+it('shows recent orders, quick links and the wishlist on the overview', function () {
+    foreach (['ORD-1', 'ORD-2', 'ORD-3', 'ORD-4'] as $i => $number) {
+        makeOrder(['number' => $number, 'user_id' => $this->user->id, 'customer_id' => $this->customer->id, 'placed_at' => now()->subDays(10 - $i)]);
+    }
+    makeOrder(['number' => 'ORD-OTHER', 'placed_at' => now()]);
+
+    $this->get('/account')->assertOk()
+        ->assertSeeInOrder(['Pesanan terbaru', 'ORD-4', 'ORD-3', 'ORD-2', 'Lihat semua pesanan'])
+        ->assertDontSee('ORD-1')->assertDontSee('ORD-OTHER')
+        ->assertSee('Tautan cepat')->assertSee(url('/wishlist'), false);
+});

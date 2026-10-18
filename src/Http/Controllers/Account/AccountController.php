@@ -17,6 +17,7 @@ use Sunrice\Commerce\Customers\Actions\SaveAddress;
 use Sunrice\Commerce\Customers\Actions\UpdateProfile;
 use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Customers\Models\Address;
+use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Storefront\Layout;
 
 /** My Account: overview, profile, password, addresses, account deletion. */
@@ -31,6 +32,10 @@ class AccountController
     {
         return $this->page('overview', __('commerce::account.overview.title'), [
             'addresses' => $this->current->get()->addresses()->orderByDesc('default_shipping')->get(),
+            'recentOrders' => commerce_feature('orders')
+                ? Order::query()->where('user_id', $this->current->user()?->getAuthIdentifier())->where('type', 'order')->latest('placed_at')->latest('id')->limit(3)->get()
+                : collect(),
+            'links' => array_values(array_filter(app(AccountNavigation::class)->items(), fn (array $item) => $item['key'] !== 'overview')),
         ]);
     }
 

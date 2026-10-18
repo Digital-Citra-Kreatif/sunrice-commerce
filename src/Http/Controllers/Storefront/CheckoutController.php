@@ -21,6 +21,7 @@ use Sunrice\Commerce\Checkout\CheckoutMode;
 use Sunrice\Commerce\Checkout\CheckoutRefused;
 use Sunrice\Commerce\Checkout\CheckoutValidator;
 use Sunrice\Commerce\Checkout\Events\CheckoutStarted;
+use Sunrice\Commerce\Checkout\TermsPage;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Payments\PaymentContext;
 use Sunrice\Commerce\Payments\PaymentManager;
@@ -28,7 +29,6 @@ use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 use Sunrice\Commerce\Support\MoneyFormatter;
-use Sunrice\Models\Entry;
 
 /**
  * The one-page checkout. Works without JavaScript: the form posts with
@@ -174,20 +174,8 @@ class CheckoutController
                 && $this->settings->get('checkout.create_account', 'offer') !== 'never',
             'accountRequired' => $user === null && $validator->createsAccount($data->merge(['create_account' => true])) && $this->settings->get('checkout.create_account') === 'always',
             'extraFields' => app(CheckoutFields::class)->for($data, $state),
-            'termsUrl' => $this->termsUrl(),
+            'termsUrl' => TermsPage::url(),
             'submitLabel' => __('commerce::checkout.submit.'.$this->mode->completion()),
         ];
-    }
-
-    protected function termsUrl(): ?string
-    {
-        $page = $this->settings->get('checkout.terms_page');
-        if (! $page) {
-            return null;
-        }
-        $entry = Entry::query()->with('translations', 'collection')->find(is_array($page) ? ($page[0] ?? null) : $page);
-        $entry?->resolveFor(app()->getLocale());
-
-        return $entry?->url;
     }
 }

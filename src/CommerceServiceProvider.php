@@ -200,6 +200,7 @@ class CommerceServiceProvider extends PackageServiceProvider
             fn (): bool => commerce_feature('orders') && $this->app->make(Settings\StoreSettings::class)->get('general.selling_mode') === 'quote', position: 25);
         $nav->register('downloads', fn () => __('commerce::digital.title'), 'commerce.account.downloads',
             fn (): bool => Digital\Models\DownloadGrant::query()->whereHas('order', fn ($q) => $q->where('user_id', commerce_customer()?->getAuthIdentifier()))->exists(), position: 30);
+        $nav->register('wishlist', fn () => __('commerce::storefront.wishlist.title'), 'commerce.wishlist', 'wishlist', position: 60);
         $nav->register('addresses', fn () => __('commerce::account.addresses.title'), 'commerce.account.addresses', position: 70);
 
         // Users lists staff: users whose roles are all customer roles are customers.

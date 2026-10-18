@@ -1,5 +1,6 @@
 {{--
     Create an account (signing up by emailed code is offered while that feature is on).
+    $termsUrl (the terms page to agree to, or null), $captcha (widget data or null).
 --}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
@@ -32,6 +33,16 @@
                 <input type="password" name="password_confirmation" autocomplete="new-password">
             </label>
             <label class="commerce-check"><input type="checkbox" name="accepts_marketing" value="1" @checked(old('accepts_marketing'))> {{ __('commerce::account.register.marketing') }}</label>
+            @if ($termsUrl ?? null)
+                <label class="commerce-check"><input type="checkbox" name="terms" value="1" @checked(old('terms')) required>
+                    {!! __('commerce::checkout.terms', ['link' => '<a href="'.e($termsUrl).'" target="_blank" rel="noopener">'.e(__('commerce::checkout.terms_link')).'</a>']) !!}</label>
+                @include(\Sunrice\Commerce\Storefront\Layout::view('partials.field-error'), ['name' => 'terms'])
+            @endif
+            @if ($captcha ?? null)
+                <script src="{{ $captcha['script'] }}" async defer></script>
+                <div class="{{ $captcha['class'] }}" data-sitekey="{{ $captcha['site_key'] }}"></div>
+                @include(\Sunrice\Commerce\Storefront\Layout::view('partials.field-error'), ['name' => 'captcha'])
+            @endif
             <button type="submit">{{ __('commerce::account.register.submit') }}</button>
         </form>
         <p><a href="{{ commerce_url('commerce.account.login') }}">{{ __('commerce::account.register.have_account') }}</a></p>

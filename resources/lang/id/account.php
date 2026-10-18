@@ -81,6 +81,10 @@ return [
     'overview' => [
         'title' => 'Akun saya',
         'hello' => 'Halo, :name',
+        'recent_orders' => 'Pesanan terbaru',
+        'all_orders' => 'Lihat semua pesanan',
+        'no_orders' => 'Anda belum pernah memesan.',
+        'links' => 'Tautan cepat',
     ],
     'profile' => [
         'title' => 'Profil',

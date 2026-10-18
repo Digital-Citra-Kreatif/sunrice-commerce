@@ -83,7 +83,11 @@ an optional phone number (or a required one, in settings), a password, and marke
 - If the email already has an account, the page says "check your email" as for a new account, and
   an unverified owner is sent the verification link again. Nobody can find out whether an email has
   an account.
-- The forms have a honeypot. Registration is limited to 5 per hour per IP address.
+- When a terms page is set (Settings → Store → Checkout → Terms page), customers tick that they
+  agree to it, as at checkout.
+- The forms have a honeypot. With Sunrice's captcha configured (`sunrice.forms.captcha`: Turnstile,
+  reCAPTCHA or hCaptcha), registration also shows the captcha. Registration is limited to 5 per
+  hour per IP address.
 
 Laravel's `Illuminate\Auth\Events\Registered` is dispatched for new accounts.
 
@@ -232,11 +236,12 @@ The customer's language is also remembered at the first sign-in, for their email
 
 | Page | Route | Shows |
 | --- | --- | --- |
-| Overview | `commerce.account` | A greeting, the default shipping address and the `account.overview` slot |
+| Overview | `commerce.account` | A greeting, the `account.overview` slot, the three latest orders (needs `orders`), quick links to the other pages and the default shipping address |
 | Orders | `commerce.account.orders` | The customer's orders, 10 per page (needs `orders`) |
 | An order | `commerce.account.order` | Timeline, payment instructions and confirmation, tracking, invoice download, downloads, buy again, cancel |
 | Quotes | `commerce.account.quotes` | Quote requests (shown in Quotation mode) |
 | Downloads | `commerce.account.downloads` | The digital library (shown once the customer has downloads) |
+| Wishlist | `commerce.wishlist` | The wishlist page (needs `wishlist`) |
 | Addresses | `commerce.account.addresses` | Add, edit and delete addresses; default shipping and billing |
 | Profile | `commerce.account.profile` | Name, email, phone, marketing consent, the linked Google account, password, account deletion |
 

@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Validation\ValidationException;
+use Sunrice\Commerce\Checkout\TermsPage;
 use Sunrice\Commerce\Customers\Actions\AssignCustomerRole;
 use Sunrice\Commerce\Customers\Actions\LinkGuestOrders;
 use Sunrice\Commerce\Customers\Auth\LoginCodes;
@@ -32,6 +33,7 @@ use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 use Sunrice\Commerce\Support\Phone;
+use Sunrice\Support\Captcha;
 
 /**
  * Storefront sign-in with a password, registration, password reset and
@@ -88,7 +90,11 @@ class AuthController
     {
         abort_unless($this->settings->get('accounts.registration', true), 404);
 
-        return view(Layout::view('account.register'), ['seoTitle' => __('commerce::account.register.title')]);
+        return view(Layout::view('account.register'), [
+            'seoTitle' => __('commerce::account.register.title'),
+            'termsUrl' => TermsPage::url(),
+            'captcha' => Captcha::widget(app()->getLocale()),
+        ]);
     }
 
     public function register(Request $request, AssignCustomerRole $roles): RedirectResponse
@@ -101,7 +107,11 @@ class AuthController
             'phone' => [$this->settings->get('accounts.require_phone') ? 'required' : 'nullable', 'string', 'max:30'],
             'password' => $passwordless ? ['nullable'] : ['required', 'confirmed', PasswordRule::min(8)],
             'accepts_marketing' => ['nullable', 'boolean'],
+            'terms' => $this->settings->get('checkout.terms_page') ? ['accepted'] : ['nullable'],
         ]);
+        if (($field = Captcha::field()) !== null && ! Captcha::verify((string) $request->input($field), $request->ip())) {
+            return back()->withInput($request->except(['password', 'password_confirmation']))->withErrors(['captcha' => __('commerce::payments.confirm.captcha')]);
+        }
         Throttle::check('commerce-register', $request, '', 100, 5, 3600);
         Throttle::hit('commerce-register', $request, '', 3600);
 

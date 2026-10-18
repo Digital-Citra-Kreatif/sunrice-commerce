@@ -81,6 +81,10 @@ return [
     'overview' => [
         'title' => 'My account',
         'hello' => 'Hello, :name',
+        'recent_orders' => 'Recent orders',
+        'all_orders' => 'See all orders',
+        'no_orders' => "You haven't ordered yet.",
+        'links' => 'Quick links',
     ],
     'profile' => [
         'title' => 'Profile',

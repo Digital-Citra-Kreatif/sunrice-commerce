@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -74,6 +75,24 @@ it('registers with verification and without enumeration', function () {
     $this->get($link)->assertRedirect('/account');
     expect($budi->fresh()->email_verified_at)->not->toBeNull();
     $this->assertAuthenticated('commerce');
+});
+
+it('asks new customers to agree to the terms and pass the captcha', function () {
+    Notification::fake();
+    app(ScaffoldStore::class)->handle();
+    $page = publishProduct(['variants' => [['id' => 'v', 'sku' => 'T', 'price' => 1000]]], title: 'Syarat');
+    app(StoreSettings::class)->saveSection('checkout', ['terms_page' => $page->id]);
+    config(['sunrice.forms.captcha' => ['provider' => 'turnstile', 'site_key' => 'site', 'secret_key' => 'secret']]);
+    Http::fake(['*' => Http::response(['success' => true])]);
+    $input = ['name' => 'Budi', 'email' => 'budi@example.com', 'password' => 'long-enough', 'password_confirmation' => 'long-enough'];
+
+    $this->get('/account/register')->assertOk()->assertSee('name="terms"', false)->assertSee('data-sitekey="site"', false);
+    $this->post('/account/register', $input)->assertSessionHasErrors('terms');
+    $this->post('/account/register', [...$input, 'terms' => 1])->assertSessionHasErrors('captcha');
+    expect(User::query()->where('email', 'budi@example.com')->exists())->toBeFalse();
+
+    $this->post('/account/register', [...$input, 'terms' => 1, 'cf-turnstile-response' => 'token'])->assertSessionHasNoErrors();
+    expect(User::query()->where('email', 'budi@example.com')->exists())->toBeTrue();
 });
 
 it('closes registration when switched off', function () {
