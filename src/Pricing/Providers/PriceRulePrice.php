@@ -20,6 +20,9 @@ use Sunrice\Commerce\Promotions\Tiers;
  */
 class PriceRulePrice implements PriceCandidateProvider
 {
+    /** @var array<int, true> the calculation whose lines' terms are loaded (once per calculation, not per line) */
+    protected array $preloaded = [];
+
     public function __construct(protected Features $features, protected RuleMatcher $matcher) {}
 
     public function candidates(CalcLine $line, CalculationState $state): iterable
@@ -27,7 +30,10 @@ class PriceRulePrice implements PriceCandidateProvider
         if (! $this->features->active('pricing_rules')) {
             return;
         }
-        $this->matcher->preload(array_map(fn (CalcLine $l) => (int) $l->product()->entry_id, array_values($state->lines)));
+        if (! isset($this->preloaded[spl_object_id($state)])) {
+            $this->matcher->preload(array_map(fn (CalcLine $l) => (int) $l->product()->entry_id, array_values($state->lines)));
+            $this->preloaded = [spl_object_id($state) => true];
+        }
         $best = null;
         foreach ($this->matcher->for($line->variant, $state->ctx) as $rule) {
             $qty = $this->countedQuantity($rule, $line, $state);

@@ -17,7 +17,7 @@ class BrandsController
         abort_unless(commerce_feature('brands'), 404);
         $handle = (string) config('commerce.catalog.brand_taxonomy', 'brands');
         $facet = ProductQuery::make()->facets()['terms'][$handle] ?? [];
-        $terms = Term::query()->with('translations')->whereIn('id', array_column($facet, 'id'))->get()->keyBy('id');
+        $terms = Term::query()->with(['translations', 'taxonomy.blueprint'])->whereIn('id', array_column($facet, 'id'))->get()->keyBy('id');
 
         $brands = [];
         foreach ($facet as $row) {

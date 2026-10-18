@@ -8,6 +8,7 @@ use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Catalog;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Promotions\FlashSales\ActiveSales;
 use Sunrice\Commerce\Promotions\FlashSales\Events\FlashSaleEnded;
 use Sunrice\Commerce\Promotions\FlashSales\Events\FlashSaleStarted;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
@@ -102,4 +103,24 @@ it('refuses adding more than the per-customer limit while the sale price applies
     FlashSaleItem::query()->update(['quantity_limit' => 5, 'sold_quantity' => 5]);
     app()->forgetScopedInstances();
     expect(app(Catalog::class)->check($variant, 3)->isOk())->toBeTrue();
+});
+
+it('finds a variant\'s running item by key: its own item first, then its product\'s', function () {
+    $shirt = Product::query()->where('entry_id', publishProduct(['type' => 'variable', 'options' => [['id' => 'size', 'name' => 'Size', 'values' => [['id' => 's', 'label' => 'S'], ['id' => 'm', 'label' => 'M']]]],
+        'variants' => [['id' => 's', 'sku' => 'SHIRT-S', 'price' => 100000, 'options' => ['size' => 's']], ['id' => 'm', 'sku' => 'SHIRT-M', 'price' => 100000, 'options' => ['size' => 'm']]]], title: 'Shirt')->id)->firstOrFail();
+    $small = Variant::query()->where('sku', 'SHIRT-S')->firstOrFail();
+    $medium = Variant::query()->where('sku', 'SHIRT-M')->firstOrFail();
+    $sale = saleWithMug($this->product, ['active' => true]);
+    $productWide = $sale->items()->create(['product_id' => $shirt->id, 'discount_type' => 'percent_off', 'discount_value' => 1000]);
+    $own = $sale->items()->create(['product_id' => $shirt->id, 'variant_id' => $small->id, 'discount_type' => 'percent_off', 'discount_value' => 3000]);
+    $sales = app(ActiveSales::class);
+    $sales->flush(); // publishing read the (then empty) running items
+
+    expect($sales->for($small)?->id)->toBe($own->id)
+        ->and($sales->for($medium)?->id)->toBe($productWide->id)
+        ->and($sales->for(Variant::query()->where('sku', 'MUG')->firstOrFail())?->product_id)->toBe($this->product->id);
+
+    $sale->update(['ends_at' => now()->subMinute()]);
+    $sales->flush();
+    expect($sales->for($small))->toBeNull();
 });

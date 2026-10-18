@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Catalog;
 
 use Closure;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Sunrice\Commerce\Catalog\Models\PriceTier;
 use Sunrice\Commerce\Catalog\Models\Product;
@@ -82,6 +83,7 @@ class ProductViewFactory
         $products = Product::query()->whereIn('entry_id', $ids)->whereNull('removed_at')
             ->with(['variants.optionValues.term.translations', 'options.values.term.translations', 'tiers'])
             ->get()->keyBy('entry_id');
+        $this->prepare($products);
 
         $views = [];
         foreach ($entries as $entry) {
@@ -106,6 +108,31 @@ class ProductViewFactory
         }
 
         return $views;
+    }
+
+    /**
+     * Load in bulk what building the views reads per product, so a page
+     * costs the same number of queries whatever its size: each variant's
+     * product, bundle components and their publication, and the terms
+     * pricing rules match against.
+     *
+     * @param  EloquentCollection<string|int, Product>  $products
+     */
+    protected function prepare(EloquentCollection $products): void
+    {
+        foreach ($products as $product) {
+            foreach ($product->variants as $variant) {
+                $variant->setRelation('product', $product);
+            }
+        }
+        $bundles = $products->filter(fn (Product $p) => $p->isBundle())->values();
+        if ($bundles->isNotEmpty()) {
+            $bundles->load('bundleItems.variant.product');
+            app(Catalog::class)->preload($bundles->all());
+        }
+        if ($products->isNotEmpty() && app(Features::class)->active('pricing_rules')) {
+            app(RuleMatcher::class)->preloadFor($products->pluck('entry_id')->map(fn ($id) => (int) $id)->values()->all());
+        }
     }
 
     protected function build(Entry $entry, Product $product, bool $preview): ProductView
@@ -172,13 +199,14 @@ class ProductViewFactory
             'name' => $option->name,
             'values' => $option->values->map(fn ($value) => ['id' => $value->uid, 'label' => $value->label ?? (string) ($value->term->name ?? '')])->values()->all(),
         ])->values()->all();
+        $optionUids = $product->options->pluck('uid', 'id')->all();
         $variantRows = $variants->map(fn (Variant $v) => [
             'id' => $v->id,
             'uid' => $v->uid,
             'title' => $v->title,
             'sku' => $v->sku,
             'options' => $preview ? (array) $v->getAttribute('option_uids') : $v->optionValues->mapWithKeys(fn ($value) => [
-                (string) $product->options->firstWhere('id', $value->option_id)?->uid => $value->uid,
+                (string) ($optionUids[$value->option_id] ?? '') => $value->uid,
             ])->all(),
             'price' => $hidden ? null : $current[$v->uid],
             'price_formatted' => $hidden ? null : $this->money->format($current[$v->uid]),

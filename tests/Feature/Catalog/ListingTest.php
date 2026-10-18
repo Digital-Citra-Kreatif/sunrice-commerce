@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
@@ -128,4 +129,25 @@ it('keeps a fixed product block on the first products whatever the page asks', f
 
     expect($block->products->currentPage())->toBe(1)->and($block->products->count())->toBe(3)
         ->and(ProductQuery::make()->sort('name')->get(3)->map(fn ($e) => $e->title)->all())->toBe(['Extra 1', 'Extra 2', 'Extra 3']);
+});
+
+it('lists the brands index in a fixed number of queries', function () {
+    $measure = function (): int {
+        Cache::flush(); // facet counts are cached; terms attached after publishing don't change the catalog version
+        $this->get('/brands')->assertOk();
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $this->get('/brands')->assertOk();
+        $count = count(DB::getQueryLog());
+        DB::disableQueryLog();
+
+        return $count;
+    };
+    $two = $measure();
+    foreach (range(1, 6) as $i) {
+        listed("Produk {$i}", 1000 * $i, [term('brands', "Merek {$i}")]);
+    }
+
+    expect($measure())->toBe($two);
+    $this->get('/brands')->assertSee('Merek 6');
 });

@@ -46,13 +46,34 @@ class Catalog
      */
     public function checkMany(array $lines, mixed $customer = null): array
     {
-        $this->loadPublished(array_map(fn (array $line) => $line[0]->product, $lines));
+        $this->preload(array_map(fn (array $line) => $line[0]->product, $lines));
         $results = [];
         foreach ($lines as $key => [$variant, $qty]) {
             $results[$key] = $this->evaluate($variant->product, $variant, $qty, $customer);
         }
 
         return $results;
+    }
+
+    /**
+     * Look up whether these products, and the components of bundles among
+     * them (when loaded), are published: one entry query per collection
+     * instead of one per product.
+     *
+     * @param  iterable<int, Product>  $products
+     */
+    public function preload(iterable $products): void
+    {
+        $all = [];
+        foreach ($products as $product) {
+            $all[] = $product;
+            if ($product->isBundle() && $product->relationLoaded('bundleItems')) {
+                foreach ($product->bundleItems as $item) {
+                    $all[] = $item->variant->product;
+                }
+            }
+        }
+        $this->loadPublished($all);
     }
 
     /** Sunrice decides publication: the entry query returns only published, visible entries. */

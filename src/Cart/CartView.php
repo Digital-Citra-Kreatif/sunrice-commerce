@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Cart;
 
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\DB;
 use JsonSerializable;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Cart\Models\CartItem;
+use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\ProductView;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
 use Sunrice\Commerce\Pricing\CalcLine;
@@ -39,6 +41,12 @@ class CartView implements JsonSerializable
             return new self(null, app(Calculator::class)->calculate([], $ctx));
         }
         $cart->loadMissing('items.variant.product.tiers');
+        // Bundles read their components for prices, stock and publication.
+        $bundles = $cart->items->map(fn (CartItem $i) => $i->variant->product)
+            ->filter(fn (Product $p) => $p->isBundle() && ! $p->relationLoaded('bundleItems'))->unique('id')->values();
+        if ($bundles->isNotEmpty()) {
+            (new EloquentCollection($bundles->all()))->load('bundleItems.variant.product');
+        }
         $checkout = (array) $cart->checkout;
         $ctx = $ctx->with(array_filter([
             'email' => $ctx->email ?? ($checkout['email'] ?? null),

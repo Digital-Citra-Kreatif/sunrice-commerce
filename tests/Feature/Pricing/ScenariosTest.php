@@ -2,11 +2,18 @@
 
 declare(strict_types=1);
 
+use Illuminate\Cache\Events\CacheHit;
+use Illuminate\Cache\Events\CacheMissed;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Pricing\Calculator;
 use Sunrice\Commerce\Pricing\PricingContext;
+use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
+use Sunrice\Models\Entry;
+use Sunrice\Models\Taxonomy;
+use Sunrice\Models\Term;
 use Workbench\App\Models\User;
 
 /*
@@ -117,4 +124,25 @@ it('hashes the same input the same way, and any price change differently', funct
     Variant::query()->whereKey($variants['TEA']->id)->update(['price' => 26000]);
     app()->forgetScopedInstances();
     expect($calc()->hash())->not->toBe($first);
+});
+
+it('expands a category rule\'s terms once per request, not once per line', function () {
+    $variants = seedPricingProducts(['MUG' => 50000, 'TEA' => 20000, 'PEN' => 5000, 'CUP' => 30000]);
+    $taxonomy = Taxonomy::query()->create(['handle' => 'product_categories', 'title' => 'Categories', 'settings' => []]);
+    $parent = Term::query()->create(['taxonomy_id' => $taxonomy->id, 'sort_order' => 0]);
+    $child = Term::query()->create(['taxonomy_id' => $taxonomy->id, 'parent_id' => $parent->id, 'sort_order' => 0]);
+    foreach ($variants as $variant) {
+        Entry::query()->find($variant->product->entry_id)->terms()->attach($child->id);
+    }
+    PriceRule::query()->create(['name' => 'Kopi', 'scope' => 'categories', 'tiers' => [['min_qty' => 1, 'type' => 'percent_off', 'value' => 1000]]])
+        ->targets()->create(['target_type' => 'term', 'target_id' => $parent->id]);
+    $reads = 0;
+    Event::listen([CacheHit::class, CacheMissed::class], function ($event) use (&$reads) {
+        $reads += str_contains($event->key, 'rule-terms') ? 1 : 0;
+    });
+
+    $state = app(Calculator::class)->calculate(array_map(fn (Variant $v) => [$v, 1], $variants), PricingContext::current());
+
+    expect(array_map(fn ($line) => $line->unitPrice, array_values($state->lines)))->toBe([45000, 18000, 4500, 27000])
+        ->and($reads)->toBe(1);
 });
