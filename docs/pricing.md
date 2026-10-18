@@ -224,10 +224,11 @@ are stored in capitals). A new voucher gets a random 8-character code. Code atte
 | `free_shipping` | The shipping cost; with an amount, at most that amount |
 | `buy_x_get_y` | Buy N units, get M units free, at a percentage off, or an amount off |
 
-**Buy X get Y.** "Buy from" and "Get from" are product targets; empty means any eligible item. The
-cheapest eligible "get" units are discounted first.
+**Buy X get Y.** "Buy from" and "Get from" are product targets. An empty "Buy from" means any
+eligible item; an empty "Get from" means the same products as "Buy from". The cheapest eligible
+"get" units are discounted first.
 
-- When both lists are the same (both empty included), the free units come from the same items:
+- When both lists are the same (an empty "Get from" included), the free units come from the same items:
   `floor(units ÷ (N + M)) × M`. Buy 2 get 1 free with 3 shirts in the cart gives 1 shirt free.
 - Otherwise: `floor(buy units ÷ N) × M` units of the "get" items.
 
