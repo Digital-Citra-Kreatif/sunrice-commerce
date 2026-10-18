@@ -36,5 +36,6 @@ it('rolls the indexes back', function () {
 
     $migration->up();
     $migration->up(); // again: columns already indexed are skipped
-    expect(array_column(Schema::getIndexes('commerce_order_items'), 'name'))->toContain('commerce_order_items_order_id_index');
+    // Covered again, by this index or (MySQL) the foreign key's own.
+    expect(array_map(fn (array $index) => $index['columns'][0] ?? null, Schema::getIndexes('commerce_order_items')))->toContain('order_id');
 });

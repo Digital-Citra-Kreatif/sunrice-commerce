@@ -143,6 +143,8 @@ it('expands a category rule\'s terms once per request, not once per line', funct
 
     $state = app(Calculator::class)->calculate(array_map(fn (Variant $v) => [$v, 1], $variants), PricingContext::current());
 
-    expect(array_map(fn ($line) => $line->unitPrice, array_values($state->lines)))->toBe([45000, 18000, 4500, 27000])
+    // Lines follow the input order, whatever order the variants came back in.
+    expect(array_combine(array_keys($variants), array_map(fn ($line) => $line->unitPrice, array_values($state->lines))))
+        ->toEqual(['MUG' => 45000, 'TEA' => 18000, 'PEN' => 4500, 'CUP' => 27000])
         ->and($reads)->toBe(1);
 });
