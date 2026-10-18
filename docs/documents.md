@@ -20,9 +20,9 @@ mode, the quotation. They are the `documents` feature (on by default, needs `ord
 
 | Document | Type | Shows |
 | --- | --- | --- |
-| Invoice | `invoice` | Store logo, name, address, phone, email and tax ID; invoice number, date and order number; billing and shipping address; items with prices; subtotal, discounts, shipping, fees, taxes per rate, total, paid and refunded; payment method and status; the invoice footer |
+| Invoice | `invoice` | Store logo, name, address, phone, email and tax ID; invoice number, date and order number; billing and shipping address; items with prices; subtotal, discounts, shipping, fees, taxes per rate, total, paid and refunded; payment method and status; while unpaid, the bank accounts to transfer to (from the order's open bank-transfer payment); the customer's order note; the invoice footer |
 | Packing slip | `packing_slip` | The store, the order number and date; the addresses; the dropshipper as sender when there is one; items and quantities without prices; the shipping method and the customer's note |
-| Quotation | `quotation` | Like the invoice, titled "Quotation", with the quote number and its validity date; the invoice footer |
+| Quotation | `quotation` | Like the invoice, titled "Quotation", with the quote number and its validity date; the customer's note; the invoice footer |
 
 Documents are rendered in the order's language, one A4 page (or more) per order. The code lives in
 `src/Documents/`: `Documents` builds the HTML and PDFs, `DompdfRenderer` turns HTML into PDF with

@@ -18,6 +18,8 @@
         .totals .total td { border-top: 1px solid #333; font-weight: bold; font-size: 13px; }
         h1 { font-size: 20px; margin: 0 0 4px; }
         .small { font-size: 9px; }
+        .bank-details { margin-top: 12px; padding: 8px; border: 1px solid #ddd; }
+        .notes { margin-top: 12px; }
         .footer { margin-top: 24px; font-size: 9px; color: #666; }
     </style>
 </head>

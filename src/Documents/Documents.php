@@ -127,6 +127,10 @@ class Documents
                 'logo' => $logoPath !== null && is_file($logoPath) ? 'data:'.mime_content_type($logoPath).';base64,'.base64_encode((string) file_get_contents($logoPath)) : null,
             ],
             'footer' => $this->settings->get('documents.footer'),
+            // Where to transfer, while the invoice is unpaid (the open bank-transfer payment's accounts).
+            'bankAccounts' => $type === 'invoice' && in_array($order->payment_status, ['unpaid', 'awaiting_confirmation'], true)
+                ? array_values(array_filter((array) ($order->payments()->where('status', 'pending')->first()?->instructions['accounts'] ?? []), 'is_array'))
+                : [],
             'money' => app(MoneyFormatter::class),
         ];
     }

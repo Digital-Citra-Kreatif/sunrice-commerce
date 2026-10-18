@@ -24,6 +24,7 @@ return [
     'included' => 'included',
     'payment' => 'Payment',
     'sender' => 'Sender',
+    'pay_to' => 'Transfer to',
     'note' => 'Note',
     'download' => 'Download invoice',
 ];

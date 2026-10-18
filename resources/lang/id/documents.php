@@ -24,6 +24,7 @@ return [
     'included' => 'termasuk',
     'payment' => 'Pembayaran',
     'sender' => 'Pengirim',
+    'pay_to' => 'Transfer ke',
     'note' => 'Catatan',
     'download' => 'Unduh faktur',
 ];

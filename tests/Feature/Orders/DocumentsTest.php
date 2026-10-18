@@ -28,6 +28,19 @@ it('renders each document as HTML and PDF', function () {
     expect($documents->html(collect([$quote]), 'quotation'))->toContain('Quotation')->toContain('Q-1');
 });
 
+it('shows where to transfer while unpaid, and the customer\'s note', function () {
+    $this->order->forceFill(['customer_note' => 'Tolong dibungkus kado'])->save();
+    $this->order->payments()->create(['method' => 'bank_transfer', 'amount' => 100000, 'status' => 'pending',
+        'instructions' => ['accounts' => [['bank' => 'BCA', 'number' => '1234567890', 'holder' => 'PT Sunrice', 'branch' => null]]]]);
+    $documents = app(Documents::class);
+
+    expect($documents->html(collect([$this->order->fresh()]), 'invoice'))->toContain('Transfer ke')->toContain('1234567890')->toContain('PT Sunrice')
+        ->toContain('Tolong dibungkus kado');
+
+    $this->order->forceFill(['payment_status' => 'paid'])->save();
+    expect($documents->html(collect([$this->order->fresh()]), 'invoice'))->not->toContain('1234567890');
+});
+
 it('assigns the invoice number once and regenerates after an edit', function () {
     $documents = app(Documents::class);
     $first = $documents->invoiceNumber($this->order);
