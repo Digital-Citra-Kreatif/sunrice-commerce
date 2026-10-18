@@ -51,3 +51,20 @@ to the MCP server's instructions and keeps store pages out of the full-page cach
 - `commerce:install [--templates] [--demo]`, `commerce:doctor`, `commerce:stats` and the other
   commands in `docs/commands.md`.
 - Documentation in `docs/`.
+
+### Fixes
+- A gateway payment confirmed after its deadline cancelled the order is recorded paid, but the order
+  stays cancelled and isn't fulfilled (no downloads, invoice number or "payment received"):
+  `PaymentAfterCancellation` fires and staff get the new `staff_paid_after_cancel` email.
+- A gateway reporting less than the amount due no longer marks the order paid; the timeline notes it.
+- A webhook that fails while recording gives its event id back, so the gateway's retry is processed
+  instead of ignored as a duplicate.
+- Cancelling, refunding with restock or editing an order returns the components a bundle was sold
+  with, even after the bundle's contents changed.
+- One payment or quote that fails to expire no longer stops the others in `commerce:tick`.
+- Guest orders join an account only when its email is verified (or the account was made by that
+  checkout), so registering someone else's address doesn't collect their orders.
+- With the storefront sharing the admin's guard and Sunrice's two-factor login on, staff can't sign
+  in with their password on the storefront (it skipped the code step).
+- The SKU check, variant search and targets picker APIs check permissions (product editing, order
+  editing, or managing vouchers, flash sales or pricing rules).

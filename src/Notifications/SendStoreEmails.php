@@ -21,6 +21,7 @@ use Sunrice\Commerce\Orders\Events\PaymentLinkRequested;
 use Sunrice\Commerce\Orders\Events\QuoteRequested;
 use Sunrice\Commerce\Orders\Events\QuoteSent;
 use Sunrice\Commerce\Orders\Events\ShipmentCreated;
+use Sunrice\Commerce\Payments\Events\PaymentAfterCancellation;
 use Sunrice\Commerce\Payments\Events\PaymentConfirmationRejected;
 use Sunrice\Commerce\Payments\Events\PaymentConfirmationSubmitted;
 
@@ -46,6 +47,7 @@ class SendStoreEmails
                 $this->notifier->send('payment_received', $e->order);
             }
         });
+        $events->listen(PaymentAfterCancellation::class, fn (PaymentAfterCancellation $e) => $this->notifier->send('staff_paid_after_cancel', $e->order));
         $events->listen(PaymentConfirmationSubmitted::class, function (PaymentConfirmationSubmitted $e): void {
             $this->notifier->send('payment_confirmation_received', $e->confirmation->order);
             $this->notifier->send('staff_payment_confirmation', $e->confirmation->order, ['confirmation' => $e->confirmation]);

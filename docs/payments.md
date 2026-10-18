@@ -228,6 +228,16 @@ After commit it dispatches `PaymentRecorded`, and `PaymentSucceeded` with `Order
 `PaymentFailed` or `PaymentExpired`. `OrderPaid` sends "payment received", grants downloads (with `digital.grant_on`
 `paid`), and updates sales counts and customer stats.
 
+Two results are treated with care:
+
+- **Less than due**: a paid result whose amount is below the payment's is not recorded (the payment
+  stays open); a timeline note shows both amounts, and staff can mark the order paid.
+- **Paid after cancellation**: a gateway can confirm a payment after its deadline cancelled the order
+  and released its stock, sale quantities and vouchers. The payment is recorded paid, but the order
+  stays Cancelled and `OrderPaid` doesn't fire (no downloads, invoice or "payment received"). Instead
+  `PaymentAfterCancellation` fires, the timeline says so, and staff get `staff_paid_after_cancel` to
+  refund the customer or reinstate the order.
+
 ## Webhooks
 
 `POST /commerce/webhooks/{method}` (`commerce.webhooks`; the path is
@@ -245,7 +255,8 @@ status, error, payment):
 3. The payment is found by method and reference; an unknown reference answers `200` and is logged
    `ignored`.
 4. The result goes through `RecordPaymentResult`. The call is logged `processed`, or `ignored`
-   when the result changed nothing. An exception answers `500` so the gateway retries.
+   when the result changed nothing. An exception answers `500` so the gateway retries: the failed
+   call gives its event id back (kept in its error), so the retry is processed, not ignored.
 
 ## Gateways
 

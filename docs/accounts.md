@@ -66,6 +66,8 @@ are off and sends guests to the sign-in page, then back.
 If you set `commerce.auth.guard` to Sunrice's guard (`sunrice.auth.guard`, usually `web`), the shop
 and the admin share one session. Sign-ins by emailed code and by Google are then refused for
 accounts that can open the admin (`sunrice.access-admin`), so the admin stays behind a password.
+With Sunrice's two-factor login on (`sunrice.auth.two_factor`), those accounts can't sign in with
+their password on the storefront either: they use the admin login page, which asks for the code.
 
 ## Registration
 

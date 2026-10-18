@@ -68,6 +68,9 @@ class PlaceOrder
     /** @var array<int, Order> */
     protected array $placed = [];
 
+    /** The account made by this checkout (verification off), which the order joins. */
+    protected ?int $createdAccountId = null;
+
     public function __construct(
         protected StoreSettings $settings,
         protected CheckoutMode $mode,
@@ -161,8 +164,10 @@ class PlaceOrder
     {
         $user = commerce_customer();
         $email = (string) $data->email();
+        $this->createdAccountId = null;
         if ($user === null && $this->validator->createsAccount($data) && ! empty($extra['password'])) {
             $user = $this->createAccount($data, (string) $extra['password']);
+            $this->createdAccountId = $user !== null ? (int) $user->getAuthIdentifier() : null;
         }
         $customer = $user !== null ? Customer::forUser($user) : Customer::query()->firstOrCreate(['email' => $email], ['name' => $data->get('name')]);
         $country = (string) ($data->shippingAddress()['country'] ?? 'ID');
@@ -209,6 +214,18 @@ class PlaceOrder
         return $this->settings->get('accounts.verify_email', true) ? null : $user;
     }
 
+    /**
+     * The account a guest order joins: only one whose email is verified,
+     * so registering someone else's address doesn't collect their orders
+     * (LinkGuestOrders adds them once the email is verified).
+     */
+    protected function verifiedAccountId(Customer $customer): ?int
+    {
+        $user = $customer->user();
+
+        return $user !== null && $user->getAttribute('email_verified_at') !== null ? (int) $user->getAuthIdentifier() : null;
+    }
+
     /** @param  array<string, string|null>  $client */
     protected function insert(Cart $cart, CheckoutData $data, CalculationState $state, CheckoutCompletion $completion, Customer $customer, array $client): Order
     {
@@ -237,7 +254,7 @@ class PlaceOrder
             'channel' => 'storefront',
             'selling_mode' => $this->mode->mode(),
             'customer_id' => $customer->id,
-            'user_id' => commerce_customer()?->getAuthIdentifier() ?? $customer->user_id,
+            'user_id' => commerce_customer()?->getAuthIdentifier() ?? $this->createdAccountId ?? $this->verifiedAccountId($customer),
             'email' => $data->email(),
             'phone' => Phone::normalize($data->phone(), $country) ?? $data->phone(),
             'customer_name' => $data->get('name'),

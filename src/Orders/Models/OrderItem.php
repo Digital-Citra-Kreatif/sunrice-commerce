@@ -94,6 +94,37 @@ class OrderItem extends Model
         return $this->hasMany(OrderItem::class, 'parent_id')->orderBy('id');
     }
 
+    /**
+     * What $quantity units of this line hold in stock: a bundle's own
+     * component lines (as sold, whatever the bundle holds today), or the
+     * variant itself. Bundles sold before component lines existed fall
+     * back to the variant (the inventory explodes it).
+     *
+     * @return array<int, array{0: Variant, 1: int}>
+     */
+    public function stockLines(int $quantity): array
+    {
+        if ($quantity <= 0 || $this->variant_id === null || $this->quantity <= 0) {
+            return [];
+        }
+        $components = $this->children()->whereNotNull('variant_id')->get();
+        if ($components->isNotEmpty()) {
+            $lines = [];
+            foreach ($components as $component) {
+                $variant = Variant::withTrashed()->with('product')->find($component->variant_id);
+                $perUnit = intdiv($component->quantity, $this->quantity);
+                if ($variant !== null && $perUnit > 0) {
+                    $lines[] = [$variant, $perUnit * $quantity];
+                }
+            }
+
+            return $lines;
+        }
+        $variant = Variant::withTrashed()->with('product')->find($this->variant_id);
+
+        return $variant === null ? [] : [[$variant, $quantity]];
+    }
+
     public function title(): string
     {
         return trim($this->name.($this->variant_title ? ' ('.$this->variant_title.')' : ''));

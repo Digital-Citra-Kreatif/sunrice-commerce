@@ -6,6 +6,7 @@ namespace Sunrice\Commerce\Orders\Actions;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Sunrice\Commerce\Catalog\Bundles;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
 use Sunrice\Commerce\Contracts\Inventory;
@@ -80,16 +81,27 @@ class EditOrder
                 $after[$line->variant->id] = ($after[$line->variant->id] ?? 0) + $line->quantity;
             }
             if ($order->meta('reserved.stock')) {
-                $more = [];
-                $less = [];
-                foreach (array_unique([...array_keys($before), ...array_keys($after)]) as $variantId) {
-                    $delta = ($after[$variantId] ?? 0) - ($before[$variantId] ?? 0);
-                    $variant = $delta === 0 ? null : Variant::withTrashed()->with('product')->find($variantId);
-                    if ($variant === null) {
-                        continue;
+                // Compared per stocked variant: lines already sold hold what they were
+                // sold with (a bundle's own components), new lines what they hold today.
+                $held = [];
+                $add = function (Variant $variant, int $qty, int $sign) use (&$held): void {
+                    $parts = $variant->product->isBundle()
+                        ? array_map(fn (array $c) => [$c['variant'], $c['quantity']], app(Bundles::class)->explode($variant->product, $qty))
+                        : [[$variant, $qty]];
+                    foreach ($parts as [$part, $partQty]) {
+                        $held[$part->id] = [$part, ($held[$part->id][1] ?? 0) + $sign * $partQty];
                     }
-                    $delta > 0 ? $more[] = [$variant, $delta] : $less[] = [$variant, -$delta];
+                };
+                foreach ($existing as $item) {
+                    foreach ($item->stockLines($item->quantity) as [$variant, $qty]) {
+                        $add($variant, $qty, -1);
+                    }
                 }
+                foreach ($state->lines as $line) {
+                    $add($line->variant->loadMissing('product'), $line->quantity, 1);
+                }
+                $more = array_values(array_filter($held, fn (array $h) => $h[1] > 0));
+                $less = array_values(array_map(fn (array $h) => [$h[0], -$h[1]], array_filter($held, fn (array $h) => $h[1] < 0)));
                 try {
                     if ($more !== []) {
                         app(Inventory::class)->reserve($more, $order, 'order_edit');

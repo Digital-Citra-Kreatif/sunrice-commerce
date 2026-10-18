@@ -138,4 +138,10 @@ return [
         'intro' => 'A customer asked to delete their account:',
         'action' => '',
     ],
+    'staff_paid_after_cancel' => [
+        'subject' => 'Payment received for cancelled order :number',
+        'heading' => 'Payment for a cancelled order',
+        'intro' => 'A payment arrived for order :number after it was cancelled. Refund the customer or reinstate the order.',
+        'action' => 'Open the order',
+    ],
 ];

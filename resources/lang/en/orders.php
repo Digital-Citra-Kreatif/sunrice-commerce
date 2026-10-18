@@ -52,6 +52,8 @@ return [
         'edited' => 'Order edited',
         'addresses' => 'Addresses updated',
         'expired' => 'Payment deadline passed',
+        'paid_after_cancel' => 'Payment of :amount received after the order was cancelled: refund it or reinstate the order',
+        'underpaid' => ':method reported :amount paid, less than the :expected due: not recorded as paid',
         'customer_cancelled' => 'Cancelled by the customer',
         'quote_sent' => 'Quote sent',
         'quote_accepted' => 'Quote accepted',
