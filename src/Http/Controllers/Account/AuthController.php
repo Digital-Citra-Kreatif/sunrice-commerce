@@ -214,7 +214,9 @@ class AuthController
         $status = Password::broker((string) config('commerce.auth.passwords', 'users'))->reset(
             ['email' => mb_strtolower($data['email']), 'token' => $data['token'], 'password' => $data['password']],
             function ($user, string $password): void {
-                $user->forceFill(['password' => Hash::make($password), 'email_verified_at' => $user->getAttribute('email_verified_at') ?? now()])->save();
+                // A new remember token signs out "remember me" on other devices.
+                $user->forceFill(['password' => Hash::make($password), 'remember_token' => Str::random(60),
+                    'email_verified_at' => $user->getAttribute('email_verified_at') ?? now()])->save();
             },
         );
         if ($status !== Password::PASSWORD_RESET) {

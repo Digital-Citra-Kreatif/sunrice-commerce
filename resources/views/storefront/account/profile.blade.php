@@ -15,6 +15,12 @@
             <input type="email" name="email" value="{{ old('email', $user->email) }}" required autocomplete="email">
             @include(\Sunrice\Commerce\Storefront\Layout::view('partials.field-error'), ['name' => 'email'])
         </label>
+        @if (($customer->meta['password_set'] ?? true) !== false)
+            <label class="commerce-field"><span>{{ __('commerce::account.profile.current_password_for_email') }}</span>
+                <input type="password" name="current_password" autocomplete="current-password">
+                @include(\Sunrice\Commerce\Storefront\Layout::view('partials.field-error'), ['name' => 'current_password'])
+            </label>
+        @endif
         <label class="commerce-field"><span>{{ __('commerce::account.register.phone') }}</span>
             <input type="tel" name="phone" value="{{ old('phone', $customer->phone) }}" autocomplete="tel">
         </label>

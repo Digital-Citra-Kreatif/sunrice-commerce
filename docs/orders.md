@@ -151,7 +151,9 @@ Shop → Orders (`commerce.orders.view`) lists orders and quote requests.
 - **Columns**: number, date, customer, status, payment, shipping and total by default; also items,
   payment method, shipping method, city, channel, email and phone. Column choices are saved per
   user.
-- **Export** (`commerce.orders.export`): a CSV of the filtered list (`orders-{date}.csv`).
+- **Export** (`commerce.orders.export`): a CSV of the filtered list (`orders-{date}.csv`). Text that
+  starts like a spreadsheet formula (`=`, `+`, `-`, `@`) gets a leading `'`, so what customers
+  typed never runs in Excel or Sheets; the customers and report exports do the same.
 - **Bulk actions**:
 
   | Action | Permission | |

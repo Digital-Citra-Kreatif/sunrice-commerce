@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Event;
+use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\Events\OrderNoteAdded;
 use Sunrice\Commerce\Orders\Models\Order;
@@ -83,6 +84,19 @@ it('exports the filtered orders as CSV', function () {
     expect($lines[0])->toBe(['number', 'type', 'date', 'status', 'payment_status', 'fulfillment_status', 'customer', 'email', 'phone', 'items',
         'subtotal', 'discount', 'shipping', 'fees', 'tax', 'total', 'paid', 'refunded', 'payment_method', 'shipping_method', 'city', 'province', 'channel', 'currency'])
         ->and($lines[1][0])->toBe('ORD-X')->and($lines[1][9])->toBe('2 × MUG')->and($lines[1][15])->toBe('125000');
+});
+
+it('exports what customers typed as text, never as a spreadsheet formula', function () {
+    actingAsUserWith(['commerce.orders.view', 'commerce.orders.export', 'commerce.customers.view', 'commerce.customers.export']);
+    makeOrder(['number' => 'ORD-F', 'customer_name' => '=HYPERLINK("https://evil.example","Click")', 'phone' => '+62 812', 'total' => 1000]);
+    Customer::query()->create(['email' => 'f@example.com', 'name' => '@SUM(1+1)']);
+
+    $orders = array_map('str_getcsv', array_filter(explode("\n", substr($this->get('/cms/commerce/orders/export')->streamedContent(), 3))));
+    $customers = array_map('str_getcsv', array_filter(explode("\n", substr($this->get('/cms/commerce/customers/export')->streamedContent(), 3))));
+
+    expect($orders[1][6])->toBe('\'=HYPERLINK("https://evil.example","Click")')
+        ->and($orders[1][15])->toBe('1000')                 // numbers stay numbers
+        ->and(collect($customers)->pluck(0)->contains('\'@SUM(1+1)'))->toBeTrue();
 });
 
 it('trashes orders and refuses to delete paid ones for good', function () {

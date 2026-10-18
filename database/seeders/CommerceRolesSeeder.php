@@ -50,6 +50,7 @@ class CommerceRolesSeeder extends Seeder
         $manager = RolesSeeder::match($names, [
             'sunrice.access-admin',
             'sunrice.view-drafts',
+            'sunrice.guide.view',
             'sunrice.assets.view',
             'sunrice.assets.upload',
             'sunrice.assets.edit',
