@@ -23,12 +23,12 @@ use Sunrice\Support\Locales;
 use Throwable;
 
 /**
- * The base of a redirect gateway package (sunrice/midtrans, sunrice/xendit):
- * the sandbox switch, per-language instructions, a payment page created
- * once per payment, the return and status check, and the paid amount
- * checked against the payment. Keys come from config (.env), never from
- * settings. A package implements currencies(), configured(),
- * createPayment(), check() and the webhook (HandlesWebhooks).
+ * The base of a redirect gateway package (sunrice/commerce-midtrans,
+ * sunrice/commerce-xendit): the sandbox switch, per-language instructions,
+ * a payment page created once per payment, the return and status check,
+ * and the paid amount checked against the payment. Keys come from config
+ * (.env), never from settings. A package implements currencies(),
+ * configured(), createPayment(), check() and the webhook (HandlesWebhooks).
  */
 abstract class GatewayMethod extends PaymentMethodBase implements HandlesReturn, HandlesWebhooks, SupportsStatusCheck
 {

@@ -153,12 +153,12 @@ Optional contracts:
   expires, so a payment the webhook missed isn't lost;
 - `AddsUniqueCode::uniqueCodeRange(): ?array` — a unique amount for bank transfers.
 
-A redirect gateway can extend `Payments\Methods\GatewayMethod` instead, as `sunrice/midtrans` and
-`sunrice/xendit` do. It gives a sandbox switch that names which `.env` keys are set (never their
-values) and the webhook URL, per-language instructions, a gateway page created once per payment
-and reused, `handleReturn()` through the status check, the instructions partial with a
-"Continue to payment" link (also in the order email), and `paidResult()`, which refuses an
-amount other than the payment's. The package implements:
+A redirect gateway can extend `Payments\Methods\GatewayMethod` instead, as
+`sunrice/commerce-midtrans` and `sunrice/commerce-xendit` do. It gives a sandbox switch that names
+which `.env` keys are set (never their values) and the webhook URL, per-language instructions, a
+gateway page created once per payment and reused, `handleReturn()` through the status check, the
+instructions partial with a "Continue to payment" link (also in the order email), and
+`paidResult()`, which refuses an amount other than the payment's. The package implements:
 
 | Method | |
 | --- | --- |
