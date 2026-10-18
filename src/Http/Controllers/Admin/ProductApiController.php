@@ -19,6 +19,7 @@ class ProductApiController extends Controller
     /** GET commerce/api/sku-check?sku=…&entry=… — whether another product uses the SKU. */
     public function skuCheck(Request $request): JsonResponse
     {
+        $this->authorizeProductEditing($request->user());
         $sku = trim((string) $request->query('sku', ''));
         if ($sku === '') {
             return response()->json(['available' => true]);
@@ -64,7 +65,12 @@ class ProductApiController extends Controller
     /** GET commerce/api/variants?q=…&ids[]=… — sellable variants for bundle components. */
     public function variants(Request $request): JsonResponse
     {
+        // The bundle tab of the product editor, and the order editor.
+        if (! $request->user()?->can('commerce.orders.create') && ! $request->user()?->can('commerce.orders.edit')) {
+            $this->authorizeProductEditing($request->user());
+        }
         $q = trim((string) $request->query('q', ''));
+        $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $q).'%';
         $ids = array_filter(array_map('intval', (array) $request->query('ids', [])));
         $variants = Variant::query()
             ->join('commerce_products', 'commerce_products.id', '=', 'commerce_variants.product_id')
@@ -73,7 +79,7 @@ class ProductApiController extends Controller
             ->where('commerce_variants.active', true)->whereNull('commerce_variants.deleted_at')
             ->whereNull('commerce_products.removed_at')
             ->when($ids !== [], fn ($query) => $query->whereIn('commerce_variants.id', $ids))
-            ->when($q !== '', fn ($query) => $query->where(fn ($w) => $w->whereLike('t.title', "%{$q}%")->orWhereLike('commerce_variants.sku', "%{$q}%")))
+            ->when($q !== '', fn ($query) => $query->where(fn ($w) => $w->whereLike('t.title', $like)->orWhereLike('commerce_variants.sku', $like)))
             ->orderBy('t.title')->orderBy('commerce_variants.position')
             ->limit(30)
             ->get(['commerce_variants.id', 'commerce_variants.sku', 'commerce_variants.title as variant', 'commerce_variants.price', 't.title as product']);

@@ -31,24 +31,34 @@ class Expiry
         Payment::query()->whereIn('status', ['pending', 'failed'])->whereNotNull('expires_at')->where('expires_at', '<=', now())
             ->orderBy('id')->limit(200)->get()
             ->each(function (Payment $payment) use (&$count): void {
-                $method = app(PaymentManager::class)->get($payment->method);
-                if ($method instanceof SupportsStatusCheck && ! ($payment->meta['checked_before_expiry'] ?? false)) {
-                    $payment->forceFill(['meta' => [...(array) $payment->meta, 'checked_before_expiry' => true]])->save();
-                    try {
-                        $result = $method->check($payment);
-                        if ($result->status !== 'pending' && app(RecordPaymentResult::class)->handle($payment, $result, Actor::gateway($payment->method))) {
-                            return;
-                        }
-                    } catch (Throwable $e) {
-                        report($e);
-                    }
-                }
-                if (app(RecordPaymentResult::class)->handle($payment, PaymentResult::expired(), Actor::system())) {
-                    $count++;
+                // One payment that can't expire mustn't hold up the others (it'd come first again every minute).
+                try {
+                    $count += $this->expire($payment) ? 1 : 0;
+                } catch (Throwable $e) {
+                    report($e);
                 }
             });
 
         return $count;
+    }
+
+    /** Whether the payment expired (false when a last status check found it paid, or nothing changed). */
+    protected function expire(Payment $payment): bool
+    {
+        $method = app(PaymentManager::class)->get($payment->method);
+        if ($method instanceof SupportsStatusCheck && ! ($payment->meta['checked_before_expiry'] ?? false)) {
+            $payment->forceFill(['meta' => [...(array) $payment->meta, 'checked_before_expiry' => true]])->save();
+            try {
+                $result = $method->check($payment);
+                if ($result->status !== 'pending' && app(RecordPaymentResult::class)->handle($payment, $result, Actor::gateway($payment->method))) {
+                    return false;
+                }
+            } catch (Throwable $e) {
+                report($e);
+            }
+        }
+
+        return app(RecordPaymentResult::class)->handle($payment, PaymentResult::expired(), Actor::system());
     }
 
     public function quotes(): int
@@ -57,8 +67,12 @@ class Expiry
         Order::query()->where('type', 'quote')->where('status', OrderStatus::QUOTED)->whereNotNull('quote_valid_until')->where('quote_valid_until', '<', now())
             ->limit(200)->get()
             ->each(function (Order $quote) use (&$count): void {
-                app(OrderStateMachine::class)->transition($quote, OrderStatus::EXPIRED, Actor::system());
-                $count++;
+                try {
+                    app(OrderStateMachine::class)->transition($quote, OrderStatus::EXPIRED, Actor::system());
+                    $count++;
+                } catch (Throwable $e) {
+                    report($e);
+                }
             });
 
         return $count;

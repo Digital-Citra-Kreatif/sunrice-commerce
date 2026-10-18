@@ -374,6 +374,7 @@ are public properties.
 | `Orders\Events\OrderRefunded` | `Order $order, Refund $refund` |
 | `Orders\Events\ShipmentCreated`, `ShipmentDelivered` | `Order $order, Shipment $shipment` |
 | `Payments\Events\PaymentRecorded`, `PaymentSucceeded`, `PaymentFailed`, `PaymentExpired` | `Payment $payment, PaymentResult $result` |
+| `Payments\Events\PaymentAfterCancellation` | `Payment $payment, PaymentResult $result, Order $order` (paid after the order was cancelled: no `OrderPaid`) |
 | `Payments\Events\PaymentConfirmationSubmitted`, `PaymentConfirmationApproved`, `PaymentConfirmationRejected` | `PaymentConfirmation $confirmation` |
 | `Promotions\FlashSales\Events\FlashSaleStarted`, `FlashSaleEnded` | `FlashSale $sale` |
 

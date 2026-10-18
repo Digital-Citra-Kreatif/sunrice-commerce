@@ -55,6 +55,22 @@ it('checks SKUs and searches variants for bundles', function () {
     $this->getJson('/cms/commerce/api/variants?q=mug')->assertJsonPath('data.0.sku', 'MUG-01')->assertJsonPath('data.0.label', 'Mug');
 });
 
+it('keeps the product and target lookups to users who manage them', function () {
+    publishProduct(['variants' => [['id' => 'a', 'sku' => 'MUG-01', 'price' => 50000]]], title: 'Mug');
+    actingAsUserWith([], 'editor@example.com');
+    $this->getJson('/cms/commerce/api/sku-check?sku=mug-01&entry=0')->assertForbidden();
+    $this->getJson('/cms/commerce/api/variants?q=mug')->assertForbidden();
+    $this->getJson('/cms/commerce/api/targets?q=mug')->assertForbidden();
+
+    $collection = productCollection();
+    actingAsUserWith(["sunrice.entries.{$collection->id}.edit"], 'catalog@example.com');
+    $this->getJson('/cms/commerce/api/sku-check?sku=mug-01&entry=0')->assertOk();
+    $this->getJson('/cms/commerce/api/variants?q=mug')->assertOk();
+
+    actingAsUserWith(['commerce.vouchers.manage'], 'promo@example.com');
+    $this->getJson('/cms/commerce/api/targets?q=mug')->assertOk()->assertJsonFragment(['label' => 'Mug']);
+});
+
 it('uploads digital files privately and attaches them on publish', function () {
     Storage::fake('local');
     $id = $this->post('/cms/commerce/api/downloads', ['file' => UploadedFile::fake()->create('ebook.pdf', 100, 'application/pdf')])

@@ -71,3 +71,16 @@ it('scrubs a customer\'s orders when the account is anonymized, keeping the amou
     expect($order->customer_name)->toBe('Deleted customer')->and($order->shipping_address)->toBeNull()->and($order->phone)->toBeNull()
         ->and($order->email)->toEndWith('@invalid.local')->and($order->total)->toBe(60000);
 });
+
+it('keeps guest orders out of an account whose email isn\'t verified yet', function () {
+    // Someone registers with Budi's address but can't verify it.
+    $claimer = User::query()->create(['name' => 'Not Budi', 'email' => 'budi@example.com', 'password' => bcrypt('password')]);
+    Customer::forUser($claimer);
+
+    $order = guestOrder($this->mug, 'budi@example.com');
+    expect($order->user_id)->toBeNull();
+
+    // A verified account still gets the guest orders placed with its email.
+    Customer::forUser($this->user);
+    expect(guestOrder($this->mug, 'rina@example.com')->user_id)->toBe($this->user->id);
+});

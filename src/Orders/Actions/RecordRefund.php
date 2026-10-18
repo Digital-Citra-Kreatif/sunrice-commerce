@@ -6,7 +6,6 @@ namespace Sunrice\Commerce\Orders\Actions;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Contracts\Inventory;
 use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\Events\OrderRefunded;
@@ -84,8 +83,8 @@ class RecordRefund
                 /** @var OrderItem $item */
                 $item = $lines->get($row['order_item_id']);
                 $item->increment('refunded_quantity', $row['quantity']);
-                if ($restock && $item->variant_id !== null && ($variant = Variant::withTrashed()->with('product')->find($item->variant_id)) !== null) {
-                    $restockLines[] = [$variant, $row['quantity']];
+                if ($restock && ($stock = $item->stockLines((int) $row['quantity'])) !== []) {
+                    array_push($restockLines, ...$stock);
                     $item->forceFill(['meta' => [...(array) $item->meta, 'restocked' => (int) ($item->meta['restocked'] ?? 0) + $row['quantity']]])->save();
                 }
             }

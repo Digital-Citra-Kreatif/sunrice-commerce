@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
     'throttled' => 'Terlalu banyak percobaan. Coba lagi dalam :seconds detik.',
     'staff_refused' => 'Akun staf masuk dengan kata sandi.',
+    'staff_two_factor' => 'Akun staf masuk lewat halaman login admin, dengan kode login.',
     'login' => [
         'title' => 'Masuk',
         'email' => 'Email',

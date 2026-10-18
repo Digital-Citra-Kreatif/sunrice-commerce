@@ -52,6 +52,7 @@ table) is on and the email is switched on.
 | `staff_new_order` | New order | `orders` | An order is placed |
 | `staff_payment_confirmation` | Payment confirmation to verify | `manual_payments` | A customer submits a payment confirmation (links to the confirmations page) |
 | `staff_order_cancelled` | Order cancelled | `orders` | An order is cancelled, with the reason and who cancelled it |
+| `staff_paid_after_cancel` | Payment for a cancelled order | `payments` | A gateway confirms a payment after the order was cancelled (its deadline passed): refund it or reinstate the order |
 | `staff_new_quote` | New quote request | `orders` | A quote request is placed |
 | `staff_low_stock` | Low stock | `inventory` | A variant reaches its low-stock level |
 | `staff_out_of_stock` | Out of stock | `inventory` | A variant runs out |

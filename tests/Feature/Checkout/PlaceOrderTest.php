@@ -194,3 +194,13 @@ it('finds open quotes by their quote number on the track page', function () {
 
     $this->post('/track-order', ['number' => 'Q-TRACK-1', 'email' => 'pt@example.com'])->assertRedirect($quote->url());
 });
+
+it('puts the order in the account made at checkout when verification is off', function () {
+    app(StoreSettings::class)->saveSection('accounts', ['verify_email' => false]);
+    app()->forgetScopedInstances();
+    $cart = cartWith([[$this->mug, 1]]);
+    place($cart, ['create_account' => '1', 'password' => 'secret-pass-1', 'password_confirmation' => 'secret-pass-1']);
+
+    $user = User::query()->where('email', 'rina@example.com')->sole();
+    expect(Order::query()->sole()->user_id)->toBe($user->id);
+});

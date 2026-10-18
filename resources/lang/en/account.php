@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
     'throttled' => 'Too many attempts. Try again in :seconds seconds.',
     'staff_refused' => 'Staff accounts sign in with their password.',
+    'staff_two_factor' => 'Staff accounts sign in on the admin login page, with their login code.',
     'login' => [
         'title' => 'Sign in',
         'email' => 'Email',

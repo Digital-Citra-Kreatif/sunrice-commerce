@@ -12,6 +12,7 @@ use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\OrderStateMachine;
 use Sunrice\Commerce\Orders\OrderStatus;
 use Sunrice\Commerce\Orders\Timeline;
+use Sunrice\Commerce\Payments\Events\PaymentAfterCancellation;
 use Sunrice\Commerce\Payments\Events\PaymentExpired;
 use Sunrice\Commerce\Payments\Events\PaymentFailed;
 use Sunrice\Commerce\Payments\Events\PaymentRecorded;
@@ -46,7 +47,7 @@ class RecordPaymentResult
     public function handle(Payment $payment, PaymentResult $result, ?Actor $actor = null): bool
     {
         $actor ??= Actor::system();
-        $changed = DB::transaction(function () use ($payment, $result, $actor): bool {
+        $changed = DB::transaction(function () use ($payment, $result, $actor): bool|string {
             /** @var Payment $locked */
             $locked = Payment::query()->whereKey($payment->id)->lockForUpdate()->firstOrFail();
             /** @var Order $order */
@@ -58,6 +59,16 @@ class RecordPaymentResult
             if ($result->status === 'refunded' && ($result->amount ?? 0) <= 0) {
                 return false;
             }
+            // A gateway reporting less than was due doesn't settle the payment: staff can mark it paid.
+            if ($result->status === 'paid' && $result->amount !== null && $result->amount < $locked->amount) {
+                $money = app(MoneyFormatter::class);
+                $this->timeline->record($order, 'note', __('commerce::orders.timeline.underpaid', [
+                    'method' => $locked->method_title ?? $locked->method, 'amount' => $money->format($result->amount), 'expected' => $money->format($locked->amount),
+                ]), array_filter(['payment_id' => $locked->id, 'reference' => $result->reference, 'amount' => $result->amount]), $actor);
+
+                return false;
+            }
+            $afterCancellation = $result->status === 'paid' && $order->status === OrderStatus::CANCELLED;
 
             $this->apply($locked, $order, $result);
             $locked->save();
@@ -70,18 +81,26 @@ class RecordPaymentResult
                 'amount' => $money->format($result->status === 'refunded' ? (int) $result->amount : ($result->amount ?? $locked->amount)),
             ]), array_filter(['payment_id' => $locked->id, 'method' => $locked->method, 'status' => $result->status, 'reference' => $result->reference]), $actor);
 
+            if ($afterCancellation) {
+                // Its stock, sale quantities and vouchers were released: nothing is fulfilled until staff decide.
+                $this->timeline->record($order, 'note', __('commerce::orders.timeline.paid_after_cancel', [
+                    'amount' => $money->format($result->amount ?? $locked->amount),
+                ]), ['payment_id' => $locked->id], $actor);
+            }
             $this->moveOrder($order, $result->status, $actor);
             $payment->setRawAttributes($locked->getAttributes(), true);
 
-            return true;
+            return $afterCancellation ? 'after_cancellation' : true;
         });
 
-        if ($changed) {
-            DB::afterCommit(function () use ($payment, $result): void {
+        if ($changed !== false) {
+            DB::afterCommit(function () use ($payment, $result, $changed): void {
                 $order = Order::withTrashed()->findOrFail($payment->order_id);
                 PaymentRecorded::dispatch($payment, $result);
                 match ($result->status) {
-                    'paid' => [PaymentSucceeded::dispatch($payment, $result), OrderPaid::dispatch($order)],
+                    'paid' => $changed === 'after_cancellation'
+                        ? [PaymentSucceeded::dispatch($payment, $result), PaymentAfterCancellation::dispatch($payment, $result, $order)]
+                        : [PaymentSucceeded::dispatch($payment, $result), OrderPaid::dispatch($order)],
                     'failed' => PaymentFailed::dispatch($payment, $result),
                     'expired' => PaymentExpired::dispatch($payment, $result),
                     default => null,
@@ -89,7 +108,7 @@ class RecordPaymentResult
             });
         }
 
-        return $changed;
+        return $changed !== false;
     }
 
     protected function apply(Payment $payment, Order $order, PaymentResult $result): void

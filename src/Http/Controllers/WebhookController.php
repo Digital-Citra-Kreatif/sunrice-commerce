@@ -20,7 +20,8 @@ use Throwable;
  * POST commerce/webhooks/{method} (ARCHITECTURE.md §13.3): no session,
  * no CSRF. The call is logged, verified by the method, de-duplicated on
  * its event id, matched to a payment by reference and recorded through
- * RecordPaymentResult.
+ * RecordPaymentResult. A call that fails while recording releases its
+ * event id, so the gateway's retry is processed.
  */
 class WebhookController
 {
@@ -65,7 +66,8 @@ class WebhookController
             $changed = $record->handle($payment, $event->result, Actor::gateway($method));
         } catch (Throwable $e) {
             report($e);
-            $call->forceFill(['status' => 'failed', 'payment_id' => $payment->id, 'error' => $e->getMessage()])->save();
+            // Give the event id back, so the gateway's retry is processed instead of ignored as a duplicate.
+            $call->forceFill(['status' => 'failed', 'event_id' => null, 'payment_id' => $payment->id, 'error' => "event {$event->eventId}: {$e->getMessage()}"])->save();
 
             return response()->json(['ok' => false], 500);
         }

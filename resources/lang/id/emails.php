@@ -138,4 +138,10 @@ return [
         'intro' => 'Seorang pelanggan meminta akunnya dihapus:',
         'action' => '',
     ],
+    'staff_paid_after_cancel' => [
+        'subject' => 'Pembayaran diterima untuk pesanan batal :number',
+        'heading' => 'Pembayaran untuk pesanan yang dibatalkan',
+        'intro' => 'Pembayaran untuk pesanan :number masuk setelah pesanan dibatalkan. Kembalikan dana pelanggan atau aktifkan kembali pesanan.',
+        'action' => 'Buka pesanan',
+    ],
 ];

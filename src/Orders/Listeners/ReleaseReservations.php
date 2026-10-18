@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Orders\Listeners;
 
 use Illuminate\Support\Facades\DB;
-use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Contracts\Inventory;
 use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\Events\OrderCancelled;
@@ -38,11 +37,8 @@ class ReleaseReservations
             if ($locked->meta('reserved.stock') && ! $locked->meta('released.stock')) {
                 $lines = [];
                 foreach ($locked->items()->whereNull('parent_id')->get() as $item) {
-                    $variant = $item->variant_id === null ? null : Variant::withTrashed()->with('product')->find($item->variant_id);
-                    $qty = $item->quantity - (int) ($item->meta['restocked'] ?? 0);
-                    if ($variant !== null && $qty > 0) {
-                        $lines[] = [$variant, $qty];
-                    }
+                    // Bundles give back the components they were sold with.
+                    array_push($lines, ...$item->stockLines($item->quantity - (int) ($item->meta['restocked'] ?? 0)));
                 }
                 app(Inventory::class)->release($lines, $locked, 'cancel');
                 $locked->setMeta('released.stock', true);

@@ -52,6 +52,8 @@ return [
         'edited' => 'Pesanan diubah',
         'addresses' => 'Alamat diperbarui',
         'expired' => 'Batas waktu pembayaran lewat',
+        'paid_after_cancel' => 'Pembayaran :amount diterima setelah pesanan dibatalkan: kembalikan dana atau aktifkan kembali pesanan',
+        'underpaid' => ':method melaporkan pembayaran :amount, kurang dari :expected yang harus dibayar: tidak dicatat sebagai lunas',
         'customer_cancelled' => 'Dibatalkan oleh pelanggan',
         'quote_sent' => 'Penawaran dikirim',
         'quote_accepted' => 'Penawaran diterima',

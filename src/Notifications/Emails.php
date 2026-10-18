@@ -36,6 +36,7 @@ class Emails
             new EmailDefinition('staff_new_order', 'New order', 'staff', 'orders', attachments: ['packing_slip']),
             new EmailDefinition('staff_payment_confirmation', 'Payment confirmation to verify', 'staff', 'manual_payments'),
             new EmailDefinition('staff_order_cancelled', 'Order cancelled', 'staff', 'orders'),
+            new EmailDefinition('staff_paid_after_cancel', 'Payment for a cancelled order', 'staff', 'payments', description: 'A gateway confirms a payment after the order was cancelled (its deadline passed).'),
             new EmailDefinition('staff_new_quote', 'New quote request', 'staff', 'orders'),
             new EmailDefinition('staff_low_stock', 'Low stock', 'staff', 'inventory'),
             new EmailDefinition('staff_out_of_stock', 'Out of stock', 'staff', 'inventory'),
