@@ -4,6 +4,8 @@ import ConfirmationsIndex from './Confirmations/Index';
 import CustomerShow from './Customers/Show';
 import Dashboard from './Dashboard';
 import InventoryIndex from './Inventory/Index';
+import MarketingEditor from './Marketing/Editor';
+import MarketingReport from './Marketing/Report';
 import OrderEditor from './Orders/Editor';
 import OrderShow from './Orders/Show';
 import ProductsIndex from './Products/Index';
@@ -24,6 +26,8 @@ const pages: Record<string, Page> = {
     'Commerce/Customers/Show': CustomerShow,
     'Commerce/Dashboard': Dashboard,
     'Commerce/Inventory/Index': InventoryIndex,
+    'Commerce/Marketing/Editor': MarketingEditor,
+    'Commerce/Marketing/Report': MarketingReport,
     'Commerce/Orders/Editor': OrderEditor,
     'Commerce/Orders/Show': OrderShow,
     'Commerce/Products/Index': ProductsIndex,

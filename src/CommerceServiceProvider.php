@@ -85,6 +85,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->bindIf(Documents\DocumentRenderer::class, Documents\DompdfRenderer::class);
         $this->app->singleton(Payments\PaymentRegistry::class);
         $this->app->singleton(Notifications\Emails::class);
+        $this->app->singleton(Marketing\Automations\Triggers::class);
         $this->app->singleton(Notifications\Templates::class);
         $this->app->singleton(Checkout\CheckoutFields::class);
         $this->app->singleton(Orders\OrderPanels::class);
@@ -121,6 +122,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->registerCart();
         $this->registerCustomers();
         $this->registerOrders();
+        $this->registerMarketing();
         Event::listen(JobProcessing::class, function (): void {
             $this->app->forgetScopedInstances();
         });
@@ -148,6 +150,7 @@ class CommerceServiceProvider extends PackageServiceProvider
                 require __DIR__.'/../routes/account.php';
             });
             Route::group([], __DIR__.'/../routes/webhooks.php');
+            Route::group([], __DIR__.'/../routes/marketing.php');
             Route::middleware([...(array) config('sunrice.frontend.middleware', ['web']), SetFrontendLocale::class])->group(__DIR__.'/../routes/oauth.php');
         });
 
@@ -274,6 +277,26 @@ class CommerceServiceProvider extends PackageServiceProvider
 
             return Orders\Models\Order::withTrashed()->exists() ? ['currency.code' => __('commerce::orders.currency_locked')] : [];
         }, 'currency');
+    }
+
+    /** Marketing emails: scheduled campaigns, automations, pruning, tracking links' rate limit. */
+    protected function registerMarketing(): void
+    {
+        $commerce = $this->app->make(Commerce::class);
+        $commerce->onTick('marketing', function (): void {
+            if (! commerce_feature('marketing')) {
+                return;
+            }
+            foreach (Marketing\Models\Campaign::query()->where('type', 'campaign')->where('status', 'scheduled')->where('scheduled_at', '<=', now())->get() as $campaign) {
+                $this->app->make(Marketing\Actions\LaunchCampaign::class)->start($campaign);
+            }
+            if (Marketing\Models\Campaign::query()->where('type', 'automation')->where('status', 'active')->exists()) {
+                Marketing\Jobs\RunAutomations::dispatch()->onQueue(config('commerce.marketing.queue'));
+            }
+        });
+        $commerce->onPrune('marketing emails', fn (): int => Marketing\Models\CampaignSend::query()
+            ->whereNotIn('status', ['queued', 'sending'])->where('created_at', '<', now()->subDays((int) config('commerce.marketing.keep_days', 365)))->delete());
+        RateLimiter::for('commerce-tracking', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
     }
 
     /** Carts: pruning abandoned ones. */

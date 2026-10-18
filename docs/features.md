@@ -113,6 +113,7 @@ changed).
 | Customers | `google_login` | Sign in with Google | `accounts` | all | **off** |
 | Customers | `wishlist` | Wishlist | `catalog` | all | on |
 | Customers | `compare` | Product comparison | `catalog` | all | on |
+| Customers | `marketing` | Marketing emails: campaigns, automations, open and click tracking ([marketing.md](marketing.md)) | `catalog` | all | off |
 | Insights & AI | `analytics` | Store analytics | `catalog` | all | on |
 | Insights & AI | `ai_tools` | Store tools for AI agents | `catalog` | all | on |
 
@@ -166,6 +167,7 @@ now off still shows its saved instructions.
 | `google_login` | The Google sign-in routes answer 404. They also answer 404 until `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set. |
 | `wishlist` | Wishlist pages answer 404 and `<x-commerce::wishlist-button>` renders nothing. |
 | `compare` | Compare pages answer 404 and `<x-commerce::compare-button>` renders nothing. |
+| `marketing` | Shop → Marketing is hidden and its pages answer 404; scheduled campaigns and automations wait. Tracking and unsubscribe links in emails already sent keep working. |
 | `analytics` | Shop → Reports and the dashboard figures are hidden; product views are not recorded. |
 | `ai_tools` | Commerce's MCP tools are not available (see [ai-agents.md](ai-agents.md)). |
 

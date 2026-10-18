@@ -36,6 +36,7 @@ The workbench has three working references: `workbench/app/Commerce/FakeGateway.
 - [Storefront slots](#storefront-slots)
 - [Dashboard widgets, reports and health checks](#dashboard-widgets-reports-and-health-checks)
 - [Emails](#emails)
+- [Marketing triggers](#marketing-triggers)
 - [Scheduled work](#scheduled-work)
 - [MCP tools](#mcp-tools)
 - [Swappable services](#swappable-services)
@@ -286,6 +287,18 @@ Replace commerce's views from your package too: `Commerce::emailTemplate($view, 
 body, or the frame of every store email without a key), `Commerce::emailTheme($view)` and
 `Commerce::documentTemplate('invoice' | 'packing_slip' | 'quotation' | 'layout', $view)`. See
 [emails.md](emails.md#customizing-templates) and [documents.md](documents.md#customizing-the-templates).
+
+## Marketing triggers
+
+Automations (Shop → Marketing → Automations) start from a `Trigger` (`Sunrice\Commerce\Marketing\Automations\Trigger`):
+its key, label, description, delay (unit, label, default), starting template, and the recipients
+whose moment fell in a time window. `CustomerTrigger` covers dates on the customer record.
+
+```php
+Commerce::registerMarketingTrigger(new BirthdayTrigger);
+```
+
+See [marketing.md](marketing.md#adding-a-trigger).
 
 ## Scheduled work
 

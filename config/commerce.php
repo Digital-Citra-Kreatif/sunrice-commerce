@@ -118,6 +118,30 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Marketing emails
+    |--------------------------------------------------------------------------
+    |
+    | Campaigns and automations (the marketing module). They are sent by
+    | queued jobs, in batches; set per_minute to stay under your mail
+    | provider's sending limit, and mailer to send them through another
+    | mailer than transactional email. Tracking and unsubscribe links live
+    | under path. Sent-email rows older than keep_days are pruned (the
+    | campaigns keep their totals).
+    |
+    */
+
+    'marketing' => [
+        'path' => 'mail',
+        'queue' => env('COMMERCE_MARKETING_QUEUE'),
+        'mailer' => env('COMMERCE_MARKETING_MAILER'),
+        'batch_size' => 50,
+        'per_minute' => (int) env('COMMERCE_MARKETING_PER_MINUTE', 0),
+        'track' => true,
+        'keep_days' => 365,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Digital downloads
     |--------------------------------------------------------------------------
     |

@@ -97,6 +97,7 @@ final class ShopNavigation
         self::add('Flash sales', 'commerce/flash-sales', 'megaphone', 'commerce.flash-sales.manage', 'flash_sales');
         self::add('Pricing rules', 'commerce/pricing-rules', 'chart-column', 'commerce.pricing-rules.manage', 'pricing_rules');
         self::add('Inventory', 'commerce/inventory', 'clipboard-list', 'commerce.inventory.view', 'inventory');
+        self::add('Marketing', 'commerce/marketing', 'mail', 'commerce.marketing.manage', 'marketing');
         self::add('Reports', 'commerce/reports', 'chart-column', 'commerce.reports.view', 'analytics');
 
         Sunrice::navigationUsing(fn (array $groups, mixed $user): array => self::arrange($groups, $user));

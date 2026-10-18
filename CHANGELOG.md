@@ -52,6 +52,17 @@ to the MCP server's instructions and keeps store pages out of the full-page cach
   commands in `docs/commands.md`.
 - Documentation in `docs/`.
 
+### Marketing emails
+- New `marketing` module (off by default): email campaigns to customers who accept marketing, with
+  audience rules (days since the last order, recent buyers, new customers, spending, products
+  bought, location, engagement…) and a live count; automations with templates (abandoned cart,
+  welcome, no first order yet, after an order, win back); texts per language with smart tags,
+  preview and test sends; open and click tracking with per-link results; one-click unsubscribe.
+  Sent by queued jobs in batches (`commerce.marketing.*`). Permission `commerce.marketing.manage`;
+  run `php artisan migrate` and `php artisan commerce:seed-roles` (Shop Manager gets it). See
+  [docs/marketing.md](docs/marketing.md).
+- `Commerce::registerMarketingTrigger()` adds automation triggers from packages.
+
 ### Fixes
 - CSV exports (orders, customers, reports) write text that starts like a formula as plain text, so a
   customer's name can't run in Excel or Sheets.

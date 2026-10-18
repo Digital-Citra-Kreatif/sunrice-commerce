@@ -69,6 +69,20 @@ Publish the file with `php artisan vendor:publish --tag=commerce-config` (the in
 | --- | --- | --- |
 | `cache.product_pages_ttl` | `300` (`COMMERCE_PRODUCT_PAGES_TTL`) | With Sunrice's full-page cache on: seconds product, shop and product term pages are kept for anonymous visitors; `0` leaves them out ([Full-page cache](templates.md#full-page-cache)) |
 
+### marketing
+
+| Key | Default | |
+| --- | --- | --- |
+| `marketing.path` | `mail` | Path of the open, click and unsubscribe links |
+| `marketing.queue` | `null` (`COMMERCE_MARKETING_QUEUE`) | Queue for the marketing jobs |
+| `marketing.mailer` | `null` (`COMMERCE_MARKETING_MAILER`) | Mailer for marketing emails; null is the default |
+| `marketing.batch_size` | `50` | Emails per queued job |
+| `marketing.per_minute` | `0` (`COMMERCE_MARKETING_PER_MINUTE`) | Spread batches to about this many emails a minute; 0 for no limit |
+| `marketing.track` | `true` | Count opens |
+| `marketing.keep_days` | `365` | Recipient rows older than this are pruned |
+
+See [marketing.md](marketing.md#sending-queue-batches-and-limits).
+
 ### downloads
 
 | Key | Default | |

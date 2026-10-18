@@ -47,6 +47,27 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::put('vouchers/{voucher}', [Admin\VouchersController::class, 'update'])->name('vouchers.update');
     Route::delete('vouchers/{voucher}', [Admin\VouchersController::class, 'destroy'])->name('vouchers.destroy');
 
+    Route::get('marketing', fn () => redirect()->route('sunrice.admin.commerce.marketing.campaigns'))->name('marketing');
+    Route::prefix('marketing')->name('marketing.')->group(function (): void {
+        foreach (['campaigns' => 'campaign', 'automations' => 'automation'] as $path => $type) {
+            Route::get($path, [Admin\MarketingController::class, 'index'])->defaults('type', $type)->name($path);
+            Route::get("{$path}/create", [Admin\MarketingController::class, 'create'])->defaults('type', $type)->name("{$path}.create");
+            Route::post($path, [Admin\MarketingController::class, 'store'])->defaults('type', $type)->name("{$path}.store");
+        }
+        Route::post('audience', [Admin\MarketingController::class, 'audience'])->name('audience');
+        Route::post('preview', [Admin\MarketingController::class, 'preview'])->name('preview');
+        Route::post('test', [Admin\MarketingController::class, 'test'])->name('test');
+        Route::get('{campaign}', [Admin\MarketingController::class, 'show'])->whereNumber('campaign')->name('show');
+        Route::get('{campaign}/edit', [Admin\MarketingController::class, 'edit'])->whereNumber('campaign')->name('edit');
+        Route::put('{campaign}', [Admin\MarketingController::class, 'update'])->whereNumber('campaign')->name('update');
+        Route::delete('{campaign}', [Admin\MarketingController::class, 'destroy'])->whereNumber('campaign')->name('destroy');
+        Route::post('{campaign}/send', [Admin\MarketingController::class, 'send'])->whereNumber('campaign')->name('send');
+        Route::post('{campaign}/unschedule', [Admin\MarketingController::class, 'unschedule'])->whereNumber('campaign')->name('unschedule');
+        Route::post('{campaign}/cancel', [Admin\MarketingController::class, 'cancel'])->whereNumber('campaign')->name('cancel');
+        Route::post('{campaign}/status', [Admin\MarketingController::class, 'status'])->whereNumber('campaign')->name('status');
+        Route::post('{campaign}/duplicate', [Admin\MarketingController::class, 'duplicate'])->whereNumber('campaign')->name('duplicate');
+    });
+
     Route::get('orders', [Admin\OrdersController::class, 'index'])->name('orders');
     Route::get('orders/export', [Admin\OrdersController::class, 'export'])->name('orders.export');
     Route::post('orders/bulk', [Admin\OrdersController::class, 'bulk'])->name('orders.bulk');

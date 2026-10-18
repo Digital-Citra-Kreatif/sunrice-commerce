@@ -52,6 +52,7 @@ final class BuiltinFeatures
             new Feature('google_login', 'customers', 'Sign in with Google', 'Needs GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.', ['accounts'], default: false),
             new Feature('wishlist', 'customers', 'Wishlist', 'Customers save products for later.', ['catalog']),
             new Feature('compare', 'customers', 'Product comparison', 'Compare products side by side.', ['catalog']),
+            new Feature('marketing', 'customers', 'Marketing emails', 'Campaigns and automatic emails (abandoned cart, win back…) to customers who accept marketing, with open and click tracking.', ['catalog'], default: false),
 
             new Feature('analytics', 'insights', 'Store analytics', 'Dashboard figures and reports.', ['catalog']),
             new Feature('ai_tools', 'insights', 'Store tools for AI agents', 'Commerce tools on Sunrice\'s MCP server.', ['catalog']),

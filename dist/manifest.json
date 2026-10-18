@@ -1,18 +1,18 @@
 {
-  "_main-Bi1nuhYb.js": {
-    "file": "main-Bi1nuhYb.js",
+  "_main-BGWugyLg.js": {
+    "file": "main-BGWugyLg.js",
     "name": "main",
     "dynamicImports": [
       "resources/js/admin/components/ChartImpl.tsx"
     ]
   },
   "resources/js/admin/components/ChartImpl.tsx": {
-    "file": "ChartImpl-BR4UHoT6.js",
+    "file": "ChartImpl-D_HsDLEQ.js",
     "name": "ChartImpl",
     "src": "resources/js/admin/components/ChartImpl.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-Bi1nuhYb.js"
+      "_main-BGWugyLg.js"
     ]
   },
   "resources/js/admin/main.tsx": {
@@ -21,7 +21,7 @@
     "src": "resources/js/admin/main.tsx",
     "isEntry": true,
     "imports": [
-      "_main-Bi1nuhYb.js"
+      "_main-BGWugyLg.js"
     ]
   },
   "style.css": {
