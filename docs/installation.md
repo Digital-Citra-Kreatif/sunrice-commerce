@@ -95,6 +95,11 @@ Google** in Settings → Store → Features. See [accounts.md](accounts.md).
 
 ## Set up the store
 
+Everything the store needs sits in the admin sidebar's **Shop** group: the dashboard, orders,
+payments to verify, products with their categories, brands and tags, customers, promotions,
+inventory, reports and Store settings. The product collection and taxonomies leave Content and
+Taxonomies for it.
+
 Open the admin → **Shop → Dashboard**. Until everything is done, a checklist leads you through:
 
 - the store details (name, email, address: Settings → Store → General);
