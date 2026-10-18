@@ -13,6 +13,7 @@ use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
 use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Commerce\Shipping\Models\ShippingMethod;
 use Sunrice\Models\ActivityLog;
 
 beforeEach(function () {
@@ -143,7 +144,7 @@ it('reads and changes store settings and features', function () {
 it('quotes shipping to a destination', function () {
     $quote = mcpTool(Tools\QuoteShippingTool::class, ['lines' => [['variant_id' => $this->mug->id, 'quantity' => 2]], 'destination' => checkoutInput()['shipping_address']]);
     expect($quote['weight_grams'])->toBe(1000)
-        ->and(collect($quote['rates'])->firstWhere('id', 'flat:1:default')['cost']['amount'])->toBe(10000);
+        ->and(collect($quote['rates'])->firstWhere('id', 'flat:'.ShippingMethod::query()->where('type', 'flat')->value('id').':default')['cost']['amount'])->toBe(10000);
 
     app(ToggleFeature::class)->handle('shipping', false);
     expect((new Tools\QuoteShippingTool)->shouldRegister())->toBeFalse();

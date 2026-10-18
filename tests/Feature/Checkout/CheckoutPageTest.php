@@ -49,7 +49,7 @@ it('refreshes rates and totals as JSON when the address changes', function () {
 
 it('validates Indonesian addresses and the chosen rate', function () {
     cartWith([[$this->mug, 1]]);
-    $this->post('/checkout', [...checkoutInput(['shipping_address' => ['city_code' => '32.04'], 'shipping_rate' => 'flat:999:default']), 'action' => 'place'])
+    $this->post('/checkout', [...checkoutInput(['shipping_address' => ['city_code' => '32.04'], 'shipping_rate' => 'flat:999999:default']), 'action' => 'place'])
         ->assertRedirect('/checkout')
         ->assertSessionHasErrors(['shipping_address.district_code', 'shipping_rate']);
     expect(Order::query()->count())->toBe(0);
