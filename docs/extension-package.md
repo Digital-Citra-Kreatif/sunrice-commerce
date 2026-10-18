@@ -23,6 +23,7 @@ sunrice/commerce-midtrans
     "name": "sunrice/commerce-midtrans",
     "require": {
         "php": "^8.4",
+        "spatie/laravel-package-tools": "^1.93",
         "sunrice/commerce": "^1.0",
         "midtrans/midtrans-php": "^2.6"
     },
@@ -37,17 +38,41 @@ sunrice/commerce-midtrans
 
 Keep secrets in `.env` and the config file, never in store settings shown in the admin.
 
+The service provider is a `spatie/laravel-package-tools` `PackageServiceProvider` named after the
+package. `hasConfigFile()` merges `config/commerce-midtrans.php` as `config('commerce-midtrans.*')`
+and publishes it with `php artisan vendor:publish --tag=commerce-midtrans-config`; `hasViews()`
+loads `resources/views` as `commerce-midtrans::`.
+
+The real gateway packages follow this shape:
+[`sunrice/commerce-midtrans`](https://github.com/Digital-Citra-Kreatif/sunrice-commerce-midtrans),
+[`sunrice/commerce-xendit`](https://github.com/Digital-Citra-Kreatif/sunrice-commerce-xendit) and,
+for shipping, `sunrice/commerce-biteship`.
+
 ## 2. A feature
 
 Register a feature so the owner can switch the whole package off, and so it switches off with
 what it needs:
 
 ```php
-public function boot(): void
+class MidtransServiceProvider extends PackageServiceProvider
 {
-    Commerce::registerFeature(new Feature('midtrans', 'payments', 'Midtrans', 'Cards, e-wallets and virtual accounts.', ['payments']));
-    Commerce::registerPaymentMethod(MidtransSnap::class);
-    $this->loadViewsFrom(__DIR__.'/../resources/views', 'commerce-midtrans');
+    public function configurePackage(Package $package): void
+    {
+        $package->name('commerce-midtrans')
+            ->hasConfigFile()
+            ->hasViews();
+    }
+
+    public function packageRegistered(): void
+    {
+        $this->app->bindIf(MidtransClient::class, MidtransSdkClient::class);   // swappable in tests
+    }
+
+    public function packageBooted(): void
+    {
+        Commerce::registerFeature(new Feature('midtrans', 'payments', 'Midtrans', 'Cards, e-wallets and virtual accounts.', ['payments']));
+        Commerce::registerPaymentMethod(MidtransSnap::class);
+    }
 }
 ```
 
