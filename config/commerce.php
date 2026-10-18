@@ -209,6 +209,7 @@ return [
             'email' => null,
             'phone' => null,
             'logo' => null,
+            'brand_color' => null,
             'address' => [],
             'tax_id' => null,
             'selling_mode' => 'shop',

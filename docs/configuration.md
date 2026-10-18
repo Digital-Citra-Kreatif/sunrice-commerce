@@ -108,7 +108,7 @@ Each section is a page under Settings → Store with its own permission
 
 | Section | Keys |
 | --- | --- |
-| `general` (General) | `name`, `logo`, `email`, `phone`, `tax_id`, `address` (`line1`, `line2`, `region`, `postal_code`), `selling_mode` (`shop`, `quote`, `whatsapp`, `catalog`), `pause_orders`, `pause_message`, `whatsapp` (`numbers`, `rotation`, `product_message`, `order_message`), `currency` (`code`, `symbol`, `position`, `space`, `thousands`, `decimal`, `decimals`), `weight_unit`, `dimension_unit` |
+| `general` (General) | `name`, `logo`, `brand_color`, `email`, `phone`, `tax_id`, `address` (`line1`, `line2`, `region`, `postal_code`), `selling_mode` (`shop`, `quote`, `whatsapp`, `catalog`), `pause_orders`, `pause_message`, `whatsapp` (`numbers`, `rotation`, `product_message`, `order_message`), `currency` (`code`, `symbol`, `position`, `space`, `thousands`, `decimal`, `decimals`), `weight_unit`, `dimension_unit` |
 | `features` (Features) | One switch per module — see [features.md](features.md) |
 | `catalog` (Catalog) | `price_visibility`, `price_visibility_roles`, `call_to_action`, `show_stock`, `low_stock_threshold`, `hide_out_of_stock`, `new_badge_days`, `price_range`, `attribute_taxonomies`, `compare_max`, `compare_fields` |
 | `digital` (Digital products; catalog permission) | `delivery`, `grant_on`, `download_limit`, `expiry_days` |

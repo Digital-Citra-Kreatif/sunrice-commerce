@@ -31,6 +31,7 @@ use Sunrice\Commerce\Payments\Actions\ReviewPaymentConfirmation;
 use Sunrice\Commerce\Payments\Actions\SubmitPaymentConfirmation;
 use Sunrice\Commerce\Payments\PaymentResult;
 use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Models\Asset;
 use Workbench\App\Models\User;
 
 beforeEach(function () {
@@ -121,6 +122,20 @@ it('writes the subject in the order\'s language and attaches the invoice when se
     });
     $id = (new StoreEmail('payment_received', $order->fresh(), lang: 'id'))->toMail(null);
     expect($id->subject)->toBe("Lunas: {$order->number}");
+});
+
+it('brands emails with the store logo and color', function () {
+    $order = placeOrderFor($this->mug);
+    $logo = Asset::query()->create(['disk' => 'public', 'path' => 'logo.png', 'filename' => 'logo.png', 'mime_type' => 'image/png', 'size' => 10, 'sizes' => []]);
+    $settings = app(StoreSettings::class);
+    $settings->saveSection('general', [...$settings->section('general'), 'logo' => [$logo->id], 'brand_color' => '#b45309']);
+
+    $html = (string) (new StoreEmail('order_received', $order->fresh(), lang: 'id'))->toMail(null)->render();
+    expect($html)->toContain('logo.png')->toContain('#b45309');
+
+    $settings->saveSection('general', [...$settings->section('general'), 'logo' => null, 'brand_color' => null]);
+    $plain = (string) (new StoreEmail('order_received', $order->fresh(), lang: 'id'))->toMail(null)->render();
+    expect($plain)->not->toContain('logo.png')->not->toContain('#b45309')->toContain(commerce_store_name());
 });
 
 it('previews and sends a test from Settings → Emails', function () {

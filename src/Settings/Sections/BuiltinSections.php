@@ -67,6 +67,8 @@ final class BuiltinSections
             ['handle' => 'name', 'type' => 'text', 'label' => 'Store name', 'required' => true, 'translatable' => false, 'config' => ['max' => 120],
                 'instructions' => 'On invoices, emails and the storefront.'],
             ['handle' => 'logo', 'type' => 'asset', 'label' => 'Logo', 'config' => ['image_only' => true], 'instructions' => 'For invoices and emails.'],
+            ['handle' => 'brand_color', 'type' => 'text', 'label' => 'Brand color', 'translatable' => false, 'instructions' => 'A hex color like #b45309 for email buttons, headings and links. Empty: the default.',
+                'validation' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/']],
             ['handle' => 'email', 'type' => 'text', 'label' => 'Store email', 'translatable' => false, 'validation' => ['email:rfc', 'max:190'],
                 'instructions' => 'Order notifications go here; customers reply to it.'],
             ['handle' => 'phone', 'type' => 'text', 'label' => 'Phone', 'translatable' => false, 'config' => ['max' => 40]],

@@ -17,6 +17,7 @@ use Sunrice\Commerce\Documents\Documents;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Models\Asset;
 use Throwable;
 
 /**
@@ -51,7 +52,8 @@ class StoreEmail extends Notification implements ShouldQueue
         $settings = app(EmailSettings::class);
         $mail = (new MailMessage)
             ->subject($settings->text($this->key, 'subject', $this->lang, $data['replace']))
-            ->markdown('commerce::emails.store', $data);
+            ->markdown('commerce::emails.store', $data)
+            ->theme('commerce::emails.theme');
         $replyTo = app(StoreSettings::class)->get('general.email');
         if (is_string($replyTo) && $replyTo !== '' && str_starts_with($this->key, 'staff_') === false) {
             $mail->replyTo($replyTo, commerce_store_name());
@@ -82,8 +84,31 @@ class StoreEmail extends Notification implements ShouldQueue
             'heading' => $settings->text($this->key, 'heading', $this->lang, $replace),
             'intro' => $settings->text($this->key, 'intro', $this->lang, $replace),
             'action' => $this->action($settings, $replace),
-            'store' => ['name' => commerce_store_name(), 'url' => url('/')],
+            'store' => ['name' => commerce_store_name(), 'url' => url('/'), 'logo' => self::logoUrl()],
+            'brand' => self::brandColor(),
         ];
+    }
+
+    /** The store logo's absolute URL (Settings → Store → General → Logo), or null. */
+    public static function logoUrl(): ?string
+    {
+        $logo = app(StoreSettings::class)->get('general.logo');
+        $id = is_array($logo) ? ($logo[0] ?? null) : $logo;
+        $asset = $id !== null ? Asset::query()->find($id) : null;
+        if ($asset === null) {
+            return null;
+        }
+        $url = $asset->url();
+
+        return str_starts_with($url, 'http') ? $url : url($url);
+    }
+
+    /** The store's brand color (#rrggbb), or null for the mail theme's own. */
+    public static function brandColor(): ?string
+    {
+        $color = app(StoreSettings::class)->get('general.brand_color');
+
+        return is_string($color) && preg_match('/^#[0-9a-fA-F]{6}$/', $color) === 1 ? $color : null;
     }
 
     /**

@@ -200,8 +200,12 @@ email that has none (for example `order_completed.blade.php`) is picked up too.
 `php artisan vendor:publish --tag=commerce-views` copies all of commerce's views at once. Prefer
 copying only the files you change, so the others keep getting updates.
 
-The look (colours, header, footer) comes from Laravel's mail theme. Publish it with
-`php artisan vendor:publish --tag=laravel-mail` and edit `resources/views/vendor/mail`.
+The header shows the store logo (Settings → Store → General → Logo), or the store name without
+one; the footer shows the store name. **Brand color** in the same section (a hex color such as
+`#b45309`) colors buttons, headings and links. The rest of the look comes from Laravel's mail theme
+(`mail.markdown.theme`): commerce's theme view `emails/theme.blade.php` includes it and adds the
+brand color. Publish Laravel's theme with `php artisan vendor:publish --tag=laravel-mail` and edit
+`resources/views/vendor/mail` to change it further.
 
 Keep subjects and opening texts in Settings → Store → Emails where you can: the owner can then edit
 them per language without a deploy.

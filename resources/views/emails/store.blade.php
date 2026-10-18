@@ -1,5 +1,19 @@
+{{--
+    Every store email. $key, $heading, $intro, $action, $order, $store (name, url, logo: image URL or null).
+    The colors come from emails/theme.blade.php.
+--}}
 @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
-<x-mail::message>
+<x-mail::layout>
+<x-slot:header>
+<x-mail::header :url="$store['url']">
+@if ($store['logo'] ?? null)
+<img src="{{ $store['logo'] }}" alt="{{ $store['name'] }}" style="max-height: 60px; max-width: 240px; border: 0;">
+@else
+{{ $store['name'] }}
+@endif
+</x-mail::header>
+</x-slot:header>
+
 # {{ $heading }}
 
 @if ($intro !== '')
@@ -19,4 +33,10 @@
 @endif
 
 {{ $store['name'] }}
-</x-mail::message>
+
+<x-slot:footer>
+<x-mail::footer>
+© {{ date('Y') }} {{ $store['name'] }}
+</x-mail::footer>
+</x-slot:footer>
+</x-mail::layout>
