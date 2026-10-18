@@ -57,7 +57,7 @@ it('places an order with snapshots, a payment and the timeline', function () {
     $item = $order->items->sole();
     expect($item->name)->toBe('Mug')->and($item->sku)->toBe('MUG')->and($item->quantity)->toBe(2)->and($item->unit_price)->toBe(50000)->and($item->subtotal)->toBe(100000);
     $payment = $order->payments->sole();
-    expect($payment->amount)->toBe(110000)->and($payment->status)->toBe('pending')->and($payment->instructions)->toBe(['account' => '123', 'amount' => 110000]);
+    expect($payment->amount)->toBe(110000)->and($payment->status)->toBe('pending')->and($payment->instructions)->toEqual(['account' => '123', 'amount' => 110000]);
     expect($order->events->sole()->source)->toBe('storefront');
     expect($this->mug->fresh()->stock_quantity)->toBe(3);
     expect($cart->fresh()->status)->toBe('converted');

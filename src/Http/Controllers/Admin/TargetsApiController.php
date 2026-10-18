@@ -25,7 +25,7 @@ class TargetsApiController extends Controller
         if (in_array('product', $types, true)) {
             Product::query()->join('sunrice_entry_translations as t', fn ($j) => $j->on('t.entry_id', '=', 'commerce_products.entry_id')->where('t.locale', Locales::main()))
                 ->whereNull('commerce_products.removed_at')
-                ->when($q !== '', fn ($query) => $query->where('t.title', 'like', $like))
+                ->when($q !== '', fn ($query) => $query->whereLike('t.title', $like))
                 ->orderBy('t.title')->limit(15)->get(['commerce_products.id', 't.title'])
                 ->each(function ($p) use (&$results) {
                     $results[] = ['type' => 'product', 'id' => $p->id, 'label' => (string) $p->getAttribute('title'), 'group' => 'Products'];
@@ -35,7 +35,7 @@ class TargetsApiController extends Controller
             Variant::query()->join('commerce_products as p', 'p.id', '=', 'commerce_variants.product_id')
                 ->join('sunrice_entry_translations as t', fn ($j) => $j->on('t.entry_id', '=', 'p.entry_id')->where('t.locale', Locales::main()))
                 ->whereNull('p.removed_at')
-                ->where(fn ($w) => $w->where('commerce_variants.sku', 'like', $like)->orWhere('t.title', 'like', $like))
+                ->where(fn ($w) => $w->whereLike('commerce_variants.sku', $like)->orWhereLike('t.title', $like))
                 ->orderBy('t.title')->orderBy('commerce_variants.position')->limit(15)
                 ->get(['commerce_variants.id', 'commerce_variants.sku', 'commerce_variants.title', 't.title as product'])
                 ->each(function ($v) use (&$results) {
@@ -47,7 +47,7 @@ class TargetsApiController extends Controller
             $handles = (array) $request->query('taxonomies', [config('commerce.catalog.category_taxonomy'), config('commerce.catalog.brand_taxonomy')]);
             foreach (Taxonomy::query()->whereIn('handle', $handles)->get() as $taxonomy) {
                 Term::query()->where('taxonomy_id', $taxonomy->id)->with('translations')
-                    ->when($q !== '', fn ($query) => $query->whereHas('translations', fn ($t) => $t->where('name', 'like', $like)))
+                    ->when($q !== '', fn ($query) => $query->whereHas('translations', fn ($t) => $t->whereLike('name', $like)))
                     ->limit(15)->get()
                     ->each(function (Term $term) use (&$results, $taxonomy) {
                         $results[] = ['type' => 'term', 'id' => $term->id, 'label' => (string) ($term->translations->firstWhere('locale', Locales::main())->name ?? $term->id), 'group' => $taxonomy->title];

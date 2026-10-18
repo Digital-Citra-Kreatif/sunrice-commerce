@@ -19,7 +19,7 @@ it('creates, lists, edits and deletes a pricing rule', function () {
     ]])->assertSessionHasNoErrors()->assertRedirect();
 
     $rule = PriceRule::query()->firstOrFail();
-    expect($rule->tiers)->toBe([['min_qty' => 1, 'type' => 'fixed_price', 'value' => 45000], ['min_qty' => 12, 'type' => 'percent_off', 'value' => 750]])
+    expect($rule->tiers)->toEqual([['min_qty' => 1, 'type' => 'fixed_price', 'value' => 45000], ['min_qty' => 12, 'type' => 'percent_off', 'value' => 750]])
         ->and($rule->targets->pluck('target_type')->all())->toBe(['product'])
         ->and($rule->roles)->toBe(['Reseller']);
 

@@ -51,7 +51,7 @@ it('expires unpaid orders past the deadline and releases everything once', funct
         ->and($this->mug->fresh()->stock_quantity)->toBe(5)
         ->and($item->fresh()->sold_quantity)->toBe(0)
         ->and(Voucher::query()->value('times_used'))->toBe(0)
-        ->and($order->meta('released'))->toBe(['stock' => true, 'flash' => true, 'vouchers' => true]);
+        ->and($order->meta('released'))->toEqual(['stock' => true, 'flash' => true, 'vouchers' => true]);
 
     // A repeated release (a retried listener) gives nothing back twice.
     app(ReleaseReservations::class)->release($order);

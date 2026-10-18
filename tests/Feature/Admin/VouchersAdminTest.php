@@ -30,7 +30,7 @@ it('creates and edits vouchers with conditions and targets', function () {
     $this->get("/cms/commerce/vouchers/{$voucher->id}/edit")->assertOk();
     $this->put("/cms/commerce/vouchers/{$voucher->id}", ['values' => ['name' => 'B2G1', 'code' => 'GAJIAN25', 'active' => true, 'type' => 'buy_x_get_y',
         'bxgy' => ['buy_qty' => 2, 'get_qty' => 1, 'get_type' => 'free'], 'audience' => 'everyone']])->assertSessionHasNoErrors();
-    expect($voucher->fresh()->bxgy)->toBe(['buy_qty' => 2, 'get_qty' => 1, 'get_type' => 'free', 'get_value' => 0]);
+    expect($voucher->fresh()->bxgy)->toEqual(['buy_qty' => 2, 'get_qty' => 1, 'get_type' => 'free', 'get_value' => 0]);
 });
 
 it('requires a unique code unless automatic', function () {

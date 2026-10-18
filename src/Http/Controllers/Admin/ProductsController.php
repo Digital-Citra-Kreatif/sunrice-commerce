@@ -42,8 +42,8 @@ class ProductsController extends Controller
             // Title or SKU.
             ->searchUsing(function (Builder $q, string $term): void {
                 $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $term).'%';
-                $q->where(fn (Builder $w) => $w->where('t.title', 'like', $like)
-                    ->orWhereIn('p.id', fn ($s) => $s->from('commerce_variants')->select('product_id')->where('sku', 'like', $like)));
+                $q->where(fn (Builder $w) => $w->whereLike('t.title', $like)
+                    ->orWhereIn('p.id', fn ($s) => $s->from('commerce_variants')->select('product_id')->whereLike('sku', $like)));
             })
             ->filter('type', fn (Builder $q, mixed $v) => $q->where('p.type', $v))
             ->filter('stock', fn (Builder $q, mixed $v) => $q->where('p.in_stock', $v === 'in'))

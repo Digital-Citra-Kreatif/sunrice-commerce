@@ -667,9 +667,9 @@ class OrdersController extends Controller
         $table = TableQuery::for(Order::query()->withTrashed()->with('customer'))
             ->searchUsing(function (Builder $q, string $term): void {
                 $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $term).'%';
-                $q->where(fn (Builder $w) => $w->where('number', 'like', $like)->orWhere('quote_number', 'like', $like)->orWhere('customer_name', 'like', $like)
-                    ->orWhere('email', 'like', $like)->orWhere('phone', 'like', $like)
-                    ->orWhereHas('items', fn (Builder $i) => $i->where('sku', 'like', $like)));
+                $q->where(fn (Builder $w) => $w->whereLike('number', $like)->orWhereLike('quote_number', $like)->orWhereLike('customer_name', $like)
+                    ->orWhereLike('email', $like)->orWhereLike('phone', $like)
+                    ->orWhereHas('items', fn (Builder $i) => $i->whereLike('sku', $like)));
             })
             ->filter('type', fn (Builder $q, mixed $v) => $q->where('type', $v))
             ->filter('status', fn (Builder $q, mixed $v) => $q->where('status', $v))

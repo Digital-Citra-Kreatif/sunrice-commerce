@@ -40,6 +40,7 @@ use Sunrice\Commerce\Settings\SettingsRegistry;
 use Sunrice\Commerce\Settings\SettingsSection;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Shipping\Couriers;
+use Sunrice\Commerce\Shipping\Models\ShippingMethod;
 use Sunrice\Commerce\Shipping\ShippingTypes;
 use Sunrice\Commerce\Storefront\Slots;
 use Workbench\App\Commerce\FakeCourier;
@@ -187,7 +188,7 @@ it('registers features, settings sections, emails, couriers, methods, reports an
 });
 
 it('plugs providers and stages into the calculation', function () {
-    $ctx = PricingContext::guest()->with(['destination' => checkoutInput()['shipping_address'], 'shippingRate' => 'flat:1:default']);
+    $ctx = PricingContext::guest()->with(['destination' => checkoutInput()['shipping_address'], 'shippingRate' => 'flat:'.ShippingMethod::query()->where('type', 'flat')->value('id').':default']);
     $state = app(Calculator::class)->calculate(['l1' => [$this->mug, 2, []]], $ctx);
 
     expect($state->lines['l1']->unitPrice)->toBe(45000)                    // member price

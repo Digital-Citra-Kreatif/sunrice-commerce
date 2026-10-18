@@ -117,7 +117,9 @@ it('serves the cart as JSON', function () {
 it('needs CSRF on cart forms', function () {
     $this->withMiddleware(ValidateCsrfToken::class);
     $this->app->instance('env', 'production');
-    $this->post('/cart/items', ['variant' => $this->mug->id])->assertStatus(419);
+    $response = $this->post('/cart/items', ['variant' => $this->mug->id]);
+    $this->app->instance('env', 'testing');   // teardown must not run in "production" (it would ask to confirm)
+    $response->assertStatus(419);
 })->skip(fn () => ! class_exists(ValidateCsrfToken::class), 'no CSRF middleware');
 
 it('is gone while the cart module is off, and hides the voucher field without vouchers', function () {

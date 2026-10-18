@@ -36,10 +36,17 @@ function placeWithGateway(Variant $mug): Order
 {
     $cart = cartWith([[$mug, 1]]);
     $input = checkoutInput(['payment_method' => 'fake_gateway']);
-    test()->post('/checkout', [...$input, 'action' => 'place', 'totals_hash' => seenHash($cart, $input)])
-        ->assertRedirect('https://pay.example/checkout/FAKE-1');
+    $response = test()->post('/checkout', [...$input, 'action' => 'place', 'totals_hash' => seenHash($cart, $input)]);
+    $order = Order::query()->sole();
+    // The fake gateway's reference is FAKE-{payment id} (ids keep counting between tests on MySQL and PostgreSQL).
+    $response->assertRedirect('https://pay.example/checkout/'.fakeReference($order));
 
-    return Order::query()->sole();
+    return $order;
+}
+
+function fakeReference(Order $order, int $nth = 0): string
+{
+    return 'FAKE-'.($order->payments()->reorder('id')->value('id') + $nth);
 }
 
 it('adds the method fee to the totals and sends the customer to the gateway', function () {
@@ -47,21 +54,22 @@ it('adds the method fee to the totals and sends the customer to the gateway', fu
     expect($order->fee_total)->toBe(1200)  // 2% of 60.000
         ->and($order->total)->toBe(61200)
         ->and($order->adjustments->firstWhere('kind', 'fee')->source_type)->toBe('payment_fee')
-        ->and($order->payments->sole()->reference)->toBe('FAKE-1');
+        ->and($order->payments->sole()->reference)->toBe(fakeReference($order));
 });
 
 it('completes by webhook, ignoring duplicates, stale results and bad signatures', function () {
     $order = placeWithGateway($this->mug);
+    $ref = fakeReference($order);
 
-    webhook(['event_id' => 'evt-1', 'reference' => 'FAKE-1', 'status' => 'paid', 'amount' => 61200], 'wrong')->assertStatus(400);
+    webhook(['event_id' => 'evt-1', 'reference' => $ref, 'status' => 'paid', 'amount' => 61200], 'wrong')->assertStatus(400);
     expect($order->fresh()->payment_status)->toBe('unpaid')->and(WebhookCall::query()->sole()->status)->toBe('failed');
 
-    webhook(['event_id' => 'evt-1', 'reference' => 'FAKE-1', 'status' => 'paid', 'amount' => 61200])->assertOk();
+    webhook(['event_id' => 'evt-1', 'reference' => $ref, 'status' => 'paid', 'amount' => 61200])->assertOk();
     $order->refresh();
     expect([$order->status, $order->payment_status, $order->paid_total])->toBe(['processing', 'paid', 61200]);
 
-    webhook(['event_id' => 'evt-1', 'reference' => 'FAKE-1', 'status' => 'paid', 'amount' => 61200])->assertOk()->assertJson(['duplicate' => true]);
-    webhook(['event_id' => 'evt-2', 'reference' => 'FAKE-1', 'status' => 'pending'])->assertOk();
+    webhook(['event_id' => 'evt-1', 'reference' => $ref, 'status' => 'paid', 'amount' => 61200])->assertOk()->assertJson(['duplicate' => true]);
+    webhook(['event_id' => 'evt-2', 'reference' => $ref, 'status' => 'pending'])->assertOk();
     $order->refresh();
     expect([$order->payment_status, $order->paid_total])->toBe(['paid', 61200])
         ->and(WebhookCall::query()->orderBy('id')->pluck('status')->all())->toBe(['failed', 'processed', 'ignored', 'ignored']);
@@ -69,11 +77,12 @@ it('completes by webhook, ignoring duplicates, stale results and bad signatures'
 
 it('records the gateway return and checks status once before expiring', function () {
     $order = placeWithGateway($this->mug);
+    $ref = fakeReference($order);
     $this->get("/order/{$order->order_key}/payment/return?status=failed")->assertRedirect($order->url());
     expect($order->fresh()->status)->toBe('failed');
 
     // Paid at the gateway though we never heard: the check before expiry finds it.
-    Cache::put('fake-gateway:FAKE-1', 'paid');
+    Cache::put('fake-gateway:'.$ref, 'paid');
     $this->travel(25)->hours();
     $this->artisan('commerce:tick');
     expect($order->fresh()->payment_status)->toBe('paid');
@@ -89,7 +98,7 @@ it('lets the customer switch methods on the pay page, the fee following', functi
         ->and($order->payments->pluck('status', 'method')->all())->toBe(['fake_gateway' => 'cancelled', 'test_transfer' => 'pending'])
         ->and($order->payments->last()->amount)->toBe(60000);
 
-    $this->post("/order/{$order->order_key}/pay", ['payment_method' => 'fake_gateway'])->assertRedirect('https://pay.example/checkout/FAKE-3');
+    $this->post("/order/{$order->order_key}/pay", ['payment_method' => 'fake_gateway'])->assertRedirect('https://pay.example/checkout/'.fakeReference($order, 2));
     expect($order->fresh()->total)->toBe(61200);
 
     $this->post("/order/{$order->order_key}/pay", ['payment_method' => 'nope'])->assertSessionHas('commerce.error');

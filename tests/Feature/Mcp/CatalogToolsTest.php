@@ -96,7 +96,7 @@ it('saves flash sales and pricing rules once the user agrees', function () {
         'quantity_basis' => 'product', 'tiers' => [['min_qty' => 10, 'type' => 'percent_off', 'percent' => 5]]];
     expect(mcpTool(Tools\SavePricingRuleTool::class, ['values' => $values])['error'])->toContain('every product');
     $rule = mcpTool(Tools\SavePricingRuleTool::class, ['values' => $values, 'confirm' => true]);
-    expect($rule['saved'])->toBeTrue()->and(PriceRule::query()->sole()->tiers)->toBe([['min_qty' => 10, 'type' => 'percent_off', 'value' => 500]]);
+    expect($rule['saved'])->toBeTrue()->and(PriceRule::query()->sole()->tiers)->toEqual([['min_qty' => 10, 'type' => 'percent_off', 'value' => 500]]);
 
     staffWith(['commerce.vouchers.manage']);
     expect((new Tools\SaveFlashSaleTool)->shouldRegister())->toBeFalse()

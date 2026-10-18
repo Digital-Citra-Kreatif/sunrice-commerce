@@ -14,12 +14,25 @@ use Spatie\OneTimePasswords\OneTimePasswordsServiceProvider;
 use Spatie\Permission\PermissionServiceProvider;
 use Spatie\Sitemap\SitemapServiceProvider;
 use Sunrice\Commerce\CommerceServiceProvider;
+use Sunrice\Frontend\RouteMatcher;
 use Sunrice\SunriceServiceProvider;
 use Workbench\App\Models\User;
 
 class TestCase extends Orchestra
 {
     use RefreshDatabase;
+
+    /**
+     * Static state lives as long as the PHP process, across tests. On
+     * MySQL and PostgreSQL ids keep counting between tests (rolled-back
+     * transactions don't reset sequences), so Sunrice's compiled routes
+     * from an earlier test would point at collections that are gone.
+     */
+    protected function setUp(): void
+    {
+        RouteMatcher::flush(keepCache: true);   // the array cache is new for each test
+        parent::setUp();
+    }
 
     protected function getPackageProviders($app): array
     {

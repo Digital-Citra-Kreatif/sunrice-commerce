@@ -337,7 +337,7 @@ class ProductQuery
             $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $this->search).'%';
             $matching = EntryQuery::collection($this->collection)->search($this->search, ['title', 'excerpt'])->toBase()->reorder()->select('sunrice_entries.id')->toBase();
             $query->where(fn (Builder $q) => $q->whereIn('commerce_products.entry_id', $matching)
-                ->orWhereHas('variants', fn (Builder $v) => $v->where('sku', 'like', $like)));
+                ->orWhereHas('variants', fn (Builder $v) => $v->whereLike('sku', $like)));
         }
         foreach ($this->terms as $taxonomy => $ids) {
             if ($taxonomy !== $exclude && in_array($taxonomy, (array) app(StoreSettings::class)->get('catalog.attribute_taxonomies', []), true)) {
