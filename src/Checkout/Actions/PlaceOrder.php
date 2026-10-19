@@ -6,6 +6,7 @@ namespace Sunrice\Commerce\Checkout\Actions;
 
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -53,6 +54,7 @@ use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Promotions\Vouchers\VoucherRedemptions;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\Phone;
+use Sunrice\Models\Entry;
 use Sunrice\Support\Locales;
 
 /**
@@ -309,6 +311,7 @@ class PlaceOrder
     public function insertLines(Order $order, CalculationState $state): void
     {
         $locale = (string) ($order->locale ?? Locales::main());
+        $this->loadSnapshots($state);
         foreach ($state->lines as $line) {
             $item = OrderItem::query()->create($this->lineAttributes($order, $line, $locale));
             $product = $line->product();
@@ -461,9 +464,36 @@ class PlaceOrder
         return $grams;
     }
 
+    /** @var array<int, Entry> entry id => entry with translations, for the lines being inserted */
+    protected array $entries = [];
+
+    /**
+     * Load the entries (titles) and option values of every line and bundle
+     * component at once, so inserting lines doesn't query per line.
+     */
+    protected function loadSnapshots(CalculationState $state): void
+    {
+        $this->entries = [];
+        $variants = [];
+        foreach ($state->lines as $line) {
+            $variants[] = $line->variant;
+            if ($line->product()->isBundle()) {
+                foreach (app(Bundles::class)->explode($line->product(), 1) as $component) {
+                    $variants[] = $component['variant'];
+                }
+            }
+        }
+        if ($variants === []) {
+            return;
+        }
+        (new EloquentCollection($variants))->loadMissing(['product', 'optionValues.option', 'optionValues.term.translations']);
+        $ids = array_values(array_unique(array_map(fn (Variant $v) => (int) $v->product->entry_id, $variants)));
+        $this->entries = Entry::withTrashed()->with('translations')->whereIn('id', $ids)->get()->keyBy('id')->all();
+    }
+
     protected function title(Variant $variant, string $locale): string
     {
-        $entry = $variant->product->entry();
+        $entry = $this->entries[(int) $variant->product->entry_id] ?? $variant->product->entry();
         if ($entry === null) {
             return (string) ($variant->sku ?? 'Product');
         }

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Orders\Actor;
@@ -127,4 +128,33 @@ it('marks orders paid with the payments permission', function () {
         ->and($order->payments->sole()->reference)->toBe('BCA 17/10');
     expect(app(OrderStateMachine::class)->can($order, 'completed'))->toBeTrue();
     expect(Actor::admin()->source)->toBe('admin');
+});
+
+it('counts each order\'s items in the list query, not once per row', function () {
+    actingAsUserWith(['commerce.orders.view']);
+    $order = function (int $quantity): void {
+        $order = makeOrder();
+        $parent = $order->items()->create(['name' => 'Set', 'sku' => 'SET', 'quantity' => $quantity]);
+        $order->items()->create(['name' => 'Mug', 'sku' => 'MUG', 'quantity' => 2 * $quantity, 'parent_id' => $parent->id]);
+    };
+    $measure = function (): int {
+        orderRows($this);
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $rows = orderRows($this);
+        $count = count(DB::getQueryLog());
+        DB::disableQueryLog();
+        expect(array_column($rows, 'items'))->each->toBeIn(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']);
+
+        return $count;
+    };
+    $order(1);
+    $order(2);
+    $two = $measure();
+    foreach (range(3, 10) as $quantity) {
+        $order($quantity);
+    }
+
+    expect($measure())->toBe($two)
+        ->and(array_column(orderRows($this), 'items'))->toBe(['10', '9', '8', '7', '6', '5', '4', '3', '2', '1']);
 });

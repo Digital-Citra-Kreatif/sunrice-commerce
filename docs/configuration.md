@@ -62,6 +62,9 @@ Publish the file with `php artisan vendor:publish --tag=commerce-config` (the in
 | `cart.cookie` | `commerce_cart` | The guest cart cookie |
 | `cart.lifetime_days` | `30` | How long the cookie lives |
 | `cart.prune_days` | `30` | Abandoned carts older than this are deleted by `commerce:prune` |
+| `cart.max_lines` | `500` | Distinct products (variants) a cart can hold; more of one already in it is always fine. `0` for no limit |
+| `cart.per_page` | `25` | Lines per cart page (`?page=2`); the totals are always the whole cart's |
+| `cart.preview_lines` | `10` | Lines the cart drawer and the checkout summary list before "and 3 more" |
 
 ### cache
 
@@ -106,6 +109,12 @@ See [marketing.md](marketing.md#sending-queue-batches-and-limits).
 | --- | --- | --- |
 | `shipping.volumetric_divisor` | `6000` | L×W×H (cm) ÷ this = volumetric weight (kg) |
 | `shipping.couriers.*` | JNE, J&T, SiCepat, AnterAja, POS, Ninja, Lion, ID Express, GoSend, Grab | Courier presets for shipments: `key => ['name' => …, 'tracking_url' => '…{tracking}…']` |
+
+### documents
+
+| Key | Default | |
+| --- | --- | --- |
+| `documents.batch_size` | `25` | Bulk packing slips are rendered this many orders at a time into one PDF ([documents.md](documents.md#in-the-admin)) |
 
 ### analytics and privacy
 

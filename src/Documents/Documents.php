@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Documents;
 
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -68,13 +69,24 @@ class Documents
     }
 
     /**
-     * One PDF for several orders (bulk packing slips).
+     * One PDF for several orders (bulk packing slips). More orders than
+     * commerce.documents.batch_size are rendered a batch at a time, so a
+     * 200-order PDF needs about as much memory as one batch.
      *
      * @param  Collection<int, Order>  $orders
      */
     public function bulkPdf(Collection $orders, string $type = 'packing_slip'): string
     {
-        return $this->renderer->pdf($this->html($orders, $type));
+        $size = max(1, (int) config('commerce.documents.batch_size', 25));
+        if ($orders->count() <= $size || ! $this->renderer instanceof BatchRenderer) {
+            return $this->renderer->pdf($this->html($orders, $type));
+        }
+
+        return $this->renderer->combined((function () use ($orders, $type, $size): \Generator {
+            foreach ($orders->values()->chunk($size) as $batch) {
+                yield $this->html($batch->values(), $type);
+            }
+        })());
     }
 
     /**
@@ -85,8 +97,9 @@ class Documents
     public function html(Collection $orders, string $type): string
     {
         $pages = [];
+        // Loaded for all orders at once: bulk packing slips print up to 200.
+        (new EloquentCollection($orders->all()))->loadMissing(['items.children', 'adjustments', 'shipments']);
         foreach ($orders as $order) {
-            $order->loadMissing(['items.children', 'adjustments', 'shipments']);
             $previous = app()->getLocale();
             app()->setLocale((string) ($order->locale ?: $previous));
             try {

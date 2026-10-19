@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Pricing;
 
+use Sunrice\Commerce\Catalog\Bundles;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
 
@@ -49,6 +50,20 @@ final class CalcLine
     public function product(): Product
     {
         return $this->variant->product;
+    }
+
+    protected ?int $basePrice = null;
+
+    /**
+     * The unit price promotions start from: the variant's price, or a
+     * bundle's from its pricing mode (a bundle priced from its components
+     * has a variant price of 0).
+     */
+    public function basePrice(): int
+    {
+        $product = $this->product();
+
+        return $this->basePrice ??= $product->isBundle() ? app(Bundles::class)->price($product, $this->variant) : $this->variant->price;
     }
 
     public function discount(): int

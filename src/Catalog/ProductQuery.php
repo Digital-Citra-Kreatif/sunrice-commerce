@@ -121,13 +121,44 @@ class ProductQuery
             if ($id > 0) {
                 $ids[] = $id;
                 if ($includeChildren) {
-                    $ids = [...$ids, ...(Term::query()->find($id)?->descendantIds() ?? [])];
+                    $ids = [...$ids, ...$this->descendants((int) $model->id, $id)];
                 }
             }
         }
         $this->terms[$taxonomy] = $ids === [] ? [0] : array_values(array_unique($ids));
 
         return $this;
+    }
+
+    /** @var array<int, array<int, array<int, int>>> taxonomy id => parent id => child ids */
+    protected array $trees = [];
+
+    /**
+     * A term's descendants, from one query of its taxonomy's tree (rather
+     * than one query per subcategory).
+     *
+     * @return array<int, int>
+     */
+    protected function descendants(int $taxonomyId, int $id): array
+    {
+        if (! isset($this->trees[$taxonomyId])) {
+            $this->trees[$taxonomyId] = [];
+            foreach (Term::query()->where('taxonomy_id', $taxonomyId)->whereNotNull('parent_id')->toBase()->get(['id', 'parent_id']) as $row) {
+                $this->trees[$taxonomyId][(int) $row->parent_id][] = (int) $row->id;
+            }
+        }
+        $found = [];
+        $queue = [$id];
+        while ($queue !== []) {
+            foreach ($this->trees[$taxonomyId][array_shift($queue)] ?? [] as $child) {
+                if (! in_array($child, $found, true)) {
+                    $found[] = $child;
+                    $queue[] = $child;
+                }
+            }
+        }
+
+        return $found;
     }
 
     public function category(int|string $term): self

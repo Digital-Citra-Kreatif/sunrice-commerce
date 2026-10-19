@@ -96,6 +96,13 @@ return [
         // Untouched carts are marked abandoned after this many days, and
         // deleted after the same number of days again.
         'prune_days' => 30,
+        // Distinct lines a cart can hold (more of a line already in it is
+        // always fine; 0 for no limit; bulk buyers mix many products, so the
+        // default is generous), lines per cart page, and lines the drawer
+        // and the checkout summary list before "and 3 more".
+        'max_lines' => 500,
+        'per_page' => 25,
+        'preview_lines' => 10,
     ],
 
     /*
@@ -209,6 +216,21 @@ return [
             'gosend' => ['name' => 'GoSend', 'tracking_url' => null],
             'grab' => ['name' => 'GrabExpress', 'tracking_url' => null],
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Documents
+    |--------------------------------------------------------------------------
+    |
+    | Bulk documents (packing slips of up to 200 orders) are rendered this
+    | many orders at a time into one PDF, so memory stays flat however many
+    | orders are printed. Lower it if a batch runs out of memory.
+    |
+    */
+
+    'documents' => [
+        'batch_size' => 25,
     ],
 
     /*

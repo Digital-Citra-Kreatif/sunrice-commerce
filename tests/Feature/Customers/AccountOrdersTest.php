@@ -53,6 +53,19 @@ it('buys again what is still available', function () {
     expect(Cart::query()->where('status', 'active')->latest('id')->first()->items->pluck('quantity', 'variant_id')->all())->toBe([$this->mug->id => 1]);
 });
 
+it('buys again until the cart is full', function () {
+    $tea = Variant::factory()->create(['product_id' => $this->mug->product_id, 'sku' => 'TEA', 'price' => 20000, 'uid' => 'tea']);
+    $cart = cartWith([[$this->mug, 1], [$tea, 2]]);
+    $order = app(PlaceOrder::class)->handle($cart, CheckoutData::fromCart($cart)->merge(checkoutInput()), null)->order;
+    app(LinkGuestOrders::class)->handle($this->user);
+    config(['commerce.cart.max_lines' => 1]);
+    Auth::guard('commerce')->login($this->user);
+
+    $this->post("/account/orders/{$order->id}/again")->assertRedirect('/cart')
+        ->assertSessionHas('commerce.error', 'Keranjang sudah penuh (1 produk). Hapus satu untuk menambah yang lain.');
+    expect(Cart::query()->where('status', 'active')->latest('id')->first()->items->pluck('quantity', 'variant_id')->all())->toBe([$this->mug->id => 1]);
+});
+
 it('cancels from the account only while unpaid', function () {
     $order = guestOrder($this->mug, 'rina@example.com');
     app(LinkGuestOrders::class)->handle($this->user);

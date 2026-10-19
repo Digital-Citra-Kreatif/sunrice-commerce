@@ -43,7 +43,7 @@ class ProductTierPrice implements PriceCandidateProvider
         $best = null;
         foreach ($applicable as $tier) {
             $qty = $tier['variant'] === null ? $productQty : $line->quantity;
-            $found = Tiers::best([$tier], $qty, $line->variant->price);
+            $found = Tiers::best([$tier], $qty, $line->basePrice());
             if ($found !== null && ($best === null || $found['price'] < $best['price'])) {
                 $best = $found;
             }

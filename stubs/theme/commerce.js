@@ -133,21 +133,23 @@
         first.src = src;
     });
 
-    // The mini cart drawer: a <dialog> listing the cart (focus stays inside; Escape closes and focus returns to the link).
+    // The mini cart drawer: a <dialog> listing the cart's first lines (focus stays inside; Escape closes and focus returns to the link).
     document.addEventListener('click', function (event) {
         var link = event.target.closest('[data-commerce-mini-cart]');
         var drawer = document.querySelector('[data-commerce-drawer]');
         if (!link || !drawer || typeof drawer.showModal !== 'function' || event.metaKey || event.ctrlKey) return;
         event.preventDefault();
         var body = drawer.querySelector('[data-commerce-drawer-body]');
-        fetch(link.dataset.commerceCartApi, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+        var shown = parseInt(drawer.dataset.commerceDrawerLines, 10) || 10;
+        var api = link.dataset.commerceCartApi + (link.dataset.commerceCartApi.indexOf('?') === -1 ? '?' : '&') + 'lines=' + shown;
+        fetch(api, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
             .then(function (r) { return r.json(); })
             .then(function (json) {
                 var cart = json.cart || json;
                 body.textContent = '';
                 var list = document.createElement('ul');
                 list.className = 'commerce-drawer__lines';
-                (cart.lines || []).forEach(function (line) {
+                (cart.lines || []).slice(0, shown).forEach(function (line) {
                     var li = document.createElement('li');
                     var a = document.createElement('a');
                     a.href = line.url || '#';
@@ -159,6 +161,14 @@
                     list.appendChild(li);
                 });
                 body.appendChild(list);
+                var more = (cart.line_count || 0) - list.children.length;
+                if (more > 0) {
+                    var rest = document.createElement('a');
+                    rest.className = 'commerce-drawer__more';
+                    rest.href = link.href;
+                    rest.textContent = (drawer.dataset.commerceDrawerMore || '+:count').replace(':count', more);
+                    body.appendChild(rest);
+                }
                 if (cart.totals) {
                     var total = document.createElement('p');
                     total.className = 'commerce-drawer__total';

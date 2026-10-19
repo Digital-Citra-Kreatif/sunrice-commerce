@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Cart;
 
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\DB;
 use JsonSerializable;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Cart\Models\CartItem;
+use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\ProductView;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
 use Sunrice\Commerce\Pricing\CalcLine;
@@ -39,6 +41,12 @@ class CartView implements JsonSerializable
             return new self(null, app(Calculator::class)->calculate([], $ctx));
         }
         $cart->loadMissing('items.variant.product.tiers');
+        // Bundles read their components for prices, stock and publication.
+        $bundles = $cart->items->map(fn (CartItem $i) => $i->variant->product)
+            ->filter(fn (Product $p) => $p->isBundle() && ! $p->relationLoaded('bundleItems'))->unique('id')->values();
+        if ($bundles->isNotEmpty()) {
+            (new EloquentCollection($bundles->all()))->load('bundleItems.variant.product');
+        }
         $checkout = (array) $cart->checkout;
         $ctx = $ctx->with(array_filter([
             'email' => $ctx->email ?? ($checkout['email'] ?? null),
@@ -121,11 +129,23 @@ class CartView implements JsonSerializable
     /** @return array<string, mixed> */
     public function jsonSerialize(): array
     {
+        return $this->toArray();
+    }
+
+    /**
+     * The cart as JSON; with $lines, only the first lines are listed (the
+     * drawer), while line_count and the totals stay those of the whole cart.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(?int $lines = null): array
+    {
         $money = app(MoneyFormatter::class);
         $format = fn (int $amount) => ['amount' => $amount, 'formatted' => $money->format($amount)];
 
         return [
             'count' => $this->count(),
+            'line_count' => count($this->lines),
             'lines' => array_map(fn (array $row) => [
                 'id' => $row['item']->id,
                 'variant_id' => $row['line']->variant->id,
@@ -142,7 +162,7 @@ class CartView implements JsonSerializable
                 'subtotal' => $format($row['line']->subtotal),
                 'discount' => $format($row['line']->discount()),
                 'total' => $format($row['line']->net()),
-            ], $this->lines),
+            ], $lines === null ? $this->lines : array_slice($this->lines, 0, max(0, $lines))),
             'codes' => $this->state->appliedCodes,
             'adjustments' => array_map(fn ($a) => ['type' => $a->type, 'label' => $a->label, 'amount' => $format($a->amount), 'code' => $a->source['code'] ?? null], array_values($this->state->adjustments)),
             'totals' => array_map($format, $this->state->totals),

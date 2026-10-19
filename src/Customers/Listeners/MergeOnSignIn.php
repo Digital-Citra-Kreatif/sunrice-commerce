@@ -30,8 +30,12 @@ class MergeOnSignIn
         if (is_string($token) && strlen($token) === 64) {
             $guest = Cart::query()->where('token', $token)->where('status', 'active')->where(fn ($q) => $q->whereNull('customer_id')->orWhere('customer_id', $customer->id))->first();
             if ($guest !== null) {
-                $cart = app(MergeCarts::class)->handle($guest, $customer);
+                $merge = app(MergeCarts::class);
+                $cart = $merge->handle($guest, $customer);
                 app(CartManager::class)->remember($cart);
+                if ($merge->left > 0) {
+                    session()->flash('commerce.error', __('commerce::storefront.cart.merge_full', ['count' => config('commerce.cart.max_lines'), 'left' => $merge->left]));
+                }
             }
         }
         app(CartManager::class)->refresh();

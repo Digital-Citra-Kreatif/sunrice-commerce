@@ -98,3 +98,14 @@ to the MCP server's instructions and keeps store pages out of the full-page cach
   in with their password on the storefront (it skipped the code step).
 - The SKU check, variant search and targets picker APIs check permissions (product editing, order
   editing, or managing vouchers, flash sales or pricing rules).
+- Bulk packing slips are rendered 25 orders at a time (`commerce.documents.batch_size`) into one
+  PDF, so 200 orders no longer run out of PHP's memory. Renderers can do the same by implementing
+  `Documents\BatchRenderer`.
+- A cart holds up to 500 different products (`commerce.cart.max_lines`); adding another is refused
+  with a message (`cart_full`), on the add-to-cart form, the cart API, "Buy again" and the sign-in
+  merge. More of a product already in the cart is still fine. The cart page shows 25 lines a page
+  (`commerce.cart.per_page`, `?page=`) with the whole cart's totals, and the drawer and checkout
+  summary list the first 10 (`commerce.cart.preview_lines`) and then "and 3 more". The cart JSON
+  has `line_count`, and `GET {api}/cart?lines=10` lists only the first lines. Changed templates:
+  `partials/cart`, `partials/mini-cart`, `partials/checkout-summary`, and the theme's `commerce.js`
+  and `commerce.css`; published copies keep showing every line until updated.

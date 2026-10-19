@@ -6,7 +6,12 @@ use Sunrice\Commerce\Catalog\Bundles;
 use Sunrice\Commerce\Catalog\Catalog;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Catalog\ProductViewFactory;
 use Sunrice\Commerce\Contracts\Inventory;
+use Sunrice\Commerce\Pricing\Calculator;
+use Sunrice\Commerce\Pricing\PricingContext;
+use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
+use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
 use Sunrice\Models\Entry;
 
 beforeEach(function () {
@@ -64,4 +69,32 @@ it('explodes into component lines', function () {
     $lines = app(Bundles::class)->explode($bundle, 3);
 
     expect(array_map(fn ($l) => [$l['variant']->sku, $l['quantity']], $lines))->toBe([['MUG', 3], ['TEA', 6]]);
+});
+
+it('takes pricing rules, bulk prices and flash sales off a bundle\'s own price, never off zero', function () {
+    $bundle = giftSet('percent_off', 1000, 0); // 81000 from its components; its variant price is 0, as the editor saves it
+    $this->tea->forceFill(['stock_quantity' => 50])->save(); // room for several sets
+    $variant = $bundle->variants->first()->setRelation('product', $bundle);
+    $unitPrice = function (int $quantity) use ($variant): array {
+        app()->forgetScopedInstances();
+        $line = array_values(app(Calculator::class)->calculate([[$variant->fresh('product'), $quantity]], PricingContext::current())->lines)[0];
+
+        return [$line->unitPrice, $line->priceSource['type']];
+    };
+
+    PriceRule::query()->create(['name' => 'Grosir', 'scope' => 'all', 'tiers' => [['min_qty' => 2, 'type' => 'percent_off', 'value' => 1000]]]);
+    expect($unitPrice(1))->toBe([81000, 'base'])
+        ->and($unitPrice(2))->toBe([72900, 'price_rule']);
+
+    $bundle->tiers()->create(['min_qty' => 3, 'type' => 'percent_off', 'value' => 2000]);
+    expect($unitPrice(3))->toBe([64800, 'tier']);
+
+    $sale = FlashSale::query()->create(['name' => 'Kilat', 'slug' => 'kilat', 'active' => true, 'starts_at' => now()->subHour(), 'ends_at' => now()->addHour()]);
+    $sale->items()->create(['product_id' => $bundle->id, 'discount_type' => 'percent_off', 'discount_value' => 1500]);
+    expect($unitPrice(1))->toBe([68850, 'flash_sale']);
+
+    app()->forgetScopedInstances();
+    $view = app(ProductViewFactory::class)->forEntry(Entry::query()->findOrFail($bundle->entry_id));
+    expect($view->price['amount'])->toBe(68850)
+        ->and(array_column($view->tiers, 'price'))->each->not->toBe('Rp0');
 });

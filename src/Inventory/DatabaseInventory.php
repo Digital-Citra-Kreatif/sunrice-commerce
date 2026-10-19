@@ -138,7 +138,8 @@ class DatabaseInventory implements Inventory
     {
         $products = [];
         foreach ($changes as [$variant, $before, $after]) {
-            $variant->refresh();
+            // The quantity was read back right after the change; refresh() would also reload every loaded relation.
+            $variant->setAttribute('stock_quantity', $after)->syncOriginalAttribute('stock_quantity');
             $status = $variant->computedStockStatus();
             if ($status !== $variant->stock_status) {
                 $variant->forceFill(['stock_status' => $status])->saveQuietly();

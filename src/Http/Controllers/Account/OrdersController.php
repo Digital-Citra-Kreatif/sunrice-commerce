@@ -53,6 +53,7 @@ class OrdersController
         $model = $this->own($order);
         $added = 0;
         $missing = [];
+        $full = null;
         foreach ($model->items()->whereNull('parent_id')->get() as $item) {
             try {
                 if ($item->variant_id === null) {
@@ -60,16 +61,21 @@ class OrdersController
                 }
                 $add->handle($item->variant_id, $item->quantity);
                 $added++;
-            } catch (CartException) {
+            } catch (CartException $e) {
+                if ($e->reason === 'cart_full') {
+                    $full = $e->getMessage();
+                    break;
+                }
                 $missing[] = $item->title();
             }
         }
+        $error = $full ?? __('commerce::account.orders.unavailable', ['products' => implode(', ', $missing)]);
         $redirect = redirect(StorefrontRoutes::url('commerce.cart'));
-        if ($missing !== []) {
-            $redirect->with('commerce.error', __('commerce::account.orders.unavailable', ['products' => implode(', ', $missing)]));
+        if ($full !== null || $missing !== []) {
+            $redirect->with('commerce.error', $error);
         }
 
-        return $added > 0 ? $redirect->with('commerce.success', __('commerce::account.orders.added_again')) : back()->with('commerce.error', __('commerce::account.orders.unavailable', ['products' => implode(', ', $missing)]));
+        return $added > 0 ? $redirect->with('commerce.success', __('commerce::account.orders.added_again')) : back()->with('commerce.error', $error);
     }
 
     public function cancel(Request $request, int $order, CancelOrderByCustomer $cancel): RedirectResponse

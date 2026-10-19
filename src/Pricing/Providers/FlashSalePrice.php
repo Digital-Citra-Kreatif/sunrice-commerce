@@ -40,7 +40,7 @@ class FlashSalePrice implements PriceCandidateProvider
             return;
         }
 
-        yield new PriceCandidate($item->priceFor($line->variant->price), ['type' => 'flash_sale', 'id' => $item->id, 'label' => $label],
+        yield new PriceCandidate($item->priceFor($line->basePrice()), ['type' => 'flash_sale', 'id' => $item->id, 'label' => $label],
             ['flash_sale_id' => $item->flash_sale_id, 'ends_at' => $item->sale->ends_at->toIso8601String()]);
     }
 }

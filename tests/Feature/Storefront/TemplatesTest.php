@@ -63,7 +63,7 @@ it('buys a variable product with plain form posts, no JavaScript', function () {
         ->assertSee('aria-describedby="opt-', false)       // S is sold out, and says so
         ->assertSee('role="status" aria-live="polite"', false);
     expect(Blade::render('<x-commerce::mini-cart />'))->toContain('aria-haspopup="dialog"')
-        ->toContain('<dialog class="commerce-drawer" data-commerce-drawer aria-labelledby="commerce-drawer-title">')
+        ->toContain('<dialog class="commerce-drawer" data-commerce-drawer aria-labelledby="commerce-drawer-title"')
         ->toContain('data-commerce-drawer-close aria-label=');
     $productId = Variant::query()->where('sku', 'TEE-M')->value('product_id');
 
