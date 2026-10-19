@@ -16,12 +16,10 @@ final class Artwork
     /** The garment shapes, drawn on a 600 × 750 canvas. */
     public const SHAPES = ['tee', 'knit', 'shirt', 'jacket', 'trousers', 'shorts', 'skirt', 'cap', 'tote', 'socks', 'book', 'stack', 'card'];
 
-    /** A product shot: the garment centred, or a 2× detail of it. */
-    public static function product(string $shape, string $fill, bool $detail = false): string
+    /** A product shot: the garment centred. */
+    public static function product(string $shape, string $fill): string
     {
-        $box = $detail ? '150 140 300 375' : '0 0 600 750';
-
-        return self::svg($box, 600, 750, '<rect x="-600" y="-600" width="1800" height="1950" fill="#f3f3f1"/>'.self::garment($shape, $fill));
+        return self::svg('0 0 600 750', 600, 750, '<rect x="-600" y="-600" width="1800" height="1950" fill="#f3f3f1"/>'.self::garment($shape, $fill));
     }
 
     /** A category tile: a garment on a tinted square. */

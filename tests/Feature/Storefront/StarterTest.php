@@ -11,6 +11,7 @@ use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Database\Seeders\StarterStoreSeeder;
 use Sunrice\Commerce\Documents\Documents;
 use Sunrice\Commerce\Orders\Models\Order;
+use Sunrice\Commerce\Orders\Models\OrderAdjustment;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Regions\RegionImporter;
@@ -19,6 +20,7 @@ use Sunrice\Models\Asset;
 use Sunrice\Models\Entry;
 use Sunrice\Models\Menu;
 use Sunrice\Models\Term;
+use Sunrice\Support\Locales;
 use Workbench\App\Models\User;
 
 /*
@@ -98,4 +100,23 @@ it('still renders the documents of starter orders as PDFs', function () {
         }
         expect($documents->html(collect([$order]), 'invoice'))->toContain('KAIN')->toContain($order->number);
     }
+});
+
+it('seeds in the store language, with one shot per colour', function () {
+    app()->setLocale('en');
+    starterStore();
+    $locale = Locales::main();
+    $customer = Customer::query()->firstOrFail();
+
+    expect(app()->getLocale())->toBe('en')
+        ->and($customer->locale)->toBe($locale)
+        ->and(Order::query()->distinct()->pluck('locale')->all())->toBe([$locale]);
+    if ($locale === 'id') {
+        expect(OrderAdjustment::query()->where('kind', 'unique_code')->pluck('label')->unique()->all())->not->toContain('Unique code');
+    }
+
+    // Each garment's gallery is its colour shots, nothing more.
+    $tee = Product::query()->where('type', 'variable')->firstOrFail();
+    $gallery = (array) Entry::query()->findOrFail($tee->entry_id)->translations()->firstOrFail()->data['gallery'];
+    expect($gallery)->toHaveCount($tee->variants()->distinct()->count('image_asset_id'));
 });

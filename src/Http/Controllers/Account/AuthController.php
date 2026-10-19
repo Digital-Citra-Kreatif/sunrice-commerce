@@ -113,7 +113,7 @@ class AuthController
             'password' => $passwordless ? ['nullable'] : ['required', 'confirmed', PasswordRule::min(8)],
             'accepts_marketing' => ['nullable', 'boolean'],
             'terms' => $this->settings->get('checkout.terms_page') ? ['accepted'] : ['nullable'],
-        ]);
+        ], [], ['terms' => __('commerce::checkout.terms_link')]);
         if (($field = Captcha::field()) !== null && ! Captcha::verify((string) $request->input($field), $request->ip())) {
             return back()->withInput($request->except(['password', 'password_confirmation']))->withErrors(['captcha' => __('commerce::payments.confirm.captcha')]);
         }

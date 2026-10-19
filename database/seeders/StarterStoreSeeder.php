@@ -102,6 +102,18 @@ class StarterStoreSeeder extends Seeder
     public function run(): void
     {
         $this->locale = Locales::main() === 'id' ? 'id' : 'en';
+        // Labels the core stores (adjustments, order notes, emails) follow the store's language.
+        $previous = app()->getLocale();
+        app()->setLocale($this->locale);
+        try {
+            $this->seedStore();
+        } finally {
+            app()->setLocale($previous);
+        }
+    }
+
+    protected function seedStore(): void
+    {
         app(ScaffoldStore::class)->handle();
         $this->structure();
         app(ScaffoldStore::class)->handle();   // again, now that the pages collection exists: the legal pages
@@ -259,7 +271,6 @@ class StarterStoreSeeder extends Seeder
         foreach ($p['colors'] as $color) {
             $images[$color] = $this->asset("product-{$p['code']}-{$color}", Artwork::product($p['shape'], $colors[$color]['hex']), $p['title'].' – '.$colors[$color][$this->locale]);
         }
-        $detail = $this->asset("product-{$p['code']}-detail", Artwork::product($p['shape'], $colors[$p['colors'][0]]['hex'], true), $p['title']);
 
         $options = [['id' => 'color', 'name' => $this->t('Warna', 'Colour'), 'taxonomy' => 'colors',
             'values' => array_map(fn (string $c) => ['id' => $c, 'term_id' => $this->terms["colors/{$c}"]], $p['colors'])]];
@@ -291,7 +302,7 @@ class StarterStoreSeeder extends Seeder
         $data = [
             'excerpt' => $this->excerpt($p, $material),
             'description' => $this->description($p, $material),
-            'gallery' => [...array_values($images), $detail],
+            'gallery' => array_values($images),
             'specifications' => [
                 ['label' => $this->t('Bahan', 'Material'), 'value' => $material],
                 ['label' => $this->t('Potongan', 'Fit'), 'value' => $this->t(in_array($p['shape'], ['knit', 'jacket'], true) ? 'Regular, sedikit longgar' : 'Regular', in_array($p['shape'], ['knit', 'jacket'], true) ? 'Regular, slightly relaxed' : 'Regular')],
@@ -614,7 +625,7 @@ class StarterStoreSeeder extends Seeder
         $user = $model::query()->forceCreate(['name' => 'Dewi Lestari', 'email' => self::CUSTOMER_EMAIL, 'password' => Hash::make(self::CUSTOMER_PASSWORD), 'email_verified_at' => now()]);
         app(AssignCustomerRole::class)->handle($user);
         $customer = Customer::forUser($user);
-        $customer->forceFill(['phone' => '+6281234560026', 'accepts_marketing' => true, 'marketing_consent_at' => now()])->save();
+        $customer->forceFill(['locale' => $this->locale, 'phone' => '+6281234560026', 'accepts_marketing' => true, 'marketing_consent_at' => now()])->save();
 
         $home = ['name' => 'Dewi Lestari', 'phone' => '0812 3456 0026', 'country' => 'ID', ...$this->place('31', '31.74', '31.74.04'),
             'line1' => 'Jl. Kemang Raya No. 12', 'postal_code' => '12730', 'label' => $this->t('Rumah', 'Home'), 'default_shipping' => true, 'default_billing' => true];
