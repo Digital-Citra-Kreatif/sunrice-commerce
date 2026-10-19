@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Auth\Events\Login;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Sunrice\Commerce\Cart\Actions\AddToCart;
 use Sunrice\Commerce\Cart\Actions\MergeCarts;
@@ -10,6 +11,7 @@ use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Storefront\Layout;
 use Workbench\App\Models\User;
@@ -47,10 +49,27 @@ it('merges a guest cart at sign-in up to the limit, adding quantities to lines a
     $mine->items()->create(['variant_id' => $this->variants[1]->id, 'quantity' => 1]);
     $guest = cartWith([[$this->variants[0], 1], [$this->variants[2], 1], [$this->variants[3], 1]]);
 
-    app(MergeCarts::class)->handle($guest, $customer);
+    $merge = app(MergeCarts::class);
+    $merge->handle($guest, $customer);
 
     expect($mine->items()->pluck('quantity', 'variant_id')->all())
-        ->toBe([$this->variants[0]->id => 2, $this->variants[1]->id => 1, $this->variants[2]->id => 1]);
+        ->toBe([$this->variants[0]->id => 2, $this->variants[1]->id => 1, $this->variants[2]->id => 1])
+        ->and($merge->left)->toBe(1);
+});
+
+it('tells the shopper when lines from before signing in did not fit', function () {
+    $user = User::query()->create(['name' => 'Ana', 'email' => 'ana@example.com', 'password' => 'x']);
+    $customer = Customer::forUser($user);
+    $mine = Cart::query()->create(['token' => str_repeat('a', 64), 'customer_id' => $customer->id, 'status' => 'active']);
+    $mine->items()->create(['variant_id' => $this->variants[0]->id, 'quantity' => 1]);
+    $mine->items()->create(['variant_id' => $this->variants[1]->id, 'quantity' => 1]);
+    $mine->items()->create(['variant_id' => $this->variants[2]->id, 'quantity' => 1]);
+    $guest = cartWith([[$this->variants[3], 1], [$this->variants[4], 1]]);
+    request()->cookies->set('commerce_cart', $guest->token);
+
+    event(new Login(CurrentCustomer::guard(), $user, false));
+
+    expect(session('commerce.error'))->toBe('Your cart holds up to 3 products, so 2 from before you signed in were not added.');
 });
 
 it('shows the cart page a page of lines at a time, with the whole cart\'s totals', function () {

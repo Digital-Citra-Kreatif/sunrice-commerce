@@ -73,6 +73,7 @@ return [
         'updated' => 'Keranjang diperbarui.',
         'removed' => 'Barang dihapus dari keranjang.',
         'full' => 'Keranjang sudah penuh (:count produk). Hapus satu untuk menambah yang lain.',
+        'merge_full' => 'Keranjang maksimal :count produk, jadi :left produk dari sebelum Anda masuk tidak ditambahkan.',
         'more_lines' => 'dan :count lainnya',
         'not_in_cart' => 'Barang itu sudah tidak ada di keranjang.',
         'choose_options' => 'Pilih variannya dulu.',

@@ -34,7 +34,7 @@ class AddToCart
         }
         $cart = $this->carts->current(create: true);
         $existing = $cart->items()->where('variant_id', $variant->id)->first();
-        $max = (int) config('commerce.cart.max_lines', 100);
+        $max = (int) config('commerce.cart.max_lines', 500);
         if ($existing === null && $max > 0 && $cart->items()->count() >= $max) {
             throw new CartException(__('commerce::storefront.cart.full', ['count' => $max]), 'cart_full');
         }

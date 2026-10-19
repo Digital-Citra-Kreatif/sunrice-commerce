@@ -215,10 +215,10 @@ Lines are shown 25 at a time (`commerce.cart.per_page`), with page links below t
 The vouchers, totals and cross-sells are always those of the whole cart. Changing or removing a
 line comes back to the same page, or the last one when that page is now empty.
 
-A cart holds up to 100 different products (`commerce.cart.max_lines`). Adding another is refused
-with "Your cart is full (100 products). Remove one to add another." (`cart_full`); more of a product
+A cart holds up to 500 different products (`commerce.cart.max_lines`). Adding another is refused
+with "Your cart is full (500 products). Remove one to add another." (`cart_full`); more of a product
 already in the cart is still fine. The limit holds for the add-to-cart form, the cart API, "Buy
-again" and merging a guest cart at sign-in (lines past the limit are left out).
+again" and merging a guest cart at sign-in (lines past the limit are left out, and the shopper is told how many).
 
 ## commerce::mini-cart
 

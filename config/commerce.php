@@ -97,9 +97,10 @@ return [
         // deleted after the same number of days again.
         'prune_days' => 30,
         // Distinct lines a cart can hold (more of a line already in it is
-        // always fine; 0 for no limit), lines per cart page, and lines the
-        // drawer and the checkout summary list before "and 3 more".
-        'max_lines' => 100,
+        // always fine; 0 for no limit; bulk buyers mix many products, so the
+        // default is generous), lines per cart page, and lines the drawer
+        // and the checkout summary list before "and 3 more".
+        'max_lines' => 500,
         'per_page' => 25,
         'preview_lines' => 10,
     ],

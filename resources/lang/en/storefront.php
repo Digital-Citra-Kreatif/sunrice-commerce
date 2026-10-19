@@ -73,6 +73,7 @@ return [
         'updated' => 'Your cart was updated.',
         'removed' => 'The item was removed.',
         'full' => 'Your cart is full (:count products). Remove one to add another.',
+        'merge_full' => 'Your cart holds up to :count products, so :left from before you signed in were not added.',
         'more_lines' => 'and :count more',
         'not_in_cart' => "That item isn't in your cart anymore.",
         'choose_options' => 'Choose the options first.',
