@@ -14,7 +14,10 @@ use Sunrice\Commerce\Features\Features;
 use Sunrice\Models\EntryTranslation;
 use Sunrice\Support\Locales;
 
-/** Adds a variant to the visitor's cart (or more of it), after checking it can be bought. */
+/**
+ * Adds a variant to the visitor's cart (or more of it), after checking it
+ * can be bought. A new line is refused once the cart has commerce.cart.max_lines.
+ */
 class AddToCart
 {
     public function __construct(protected CartManager $carts, protected Catalog $catalog, protected Features $features) {}
@@ -31,6 +34,10 @@ class AddToCart
         }
         $cart = $this->carts->current(create: true);
         $existing = $cart->items()->where('variant_id', $variant->id)->first();
+        $max = (int) config('commerce.cart.max_lines', 100);
+        if ($existing === null && $max > 0 && $cart->items()->count() >= $max) {
+            throw new CartException(__('commerce::storefront.cart.full', ['count' => $max]), 'cart_full');
+        }
         $total = ($existing->quantity ?? 0) + max(1, $quantity);
         // A first add of less than the minimum adds the minimum.
         if ($existing === null && $total < $variant->min_qty) {

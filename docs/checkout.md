@@ -71,7 +71,8 @@ The page has these sections, in order:
 4. shipping method, with the "Update shipping" button;
 5. payment method (Online store mode, when the total is more than zero);
 6. order notes, dropshipper and extra fields;
-7. order summary, voucher, marketing consent (guests), terms;
+7. order summary (the first 10 lines, `commerce.cart.preview_lines`, and the rest behind "and 3
+   more"), voucher, marketing consent (guests), terms;
 8. the submit button: "Place order", "Request a quote" or "Order via WhatsApp".
 
 What the customer types is kept on the cart (`commerce_carts.checkout`, see

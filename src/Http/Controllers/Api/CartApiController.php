@@ -18,7 +18,8 @@ use Sunrice\Commerce\Cart\VariantFromOptions;
 
 /**
  * {api}/cart — the cart as JSON for themes (mini cart, AJAX add to cart):
- * GET; POST items; PATCH/DELETE items/{id}; POST vouchers; DELETE vouchers/{code}.
+ * GET (?lines=10 lists only the first lines); POST items; PATCH/DELETE
+ * items/{id}; POST vouchers; DELETE vouchers/{code}.
  * Errors are 422 with {message, reason}.
  */
 class CartApiController
@@ -28,9 +29,11 @@ class CartApiController
         get => app(CartManager::class);
     }
 
-    public function show(): JsonResponse
+    public function show(Request $request): JsonResponse
     {
-        return $this->cart();
+        $lines = $request->filled('lines') ? max(0, $request->integer('lines')) : null;
+
+        return response()->json(['cart' => CartView::for($this->carts->current())->toArray($lines)])->header('Cache-Control', 'no-store');
     }
 
     public function add(Request $request, AddToCart $add): JsonResponse

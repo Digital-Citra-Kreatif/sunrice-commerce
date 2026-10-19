@@ -211,6 +211,15 @@ and `cart.totals_after` slots.
 
 The forms post to the cart routes and come back with a message. See [checkout.md](checkout.md).
 
+Lines are shown 25 at a time (`commerce.cart.per_page`), with page links below them (`?page=2`).
+The vouchers, totals and cross-sells are always those of the whole cart. Changing or removing a
+line comes back to the same page, or the last one when that page is now empty.
+
+A cart holds up to 100 different products (`commerce.cart.max_lines`). Adding another is refused
+with "Your cart is full (100 products). Remove one to add another." (`cart_full`); more of a product
+already in the cart is still fine. The limit holds for the add-to-cart form, the cart API, "Buy
+again" and merging a guest cart at sign-in (lines past the limit are left out).
+
 ## commerce::mini-cart
 
 A link to the cart with the item count, for your header. It takes no attributes.
@@ -223,6 +232,9 @@ The count is hidden while the cart is empty. The component also adds the cart dr
 `<dialog>`, once per page). With `commerce.js`, the link opens the drawer and the count follows AJAX
 adds; without it, the link goes to the cart page. `partials.header-links` includes it, with the
 account and wishlist links.
+
+The drawer lists the first 10 lines (`commerce.cart.preview_lines`) and then "and 3 more", a link
+to the cart page. The total is the whole cart's.
 
 ## commerce::wishlist-button
 

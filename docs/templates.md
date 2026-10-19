@@ -240,12 +240,12 @@ both itself when you leave them out, so extension pages can extend it directly.
 | `partials.filters` | `$facets`, `$titles`, `$prices`, `$without`, `$param()`. The body of `<x-commerce::product-filter>`. |
 | `partials.flash-sale` | `$sale`, `$products` (entries), `$limit`. The body of `<x-commerce::flash-sale>`. |
 | `partials.countdown` | `$until`: an ISO 8601 time. |
-| `partials.cart` | `$cart` (CartView). The body of `<x-commerce::cart>`. |
-| `partials.mini-cart` | `$count`. The body of `<x-commerce::mini-cart>`, with the drawer. |
+| `partials.cart` | `$cart` (CartView), `$lines` (this page of `$cart->lines`, a paginator: loop over it and show `$lines->links()`). The body of `<x-commerce::cart>`. |
+| `partials.mini-cart` | `$count`. The body of `<x-commerce::mini-cart>`, with the drawer (`data-commerce-drawer-lines`, `data-commerce-drawer-more`). |
 | `partials.wishlist-button` | `$productId`, `$saved`. |
 | `partials.compare-button` | `$productId`, `$added`. |
 | `partials.totals` | `$state` (CalculationState). |
-| `partials.checkout-summary` | `$cart`, `$state`. |
+| `partials.checkout-summary` | `$cart`, `$state`. Lines after `commerce.cart.preview_lines` are folded in a `<details>`. |
 | `partials.checkout-field` | `$field`: an extension checkout field (`handle`, `label`, `type`, `options`, `instructions`). |
 | `partials.shipping-methods` | `$state`, `$data`. |
 | `partials.payment-methods` | `$paymentMethods` (`[{key, title, description}]`), `$data`. |
@@ -301,15 +301,16 @@ attributes:
 - **Gallery**: when the variant picker picks a variant with its own image, that image replaces the
   first one in `[data-commerce-gallery]`.
 - **Mini-cart drawer**: a click on `[data-commerce-mini-cart]` loads the cart from the API and opens
-  the `<dialog>` with its lines and total. Ctrl- or Cmd-click opens the cart page. On an error it
-  goes to the cart page.
+  the `<dialog>` with its first lines (`data-commerce-drawer-lines` on the dialog, from
+  `commerce.cart.preview_lines`), "and 3 more" linking to the cart page, and the total. Ctrl- or
+  Cmd-click opens the cart page. On an error it goes to the cart page.
 
 After an AJAX add, it dispatches `commerce:cart-updated` (and the older `commerce:cart`) on
 `document`, with the cart as `detail`:
 
 ```js
 document.addEventListener('commerce:cart-updated', (event) => {
-    const cart = event.detail; // { count, lines: [{ title, url, quantity, total: { formatted } }], totals, … }
+    const cart = event.detail; // { count, line_count, lines: [{ title, url, quantity, total: { formatted } }], totals, … }
     document.querySelector('.my-cart-badge').textContent = cart.count;
 });
 ```

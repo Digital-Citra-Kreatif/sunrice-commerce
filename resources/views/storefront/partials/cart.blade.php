@@ -1,4 +1,4 @@
-{{-- <x-commerce::cart>: $cart (Sunrice\Commerce\Cart\CartView). --}}
+{{-- <x-commerce::cart>: $cart (Sunrice\Commerce\Cart\CartView), $lines (this page of $cart->lines, a paginator). --}}
 @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
 @php($taxDisplay = app(\Sunrice\Commerce\Taxes\TaxDisplay::class))
 <div class="commerce-cart" data-commerce-cart>
@@ -13,7 +13,7 @@
     @else
         <table class="commerce-cart__lines">
             <tbody>
-                @foreach ($cart->lines as $row)
+                @foreach ($lines as $row)
                     @php($line = $row['line'])
                     <tr data-commerce-cart-line="{{ $row['item']->id }}">
                         <td class="commerce-cart__product">
@@ -48,6 +48,11 @@
                 @endforeach
             </tbody>
         </table>
+        @if ($lines->hasPages())
+            <nav class="commerce-pagination" aria-label="{{ __('commerce::storefront.listing.pages') }}">
+                {{ $lines->onEachSide(1)->links() }}
+            </nav>
+        @endif
         <x-commerce::slot name="cart.after_items" :cart="$cart" />
 
         @if (commerce_feature('vouchers'))

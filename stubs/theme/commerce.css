@@ -124,6 +124,7 @@
 .commerce-summary__lines { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
 .commerce-summary__lines li { display: flex; gap: 8px; }
 .commerce-summary__name { flex: 1; }
+.commerce-summary__more summary { margin: 6px 0; color: var(--muted); cursor: pointer; }
 .commerce-address [hidden] { display: none; }
 
 /* Order and payment pages */
@@ -168,6 +169,7 @@
 .commerce-drawer__close { margin: 0; padding: 4px 10px; background: none; color: inherit; border: 1px solid var(--line); border-radius: 6px; font-size: 18px; cursor: pointer; }
 .commerce-drawer__lines { list-style: none; padding: 0; display: grid; gap: 10px; margin: 16px 0; }
 .commerce-drawer__lines li { display: flex; justify-content: space-between; gap: 12px; }
+.commerce-drawer__more { display: block; margin: -6px 0 12px; color: var(--muted); }
 .commerce-drawer__total { font-weight: 700; text-align: right; }
 .commerce-drawer__footer { display: grid; gap: 8px; margin-top: 16px; }
 

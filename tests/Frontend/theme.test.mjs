@@ -31,3 +31,13 @@ test('scrolls a long cart inside the drawer, keeping its buttons in view', () =>
     assert.match(css, /\.commerce-drawer__body \{[^}]*min-height: 0;[^}]*overflow-y: auto/);
     assert.match(css, /\.commerce-drawer \{[^}]*max-width: 100vw;[^}]*box-sizing: border-box/);
 });
+
+test('lists the first lines in the drawer, then "and X more" to the cart page', () => {
+    const js = readFileSync(new URL('../../stubs/theme/commerce.js', import.meta.url), 'utf8');
+    assert.match(js, /'lines=' \+ shown/);
+    assert.match(js, /\.slice\(0, shown\)/);
+    assert.match(js, /cart\.line_count \|\| 0\) - list\.children\.length/);
+    assert.match(js, /commerceDrawerMore[^;]*\.replace\(':count', more\)/);
+    assert.match(css, /\.commerce-drawer__more \{/);
+    assert.match(css, /\.commerce-summary__more summary \{/);
+});

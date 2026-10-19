@@ -72,6 +72,8 @@ return [
         'added' => ':product ditambahkan ke keranjang.',
         'updated' => 'Keranjang diperbarui.',
         'removed' => 'Barang dihapus dari keranjang.',
+        'full' => 'Keranjang sudah penuh (:count produk). Hapus satu untuk menambah yang lain.',
+        'more_lines' => 'dan :count lainnya',
         'not_in_cart' => 'Barang itu sudah tidak ada di keranjang.',
         'choose_options' => 'Pilih variannya dulu.',
         'price_changed' => 'Harga :product berubah dari :from menjadi :to.',

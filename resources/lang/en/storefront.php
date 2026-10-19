@@ -72,6 +72,8 @@ return [
         'added' => ':product was added to your cart.',
         'updated' => 'Your cart was updated.',
         'removed' => 'The item was removed.',
+        'full' => 'Your cart is full (:count products). Remove one to add another.',
+        'more_lines' => 'and :count more',
         'not_in_cart' => "That item isn't in your cart anymore.",
         'choose_options' => 'Choose the options first.',
         'price_changed' => 'The price of :product changed from :from to :to.',

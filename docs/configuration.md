@@ -62,6 +62,9 @@ Publish the file with `php artisan vendor:publish --tag=commerce-config` (the in
 | `cart.cookie` | `commerce_cart` | The guest cart cookie |
 | `cart.lifetime_days` | `30` | How long the cookie lives |
 | `cart.prune_days` | `30` | Abandoned carts older than this are deleted by `commerce:prune` |
+| `cart.max_lines` | `100` | Distinct products (variants) a cart can hold; more of one already in it is always fine. `0` for no limit |
+| `cart.per_page` | `25` | Lines per cart page (`?page=2`); the totals are always the whole cart's |
+| `cart.preview_lines` | `10` | Lines the cart drawer and the checkout summary list before "and 3 more" |
 
 ### cache
 

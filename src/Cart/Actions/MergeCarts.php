@@ -14,6 +14,7 @@ use Sunrice\Commerce\Customers\Models\Customer;
  * At sign-in: the guest cart's lines move into the customer's active cart
  * (quantities added, clamped to what can be bought); the guest cart is
  * marked merged. Without a customer cart, the guest cart becomes theirs.
+ * New lines stop at commerce.cart.max_lines; quantities still add up.
  */
 class MergeCarts
 {
@@ -29,8 +30,13 @@ class MergeCarts
         }
 
         DB::transaction(function () use ($guest, $target): void {
+            $max = (int) config('commerce.cart.max_lines', 100);
+            $lines = $target->items()->count();
             foreach ($guest->items()->with('variant.product')->get() as $item) {
                 $existing = $target->items()->where('variant_id', $item->variant_id)->first();
+                if ($existing === null && $max > 0 && $lines >= $max) {
+                    continue;
+                }
                 $quantity = ($existing->quantity ?? 0) + $item->quantity;
                 $variant = $item->variant;
                 if ($variant->max_qty !== null) {
@@ -44,6 +50,7 @@ class MergeCarts
                     $existing->forceFill(['quantity' => $quantity])->save();
                 } else {
                     $target->items()->create(['variant_id' => $item->variant_id, 'quantity' => $quantity, 'unit_price_seen' => $item->unit_price_seen, 'meta' => $item->meta]);
+                    $lines++;
                 }
             }
             $target->vouchers = array_values(array_unique([...(array) $target->vouchers, ...(array) $guest->vouchers]));
