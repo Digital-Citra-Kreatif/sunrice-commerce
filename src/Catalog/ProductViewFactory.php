@@ -23,13 +23,18 @@ use Sunrice\Models\Entry;
 
 /**
  * Builds ProductViews for a page of entries in a fixed number of queries
- * (products, variants with option values and terms, options, tiers). In
- * preview, the draft value is mapped in memory instead.
+ * (products, variants, options with their terms, tiers). The picker rows
+ * of a view's variants are built when first read, and the page's variant
+ * option values load then, in one query. In preview, the draft value is
+ * mapped in memory instead.
  */
 class ProductViewFactory
 {
     /** @var array<int, ProductView|null> entry id => view (per request) */
     protected array $memo = [];
+
+    /** @var (Closure(): void)|null loads the option values of the page being built */
+    protected ?Closure $optionValues = null;
 
     public function __construct(
         protected StoreSettings $settings,
@@ -81,30 +86,38 @@ class ProductViewFactory
     {
         $ids = $entries->pluck('id')->all();
         $products = Product::query()->whereIn('entry_id', $ids)->whereNull('removed_at')
-            ->with(['variants.optionValues.term.translations', 'options.values.term.translations', 'tiers'])
+            ->with(['variants', 'options.values.term.translations', 'tiers'])
             ->get()->keyBy('entry_id');
         $this->prepare($products);
+        $live = $entries->reject(fn (Entry $e) => (bool) ($e->hydrationContext->preview ?? false))
+            ->map(fn (Entry $e) => $products->get($e->id))->filter()->values()->all();
+        $outer = $this->optionValues;
+        $this->optionValues = $this->optionValuesLoader($live);
 
         $views = [];
-        foreach ($entries as $entry) {
-            $preview = (bool) ($entry->hydrationContext->preview ?? false);
-            $product = $products->get($entry->id);
-            if ($preview) {
-                $draft = (array) ($entry->data ?? []);
-                $field = (string) config('commerce.catalog.field', 'product');
-                $product = app(ProductProjector::class)->map($draft[$field] ?? null, $product);
-                $product->collection_id = $entry->collection_id;
-                $product->entry_id = $entry->id;
-            }
-            if ($product === null) {
-                $this->memo[$entry->id] = null; // previews always map a product
+        try {
+            foreach ($entries as $entry) {
+                $preview = (bool) ($entry->hydrationContext->preview ?? false);
+                $product = $products->get($entry->id);
+                if ($preview) {
+                    $draft = (array) ($entry->data ?? []);
+                    $field = (string) config('commerce.catalog.field', 'product');
+                    $product = app(ProductProjector::class)->map($draft[$field] ?? null, $product);
+                    $product->collection_id = $entry->collection_id;
+                    $product->entry_id = $entry->id;
+                }
+                if ($product === null) {
+                    $this->memo[$entry->id] = null; // previews always map a product
 
-                continue;
+                    continue;
+                }
+                $views[$entry->id] = $this->build($entry, $product, $preview);
+                if (! $preview) {
+                    $this->memo[$entry->id] = $views[$entry->id];
+                }
             }
-            $views[$entry->id] = $this->build($entry, $product, $preview);
-            if (! $preview) {
-                $this->memo[$entry->id] = $views[$entry->id];
-            }
+        } finally {
+            $this->optionValues = $outer;
         }
 
         return $views;
@@ -135,9 +148,38 @@ class ProductViewFactory
         }
     }
 
+    /**
+     * Loads the option values of every active variant on the page, once,
+     * the first time any of its views' picker rows are read.
+     *
+     * @param  array<int, Product>  $products
+     * @return Closure(): void
+     */
+    protected function optionValuesLoader(array $products): Closure
+    {
+        $loaded = false;
+
+        return function () use ($products, &$loaded): void {
+            if ($loaded) {
+                return;
+            }
+            $loaded = true;
+            $variants = [];
+            foreach ($products as $product) {
+                foreach ($product->variants as $variant) {
+                    if ($variant->active) {
+                        $variants[] = $variant;
+                    }
+                }
+            }
+            (new EloquentCollection($variants))->loadMissing('optionValues');
+        };
+    }
+
     protected function build(Entry $entry, Product $product, bool $preview): ProductView
     {
         PageCache::markDynamic();
+        $loadOptionValues = $this->optionValues;
         $hidden = ! $this->visibility->visible();
         $variants = $product->variants->filter(fn (Variant $v) => $v->active)->values();
         $current = $variants->mapWithKeys(fn (Variant $v) => [$v->uid => $this->currentPrice($product, $v)]);
@@ -172,8 +214,8 @@ class ProductViewFactory
         ];
 
         // Stock
-        $statuses = $variants->map(fn (Variant $v) => $this->stockStatus($product, $v));
-        $status = $statuses->contains('in_stock') ? 'in_stock' : ($statuses->contains('backorder') ? 'backorder' : 'out_of_stock');
+        $statuses = $variants->map(fn (Variant $v) => $this->stockStatus($product, $v))->all();
+        $status = in_array('in_stock', $statuses, true) ? 'in_stock' : (in_array('backorder', $statuses, true) ? 'backorder' : 'out_of_stock');
         $quantity = $product->isVariable() ? null : ($single?->track_stock ? (int) $single->stock_quantity : null);
         $stock = ['status' => $status, 'quantity' => $quantity, 'message' => $this->stockMessage($status, $quantity, $single)];
 
@@ -199,24 +241,18 @@ class ProductViewFactory
             'name' => $option->name,
             'values' => $option->values->map(fn ($value) => ['id' => $value->uid, 'label' => $value->label ?? (string) ($value->term->name ?? '')])->values()->all(),
         ])->values()->all();
-        $optionUids = $product->options->pluck('uid', 'id')->all();
-        $variantRows = $variants->map(fn (Variant $v) => [
-            'id' => $v->id,
-            'uid' => $v->uid,
-            'title' => $v->title,
-            'sku' => $v->sku,
-            'options' => $preview ? (array) $v->getAttribute('option_uids') : $v->optionValues->mapWithKeys(fn ($value) => [
-                (string) ($optionUids[$value->option_id] ?? '') => $value->uid,
-            ])->all(),
-            'price' => $hidden ? null : $current[$v->uid],
-            'price_formatted' => $hidden ? null : $this->money->format($current[$v->uid]),
-            'compare_at' => $hidden || $v->compare_at_price === null || $this->shown($product, $v->compare_at_price) <= $current[$v->uid] ? null : $this->money->format($this->shown($product, $v->compare_at_price)),
-            'stock' => $this->stockStatus($product, $v),
-            'min_qty' => $v->min_qty,
-            'max_qty' => $v->max_qty,
-            'qty_step' => $v->qty_step,
-            'image' => $v->image_asset_id,
-        ])->values()->all();
+        // Picker rows, one per active variant: built when first read (listing cards and cart lines don't).
+        $rows = null;
+        $variantRows = function () use (&$rows, $product, $variants, $current, $statuses, $hidden, $preview, $loadOptionValues): array {
+            if ($rows === null) {
+                if (! $preview && $loadOptionValues !== null) {
+                    $loadOptionValues();
+                }
+                $rows = $this->variantRows($product, $variants, $current, $statuses, $hidden, $preview);
+            }
+
+            return $rows;
+        };
 
         // Bulk prices for this visitor: the product's tiers and matching pricing rules.
         $tiers = $hidden || $single === null ? [] : $this->tierTable($product, $single, $current[$single->uid] ?? $single->price);
@@ -239,6 +275,39 @@ class ProductViewFactory
         }
 
         return $view;
+    }
+
+    /**
+     * The picker rows of a product's active variants. $current holds their
+     * current prices by uid and $statuses their stock statuses in order,
+     * as worked out for the price and stock display.
+     *
+     * @param  Collection<int, Variant>  $variants
+     * @param  Collection<string, int>  $current
+     * @param  array<int, string>  $statuses
+     * @return array<int, array<string, mixed>>
+     */
+    protected function variantRows(Product $product, Collection $variants, Collection $current, array $statuses, bool $hidden, bool $preview): array
+    {
+        $optionUids = $product->options->pluck('uid', 'id')->all();
+
+        return $variants->map(fn (Variant $v, int $i) => [
+            'id' => $v->id,
+            'uid' => $v->uid,
+            'title' => $v->title,
+            'sku' => $v->sku,
+            'options' => $preview ? (array) $v->getAttribute('option_uids') : $v->optionValues->mapWithKeys(fn ($value) => [
+                (string) ($optionUids[$value->option_id] ?? '') => $value->uid,
+            ])->all(),
+            'price' => $hidden ? null : $current[$v->uid],
+            'price_formatted' => $hidden ? null : $this->money->format($current[$v->uid]),
+            'compare_at' => $hidden || $v->compare_at_price === null || $this->shown($product, $v->compare_at_price) <= $current[$v->uid] ? null : $this->money->format($this->shown($product, $v->compare_at_price)),
+            'stock' => $statuses[$i],
+            'min_qty' => $v->min_qty,
+            'max_qty' => $v->max_qty,
+            'qty_step' => $v->qty_step,
+            'image' => $v->image_asset_id,
+        ])->values()->all();
     }
 
     /**

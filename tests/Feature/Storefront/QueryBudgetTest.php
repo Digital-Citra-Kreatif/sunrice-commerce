@@ -73,6 +73,31 @@ it('keeps the cart and checkout flat in the number of lines', function () {
         ->and($checkoutTen)->toBe($checkoutTwo)->toBeLessThanOrEqual(28);
 });
 
+it('reads variant option values only where the picker shows them', function () {
+    $optionValueQueries = function (string $url): int {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $this->get($url)->assertOk();
+        $count = collect(DB::getQueryLog())->filter(fn (array $q) => str_contains($q['query'], 'commerce_variant_option_values'))->count();
+        DB::disableQueryLog();
+
+        return $count;
+    };
+    foreach (range(1, 3) as $i) {
+        publishProduct(['type' => 'variable',
+            'options' => [['id' => 'size', 'name' => 'Ukuran', 'values' => [['id' => 's', 'label' => 'S'], ['id' => 'm', 'label' => 'M']]]],
+            'variants' => [['id' => "k{$i}s", 'options' => ['size' => 's'], 'sku' => "K{$i}-S", 'price' => 99000], ['id' => "k{$i}m", 'options' => ['size' => 'm'], 'sku' => "K{$i}-M", 'price' => 109000]],
+        ], title: "Kaos {$i}");
+    }
+    $cart = cartWith(Variant::query()->where('sku', 'like', 'K%')->get()->map(fn ($v) => [$v, 1])->all());
+    $cart->update(['checkout' => checkoutInput()]);
+
+    expect($optionValueQueries('/products'))->toBe(0)
+        ->and($optionValueQueries('/cart'))->toBe(0)
+        ->and($optionValueQueries('/checkout'))->toBe(0)
+        ->and($optionValueQueries('/products/kaos-2'))->toBe(1);
+});
+
 /**
  * A larger store's mix: bundles (their components' prices, stock and
  * publication), a pricing rule on a category with a subcategory (each

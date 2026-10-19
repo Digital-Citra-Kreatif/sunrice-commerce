@@ -55,6 +55,13 @@ to the MCP server's instructions and keeps store pages out of the full-page cach
 - `commerce:install [--templates] [--demo]`, `commerce:doctor`, `commerce:stats` and the other
   commands in `docs/commands.md`.
 - Documentation in `docs/`.
+- `ProductView::$variants` (the picker rows) is built the first time it's read, and the variants'
+  option values load then, in one query for the page. Listing cards, cart lines and checkout no
+  longer build a row per variant, which made pages of products with many variants slow (24
+  products with 100 variants: about 550 ms to 190 ms on SQLite; a 200-line cart about 870 ms to
+  470 ms; `COMMERCE_BENCH=1 vendor/bin/pest tests/Feature/Catalog/ProductViewBenchmarkTest.php`). The rows, `variantsJson()`, `jsonSerialize()` and the JSON-LD `offerCount` are
+  unchanged. `ProductView`'s constructor and `with(variants: …)` also take a closure that builds
+  the rows.
 
 ### Marketing emails
 - New `marketing` module (off by default): email campaigns to customers who accept marketing, with

@@ -757,8 +757,10 @@ and MCP alike.
 ### 7.4 Product views
 
 - `ProductViewFactory::forEntries(Collection $entries, PricingContext $ctx)` loads, in a fixed
-  number of queries, the products, variants, option values (with terms), active flash sale items,
-  matching price rules, tiers and stock for every entry on the page.
+  number of queries, the products, variants, options (with terms), active flash sale items,
+  matching price rules, tiers and stock for every entry on the page. The picker rows
+  (`variants`) are built the first time they're read; the page's variant option values load then,
+  in one query, so listing cards and cart lines never build or load them.
 - It returns `ProductView` objects:
   - `type`, `price` (display: `amount`, `compareAt`, `isRange`, `from`, `to`, `taxSuffix`,
     `hidden`);
