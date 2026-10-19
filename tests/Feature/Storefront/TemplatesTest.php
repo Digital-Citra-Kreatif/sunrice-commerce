@@ -47,6 +47,27 @@ it('publishes templates that the store then uses, and falls back without them', 
     $this->get('/cart')->assertOk()->assertDontSee('APP CART COPY');
 });
 
+it('publishes the starter theme with the templates', function () {
+    $published = array_values(Templates::starter());
+    expect(count($published))->toBeGreaterThan(count(Templates::publishable()));
+    try {
+        $this->artisan('vendor:publish', ['--tag' => 'commerce-starter', '--force' => true])->assertSuccessful();
+        foreach (['views/sunrice/layouts/app.blade.php', 'views/sunrice/partials/store-header.blade.php', 'views/sunrice/home.blade.php',
+            'views/errors/404.blade.php', 'views/commerce/cart.blade.php', 'views/sunrice/products/show.blade.php'] as $path) {
+            expect(File::exists(resource_path($path)))->toBeTrue($path);
+        }
+        expect(File::exists(public_path('commerce-theme/commerce.css')))->toBeTrue();
+    } finally {
+        foreach ($published as $path) {
+            File::isDirectory($path) ? File::deleteDirectory($path) : File::delete($path);
+        }
+        foreach (['views/commerce', 'views/sunrice', 'views/errors'] as $dir) {
+            File::deleteDirectory(resource_path($dir));
+        }
+        app('view')->getFinder()->flush();
+    }
+});
+
 it('buys a variable product with plain form posts, no JavaScript', function () {
     $this->withoutMiddleware(ValidateCsrfToken::class);
     config(['honeypot.enabled' => false]);
