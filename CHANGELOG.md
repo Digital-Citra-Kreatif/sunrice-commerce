@@ -7,6 +7,28 @@ changes (`dev-main` until Sunrice is tagged), PHP 8.4 and Laravel 13. On Sunrice
 full-page cache control, commerce also adds a Store card to Sunrice's dashboard, adds its guidance
 to the MCP server's instructions and keeps store pages out of the full-page cache.
 
+### Starter theme
+- `commerce:install --starter` (tag `commerce-starter`) publishes a complete shop: the storefront
+  templates plus Sunrice's layout, a sticky header with a department mega menu (a drawer on phones),
+  product search, account, wishlist and cart icons, a footer, the home page (hero, category tiles,
+  flash sale with countdown, new arrivals, best sellers, brands), content pages, search results
+  and a 404 page.
+- The storefront theme is restyled in a clean, product-first look and its templates gained:
+  breadcrumbs, a product gallery with thumbnails, colour swatches in the variant picker, on cards
+  and in the filters (from a colour term's `swatch` field), size boxes, collapsible product
+  details, bundle contents and digital delivery details, upsells; a listing layout with a filter
+  column (a drawer on phones), a category tree, active-filter chips, product counts and empty
+  states; a two-column cart and checkout with step indicator, line images and a sticky summary;
+  a thank-you page; account pages, sign-in with a "new customer" panel, wishlist add-to-cart.
+  New partials: `listing`, `active-filters`, `product-extras`, `breadcrumbs`, `empty`,
+  `pagination`, `icon`. Slots, `data-commerce-*` hooks and class names are kept.
+- `commerce.css` uses design tokens (`--commerce-fg`, `--commerce-accent`, `--commerce-font`…);
+  `commerce.js` adds the menu and filter drawers, quantity steppers and gallery thumbnails.
+- Invoices, packing slips, quotations and store emails share the look.
+- `StarterStoreSeeder` (`--starter --demo`): an apparel store with about 50 products, variants,
+  placeholder artwork, bundles, digital products, promotions, shipping, payments, pages, menus and
+  a demo customer (`customer@example.com` / `password`) with orders and a wishlist.
+
 ### Store
 - Products as Sunrice entries with a Product data field: simple, variable (up to 3 options),
   bundle and digital products; external links and calls to action (WhatsApp, inquiry, shop links);

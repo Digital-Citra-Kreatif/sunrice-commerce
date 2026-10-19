@@ -10,6 +10,7 @@ components the templates use, see [blade-components.md](blade-components.md). Fo
 - [Which pages commerce renders](#which-pages-commerce-renders)
 - [The store layout](#the-store-layout)
 - [Publishing templates](#publishing-templates)
+- [The starter theme](#the-starter-theme)
 - [Translations](#translations)
 - [Template reference](#template-reference): pages, account pages, partials, payment partials
 - [Theme assets](#theme-assets): commerce.css, commerce.js
@@ -160,6 +161,70 @@ The minimal layout (`commerce::layouts.store`) isn't published. To change the la
 You can delete any published file you don't change: the package's copy is used again. Keep the
 `<x-commerce::slot>` tags in templates you edit, so extensions still show up.
 
+## The starter theme
+
+The starter theme is a complete shop on top of the templates: a clean, product-first look (white
+and light grey, near-black text, one red accent for sales and the main buttons, square corners,
+thin lines), with Sunrice's own pages in the same style. Install it with its demo store:
+
+```bash
+php artisan commerce:install --starter --demo     # add --force to overwrite files you published before
+php artisan vendor:publish --tag=commerce-starter # the files only
+```
+
+It is the same storefront theme as the templates (one set of store views and one
+`commerce.css`), plus the site around them. `Storefront\Templates::starter()` copies everything in
+the table above and `resources/views/starter/**` to the same paths under `resources/views`:
+
+| File | What it is |
+| --- | --- |
+| `sunrice/layouts/app.blade.php` | The layout of every page, Sunrice's and the store's (`commerce.storefront.layout` finds it); loads the theme and the font |
+| `sunrice/partials/store-header.blade.php` | Announcement bar, sticky header: menu button, logo, department menu with mega panels (a drawer on phones), product search, account, wishlist and cart |
+| `sunrice/partials/store-footer.blade.php` | Footer menu columns, footer text and social links, payment methods, languages |
+| `sunrice/partials/store-languages.blade.php` | Language links (shown with more than one language) |
+| `sunrice/home.blade.php` | The home page: full-width hero, department and category tiles, the running flash sale with its countdown, new arrivals, best sellers, brands |
+| `sunrice/pages/show.blade.php` | Content pages of the `pages` collection (About, Help, legal pages) |
+| `sunrice/search.blade.php` | Sunrice's site search: products as cards, then other pages |
+| `errors/404.blade.php` | Not found, with a product search |
+
+What the site shell reads, all optional:
+
+- the global `site` (`name`, `logo`, `announcement`) and the global `footer` (`text`, `social`);
+- the menus `main` (departments; their children fill the mega panel) and `footer` (each top item
+  is a column);
+- the home page entry's fields `hero_title`, `hero_text`, `hero_image`, `hero_button`,
+  `hero_link`, `body` (blueprint `home`; the entry's template is `sunrice.home`);
+- category terms' `image` and `banner`, brand terms' `logo`;
+- colour terms' `swatch` field (a hex colour): with it, the attribute shows as swatches on cards,
+  in the filters and in the variant picker. Other attribute taxonomies (sizes) show as boxes in
+  their term order.
+
+The demo store creates all of these ([installation.md](installation.md#the-starter-store)).
+
+**Colours and font.** Change the variables at the top of `public/commerce-theme/commerce.css`:
+
+```css
+:root {
+    --commerce-bg: #ffffff;        /* page */
+    --commerce-surface: #f4f4f4;   /* image grounds, summaries, footer */
+    --commerce-fg: #1b1b1b;        /* text, primary buttons, lines that matter */
+    --commerce-muted: #666666;
+    --commerce-line: #dddddd;
+    --commerce-accent: #d7001d;    /* sale prices and badges, the main call to action */
+    --commerce-radius: 0;          /* square corners; try 6px */
+    --commerce-font: "Plus Jakarta Sans", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+}
+```
+
+The layout loads Plus Jakarta Sans from Google Fonts; delete its two `<link>`s (or point them at
+another family and change `--commerce-font`) to use the system font. The store's brand colour
+(Settings → Store → General) colours emails, not the storefront.
+
+**JavaScript** (`commerce.js`, no build step) adds the menu drawer (focus kept inside, Escape
+closes it; Escape also closes an open mega panel), the filter drawer on small screens, quantity
+steppers (a cart line saves itself after a change), and the product gallery thumbnails on
+phones. Without JavaScript the menu and filters are shown in the page and every form posts.
+
 ## Translations
 
 All storefront text is in translation files (`commerce::storefront.cart.title`…), in English and
@@ -253,6 +318,13 @@ both itself when you leave them out, so extension pages can extend it directly.
 | `partials.order-items` | `$order`: the lines and totals. |
 | `partials.downloads` | `$grants`. |
 | `partials.messages` | — Flash messages (`commerce.success`, `commerce.error` in the session). |
+| `partials.listing` | `$query`, `$without`: the filter column (a drawer on phones), the active filters and the products. Used by the shop, category, brand and tag pages. |
+| `partials.active-filters` | `$query`, `$without`: the filters in use as removable chips. |
+| `partials.product-extras` | `$product`: a bundle's contents, a digital product's delivery, shipping notes. |
+| `partials.breadcrumbs` | `$items`: `[{label, url}]`, the last one the current page. |
+| `partials.empty` | `$title`, `$text`, `$action` (`{url, label}`), `$icon`: an empty state. |
+| `partials.pagination` | The page links (`$paginator->links(Layout::view('partials.pagination'))`). |
+| `partials.icon` | `$name`: a decorative line icon (search, user, heart, bag, menu, close, filter…). |
 | `partials.field-error` | `$name`: a field's validation message. |
 
 The checkout partials are also rendered by `POST /checkout/refresh`, so keep their outer elements
@@ -278,12 +350,14 @@ The theme ships with the admin assets in `public/vendor/commerce/theme/` (`comme
 shipped one, with a version from the file time. Without JavaScript the store still works: forms post
 normally.
 
-**`commerce.css`** styles the `commerce-*` classes. It uses the variables of Sunrice's starter
-theme (`--fg`, `--muted`, `--line`, `--accent`) and four of its own:
-
-```css
-:root { --commerce-sale: #dc2626; --commerce-ok: #16a34a; --commerce-warn: #d97706; --commerce-radius: 8px; }
-```
+**`commerce.css`** styles the `commerce-*` classes, in sections (tokens, base, header, footer,
+home, components, cards, listings, product, cart, drawer, checkout, order, account, lists, pages).
+Its colours, corners and font are variables (`--commerce-bg`, `--commerce-surface`,
+`--commerce-fg`, `--commerce-muted`, `--commerce-line`, `--commerce-accent`, `--commerce-sale`,
+`--commerce-ok`, `--commerce-warn`, `--commerce-radius`, `--commerce-font`); see
+[the starter theme](#the-starter-theme). Base element styles (fonts, inputs) only apply in the
+starter layout, whose `<html>` has the class `commerce-site`, so the store components fit into
+your own layout's look.
 
 **`commerce.js`** is plain JavaScript with no build step. It works from `data-commerce-*`
 attributes:
@@ -300,6 +374,9 @@ attributes:
   (amounts, account numbers) to the clipboard.
 - **Gallery**: when the variant picker picks a variant with its own image, that image replaces the
   first one in `[data-commerce-gallery]`.
+- **Starter theme**: the menu drawer and mega panels, the filter drawer on small screens, quantity
+  steppers (`[data-commerce-stepper]`; with `data-commerce-autosubmit` a cart line saves itself)
+  and the phone gallery thumbnails ([the starter theme](#the-starter-theme)).
 - **Mini-cart drawer**: a click on `[data-commerce-mini-cart]` loads the cart from the API and opens
   the `<dialog>` with its first lines (`data-commerce-drawer-lines` on the dialog, from
   `commerce.cart.preview_lines`), "and 3 more" linking to the cart page, and the total. Ctrl- or
