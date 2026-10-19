@@ -43,7 +43,7 @@
                 <div class="{{ $captcha['class'] }}" data-sitekey="{{ $captcha['site_key'] }}"></div>
                 @include(\Sunrice\Commerce\Storefront\Layout::view('partials.field-error'), ['name' => 'captcha'])
             @endif
-            <button type="submit">{{ __('commerce::account.register.submit') }}</button>
+            <button type="submit" class="commerce-button commerce-button--primary commerce-button--block">{{ __('commerce::account.register.submit') }}</button>
         </form>
         <p><a href="{{ commerce_url('commerce.account.login') }}">{{ __('commerce::account.register.have_account') }}</a></p>
     </section>

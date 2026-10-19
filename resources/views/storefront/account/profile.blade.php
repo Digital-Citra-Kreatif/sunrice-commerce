@@ -28,10 +28,10 @@
         @if ($google)
             <p>{{ __('commerce::account.profile.google_linked', ['email' => $google]) }}</p>
         @endif
-        <button type="submit">{{ __('commerce::account.profile.save') }}</button>
+        <button type="submit" class="commerce-button commerce-button--primary">{{ __('commerce::account.profile.save') }}</button>
     </form>
 
-    <h2>{{ __('commerce::account.password.title') }}</h2>
+    <h2 class="commerce-account__subtitle">{{ __('commerce::account.password.title') }}</h2>
     <form method="POST" action="{{ commerce_url('commerce.account.password') }}" class="commerce-form">
         @csrf @method('PUT')
         @if (($customer->meta['password_set'] ?? true) !== false)
@@ -47,9 +47,10 @@
         <label class="commerce-field"><span>{{ __('commerce::account.register.password_confirmation') }}</span>
             <input type="password" name="password_confirmation" required autocomplete="new-password">
         </label>
-        <button type="submit">{{ __('commerce::account.profile.save') }}</button>
+        <button type="submit" class="commerce-button commerce-button--primary">{{ __('commerce::account.profile.save') }}</button>
     </form>
 
+    <section class="commerce-account__danger">
     <h2>{{ __('commerce::account.delete.title') }}</h2>
     @if ($customer->deletion_requested_at)
         <p>{{ __('commerce::account.delete.requested') }}</p>
@@ -58,7 +59,8 @@
             @csrf
             <p>{{ __('commerce::account.delete.intro') }}</p>
             <label class="commerce-check"><input type="checkbox" name="confirm" value="1" required> {{ __('commerce::account.delete.confirm') }}</label>
-            <button type="submit">{{ __('commerce::account.delete.title') }}</button>
+            <button type="submit" class="commerce-button commerce-button--danger">{{ __('commerce::account.delete.title') }}</button>
         </form>
     @endif
+    </section>
 @endsection

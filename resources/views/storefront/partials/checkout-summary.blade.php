@@ -4,13 +4,15 @@
 --}}
 @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
 @php($preview = max(1, (int) config('commerce.cart.preview_lines', 10)))
-<h2>{{ __('commerce::checkout.sections.summary') }}</h2>
+<h2 class="commerce-checkout__summary-title">{{ __('commerce::checkout.sections.summary') }}</h2>
 @foreach (['shown' => array_slice($cart->lines, 0, $preview), 'more' => array_slice($cart->lines, $preview)] as $part => $rows)
     @continue($part === 'more' && $rows === [])
     @if ($part === 'more')<details class="commerce-summary__more"><summary>{{ __('commerce::storefront.cart.more_lines', ['count' => count($rows)]) }}</summary>@endif
     <ul class="commerce-summary__lines">
         @foreach ($rows as $row)
             <li>
+                @php($image = $row['entry'] ? collect($row['entry']->get('gallery') ?? [])->first() : null)
+                <span class="commerce-summary__thumb">@if (is_object($image))<img src="{{ $image->url() }}" alt="" width="48" height="60" loading="lazy">@endif<span class="commerce-summary__badge">{{ $row['line']->quantity }}</span></span>
                 <span class="commerce-summary__qty">{{ $row['line']->quantity }} ×</span>
                 <span class="commerce-summary__name">{{ $row['entry']?->title }}@if ($row['line']->variant->title !== '') ({{ $row['line']->variant->title }})@endif</span>
                 <span class="commerce-summary__price">{{ $money->format($row['line']->subtotal) }}</span>

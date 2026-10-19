@@ -15,16 +15,16 @@
                 @if ($loop->first)<ul class="commerce-account__recent-orders">@endif
                 <li>
                     <a href="{{ commerce_url('commerce.account.order', ['order' => $order->id]) }}">{{ $order->displayNumber() }}</a>
-                    <span>{{ $order->placed_at?->translatedFormat('j M Y') }}</span>
-                    <span>{{ \Sunrice\Commerce\Orders\OrderStatus::label($order->status) }}</span>
-                    <span>{{ $money->format($order->total) }}</span>
+                    <span class="commerce-muted">{{ $order->placed_at?->translatedFormat('j M Y') }}</span>
+                    <span class="commerce-status commerce-status--{{ $order->status }}">{{ \Sunrice\Commerce\Orders\OrderStatus::label($order->status) }}</span>
+                    <span class="commerce-account__amount">{{ $money->format($order->total) }}</span>
                 </li>
                 @if ($loop->last)</ul>@endif
             @empty
                 <p>{{ __('commerce::account.overview.no_orders') }}</p>
             @endforelse
             @if ($recentOrders->isNotEmpty())
-                <a href="{{ commerce_url('commerce.account.orders') }}">{{ __('commerce::account.overview.all_orders') }}</a>
+                <a class="commerce-section__more" href="{{ commerce_url('commerce.account.orders') }}">{{ __('commerce::account.overview.all_orders') }}</a>
             @endif
         </section>
     @endif
@@ -42,7 +42,9 @@
 
     @php($default = $addresses->firstWhere('default_shipping', true))
     @if ($default)
-        <h2>{{ __('commerce::account.addresses.default_shipping') }}</h2>
-        <address>{!! nl2br(e(\Sunrice\Commerce\Support\Address::fromArray($default->toAddress())->format())) !!}</address>
+        <section class="commerce-account__card">
+            <h2>{{ __('commerce::account.addresses.default_shipping') }}</h2>
+            <address>{!! nl2br(e(\Sunrice\Commerce\Support\Address::fromArray($default->toAddress())->format())) !!}</address>
+        </section>
     @endif
 @endsection

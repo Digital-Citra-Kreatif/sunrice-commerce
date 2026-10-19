@@ -8,7 +8,7 @@
     @php($S = \Sunrice\Commerce\Orders\OrderStatus::class)
     <h1>{{ $type === 'quote' ? __('commerce::account.orders.quotes') : __('commerce::account.orders.title') }}</h1>
     @if ($orders->isEmpty())
-        <p>{{ $type === 'quote' ? __('commerce::account.orders.no_quotes') : __('commerce::account.orders.empty') }}</p>
+        @include(\Sunrice\Commerce\Storefront\Layout::view('partials.empty'), ['title' => $type === 'quote' ? __('commerce::account.orders.no_quotes') : __('commerce::account.orders.empty'), 'icon' => 'bag'])
     @else
         <table class="commerce-account__orders">
             <thead><tr>
@@ -18,14 +18,14 @@
             <tbody>
                 @foreach ($orders as $order)
                     <tr>
-                        <td><a href="{{ commerce_url('commerce.account.order', ['order' => $order->id]) }}">{{ $order->displayNumber() }}</a></td>
-                        <td>{{ $order->placed_at?->translatedFormat('j M Y') }}</td>
-                        <td>{{ $S::label($order->status) }}</td>
-                        <td>{{ $money->format($order->total) }}</td>
+                        <td data-label="{{ __('commerce::account.orders.number') }}"><a href="{{ commerce_url('commerce.account.order', ['order' => $order->id]) }}">{{ $order->displayNumber() }}</a></td>
+                        <td data-label="{{ __('commerce::checkout.order.date') }}">{{ $order->placed_at?->translatedFormat('j M Y') }}</td>
+                        <td data-label="{{ __('commerce::checkout.order.status') }}"><span class="commerce-status commerce-status--{{ $order->status }}">{{ $S::label($order->status) }}</span></td>
+                        <td data-label="{{ __('commerce::storefront.cart.total') }}">{{ $money->format($order->total) }}</td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
-        {{ $orders->links() }}
+        <nav class="commerce-pagination" aria-label="{{ __('commerce::storefront.listing.pages') }}">{{ $orders->onEachSide(1)->links(\Sunrice\Commerce\Storefront\Layout::view('partials.pagination')) }}</nav>
     @endif
 @endsection

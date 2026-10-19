@@ -2,11 +2,16 @@
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @section('content')
-    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
+    @php($L = \Sunrice\Commerce\Storefront\Layout::class)
+    @include($L::view('partials.assets'))
     <section class="commerce-term commerce-tag">
-        <h1>{{ $term->name }}</h1>
-        @php($query = \Sunrice\Commerce\Catalog\ProductQuery::fromRequest(request())->tag($term->id))
-        <x-commerce::product-filter :query="$query" without="tag" />
-        <x-commerce::products :query="$query" />
+        <header class="commerce-listing__header">
+            @include($L::view('partials.breadcrumbs'), ['items' => [
+                ['label' => __('commerce::storefront.theme.home'), 'url' => url(\Sunrice\Support\Locales::prefix(app()->getLocale()) ?: '/')],
+                ['label' => $term->name, 'url' => null],
+            ]])
+            <h1 class="commerce-listing__title">{{ $term->name }}</h1>
+        </header>
+        @include($L::view('partials.listing'), ['query' => \Sunrice\Commerce\Catalog\ProductQuery::fromRequest(request())->tag($term->id), 'without' => 'tag'])
     </section>
 @endsection

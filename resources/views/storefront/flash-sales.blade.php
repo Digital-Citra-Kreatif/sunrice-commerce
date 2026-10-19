@@ -6,11 +6,11 @@
 @section('content')
     @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     <section class="commerce-flash-sales">
-        <h1>{{ __('commerce::storefront.flash.title') }}</h1>
+        <h1 class="commerce-page-title">{{ __('commerce::storefront.flash.title') }}</h1>
         @forelse ($running as $sale)
             <x-commerce::flash-sale :slug="$sale->slug" :limit="24" />
         @empty
-            <p>{{ __('commerce::storefront.flash.none') }}</p>
+            @include(\Sunrice\Commerce\Storefront\Layout::view('partials.empty'), ['title' => __('commerce::storefront.flash.none')])
         @endforelse
         @if ($upcoming->isNotEmpty())
             <h2>{{ __('commerce::storefront.flash.upcoming') }}</h2>

@@ -9,7 +9,7 @@
     @php($L = \Sunrice\Commerce\Storefront\Layout::class)
     @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
     <section class="commerce-confirm-page">
-        <h1>{{ __('commerce::payments.confirm.title') }}</h1>
+        <h1 class="commerce-page-title">{{ __('commerce::payments.confirm.title') }}</h1>
         @include($L::view('partials.messages'))
         @error('order')<p class="commerce-message commerce-message--error" role="alert">{{ $message }}</p>@enderror
 

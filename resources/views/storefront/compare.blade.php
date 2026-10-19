@@ -6,10 +6,11 @@
 @section('content')
     @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     <section class="commerce-compare">
-        <h1>{{ __('commerce::storefront.compare.title') }}</h1>
+        <h1 class="commerce-page-title">{{ __('commerce::storefront.compare.title') }}</h1>
         @include(\Sunrice\Commerce\Storefront\Layout::view('partials.messages'))
         @if ($entries->isEmpty())
-            <p>{{ __('commerce::storefront.compare.empty') }}</p>
+            @include(\Sunrice\Commerce\Storefront\Layout::view('partials.empty'), ['title' => __('commerce::storefront.compare.empty'), 'icon' => 'compare',
+                'action' => ['url' => url(\Sunrice\Support\Locales::prefix(app()->getLocale()) ?: '/'), 'label' => __('commerce::storefront.cart.continue')]])
         @else
             @php($views = $entries->mapWithKeys(fn ($e) => [$e->id => commerce_product($e)]))
             <div class="commerce-compare__scroll">
@@ -19,7 +20,11 @@
                             <td></td>
                             @foreach ($entries as $entry)
                                 <th scope="col">
-                                    <a href="{{ $entry->url }}">{{ $entry->title }}</a>
+                                    @php($image = collect($entry->get('gallery') ?? [])->first())
+                                    <a class="commerce-compare__product" href="{{ $entry->url }}">
+                                        @if (is_object($image))<img src="{{ $image->url() }}" alt="" width="200" height="250" loading="lazy">@endif
+                                        <span>{{ $entry->title }}</span>
+                                    </a>
                                     <x-commerce::compare-button :entry="$entry" />
                                 </th>
                             @endforeach

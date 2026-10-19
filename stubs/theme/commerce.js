@@ -189,4 +189,131 @@
         if (event.target.closest('[data-commerce-drawer-close]')) event.target.closest('dialog').close();
         if (event.target.matches('[data-commerce-drawer]')) event.target.close(); // a click on the backdrop
     });
+    // A panel that slides in (the menu, the filters): opens with its button, closes with Escape,
+    // its close button or the backdrop, keeps focus inside while open and gives it back after.
+    function panel(el, opener, backdropClass) {
+        var backdrop = null;
+        var last = null;
+        function focusables() {
+            return Array.prototype.filter.call(el.querySelectorAll('a[href], button:not([disabled]), input:not([type=hidden]), select, textarea, summary'), function (n) { return n.offsetParent !== null; });
+        }
+        function open() {
+            last = document.activeElement;
+            el.classList.add('is-open');
+            document.documentElement.style.overflow = 'hidden';
+            if (opener) opener.setAttribute('aria-expanded', 'true');
+            backdrop = document.createElement('div');
+            backdrop.className = backdropClass;
+            backdrop.addEventListener('click', close);
+            el.parentNode.appendChild(backdrop);
+            var first = focusables()[0];
+            if (first) first.focus();
+        }
+        function close() {
+            if (!el.classList.contains('is-open')) return;
+            el.classList.remove('is-open');
+            document.documentElement.style.overflow = '';
+            if (opener) opener.setAttribute('aria-expanded', 'false');
+            if (backdrop) backdrop.remove();
+            if (last && last.focus) last.focus();
+        }
+        el.addEventListener('keydown', function (event) {
+            if (!el.classList.contains('is-open')) return;
+            if (event.key === 'Escape') { close(); return; }
+            if (event.key !== 'Tab') return;
+            var items = focusables();
+            if (!items.length) return;
+            if (event.shiftKey && document.activeElement === items[0]) { event.preventDefault(); items[items.length - 1].focus(); }
+            else if (!event.shiftKey && document.activeElement === items[items.length - 1]) { event.preventDefault(); items[0].focus(); }
+        });
+        return { open: open, close: close };
+    }
+
+    // The header menu: a drawer on small screens; on wide screens Escape closes an open mega panel.
+    var nav = document.querySelector('[data-commerce-nav]');
+    var navToggle = document.querySelector('[data-commerce-nav-toggle]');
+    if (nav && navToggle) {
+        var navPanel = panel(nav, navToggle, 'commerce-nav__backdrop');
+        navToggle.addEventListener('click', navPanel.open);
+        nav.querySelectorAll('[data-commerce-nav-close]').forEach(function (b) { b.addEventListener('click', navPanel.close); });
+        nav.addEventListener('keydown', function (event) {
+            if (event.key !== 'Escape') return;
+            var item = event.target.closest('.commerce-nav__item--parent');
+            var mega = item && item.querySelector('.commerce-nav__panel');
+            if (!mega || window.getComputedStyle(mega).position !== 'absolute') return;
+            mega.classList.add('is-closed');
+            item.querySelector('.commerce-nav__link').focus();
+        });
+        nav.addEventListener('mouseover', function (event) {
+            var item = event.target.closest('.commerce-nav__item--parent');
+            if (item) item.querySelectorAll('.is-closed').forEach(function (m) { m.classList.remove('is-closed'); });
+        });
+        nav.addEventListener('focusout', function (event) {
+            var item = event.target.closest('.commerce-nav__item--parent');
+            if (item && !item.contains(event.relatedTarget)) item.querySelectorAll('.is-closed').forEach(function (m) { m.classList.remove('is-closed'); });
+        });
+    }
+
+    // Listing filters: a drawer on small screens, opened by the "Filter" button.
+    document.querySelectorAll('[data-commerce-listing]').forEach(function (listing) {
+        var aside = listing.querySelector('[data-commerce-filter-panel]');
+        var button = listing.querySelector('[data-commerce-filters-open]');
+        if (!aside || !button) return;
+        button.hidden = false;
+        var filters = panel(aside, button, 'commerce-filters-backdrop');
+        button.addEventListener('click', filters.open);
+        aside.querySelectorAll('[data-commerce-filters-close]').forEach(function (b) { b.addEventListener('click', filters.close); });
+    });
+
+    // Quantity steppers: − and + buttons around a number input; in the cart a change saves the line.
+    document.querySelectorAll('[data-commerce-stepper]').forEach(function (stepper) {
+        var input = stepper.querySelector('input[type=number]');
+        if (!input || stepper.querySelector('.commerce-stepper__button')) return;
+        var label = input.getAttribute('aria-label') || '';
+        [['-', -1], ['+', 1]].forEach(function (pair) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'commerce-stepper__button';
+            b.textContent = pair[0] === '-' ? '−' : '+';
+            b.setAttribute('aria-label', (pair[1] < 0 ? '− ' : '+ ') + label);
+            b.addEventListener('click', function () {
+                var step = parseFloat(input.step) || 1;
+                var min = input.min === '' ? -Infinity : parseFloat(input.min);
+                var max = input.max === '' ? Infinity : parseFloat(input.max);
+                var next = Math.min(max, Math.max(min, (parseFloat(input.value) || 0) + pair[1] * step));
+                if (String(next) === input.value) return;
+                input.value = next;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+            if (pair[1] < 0) stepper.insertBefore(b, input); else stepper.appendChild(b);
+        });
+        if (stepper.hasAttribute('data-commerce-autosubmit')) {
+            var timer = null;
+            input.addEventListener('change', function () {
+                clearTimeout(timer);
+                timer = setTimeout(function () { if (input.form) input.form.requestSubmit ? input.form.requestSubmit() : input.form.submit(); }, 500);
+            });
+        }
+    });
+
+    // Product gallery: on phones the images scroll sideways; the thumbnails follow and jump to an image.
+    document.querySelectorAll('[data-commerce-gallery]').forEach(function (gallery) {
+        var main = gallery.querySelector('.commerce-gallery__main');
+        var thumbs = gallery.querySelectorAll('[data-commerce-thumb]');
+        if (!main || !thumbs.length) return;
+        function mark(index) {
+            thumbs.forEach(function (t, i) { if (i === index) t.setAttribute('aria-current', 'true'); else t.removeAttribute('aria-current'); });
+        }
+        thumbs.forEach(function (thumb, index) {
+            thumb.addEventListener('click', function (event) {
+                event.preventDefault();
+                var image = main.querySelectorAll('[data-commerce-gallery-image]')[index];
+                if (image) main.scrollTo({ left: image.offsetLeft - main.offsetLeft, behavior: 'smooth' });
+                mark(index);
+            });
+        });
+        main.addEventListener('scroll', function () {
+            if (main.clientWidth) mark(Math.round(main.scrollLeft / main.clientWidth));
+        }, { passive: true });
+    });
 })();

@@ -21,7 +21,7 @@
             <label class="commerce-field"><span>{{ __('commerce::account.register.password_confirmation') }}</span>
                 <input type="password" name="password_confirmation" required autocomplete="new-password">
             </label>
-            <button type="submit">{{ __('commerce::account.reset.submit') }}</button>
+            <button type="submit" class="commerce-button commerce-button--primary commerce-button--block">{{ __('commerce::account.reset.submit') }}</button>
         </form>
     </section>
 @endsection

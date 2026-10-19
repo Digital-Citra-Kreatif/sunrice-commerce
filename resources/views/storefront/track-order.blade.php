@@ -7,7 +7,7 @@
     @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     @php($L = \Sunrice\Commerce\Storefront\Layout::class)
     <section class="commerce-track-page">
-        <h1>{{ __('commerce::checkout.track.title') }}</h1>
+        <h1 class="commerce-page-title">{{ __('commerce::checkout.track.title') }}</h1>
         <p>{{ __('commerce::checkout.track.intro') }}</p>
         <form method="POST" action="{{ commerce_url('commerce.track-order.submit') }}" class="commerce-form">
             @csrf
