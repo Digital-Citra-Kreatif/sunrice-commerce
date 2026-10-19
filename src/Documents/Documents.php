@@ -69,13 +69,24 @@ class Documents
     }
 
     /**
-     * One PDF for several orders (bulk packing slips).
+     * One PDF for several orders (bulk packing slips). More orders than
+     * commerce.documents.batch_size are rendered a batch at a time, so a
+     * 200-order PDF needs about as much memory as one batch.
      *
      * @param  Collection<int, Order>  $orders
      */
     public function bulkPdf(Collection $orders, string $type = 'packing_slip'): string
     {
-        return $this->renderer->pdf($this->html($orders, $type));
+        $size = max(1, (int) config('commerce.documents.batch_size', 25));
+        if ($orders->count() <= $size || ! $this->renderer instanceof BatchRenderer) {
+            return $this->renderer->pdf($this->html($orders, $type));
+        }
+
+        return $this->renderer->combined((function () use ($orders, $type, $size): \Generator {
+            foreach ($orders->values()->chunk($size) as $batch) {
+                yield $this->html($batch->values(), $type);
+            }
+        })());
     }
 
     /**

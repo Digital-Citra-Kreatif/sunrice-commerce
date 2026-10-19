@@ -107,6 +107,12 @@ See [marketing.md](marketing.md#sending-queue-batches-and-limits).
 | `shipping.volumetric_divisor` | `6000` | L×W×H (cm) ÷ this = volumetric weight (kg) |
 | `shipping.couriers.*` | JNE, J&T, SiCepat, AnterAja, POS, Ninja, Lion, ID Express, GoSend, Grab | Courier presets for shipments: `key => ['name' => …, 'tracking_url' => '…{tracking}…']` |
 
+### documents
+
+| Key | Default | |
+| --- | --- | --- |
+| `documents.batch_size` | `25` | Bulk packing slips are rendered this many orders at a time into one PDF ([documents.md](documents.md#in-the-admin)) |
+
 ### analytics and privacy
 
 | Key | Default | |

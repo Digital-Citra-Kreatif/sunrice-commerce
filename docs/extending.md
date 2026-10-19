@@ -355,7 +355,7 @@ Bind your own implementation in your provider's `register()`:
 | `Contracts\ShippingQuoter` | `Shipping\ShippingManager` | Replacing rate shopping as a whole |
 | `Contracts\SaleLimits` | none | Per-customer purchase limits |
 | `Contracts\Tracking` | `Analytics\StatsTracking` | Sending storefront events elsewhere too |
-| `Documents\DocumentRenderer` | `Documents\DompdfRenderer` | Other PDF engines |
+| `Documents\DocumentRenderer` | `Documents\DompdfRenderer` | Other PDF engines (`Documents\BatchRenderer` to render bulk documents in batches) |
 
 ## Admin JavaScript
 

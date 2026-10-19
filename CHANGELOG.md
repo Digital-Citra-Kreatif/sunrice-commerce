@@ -98,3 +98,6 @@ to the MCP server's instructions and keeps store pages out of the full-page cach
   in with their password on the storefront (it skipped the code step).
 - The SKU check, variant search and targets picker APIs check permissions (product editing, order
   editing, or managing vouchers, flash sales or pricing rules).
+- Bulk packing slips are rendered 25 orders at a time (`commerce.documents.batch_size`) into one
+  PDF, so 200 orders no longer run out of PHP's memory. Renderers can do the same by implementing
+  `Documents\BatchRenderer`.

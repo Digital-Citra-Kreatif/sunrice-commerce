@@ -102,3 +102,19 @@ it('loads the orders of bulk packing slips together, not one by one', function (
 
     expect($measure($orders(8)))->toBe($few);
 });
+
+it('renders bulk packing slips in batches into one PDF, a page per order in order', function () {
+    config(['commerce.documents.batch_size' => 2]);
+    foreach (range(2, 5) as $i) {
+        makeOrder(['number' => "ORD-{$i}", 'shipping_address' => ['name' => 'Rina', 'country' => 'ID', 'line1' => "Jl. Uji {$i}"]]);
+    }
+    $pdf = app(Documents::class)->bulkPdf(Order::query()->orderBy('id')->get());
+
+    // The page texts: dompdf compresses each page's content and writes its text in UTF-16.
+    preg_match_all('#stream\r?\n(.*?)\r?\nendstream#s', $pdf, $streams);
+    $text = str_replace("\0", '', implode('', array_map(fn (string $stream) => (string) @gzuncompress($stream), $streams[1])));
+    preg_match_all('#\(ORD-(\d)\)#', $text, $numbers);
+
+    expect(substr($pdf, 0, 5))->toBe('%PDF-')->and($pdf)->toContain('/Count 5')
+        ->and(array_values(array_unique($numbers[1])))->toBe(['1', '2', '3', '4', '5']);
+});

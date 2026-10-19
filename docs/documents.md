@@ -92,6 +92,10 @@ Each opens the PDF in the browser, ready to print or save. The URL is
 one PDF with a page per order (up to 200 orders), from
 `/cms/commerce/orders/packing-slips?ids=1,2,3`.
 
+Bulk PDFs are rendered 25 orders at a time (`commerce.documents.batch_size` in
+`config/commerce.php`) and the batches are joined into the one PDF, so 200 orders need about as much
+memory as 25. Up to the batch size, the PDF is made in one go, as for a single order.
+
 AI agents don't download documents; they work with the order data ([ai-agents.md](ai-agents.md)).
 
 ## For customers
@@ -198,3 +202,7 @@ class BrowserRenderer implements DocumentRenderer
 ```
 
 The HTML, the caching, the numbering and the downloads stay the same.
+
+To render bulk documents in batches, implement `Documents\BatchRenderer` instead: its
+`combined(iterable $documents, string $paper = 'a4'): string` gets the HTML of one batch at a time
+and returns one PDF. A plain `DocumentRenderer` gets bulk documents as one HTML document.

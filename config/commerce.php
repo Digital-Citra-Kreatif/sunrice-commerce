@@ -213,6 +213,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Documents
+    |--------------------------------------------------------------------------
+    |
+    | Bulk documents (packing slips of up to 200 orders) are rendered this
+    | many orders at a time into one PDF, so memory stays flat however many
+    | orders are printed. Lower it if a batch runs out of memory.
+    |
+    */
+
+    'documents' => [
+        'batch_size' => 25,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Analytics
     |--------------------------------------------------------------------------
     */
