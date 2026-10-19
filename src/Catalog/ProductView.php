@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Catalog;
 
+use Closure;
 use JsonSerializable;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
@@ -19,13 +20,36 @@ use Sunrice\Models\Entry;
 final class ProductView implements JsonSerializable
 {
     /**
+     * The picker rows, or what builds them the first time $variants is read.
+     *
+     * @var array<int, array<string, mixed>>|Closure(): array<int, array<string, mixed>>
+     */
+    private array|Closure $variantRows;
+
+    /**
+     * Picker variants, one row per active variant. Built when first read,
+     * so listing cards and cart lines that show one price don't pay for them.
+     *
+     * @var array<int, array<string, mixed>>
+     */
+    public array $variants {
+        get {
+            if ($this->variantRows instanceof Closure) {
+                $this->variantRows = ($this->variantRows)();
+            }
+
+            return $this->variantRows;
+        }
+    }
+
+    /**
      * @param  array{amount: int|null, compareAt: int|null, isRange: bool, from: int|null, to: int|null, hidden: bool, signIn: bool, formatted: string, compareFormatted: string|null}  $price
      * @param  array<int, string>  $badges  sale | new | out_of_stock | backorder | featured
      * @param  array{status: string, quantity: int|null, message: string}  $stock
      * @param  array{type: string, label: string, url: string|null, links: array<int, array{label: string, url: string}>}  $cta
      * @param  array<int, array{min_qty: int, label: string, price: string|null}>  $tiers
      * @param  array<int, array<string, mixed>>  $options
-     * @param  array<int, array<string, mixed>>  $variants
+     * @param  array<int, array<string, mixed>>|Closure(): array<int, array<string, mixed>>  $variants  the rows, or a closure building them when first read
      * @param  array<string, mixed>|null  $flashSale
      */
     public function __construct(
@@ -38,15 +62,43 @@ final class ProductView implements JsonSerializable
         public readonly array $cta,
         public readonly array $tiers,
         public readonly array $options,
-        public readonly array $variants,
+        array|Closure $variants,
         public readonly ?array $flashSale = null,
         public readonly bool $purchasable = true,
-    ) {}
+    ) {
+        $this->variantRows = $variants;
+    }
 
-    /** A copy with some properties changed (for ProductViewFactory::extendUsing). */
+    /** A copy with some properties changed (for ProductViewFactory::extendUsing). Rows not yet built stay unbuilt. */
     public function with(mixed ...$changes): self
     {
-        return new self(...[...get_object_vars($this), ...$changes]);
+        return new self(...[
+            'entry' => $this->entry, 'product' => $this->product, 'type' => $this->type, 'price' => $this->price,
+            'badges' => $this->badges, 'stock' => $this->stock, 'cta' => $this->cta, 'tiers' => $this->tiers,
+            'options' => $this->options, 'variants' => $this->variantRows, 'flashSale' => $this->flashSale,
+            'purchasable' => $this->purchasable, ...$changes,
+        ]);
+    }
+
+    /**
+     * Serialized with its rows built (a closure can't be serialized).
+     *
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+        $data = get_object_vars($this);
+        unset($data['variants']); // the hooked property; its rows are stored as variantRows
+
+        return [...$data, 'variantRows' => $this->variants];
+    }
+
+    /** @param  array<string, mixed>  $data */
+    public function __unserialize(array $data): void
+    {
+        foreach ($data as $property => $value) {
+            $this->{$property} = $value;
+        }
     }
 
     public function id(): int

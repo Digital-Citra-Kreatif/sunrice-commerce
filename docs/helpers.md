@@ -154,7 +154,7 @@ partials receive it as `$product`.
 | `cta` | array | The call to action: `type` (`cart`, `whatsapp`, `inquiry`, `external` or `none`), `label`, `url`, `links` (`[{label, url}]` for external shops) |
 | `tiers` | array | Bulk prices of the first variant: `[{min_qty, label, price}]`; empty while prices are hidden |
 | `options` | array | Picker options: `[{id, name, values: [{id, label}]}]` |
-| `variants` | array | Picker variants: `[{id, uid, title, sku, options, price, price_formatted, compare_at, stock, min_qty, max_qty, qty_step, image}]` |
+| `variants` | array | Picker variants: `[{id, uid, title, sku, options, price, price_formatted, compare_at, stock, min_qty, max_qty, qty_step, image}]`. Built the first time it's read, so cards that only show the price don't pay for it |
 | `flashSale` | `?array` | The running flash sale: `id`, `name`, `badge`, `ends_at` (ISO 8601), `countdown`, `sold`, `limit`, `sold_percent`, `url`; null when none |
 | `purchasable` | bool | False when out of stock or the product failed to sync |
 
