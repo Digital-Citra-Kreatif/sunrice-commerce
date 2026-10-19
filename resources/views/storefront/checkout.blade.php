@@ -9,7 +9,13 @@
     @php($L = \Sunrice\Commerce\Storefront\Layout::class)
     @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
     <section class="commerce-checkout-page">
-        <h1>{{ __('commerce::checkout.title') }}</h1>
+        <h1 class="commerce-page-title">{{ __('commerce::checkout.title') }}</h1>
+        <ol class="commerce-steps" aria-label="{{ __('commerce::storefront.theme.checkout_steps') }}">
+            <li><a href="{{ commerce_url('commerce.cart') }}">{{ __('commerce::storefront.cart.title') }}</a></li>
+            <li aria-current="step"><a href="#contact">{{ __('commerce::checkout.sections.contact') }}</a></li>
+            @if ($needsAddress)<li><a href="#shipping">{{ __('commerce::checkout.sections.shipping') }}</a></li>@endif
+            @if ($mode->payment() && $state->totals['total'] > 0)<li><a href="#payment">{{ __('commerce::checkout.sections.payment') }}</a></li>@endif
+        </ol>
         @include($L::view('partials.messages'))
         @if (session('commerce.changes'))
             <div class="commerce-notice commerce-notice--changed" role="alert">
@@ -23,6 +29,7 @@
             @csrf
             <input type="hidden" name="totals_hash" value="{{ $state->hash() }}" data-commerce-hash>
             <x-commerce::slot name="checkout.before" />
+            <div class="commerce-checkout__main">
 
             <fieldset class="commerce-checkout__section" id="contact">
                 <legend>{{ __('commerce::checkout.sections.contact') }}</legend>
@@ -144,10 +151,14 @@
                 </fieldset>
             @endif
 
+            </div>
+
+            <div class="commerce-checkout__side">
             <aside class="commerce-checkout__summary" id="summary" data-commerce-summary>
                 @include($L::view('partials.checkout-summary'))
             </aside>
 
+            <div class="commerce-checkout__place">
             @if (commerce_feature('vouchers'))
                 <p class="commerce-checkout__voucher"><a href="{{ commerce_url('commerce.cart') }}">{{ __('commerce::checkout.voucher_link') }}</a></p>
             @endif
@@ -160,7 +171,9 @@
                 @include($L::view('partials.field-error'), ['name' => 'terms'])
             @endif
             <x-commerce::slot name="checkout.before_submit" />
-            <button type="submit" name="action" value="place" class="commerce-button commerce-button--primary">{{ $submitLabel }}</button>
+            <button type="submit" name="action" value="place" class="commerce-button commerce-button--accent commerce-button--block commerce-checkout__submit">{{ $submitLabel }}</button>
+            </div>
+            </div>
         </form>
     </section>
 @endsection

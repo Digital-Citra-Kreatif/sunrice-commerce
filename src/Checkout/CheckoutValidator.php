@@ -153,6 +153,7 @@ class CheckoutValidator
         foreach (['name', 'email', 'phone', 'password', 'notes'] as $field) {
             $attributes[$field] = __('commerce::checkout.fields.'.$field);
         }
+        $attributes['terms'] = __('commerce::checkout.terms_link');
         foreach (['shipping_address', 'billing_address'] as $prefix) {
             foreach (['name', 'phone', 'company', 'country', 'province_code', 'city_code', 'district_code', 'village_code', 'city', 'postal_code', 'line1'] as $field) {
                 $attributes["{$prefix}.{$field}"] = __('commerce::account.address.'.str_replace('_code', '', $field));

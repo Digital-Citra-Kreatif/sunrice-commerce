@@ -36,6 +36,46 @@ To change the storefront's markup, publish the templates as well:
 php artisan commerce:install --templates
 ```
 
+### The starter store
+
+For a complete, ready-to-use shop, install the **starter theme** with its demo data:
+
+```bash
+php artisan commerce:install --starter --demo
+php artisan storage:link        # product images are Sunrice assets on the public disk
+```
+
+`--starter` publishes everything `--templates` does plus the site around the store: Sunrice's
+layout, a header with the department menu, search and cart, a footer, the home page, content
+pages, search results and the 404 page ([templates.md](templates.md#the-starter-theme)). With
+`--demo` it seeds `StarterStoreSeeder`, a clothing store called KAIN:
+
+- about 50 products in women, men and kids categories (two levels), with colour and size
+  variants, placeholder artwork (SVG garments in each colour), sale and bulk prices, low and
+  sold-out stock, three bundles, a downloadable lookbook and a digital gift card;
+- brands, tags, and `colors` and `sizes` attribute taxonomies (colours have a `swatch` hex field);
+- a running flash sale, the vouchers `HALOKAIN` (10% on a first order), `HEMAT50` (Rp50.000 off
+  from Rp400.000) and `ONGKIRGRATIS` (free shipping), and a pricing rule (10% off three kids'
+  T-shirts);
+- shipping zones for Java & Bali and the rest of Indonesia (by weight, express, free over a
+  threshold, store pickup), bank transfer, QRIS and cash on delivery;
+- the pages Home, About and Help, the published legal pages, and the `main` and `footer` menus;
+- a demo customer with two addresses, six orders (completed, shipped, processing, digital,
+  cancelled and awaiting payment) and a wishlist.
+
+| Login | Email | Password |
+| --- | --- | --- |
+| Demo customer (storefront, `/account`) | `customer@example.com` | `password` |
+| Admin (workbench only, `/cms`) | `admin@example.com` | `password` |
+
+On your own site the admin is your existing Sunrice user. Run the seeder on its own with
+`php artisan db:seed --class="Sunrice\Commerce\Database\Seeders\StarterStoreSeeder"`. It is safe
+to run again: it only adds what is missing. Product names are English; other text follows the
+site's main language (Indonesian or English).
+
+In the package's workbench, `vendor/bin/testbench workbench:build` seeds the starter
+store and `vendor/bin/testbench serve` shows it with the starter theme.
+
 See [commands.md](commands.md#commerceinstall) for every option. The installer is safe to run again
 (after an upgrade, for example): it only adds what is missing.
 
@@ -52,8 +92,8 @@ See [commands.md](commands.md#commerceinstall) for every option. The installer i
    exists) and the `shop` menu (`commerce:scaffold`).
 6. Syncs permissions and creates the **Shop Manager** and **Customer** roles.
 7. Imports Indonesian regions for addresses and shipping zones (it asks; `--no-regions` skips it).
-8. With `--templates`, publishes the storefront templates.
-9. With `--demo`, adds the demo store.
+8. With `--templates`, publishes the storefront templates; with `--starter`, the starter theme.
+9. With `--demo`, adds the demo store (the starter store with `--starter`).
 10. Prints the next steps.
 
 ## Run the scheduler and a queue worker

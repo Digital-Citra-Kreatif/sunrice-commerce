@@ -1,10 +1,10 @@
 @include('commerce::documents.partials.header', ['heading' => __('commerce::documents.invoice')])
 @include('commerce::documents.partials.lines', ['prices' => true])
 @include('commerce::documents.partials.totals')
-<p>{{ __('commerce::documents.payment') }}: {{ $order->payment_method_title ?? '—' }} · {{ \Sunrice\Commerce\Orders\OrderStatus::label($order->payment_status, 'payment') }}</p>
+<p><span class="label">{{ __('commerce::documents.payment') }}</span><br>{{ $order->payment_method_title ?? '—' }} · <span class="status">{{ \Sunrice\Commerce\Orders\OrderStatus::label($order->payment_status, 'payment') }}</span></p>
 @if (! empty($bankAccounts))
 <div class="bank-details">
-    <strong>{{ __('commerce::documents.pay_to') }}</strong>
+    <span class="label">{{ __('commerce::documents.pay_to') }}</span>
     @foreach ($bankAccounts as $account)
         <div>{{ $account['bank'] ?? '' }} {{ $account['number'] ?? '' }} · {{ __('commerce::payments.holder') }}: {{ $account['holder'] ?? '' }}@if (! empty($account['branch'])) · {{ $account['branch'] }}@endif</div>
     @endforeach

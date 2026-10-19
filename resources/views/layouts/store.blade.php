@@ -4,7 +4,7 @@
     commerce.storefront.layout to your own layout).
 --}}
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="commerce-site">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,7 +15,7 @@
 </head>
 <body @bodyClass>
     <x-sunrice::code position="body_start" />
-    <main class="container commerce">
+    <main class="container commerce-main commerce">
         @yield('content')
     </main>
     @stack('scripts')

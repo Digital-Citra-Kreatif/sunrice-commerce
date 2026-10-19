@@ -15,7 +15,7 @@
                 @include(\Sunrice\Commerce\Storefront\Layout::view('partials.field-error'), ['name' => 'code'])
             </label>
             <label class="commerce-check"><input type="checkbox" name="remember" value="1"> {{ __('commerce::account.login.remember') }}</label>
-            <button type="submit">{{ __('commerce::account.code.submit') }}</button>
+            <button type="submit" class="commerce-button commerce-button--primary commerce-button--block">{{ __('commerce::account.code.submit') }}</button>
         </form>
         <form method="POST" action="{{ commerce_url('commerce.account.code.send') }}">
             @csrf <x-honeypot />

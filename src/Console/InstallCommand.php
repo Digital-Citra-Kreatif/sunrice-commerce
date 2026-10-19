@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 use Spatie\OneTimePasswords\Models\Concerns\HasOneTimePasswords;
 use Sunrice\Commerce\Database\Seeders\DemoStoreSeeder;
+use Sunrice\Commerce\Database\Seeders\StarterStoreSeeder;
 use Sunrice\Commerce\Support\UserModelTraits;
 
 /**
@@ -20,7 +21,8 @@ class InstallCommand extends Command
 {
     protected $signature = 'commerce:install
         {--templates : Publish the storefront templates (resources/views/sunrice and resources/views/commerce) and theme (public/commerce-theme)}
-        {--demo : Add a demo store (products, payments, shipping, a voucher, a flash sale and an order)}
+        {--starter : Publish the starter theme: the storefront templates plus the site layout, header, footer, home, content, search and 404 pages}
+        {--demo : Add a demo store (products, payments, shipping, a voucher, a flash sale and an order); with --starter, the apparel store the starter theme shows}
         {--no-regions : Skip importing Indonesian regions}
         {--regions=district : How deep to import regions: province, city, district or village}
         {--force : Overwrite published config and templates}';
@@ -54,16 +56,22 @@ class InstallCommand extends Command
             $this->components->task("Regions (down to {$level})", fn () => $this->callSilently('commerce:regions:import', ['--level' => $level]) === self::SUCCESS);
         }
 
-        if ($this->option('templates')) {
+        if ($this->option('starter')) {
+            $this->components->task('Starter theme', fn () => $this->callSilently('vendor:publish', ['--tag' => 'commerce-starter', '--force' => $force]) === self::SUCCESS);
+        } elseif ($this->option('templates')) {
             $this->components->task('Storefront templates', fn () => $this->callSilently('vendor:publish', ['--tag' => 'commerce-templates', '--force' => $force]) === self::SUCCESS);
         }
 
         if ($this->option('demo')) {
-            $this->components->task('Demo store', function () {
-                app(DemoStoreSeeder::class)->run();
+            $starter = (bool) $this->option('starter');
+            $this->components->task($starter ? 'Starter store (demo products, customer and orders)' : 'Demo store', function () use ($starter) {
+                app($starter ? StarterStoreSeeder::class : DemoStoreSeeder::class)->run();
 
                 return true;
             });
+            if ($starter) {
+                $this->components->twoColumnDetail('Demo customer', StarterStoreSeeder::CUSTOMER_EMAIL.' / '.StarterStoreSeeder::CUSTOMER_PASSWORD);
+            }
         }
 
         $this->nextSteps();

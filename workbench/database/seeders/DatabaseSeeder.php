@@ -8,7 +8,7 @@ use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Workbench\App\Models\User;
 
-/** The workbench store: a super admin (admin@example.com / password) and a demo store. */
+/** The workbench store: a super admin (admin@example.com / password) and the starter store (customer@example.com / password). */
 class DatabaseSeeder extends Seeder
 {
     public function run(): void

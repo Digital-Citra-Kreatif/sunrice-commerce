@@ -5,6 +5,7 @@
     commerce.cart.preview_lines lines, then "and 3 more" to the cart page. $count
 --}}
 <a class="commerce-mini-cart" href="{{ commerce_url('commerce.cart') }}" data-commerce-mini-cart data-commerce-cart-api="{{ commerce_url('commerce.api.cart') }}" aria-haspopup="dialog">
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.icon'), ['name' => 'bag'])
     <span class="commerce-mini-cart__label">{{ __('commerce::storefront.cart.title') }}</span>
     <span class="commerce-mini-cart__count" data-commerce-cart-count @if ($count === 0) hidden @endif>{{ $count }}</span>
 </a>
@@ -13,7 +14,7 @@
         data-commerce-drawer-lines="{{ max(1, (int) config('commerce.cart.preview_lines', 10)) }}" data-commerce-drawer-more="{{ __('commerce::storefront.cart.more_lines') }}">
         <div class="commerce-drawer__header">
             <h2 id="commerce-drawer-title">{{ __('commerce::storefront.cart.title') }}</h2>
-            <button type="button" class="commerce-drawer__close" data-commerce-drawer-close aria-label="{{ __('commerce::storefront.cart.close') }}">×</button>
+            <button type="button" class="commerce-drawer__close" data-commerce-drawer-close aria-label="{{ __('commerce::storefront.cart.close') }}">@include(\Sunrice\Commerce\Storefront\Layout::view('partials.icon'), ['name' => 'close'])</button>
         </div>
         <div class="commerce-drawer__body" data-commerce-drawer-body aria-live="polite"></div>
         <div class="commerce-drawer__footer">

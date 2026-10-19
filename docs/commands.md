@@ -19,7 +19,7 @@ The scheduled commands are registered for you; run Laravel's scheduler every min
 ## commerce:install
 
 ```bash
-php artisan commerce:install [--templates] [--demo] [--no-regions] [--regions=district] [--force]
+php artisan commerce:install [--templates] [--starter] [--demo] [--no-regions] [--regions=district] [--force]
 ```
 
 Publishes the config and assets, the sign-in code migration (when missing), migrates, adds the
@@ -29,7 +29,8 @@ imports regions and prints the next steps. Safe to run again.
 | Option | |
 | --- | --- |
 | `--templates` | Also publish the storefront templates (to `resources/views/sunrice` and `resources/views/commerce`) and the theme (to `public/commerce-theme`) |
-| `--demo` | Add the demo store (once) |
+| `--starter` | Publish the starter theme instead: the templates plus the site layout, header, footer, home, content, search and 404 pages ([templates.md](templates.md#the-starter-theme)) |
+| `--demo` | Add the demo store (once); with `--starter`, the starter clothing store with a demo customer ([installation.md](installation.md#the-starter-store)) |
 | `--no-regions` | Don't import regions (it asks otherwise; non-interactive runs import) |
 | `--regions=` | How deep: `province`, `city`, `district` (default) or `village` |
 | `--force` | Overwrite the published config and templates |

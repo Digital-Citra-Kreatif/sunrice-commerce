@@ -8,7 +8,7 @@
     @php($L = \Sunrice\Commerce\Storefront\Layout::class)
     @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
     <section class="commerce-pay-page">
-        <h1>{{ __('commerce::payments.pay_title', ['number' => $order->displayNumber()]) }}</h1>
+        <h1 class="commerce-page-title">{{ __('commerce::payments.pay_title', ['number' => $order->displayNumber()]) }}</h1>
         @include($L::view('partials.messages'))
         <p>{{ __('commerce::checkout.order.amount_due', ['amount' => $money->format($order->total)]) }}</p>
         <form method="POST" action="{{ commerce_url('commerce.order.pay.submit', ['key' => $order->order_key]) }}" class="commerce-form">

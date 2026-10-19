@@ -3,13 +3,13 @@
     <header class="commerce-flash-sale__header">
         <h2>{{ $sale->name }}</h2>
         @if ($sale->show_countdown)
-            <p>{{ __('commerce::storefront.flash.ends_in') }} @include(\Sunrice\Commerce\Storefront\Layout::view('partials.countdown'), ['until' => $sale->ends_at->toIso8601String()])</p>
+            <p class="commerce-flash-sale__timer">{{ __('commerce::storefront.flash.ends_in') }} @include(\Sunrice\Commerce\Storefront\Layout::view('partials.countdown'), ['until' => $sale->ends_at->toIso8601String()])</p>
         @endif
         @if (\Illuminate\Support\Facades\Route::has('commerce.flash-sale.show'))
-            <a href="{{ commerce_url('commerce.flash-sale.show', ['sale' => $sale->slug]) }}">{{ __('commerce::storefront.listing.shop') }} →</a>
+            <a class="commerce-flash-sale__more" href="{{ commerce_url('commerce.flash-sale.show', ['sale' => $sale->slug]) }}">{{ __('commerce::storefront.theme.view_all') }} →</a>
         @endif
     </header>
-    <div class="commerce-grid">
+    <div class="commerce-grid commerce-grid--wide">
         @foreach ($products as $entry)
             @include(\Sunrice\Commerce\Storefront\Layout::view('partials.product-card'), ['entry' => $entry])
         @endforeach

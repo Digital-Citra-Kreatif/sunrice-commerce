@@ -17,7 +17,7 @@
     @endif
 
     @if ($product->tiers !== [])
-        <table class="commerce-tiers">
+        <table class="commerce-tiers" data-commerce-tiers>
             <caption>{{ __('commerce::storefront.price.tiers') }}</caption>
             <tbody>
                 @foreach ($product->tiers as $tier)
@@ -38,7 +38,9 @@
             @endif
             <label class="commerce-add__qty">
                 <span>{{ __('commerce::storefront.product.quantity') }}</span>
-                <input type="number" name="quantity" value="{{ $default?->min_qty ?? 1 }}" min="{{ $default?->min_qty ?? 1 }}" step="{{ $default?->qty_step ?? 1 }}" @if ($default?->max_qty) max="{{ $default->max_qty }}" @endif inputmode="numeric">
+                <span class="commerce-stepper" data-commerce-stepper>
+                    <input type="number" name="quantity" value="{{ $default?->min_qty ?? 1 }}" min="{{ $default?->min_qty ?? 1 }}" step="{{ $default?->qty_step ?? 1 }}" @if ($default?->max_qty) max="{{ $default->max_qty }}" @endif inputmode="numeric">
+                </span>
             </label>
             @if ($action !== null && $product->canAddToCart() && commerce_feature('cart'))
                 <button type="submit" class="commerce-add__button">{{ $product->cta['label'] }}</button>
