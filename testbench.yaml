@@ -9,6 +9,7 @@ providers:
   - Spatie\OneTimePasswords\OneTimePasswordsServiceProvider
   - Laravel\Socialite\SocialiteServiceProvider
   - Sunrice\Commerce\CommerceServiceProvider
+  - Workbench\App\Providers\WorkbenchServiceProvider
 
 migrations:
   - workbench/database/migrations
@@ -41,6 +42,8 @@ workbench:
     - commerce-assets
 
 env:
+  APP_NAME: KAIN
+  SESSION_DRIVER: file
   AUTH_MODEL: Workbench\App\Models\User
   SUNRICE_USER_MODEL: Workbench\App\Models\User
   DB_CONNECTION: sqlite

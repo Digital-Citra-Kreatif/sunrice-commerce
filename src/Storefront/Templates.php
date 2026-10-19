@@ -9,6 +9,9 @@ namespace Sunrice\Commerce\Storefront;
  * (ARCHITECTURE.md §22.3): the product, shop and product term pages as
  * Sunrice templates, every other store page and partial under
  * resources/views/commerce (found first by Layout::view()), and the theme.
+ * The starter theme (`commerce-starter`, commerce:install --starter) adds
+ * the site around them: Sunrice's layout, the store header and footer,
+ * the home, content, search and 404 pages.
  */
 final class Templates
 {
@@ -29,6 +32,25 @@ final class Templates
             if (! in_array($relative, ['product.blade.php', 'shop.blade.php', 'category.blade.php', 'brand.blade.php', 'tag.blade.php'], true)) {
                 $map["{$views}/{$relative}"] = resource_path('views/commerce/'.$relative);
             }
+        }
+
+        return $map;
+    }
+
+    /**
+     * The starter theme: everything publishable() copies, plus
+     * resources/views/starter/** to the same paths under resources/views
+     * (sunrice/layouts/app, sunrice/partials/store-*, sunrice/home,
+     * sunrice/pages/show, sunrice/search, errors/404).
+     *
+     * @return array<string, string> source => destination
+     */
+    public static function starter(): array
+    {
+        $views = __DIR__.'/../../resources/views/starter';
+        $map = self::publishable();
+        foreach (self::files($views) as $relative) {
+            $map["{$views}/{$relative}"] = resource_path('views/'.$relative);
         }
 
         return $map;
