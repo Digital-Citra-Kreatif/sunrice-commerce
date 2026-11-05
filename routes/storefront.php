@@ -75,6 +75,8 @@ Route::middleware(['commerce.feature:manual_payments', 'commerce.noindex'])->pre
 Route::post(StorefrontRoutes::path('reviews').'/{product}', [Storefront\ReviewsController::class, 'store'])->whereNumber('product')
     ->middleware(['commerce.feature:reviews', 'commerce.noindex', ProtectAgainstSpam::class, 'throttle:commerce-reviews'])->name('commerce.reviews.store'.$suffix);
 
+Route::get(StorefrontRoutes::path('feeds').'/products.xml', Storefront\FeedController::class)
+    ->middleware(['commerce.feature:product_feeds', 'throttle:commerce-feeds'])->name('commerce.feeds.products'.$suffix);
 Route::post(StorefrontRoutes::path('stock_alerts'), [Storefront\StockAlertsController::class, 'store'])
     ->middleware(['commerce.feature:stock_alerts', 'commerce.noindex', ProtectAgainstSpam::class, 'throttle:commerce-stock-alerts'])->name('commerce.stock-alerts.store'.$suffix);
 

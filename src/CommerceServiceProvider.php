@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Storage;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Sunrice\Cms\Content;
+use Sunrice\Cms\Events\ContentChanged;
 use Sunrice\Cms\Events\EntryDeleted;
 use Sunrice\Cms\Events\EntryPublished;
 use Sunrice\Cms\Site\Page;
@@ -255,6 +256,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         Event::listen(Orders\Events\OrderPaid::class, Documents\AssignInvoiceNumber::class);
         $this->publishes([__DIR__.'/../resources/views/documents' => resource_path('views/vendor/commerce/documents')], 'commerce-documents');
         Event::listen(Orders\Events\OrderCompleted::class, Digital\Listeners\GrantDownloads::class);
+        RateLimiter::for('commerce-feeds', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
         RateLimiter::for('commerce-stock-alerts', fn (Request $request) => Limit::perHour(20)->by($request->ip()));
         RateLimiter::for('commerce-reviews', fn (Request $request) => Limit::perHour(5)->by($request->ip()));
         RateLimiter::for('commerce-downloads', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
@@ -370,12 +372,16 @@ class CommerceServiceProvider extends PackageServiceProvider
     protected function registerHealthAndSchedule(): void
     {
         Storefront\PageCache::register();
+        // A product entry published, edited or taken off (and anything else the site shows): the feed is built again.
+        Event::listen(ContentChanged::class, fn () => Feeds\ProductFeed::forget());
+        // Any stock change (a bundle's availability moves with its components' stock, past no threshold): the feed is built again.
+        Event::listen(Inventory\Events\StockChanged::class, fn () => Feeds\ProductFeed::forget());
         // Product pages show availability and "only a few left": clear them when it changes.
         foreach ([Inventory\Events\StockOut::class, Inventory\Events\StockLow::class, Inventory\Events\StockBackIn::class] as $event) {
             Event::listen($event, fn () => Storefront\PageCache::forget('stock_changed'));
         }
         $health = $this->app->make(Health\HealthRegistry::class);
-        foreach ([Health\Checks\MailCheck::class, Health\Checks\QueueCheck::class, Health\Checks\SchedulerCheck::class, Health\Checks\FullPageCacheCheck::class, Health\Checks\StoreReadinessCheck::class, Health\Checks\CatalogDataCheck::class] as $check) {
+        foreach ([Health\Checks\MailCheck::class, Health\Checks\QueueCheck::class, Health\Checks\SchedulerCheck::class, Health\Checks\FullPageCacheCheck::class, Health\Checks\StoreReadinessCheck::class, Health\Checks\CatalogDataCheck::class, Health\Checks\ProductFeedCheck::class] as $check) {
             $health->register($check);
         }
 

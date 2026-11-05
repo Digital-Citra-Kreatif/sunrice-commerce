@@ -22,6 +22,7 @@ field into its own tables so carts, orders and listings can read it fast.
 - [Listings and filters](#listings-and-filters)
 - [Wishlist and compare](#wishlist-and-compare)
 - [Reviews](#reviews)
+- [Product feeds](#product-feeds)
 - [The projection](#the-projection)
 - [Admin pages](#admin-pages)
 
@@ -534,6 +535,26 @@ and delete them in Shop → Products → Reviews (permission `commerce.reviews.m
 - When a customer is anonymised, their reviews stay without their name, email and address; review
   IP addresses are pruned with the others (`commerce.privacy.ip_retention_days`).
 - `Reviews\Events\ReviewSubmitted` fires for every review written.
+
+## Product feeds
+
+**Product feeds** (`product_feeds` module, off by default): `/feeds/products.xml` lists the catalog
+for Google Merchant Center and Meta (Facebook and Instagram) catalogs, in Google's RSS 2.0 format
+with `g:` fields. The Store health page shows its address.
+
+- One item per active variant of every live product that can be added to the cart with its price
+  shown, as a guest sees the store; nothing when prices are hidden. `g:id` is `V` and the variant's
+  id (never the SKU, so two items can't share one); a variable product's variants share
+  `g:item_group_id` and their titles name the variant.
+- `g:price` is the regular price as the store shows it (before flash sales and pricing rules, the
+  compare-at price when higher) and `g:sale_price` the price the product page shows, when lower; `g:availability` is `in_stock`, `out_of_stock` or
+  `backorder`; also `g:link` (a variable product's variant links with `?variant=<uid>`, and the
+  product page opens on that variant), `g:image_link` (the variant's image, else the first of the gallery),
+  `g:description` (the excerpt), `g:brand`, `g:shipping_weight`, `g:condition` (`new`) and
+  `g:identifier_exists` (`no`).
+- Built 100 products at a time and kept an hour, or until something it shows changes (a product
+  synced, published or removed, any stock change, prices, store settings, a flash sale's cap);
+  30 requests a minute per address. A bundle without its own weight gets its components' weight.
 
 ## The projection
 

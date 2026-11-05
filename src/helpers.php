@@ -9,6 +9,7 @@ use Sunrice\Cms\Models\Term;
 use Sunrice\Cms\Models\TermTranslation;
 use Sunrice\Commerce\Catalog\ProductView;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
+use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
@@ -51,7 +52,7 @@ if (! function_exists('commerce_customer')) {
     /** The customer signed in to the storefront (commerce guard), or null. */
     function commerce_customer(): ?Authenticatable
     {
-        return auth()->guard((string) config('commerce.auth.guard', 'commerce'))->user();
+        return CurrentCustomer::isGuestOnly() ? null : auth()->guard((string) config('commerce.auth.guard', 'commerce'))->user();
     }
 }
 

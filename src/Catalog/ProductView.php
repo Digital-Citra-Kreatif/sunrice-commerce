@@ -147,9 +147,16 @@ final class ProductView implements JsonSerializable
     }
 
     /** The default variant (the first active one). */
+    /**
+     * The variant shown first: the one a link names (`?variant=<uid>`, as the
+     * product feed links each variant) when it is active, else the first active one.
+     */
     public function defaultVariant(): ?Variant
     {
-        return $this->product->variants->first(fn (Variant $v) => $v->active) ?? $this->product->variants->first();
+        $wanted = app()->bound('request') ? request()->query('variant') : null;
+        $named = is_string($wanted) && $wanted !== '' ? $this->product->variants->first(fn (Variant $v) => $v->active && $v->uid === $wanted) : null;
+
+        return $named ?? $this->product->variants->first(fn (Variant $v) => $v->active) ?? $this->product->variants->first();
     }
 
     /** Variant data for the picker script, without prices when they are hidden. */

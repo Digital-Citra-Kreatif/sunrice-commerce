@@ -78,6 +78,7 @@ return [
             'compare' => 'compare',
             'reviews' => 'reviews',
             'stock_alerts' => 'stock-alerts',
+            'feeds' => 'feeds',
             'brands' => 'brands',
             'flash_sale' => 'flash-sale',
             'downloads' => 'downloads',

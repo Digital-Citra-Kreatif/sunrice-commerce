@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Settings;
 
 use Illuminate\Support\Arr;
+use Sunrice\Commerce\Storefront\PageCache;
 use Sunrice\Commerce\Support\Defaults;
 use Throwable;
 
@@ -69,6 +70,8 @@ class StoreSettings
         $settings->values = $stored;
         $settings->save();
         $this->flush();
+        // What pages and the feed show can depend on any setting (who sees prices, currency, tax display…).
+        PageCache::forget('settings_saved');
     }
 
     /** Forget what this request has read (after a save, or between queued jobs). */
