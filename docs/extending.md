@@ -404,6 +404,7 @@ are public properties.
 | `Payments\Events\PaymentRecorded`, `PaymentSucceeded`, `PaymentFailed`, `PaymentExpired` | `Payment $payment, PaymentResult $result` |
 | `Payments\Events\PaymentAfterCancellation` | `Payment $payment, PaymentResult $result, Order $order` (paid after the order was cancelled: no `OrderPaid`) |
 | `Payments\Events\PaymentConfirmationSubmitted`, `PaymentConfirmationApproved`, `PaymentConfirmationRejected` | `PaymentConfirmation $confirmation` |
+| `Reviews\Events\ReviewSubmitted` | `Review $review` (pending or approved, by the store's settings) |
 | `Promotions\FlashSales\Events\FlashSaleStarted`, `FlashSaleEnded` | `FlashSale $sale` |
 
 ## Read helpers

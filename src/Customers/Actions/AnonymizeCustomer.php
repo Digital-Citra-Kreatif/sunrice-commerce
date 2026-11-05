@@ -59,6 +59,8 @@ class AnonymizeCustomer
                 ->when($user !== null, fn ($q) => $q->orWhere('user_id', $user->getAuthIdentifier()))
                 ->update([...$scrubbed, 'updated_at' => now()]);
             DB::table('commerce_payment_confirmations')->where('customer_id', $customer->id)->update(['sender_name' => 'Deleted customer', 'note' => null, 'ip_address' => null]);
+            // Reviews stay (they're about the product), without who wrote them.
+            DB::table('commerce_reviews')->where(fn ($q) => $q->where('customer_id', $customer->id)->when($customer->email, fn ($q, $email) => $q->orWhere('email', $email)))->update(['name' => 'Deleted customer', 'email' => null, 'ip_address' => null, 'customer_id' => null]);
             // Marketing emails sent to them (the campaigns keep their totals).
             DB::table('commerce_campaign_sends')->where('customer_id', $customer->id)->orWhere('email', $customer->email)->delete();
             foreach (static::$orderScrubbers as $scrub) {

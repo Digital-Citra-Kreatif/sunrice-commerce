@@ -161,6 +161,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         Blade::component(View\Components\MiniCart::class, 'commerce::mini-cart');
         Blade::component(View\Components\WishlistButton::class, 'commerce::wishlist-button');
         Blade::component(View\Components\CompareButton::class, 'commerce::compare-button');
+        Blade::component(View\Components\Reviews::class, 'commerce::reviews');
 
         // Product pages (and the shop's listings) when the app has no template of its own.
         Content::resolveTemplateUsing(fn (Page $page): ?string => Storefront\TemplateFallback::resolve($page->view, $page));
@@ -224,6 +225,8 @@ class CommerceServiceProvider extends PackageServiceProvider
             $count = DB::table('commerce_orders')->whereNotNull('ip_address')->where('created_at', '<', $before)->update(['ip_address' => null, 'user_agent' => null]);
             $count += DB::table('commerce_download_logs')->whereNotNull('ip_address')->where('created_at', '<', $before)->update(['ip_address' => null, 'user_agent' => null]);
 
+            $count += DB::table('commerce_reviews')->whereNotNull('ip_address')->where('created_at', '<', $before)->update(['ip_address' => null]);
+
             return $count + DB::table('commerce_payment_confirmations')->whereNotNull('ip_address')->where('created_at', '<', $before)->update(['ip_address' => null]);
         });
         $commerce->onPrune('payment proofs', function (): int {
@@ -248,6 +251,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         Event::listen(Orders\Events\OrderPaid::class, Documents\AssignInvoiceNumber::class);
         $this->publishes([__DIR__.'/../resources/views/documents' => resource_path('views/vendor/commerce/documents')], 'commerce-documents');
         Event::listen(Orders\Events\OrderCompleted::class, Digital\Listeners\GrantDownloads::class);
+        RateLimiter::for('commerce-reviews', fn (Request $request) => Limit::perHour(5)->by($request->ip()));
         RateLimiter::for('commerce-downloads', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
         RateLimiter::for('commerce-webhooks', fn (Request $request) => Limit::perMinute(300)->by($request->ip()));
         RateLimiter::for('commerce-checkout', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));

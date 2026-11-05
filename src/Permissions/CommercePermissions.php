@@ -41,6 +41,7 @@ final class CommercePermissions
 
             'commerce.inventory.view' => ['View stock levels', 'Store: Catalog'],
             'commerce.inventory.adjust' => ['Adjust stock', 'Store: Catalog'],
+            'commerce.reviews.manage' => ['Approve, reply to and delete product reviews', 'Store: Catalog'],
 
             'commerce.vouchers.manage' => ['Manage vouchers and automatic discounts', 'Store: Promotions'],
             'commerce.flash-sales.manage' => ['Manage flash sales', 'Store: Promotions'],

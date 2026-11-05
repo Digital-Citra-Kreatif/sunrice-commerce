@@ -35,6 +35,8 @@ use Sunrice\Commerce\Database\Factories\ProductFactory;
  * @property bool $on_sale
  * @property bool $in_stock
  * @property int $sales_count
+ * @property int $rating_count approved reviews
+ * @property float|null $rating_average their average rating (1–5)
  * @property string|null $data_hash
  * @property string $sync_status
  * @property string|null $sync_error
@@ -69,6 +71,8 @@ class Product extends Model
         'max_regular_price' => 'integer',
         'synced_at' => 'datetime',
         'removed_at' => 'datetime',
+        'rating_count' => 'integer',
+        'rating_average' => 'float',
     ];
 
     protected static function newFactory(): ProductFactory

@@ -7,6 +7,15 @@ The first release. Commerce is a plugin for the Sunrice panel (`sunrice/admin`) 
 editor, the store's admin pages live in the panel under Shop, and the storefront renders through
 the CMS's templates and full-page cache.
 
+### Reviews
+- Product reviews and ratings (`reviews` module): a 1–5 star rating and text on the product page
+  (`<x-commerce::reviews>`), verified purchases, who may review and whether reviews need approval
+  (Settings → Store → Catalog), moderation and replies in Shop → Products → Reviews
+  (`commerce.reviews.manage`), the rating on cards and in the product's JSON-LD
+  (`aggregateRating`), a honeypot, captcha for guests and a rate limit, and anonymisation with the
+  customer. New table `commerce_reviews`; `commerce_products` gets `rating_count` and
+  `rating_average`.
+
 ### Starter theme
 - `commerce:install --starter` (tag `commerce-starter`) publishes a complete shop: the storefront
   templates plus Sunrice's layout, a sticky header with a department mega menu (a drawer on phones),

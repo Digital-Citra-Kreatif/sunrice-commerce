@@ -727,3 +727,25 @@ section.commerce-flash-sale { padding: 24px 0 0; border-top: 4px solid var(--com
 .commerce-specs dd { margin: 0; }
 .commerce-inquiry { padding: 24px; background: var(--commerce-surface); }
 .commerce-related .commerce-section__title { margin-top: 24px; }
+
+/* Reviews (<x-commerce::reviews>) */
+.commerce-rating { margin: 4px 0; color: var(--commerce-muted); font-size: 14px; }
+.commerce-rating a { color: inherit; }
+.commerce-rating [aria-hidden] { color: #e0a800; letter-spacing: 1px; }
+.commerce-card__rating { margin: 2px 0 0; font-size: 13px; }
+.commerce-reviews { margin: 48px 0; display: grid; gap: 16px; max-width: 760px; }
+.commerce-reviews__summary { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; }
+.commerce-reviews__breakdown { margin: 0; display: grid; gap: 4px; font-size: 13px; }
+.commerce-reviews__breakdown div { display: flex; gap: 8px; align-items: center; }
+.commerce-reviews__breakdown dt { min-width: 64px; }
+.commerce-reviews__breakdown dd { margin: 0; display: flex; gap: 8px; align-items: center; }
+.commerce-review { padding: 16px 0; border-top: 1px solid var(--commerce-line, #e5e5e5); }
+.commerce-review h3 { margin: 4px 0; font-size: 16px; }
+.commerce-review__meta { margin: 0; font-size: 13px; color: var(--commerce-muted); }
+.commerce-review__verified { color: #1a7f37; }
+.commerce-review__body { margin: 8px 0 0; }
+.commerce-review__reply { margin: 12px 0 0 16px; padding: 8px 12px; border-left: 3px solid var(--commerce-line, #e5e5e5); font-size: 14px; }
+.commerce-review__reply p { margin: 0 0 4px; }
+.commerce-reviews__form { display: grid; gap: 12px; }
+.commerce-reviews__stars { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 12px; }
+.commerce-reviews__stars legend { margin-bottom: 4px; font-weight: 600; }

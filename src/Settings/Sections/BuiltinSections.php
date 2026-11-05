@@ -143,6 +143,12 @@ final class BuiltinSections
             ['handle' => 'compare_fields', 'type' => 'select', 'label' => 'Compare also', 'config' => ['multiple' => true, 'options' => self::options([
                 'sku' => 'SKU', 'brand' => 'Brand', 'categories' => 'Categories', 'stock' => 'Stock', 'weight' => 'Weight', 'dimensions' => 'Dimensions', 'attributes' => 'Attributes', 'excerpt' => 'Summary',
             ])]],
+            ['handle' => 'reviews_who', 'type' => 'select', 'label' => 'Who may review products', 'config' => ['options' => self::options([
+                'everyone' => 'Everyone (guests give a name and email)', 'customers' => 'Signed-in customers', 'buyers' => 'Customers who bought the product',
+            ])]],
+            ['handle' => 'reviews_approval', 'type' => 'select', 'label' => 'Reviews show', 'config' => ['options' => self::options([
+                'manual' => 'Once approved in Shop → Reviews', 'buyers' => 'At once from buyers, others once approved', 'none' => 'At once',
+            ])]],
         ];
     }
 

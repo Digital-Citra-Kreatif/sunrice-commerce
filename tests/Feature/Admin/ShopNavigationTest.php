@@ -46,7 +46,7 @@ it('keeps the whole store in one group: products, their taxonomies and the setti
         $shop = collect($groups['Shop']['items'])->keyBy('label'); // Marketing is off by default
 
         expect($shop->keys()->all())->toBe(['Dashboard', 'Orders', 'Products', 'Customers', 'Promotions', 'Reports', 'Store settings'])
-            ->and(array_column($shop['Products']['children'], 'label'))->toBe(['Product categories', 'Brands', 'Product tags', 'Inventory'])
+            ->and(array_column($shop['Products']['children'], 'label'))->toBe(['Product categories', 'Brands', 'Product tags', 'Inventory', 'Reviews'])
             ->and(array_column($shop['Orders']['children'], 'label'))->toBe(['Payments to verify'])
             ->and(array_column($shop['Promotions']['children'], 'label'))->toBe(['Vouchers', 'Flash sales', 'Pricing rules']);
     });

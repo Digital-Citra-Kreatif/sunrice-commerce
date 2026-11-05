@@ -20,6 +20,7 @@ use Sunrice\Commerce\Orders\Models\OrderAdjustment;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Regions\RegionImporter;
+use Sunrice\Commerce\Reviews\Models\Review;
 use Sunrice\Commerce\Storefront\Templates;
 use Workbench\App\Models\User;
 
@@ -55,7 +56,7 @@ it('ships starter templates that compile to valid PHP', function () {
 it('seeds the starter store once, however often it runs', function () {
     starterStore();
     $counts = fn () => [Product::query()->count(), Variant::query()->count(), Media::query()->count(), Term::query()->count(), Entry::query()->count(),
-        Order::query()->count(), Voucher::query()->count(), FlashSale::query()->count(), Menu::query()->count(), Customer::query()->count()];
+        Order::query()->count(), Voucher::query()->count(), FlashSale::query()->count(), Menu::query()->count(), Customer::query()->count(), Review::query()->count()];
     $first = $counts();
     app(StarterStoreSeeder::class)->run();
 
@@ -64,7 +65,9 @@ it('seeds the starter store once, however often it runs', function () {
         ->and(Product::query()->where('type', 'bundle')->count())->toBe(3)
         ->and(Product::query()->where('downloadable', true)->count())->toBe(1)
         ->and(Order::query()->distinct()->pluck('status')->all())->toContain('completed', 'processing', 'cancelled', 'pending')
-        ->and(User::query()->where('email', StarterStoreSeeder::CUSTOMER_EMAIL)->exists())->toBeTrue();
+        ->and(User::query()->where('email', StarterStoreSeeder::CUSTOMER_EMAIL)->exists())->toBeTrue()
+        ->and($first[10])->toBe(5)->and(Review::query()->whereNotNull('order_id')->count())->toBe(2)
+        ->and(Product::query()->where('rating_count', '>', 0)->count())->toBe(4);
 });
 
 it('renders every starter page with the demo data', function () {
