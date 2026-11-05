@@ -18,7 +18,9 @@ use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Admin\Tables\Column;
 use Sunrice\Commerce\Admin\Tables\TableQuery;
 use Sunrice\Commerce\Catalog\Models\Product;
-use Sunrice\Commerce\Reviews\Actions\ModerateReview;
+use Sunrice\Commerce\Reviews\Actions\DeleteReviews;
+use Sunrice\Commerce\Reviews\Actions\ReplyToReview;
+use Sunrice\Commerce\Reviews\Actions\SetReviewStatus;
 use Sunrice\Commerce\Reviews\Models\Review;
 
 /** Shop → Products → Reviews: approve, reject, reply to and delete product reviews. */
@@ -77,7 +79,7 @@ class ReviewsController extends Controller
         ]);
     }
 
-    public function bulk(Request $request, ModerateReview $moderate): RedirectResponse
+    public function bulk(Request $request, SetReviewStatus $status, DeleteReviews $delete): RedirectResponse
     {
         $this->guard();
         $data = $request->validate([
@@ -86,7 +88,7 @@ class ReviewsController extends Controller
             'ids.*' => ['integer'],
         ]);
         $reviews = Review::query()->whereIn('id', $data['ids'])->get();
-        $done = $data['action'] === 'delete' ? $moderate->delete($reviews) : $moderate->status($reviews, $data['action']);
+        $done = $data['action'] === 'delete' ? $delete->handle($reviews) : $status->handle($reviews, $data['action']);
 
         return back()->with('success', $done === 1 ? '1 review updated.' : "{$done} reviews updated.");
     }
@@ -113,22 +115,22 @@ class ReviewsController extends Controller
         ]);
     }
 
-    public function update(Request $request, Review $review, ModerateReview $moderate): RedirectResponse
+    public function update(Request $request, Review $review, ReplyToReview $reply): RedirectResponse
     {
         $this->guard();
         $data = $request->validate([
             'values.status' => ['required', Rule::in(Review::STATUSES)],
             'values.reply' => ['nullable', 'string', 'max:5000'],
         ]);
-        $moderate->reply($review, $data['values']['reply'] ?? null, $data['values']['status']);
+        $reply->handle($review, $data['values']['reply'] ?? null, $data['values']['status']);
 
         return back()->with('success', 'Review saved.');
     }
 
-    public function destroy(Review $review, ModerateReview $moderate): RedirectResponse
+    public function destroy(Review $review, DeleteReviews $delete): RedirectResponse
     {
         $this->guard();
-        $moderate->delete([$review]);
+        $delete->handle([$review]);
 
         return redirect()->route('sunrice.admin.commerce.reviews')->with('success', 'Review deleted.');
     }

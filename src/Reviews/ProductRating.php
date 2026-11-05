@@ -20,6 +20,14 @@ class ProductRating
         ]);
     }
 
+    /** @param  list<int>  $productIds */
+    public static function refreshMany(array $productIds): void
+    {
+        foreach ($productIds as $id) {
+            self::refresh($id);
+        }
+    }
+
     /**
      * How many approved reviews gave each rating, 5 to 1.
      *

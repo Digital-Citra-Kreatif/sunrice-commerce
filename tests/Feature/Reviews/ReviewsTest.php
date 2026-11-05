@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\DB;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Customers\Actions\AnonymizeCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
@@ -32,10 +34,10 @@ function reviewer(bool $bought = false): Customer
 }
 
 it('keeps a guest review until it is approved, then shows it with the rating', function () {
-    $this->post("/reviews/{$this->product->id}", ['rating' => 4, 'title' => 'Nice mug', 'body' => 'Holds my coffee well.', 'name' => 'Budi', 'email' => 'budi@example.com'])
+    $this->post("/reviews/{$this->product->id}", ['rating' => 4, 'title' => 'Nice mug', 'body' => 'Holds my coffee well.', 'name' => 'Budi', 'email' => 'Budi@Example.com'])
         ->assertRedirect()->assertSessionHas('commerce.success', 'Terima kasih! Ulasan Anda akan tampil setelah diperiksa.');
     $review = Review::query()->sole();
-    expect($review->status)->toBe('pending')->and($this->product->fresh()->rating_count)->toBe(0);
+    expect($review->email)->toBe('budi@example.com')->and($review->status)->toBe('pending')->and($this->product->fresh()->rating_count)->toBe(0);
     $this->get('/products/mug')->assertOk()->assertDontSee('Holds my coffee well.')->assertSee('Belum ada ulasan');
 
     actingAsUserWith(['commerce.reviews.manage']);
@@ -106,10 +108,21 @@ it('moderates reviews in Shop → Reviews for staff who may', function () {
 it('forgets who wrote a review when the customer is anonymised', function () {
     $customer = reviewer(bought: true);
     $this->post("/reviews/{$this->product->id}", ['rating' => 5, 'body' => 'Best mug I have owned.']);
-    Review::query()->create(['product_id' => $this->product->id, 'name' => 'Ana as guest', 'email' => 'ana@example.com', 'rating' => 4, 'body' => 'Written before signing up.', 'ip_address' => '10.0.0.1']);
+    Review::query()->create(['product_id' => $this->product->id, 'name' => 'Ana as guest', 'email' => 'Ana@Example.com', 'rating' => 4, 'body' => 'Written before signing up.', 'ip_address' => '10.0.0.1']);
 
     app(AnonymizeCustomer::class)->handle($customer->fresh());
 
     expect(Review::query()->get(['name', 'email', 'customer_id', 'ip_address'])->toArray())
         ->each->toBe(['name' => 'Deleted customer', 'email' => null, 'customer_id' => null, 'ip_address' => null]);
+});
+
+it('keeps one review per customer and product in the database', function () {
+    $customer = reviewer();
+    Review::query()->create(['product_id' => $this->product->id, 'customer_id' => $customer->id, 'name' => 'Ana', 'rating' => 5, 'body' => 'First one.']);
+
+    expect(fn () => DB::transaction(fn () => Review::query()->create(['product_id' => $this->product->id, 'customer_id' => $customer->id, 'name' => 'Ana', 'rating' => 1, 'body' => 'Second one.'])))
+        ->toThrow(UniqueConstraintViolationException::class);
+    Review::query()->create(['product_id' => $this->product->id, 'name' => 'Guest', 'rating' => 3, 'body' => 'A guest.']);
+    Review::query()->create(['product_id' => $this->product->id, 'name' => 'Guest 2', 'rating' => 4, 'body' => 'Another guest.']);
+    expect(Review::query()->count())->toBe(3);
 });

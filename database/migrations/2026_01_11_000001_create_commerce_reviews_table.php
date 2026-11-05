@@ -30,6 +30,8 @@ return new class extends Migration
             // The product page's approved reviews, newest first.
             $table->index(['product_id', 'status', 'created_at']);
             $table->index(['status', 'created_at']);
+            // One review per customer and product (guests' rows have no customer, so they don't collide).
+            $table->unique(['product_id', 'customer_id']);
         });
 
         Schema::table('commerce_products', function (Blueprint $table) {
