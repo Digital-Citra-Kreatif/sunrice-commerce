@@ -255,6 +255,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         Event::listen(Orders\Events\OrderPaid::class, Documents\AssignInvoiceNumber::class);
         $this->publishes([__DIR__.'/../resources/views/documents' => resource_path('views/vendor/commerce/documents')], 'commerce-documents');
         Event::listen(Orders\Events\OrderCompleted::class, Digital\Listeners\GrantDownloads::class);
+        RateLimiter::for('commerce-feeds', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
         RateLimiter::for('commerce-stock-alerts', fn (Request $request) => Limit::perHour(20)->by($request->ip()));
         RateLimiter::for('commerce-reviews', fn (Request $request) => Limit::perHour(5)->by($request->ip()));
         RateLimiter::for('commerce-downloads', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
@@ -375,7 +376,7 @@ class CommerceServiceProvider extends PackageServiceProvider
             Event::listen($event, fn () => Storefront\PageCache::forget('stock_changed'));
         }
         $health = $this->app->make(Health\HealthRegistry::class);
-        foreach ([Health\Checks\MailCheck::class, Health\Checks\QueueCheck::class, Health\Checks\SchedulerCheck::class, Health\Checks\FullPageCacheCheck::class, Health\Checks\StoreReadinessCheck::class, Health\Checks\CatalogDataCheck::class] as $check) {
+        foreach ([Health\Checks\MailCheck::class, Health\Checks\QueueCheck::class, Health\Checks\SchedulerCheck::class, Health\Checks\FullPageCacheCheck::class, Health\Checks\StoreReadinessCheck::class, Health\Checks\CatalogDataCheck::class, Health\Checks\ProductFeedCheck::class] as $check) {
             $health->register($check);
         }
 

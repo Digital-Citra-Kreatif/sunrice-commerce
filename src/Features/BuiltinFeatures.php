@@ -31,6 +31,7 @@ final class BuiltinFeatures
             new Feature('digital', 'catalog', 'Digital products', 'Downloadable files and links, delivered by email or in My Account.', ['orders']),
             new Feature('brands', 'catalog', 'Brands', 'Brand pages, filters and the brands index.', ['catalog']),
             new Feature('inventory', 'catalog', 'Stock tracking', 'Stock quantities, statuses, backorders and low-stock alerts.', ['catalog']),
+            new Feature('product_feeds', 'catalog', 'Product feeds', 'A feed of your products for Google Merchant Center and Meta catalogs.', ['catalog'], default: false),
             new Feature('stock_alerts', 'catalog', 'Back-in-stock alerts', 'Customers ask to be emailed when a sold-out product is back.', ['inventory']),
 
             new Feature('cart', 'selling', 'Cart and mini cart', 'Customers collect products in a cart.', ['catalog'], $cart),

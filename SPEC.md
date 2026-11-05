@@ -270,6 +270,13 @@ keys, for example a Midtrans package requiring `payments`.
 - Shop → Inventory shows how many wait for each variant and filters those with someone waiting.
 - Sent alerts are deleted after 30 days, unsent ones after 180; anonymising a customer deletes theirs.
 
+**Product feeds (`product_feeds`, off by default)**
+
+- `/feeds/products.xml`: an RSS 2.0 feed with Google's `g:` fields, read by Google Merchant Center
+  and Meta catalogs: every buyable variant of the live products with its price shown, at the
+  product page's price (regular and sale), availability, link, image, brand and weight; variants
+  grouped by product. Cached an hour or until the catalog changes.
+
 **Languages**
 
 - Product data is shared across languages. Translated text (title, description, names of global
@@ -1184,7 +1191,7 @@ Deliberately not used:
 - Product Q&A.
 - Subscriptions, memberships, gift cards, store credit and loyalty points (loyalty is a separate
   package).
-- Price-drop alerts, product feeds (Google Merchant, Meta).
+- Price-drop alerts.
 - Configurable bundles (customer-picked components), product add-ons and personalization fields,
   deposits and installments.
 - A returns/RMA workflow and exchanges; refunds are recorded by hand.

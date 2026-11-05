@@ -7,6 +7,11 @@ The first release. Commerce is a plugin for the Sunrice panel (`sunrice/admin`) 
 editor, the store's admin pages live in the panel under Shop, and the storefront renders through
 the CMS's templates and full-page cache.
 
+### Product feeds
+- `product_feeds` module (off by default): `/feeds/products.xml` for Google Merchant Center and
+  Meta catalogs (RSS 2.0 with `g:` fields), one item per buyable variant at the price the product
+  page shows; its address on the Store health page.
+
 ### Back-in-stock alerts
 - `stock_alerts` module (needs Stock tracking): "Email me when it's back" on sold-out products and
   variants, the "Back in stock" store email sent once by `commerce:tick` when the variant can be
