@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Cms\Models\Blueprint;
 use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Cms\Models\Form;
 use Sunrice\Cms\Models\Menu;
 use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 
 it('creates the store structure, then reports nothing to do', function () {
     $this->artisan('commerce:scaffold')->assertSuccessful();

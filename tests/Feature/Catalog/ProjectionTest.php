@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use Sunrice\Cms\Actions\Entries\TrashEntry;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Validation\ValidationException;
 use Sunrice\Cms\Actions\Entries\ForceDeleteEntry;
 use Sunrice\Cms\Actions\Entries\PublishEntry;
+use Sunrice\Cms\Actions\Entries\TrashEntry;
 use Sunrice\Commerce\Catalog\Events\ProductSynced;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\StockMovement;
@@ -83,7 +83,6 @@ it('refuses to publish a product whose SKU was taken after its draft was saved',
     expect($entry->fresh()->mainTranslation()->status())->toBe('draft')
         ->and(Product::query()->where('entry_id', $entry->id)->exists())->toBeFalse();
 });
-
 
 it('marks the product removed when the entry is deleted for good', function () {
     $entry = publishProduct(shirt());

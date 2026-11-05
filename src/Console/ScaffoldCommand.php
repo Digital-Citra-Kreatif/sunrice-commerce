@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Console;
 
 use Illuminate\Console\Command;
-use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Cms\Structure\ImportReport;
 use Sunrice\Cms\Structure\StructureImportFailed;
+use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 
 /** commerce:scaffold — create the store's collection, blueprints, taxonomies, form, pages and menu. */
 class ScaffoldCommand extends Command

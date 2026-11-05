@@ -5,13 +5,14 @@ declare(strict_types=1);
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
+use Sunrice\Cms\Content;
+use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Catalog\ProductView;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
-use Sunrice\Cms\Models\Entry;
 
 /*
  * A view's picker rows (ProductView::$variants) are built the first time
@@ -125,7 +126,7 @@ it('loads the option values of a whole page in one query when rows are read', fu
     foreach (range(1, 6) as $i) {
         publishProduct(colourShirt(['variants' => array_map(fn (array $v) => [...$v, 'id' => "{$v['id']}-{$i}", 'sku' => "{$v['sku']}-{$i}"], colourShirt()['variants'])]), title: "Kaos {$i}");
     }
-    $views = app(ProductViewFactory::class)->forEntries(\Sunrice\Cms\Content::entries('products')->get());
+    $views = app(ProductViewFactory::class)->forEntries(Content::entries('products')->get());
 
     DB::flushQueryLog();
     DB::enableQueryLog();

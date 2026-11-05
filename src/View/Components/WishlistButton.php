@@ -6,12 +6,12 @@ namespace Sunrice\Commerce\View\Components;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
+use Sunrice\Commerce\Catalog\LiveEntries;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Wishlist\WishlistManager;
-use Sunrice\Cms\Models\Entry;
-use Sunrice\Commerce\Catalog\LiveEntries;
-use Sunrice\Cms\Models\EntryTranslation;
 
 /** <x-commerce::wishlist-button :entry="$entry" /> — add to / remove from the wishlist. */
 class WishlistButton extends Component

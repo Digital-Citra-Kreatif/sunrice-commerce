@@ -5,6 +5,9 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
+use Sunrice\Cms\Models\Term;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\ProductQuery;
@@ -12,9 +15,6 @@ use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\View\Components\Products;
-use Sunrice\Cms\Models\Entry;
-use Sunrice\Cms\Models\EntryTranslation;
-use Sunrice\Cms\Models\Term;
 
 /** @param array<int, Term> $terms */
 function listed(string $title, int $price, array $terms = [], array $extra = []): Entry

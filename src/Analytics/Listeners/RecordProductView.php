@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Analytics\Listeners;
 
 use Illuminate\Foundation\Http\Events\RequestHandled;
+use Sunrice\Cms\Site\Page;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Contracts\Tracking;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Cms\Site\Page;
 
 /**
  * A product page served (200, GET, not a preview) counts a view, after

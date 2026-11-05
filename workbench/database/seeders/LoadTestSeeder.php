@@ -11,16 +11,17 @@ use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 use Sunrice\Cms\Actions\Entries\PublishEntry;
 use Sunrice\Cms\Actions\Entries\SaveDraft;
-use Sunrice\Commerce\Catalog\Models\Variant;
-use Sunrice\Commerce\Promotions\Actions\SaveFlashSale;
-use Sunrice\Commerce\Promotions\Actions\SavePricingRule;
-use Sunrice\Commerce\Promotions\Actions\SaveVoucher;
-use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Models\Entry;
 use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\Cms\Models\Term;
 use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Promotions\Actions\SaveFlashSale;
+use Sunrice\Commerce\Promotions\Actions\SavePricingRule;
+use Sunrice\Commerce\Promotions\Actions\SaveVoucher;
+use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Commerce\Support\Staff;
 use Workbench\App\Models\User;
 
 /**
@@ -297,7 +298,7 @@ class LoadTestSeeder extends Seeder
         $cities = [];
         $now = now();
         $customerUser = User::query()->firstOrCreate(['email' => 'customer@example.com'], ['name' => 'Pelanggan Uji', 'password' => bcrypt('password')]);
-        $customerUser->assignRole(Role::findOrCreate('Customer', \Sunrice\Commerce\Support\Staff::guard()));
+        $customerUser->assignRole(Role::findOrCreate('Customer', Staff::guard()));
         $rows = [];
         for ($i = 1; $i <= $this->customers; $i++) {
             $rows[] = ['user_id' => $i === 1 ? $customerUser->id : null, 'email' => $i === 1 ? 'customer@example.com' : "pelanggan{$i}@example.com",

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Schema;
 use Spatie\OneTimePasswords\Models\Concerns\HasOneTimePasswords;
 use Sunrice\Commerce\Database\Seeders\DemoStoreSeeder;
 use Sunrice\Commerce\Database\Seeders\StarterStoreSeeder;
+use Sunrice\Commerce\Support\Staff;
 use Sunrice\Commerce\Support\UserModelTraits;
 
 /**
@@ -82,7 +83,7 @@ class InstallCommand extends Command
     /** Sign-in with an emailed code needs HasOneTimePasswords on the user model. */
     protected function userModel(): void
     {
-        $model = \Sunrice\Commerce\Support\Staff::userModel();
+        $model = Staff::userModel();
         if (! is_string($model) || ! class_exists($model)) {
             $this->components->warn('No user model configured (sunrice.auth.user_model).');
 

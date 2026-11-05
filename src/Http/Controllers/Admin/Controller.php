@@ -9,13 +9,13 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Routing\Controller as BaseController;
+use Sunrice\Cms\Fields\Field;
+use Sunrice\Cms\Models\Collection;
+use Sunrice\Cms\Support\Access;
 use Sunrice\Commerce\Admin\Tables\Column;
 use Sunrice\Commerce\Admin\Tables\TableQuery;
 use Sunrice\Commerce\Catalog\ProductField;
 use Sunrice\Commerce\Features\Features;
-use Sunrice\Cms\Models\Collection;
-use Sunrice\Cms\Support\Access;
-use Sunrice\Cms\Fields\Field;
 
 /** Base of the Shop admin controllers. */
 abstract class Controller extends BaseController

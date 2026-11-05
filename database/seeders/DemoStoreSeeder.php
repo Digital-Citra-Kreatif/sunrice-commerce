@@ -6,8 +6,9 @@ namespace Sunrice\Commerce\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
-use Sunrice\Cms\Actions\Entries\PublishEntry;
 use Sunrice\Cms\Actions\Entries\CreateEntry;
+use Sunrice\Cms\Actions\Entries\PublishEntry;
+use Sunrice\Cms\Models\Collection;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Orders\Actions\CreateManualOrder;
@@ -17,9 +18,6 @@ use Sunrice\Commerce\Promotions\Actions\SaveVoucher;
 use Sunrice\Commerce\Settings\Actions\SaveStoreSettings;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Shipping\Models\ShippingZone;
-use Sunrice\Cms\Models\Collection;
-use Sunrice\Cms\Models\Entry;
-use Sunrice\Cms\Support\Locales;
 
 /**
  * A demo store (commerce:install --demo): store details, a simple, a

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Console;
 
 use Illuminate\Console\Command;
-use Sunrice\Commerce\Catalog\ProductProjector;
 use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Models\Entry;
+use Sunrice\Commerce\Catalog\ProductProjector;
 
 /** commerce:sync-products — re-project published product entries (all, or --entry=ID…). */
 class SyncProductsCommand extends Command

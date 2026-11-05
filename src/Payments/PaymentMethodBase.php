@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Payments;
 
 use DateTimeInterface;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Contracts\PaymentMethod;
-use Sunrice\Cms\Support\Locales;
 
 /**
  * The settings every method shares (stored in payments.methods.{key}):

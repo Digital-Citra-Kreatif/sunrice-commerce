@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Catalog;
 
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -35,10 +36,10 @@ final class BundleComponents
     }
 
     /**
-     * @param  \Illuminate\Database\Query\Builder|list<int>  $variants
+     * @param  Builder|list<int>  $variants
      * @return array<int, int>
      */
-    private function load(\Illuminate\Database\Query\Builder|array $variants): array
+    private function load(Builder|array $variants): array
     {
         return DB::table('commerce_variants')->join('commerce_products', 'commerce_products.id', '=', 'commerce_variants.product_id')
             ->whereIn('commerce_variants.id', $variants)->pluck('commerce_products.entry_id', 'commerce_variants.id')

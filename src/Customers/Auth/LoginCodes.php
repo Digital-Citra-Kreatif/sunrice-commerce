@@ -12,6 +12,7 @@ use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Customers\Notifications\CustomerLoginCode;
 use Sunrice\Commerce\Customers\Notifications\WelcomeCustomer;
 use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Commerce\Support\Staff;
 
 /**
  * One-time sign-in codes (ARCHITECTURE.md §16.2), with
@@ -25,7 +26,7 @@ class LoginCodes
 
     public function supported(): bool
     {
-        $model = \Sunrice\Commerce\Support\Staff::userModel();
+        $model = Staff::userModel();
 
         return is_string($model) && method_exists($model, 'createOneTimePassword');
     }

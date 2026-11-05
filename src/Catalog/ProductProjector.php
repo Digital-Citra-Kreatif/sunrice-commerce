@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Catalog;
 
 use Illuminate\Support\Facades\DB;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\Term;
 use Sunrice\Commerce\Catalog\Events\ProductSynced;
 use Sunrice\Commerce\Catalog\Events\ProductSyncFailed;
 use Sunrice\Commerce\Catalog\Models\BundleItem;
@@ -16,9 +19,7 @@ use Sunrice\Commerce\Catalog\Models\ProductOptionValue;
 use Sunrice\Commerce\Catalog\Models\StockMovement;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Storefront\PageCache;
-use Sunrice\Cms\Models\Entry;
-use Sunrice\Cms\Models\Taxonomy;
-use Sunrice\Cms\Models\Term;
+use Sunrice\Commerce\Support\Staff;
 use Throwable;
 
 /**
@@ -181,7 +182,7 @@ class ProductProjector
             }
             $variant->save();
             if ($initial !== null && ($initial !== 0 || $isNew)) {
-                StockMovement::query()->create(['variant_id' => $variant->id, 'delta' => $initial, 'quantity_after' => $initial, 'reason' => 'initial', 'user_id' => auth(\Sunrice\Commerce\Support\Staff::guard())->id()]);
+                StockMovement::query()->create(['variant_id' => $variant->id, 'delta' => $initial, 'quantity_after' => $initial, 'reason' => 'initial', 'user_id' => auth(Staff::guard())->id()]);
             }
             $variant->optionValues()->sync($valueIds);
             $kept[$v['id']] = $variant;

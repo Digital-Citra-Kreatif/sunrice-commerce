@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Health\Checks;
 
+use Sunrice\Cms\Site\PageCache as SitePageCache;
 use Sunrice\Commerce\Health\HealthCheck;
 use Sunrice\Commerce\Health\HealthResult;
-use Sunrice\Cms\Site\PageCache as SitePageCache;
 use Sunrice\Commerce\Storefront\PageCache;
 
 /**

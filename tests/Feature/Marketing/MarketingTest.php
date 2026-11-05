@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Validation\ValidationException;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Variant;
@@ -23,7 +24,6 @@ use Sunrice\Commerce\Marketing\Models\Campaign;
 use Sunrice\Commerce\Marketing\Models\CampaignLink;
 use Sunrice\Commerce\Marketing\Models\CampaignSend;
 use Sunrice\Commerce\Marketing\SmartTags;
-use Sunrice\Cms\Support\Locales;
 
 use function Pest\Laravel\get;
 use function Pest\Laravel\post;

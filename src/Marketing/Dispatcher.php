@@ -6,9 +6,9 @@ namespace Sunrice\Commerce\Marketing;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Marketing\Jobs\SendMarketingEmails;
 use Sunrice\Commerce\Marketing\Models\Campaign;
-use Sunrice\Cms\Support\Locales;
 
 /**
  * Queues a marketing email for recipients: one row each (skipping anyone

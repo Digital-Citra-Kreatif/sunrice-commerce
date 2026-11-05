@@ -7,11 +7,11 @@ namespace Sunrice\Commerce\Http\Controllers\Admin;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Sunrice\Commerce\Catalog\Models\Product;
-use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Cms\Models\Entry;
 use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Catalog\Models\Product;
+use Sunrice\Commerce\Catalog\Models\Variant;
 
 /** JSON for the product editor control. */
 class ProductApiController extends Controller

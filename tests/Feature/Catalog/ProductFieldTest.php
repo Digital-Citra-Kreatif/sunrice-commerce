@@ -3,13 +3,13 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Validator;
+use Sunrice\Cms\Fields\Field;
+use Sunrice\Cms\Fields\HydrationContext;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Catalog\ProductData;
 use Sunrice\Commerce\Catalog\ProductField;
 use Sunrice\Commerce\Catalog\ProductValue;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
-use Sunrice\Cms\Fields\Field;
-use Sunrice\Cms\Fields\HydrationContext;
 
 function productErrors(array $value): array
 {

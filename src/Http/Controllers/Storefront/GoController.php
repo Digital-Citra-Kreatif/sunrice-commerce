@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Http\Controllers\Storefront;
 
-use Sunrice\Commerce\Catalog\LiveEntries;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\Catalog;
+use Sunrice\Commerce\Catalog\LiveEntries;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Contracts\Tracking;
 use Sunrice\Commerce\Storefront\WhatsApp;
-use Sunrice\Cms\Models\Entry;
-use Sunrice\Cms\Models\EntryTranslation;
 
 /**
  * GET /go/{type}/{entry}: counts a call-to-action click and redirects to

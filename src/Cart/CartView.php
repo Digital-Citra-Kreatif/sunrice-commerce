@@ -7,8 +7,13 @@ namespace Sunrice\Commerce\Cart;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\DB;
 use JsonSerializable;
+use Sunrice\Cms\Fields\HydrationContext;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Cart\Models\CartItem;
+use Sunrice\Commerce\Catalog\LiveEntries;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\ProductView;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
@@ -17,11 +22,6 @@ use Sunrice\Commerce\Pricing\CalculationState;
 use Sunrice\Commerce\Pricing\Calculator;
 use Sunrice\Commerce\Pricing\PricingContext;
 use Sunrice\Commerce\Support\MoneyFormatter;
-use Sunrice\Cms\Fields\HydrationContext;
-use Sunrice\Cms\Support\Locales;
-use Sunrice\Cms\Models\Entry;
-use Sunrice\Cms\Models\EntryTranslation;
-use Sunrice\Commerce\Catalog\LiveEntries;
 
 /**
  * The cart as the customer sees it: lines with their product views,

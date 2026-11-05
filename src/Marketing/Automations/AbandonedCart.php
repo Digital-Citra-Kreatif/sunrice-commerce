@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Marketing\Automations;
 
 use Carbon\CarbonInterface;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Marketing\Consent;
 use Sunrice\Commerce\Marketing\Recipient;
-use Sunrice\Cms\Support\Locales;
 
 /**
  * A cart with products left alone for N hours, by a customer who accepts

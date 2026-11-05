@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Catalog;
 
 use Closure;
-use Sunrice\Commerce\Features\Features;
-use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Cms\Fields\Field;
 use Sunrice\Cms\Fields\FieldType;
+use Sunrice\Cms\Fields\HydrationContext;
 use Sunrice\Cms\Fields\Reference;
 use Sunrice\Cms\Fields\Schema;
-use Sunrice\Cms\Fields\HydrationContext;
 use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Commerce\Features\Features;
+use Sunrice\Commerce\Settings\StoreSettings;
 
 /**
  * `commerce_product`: a product's commerce data (type, options, variants,

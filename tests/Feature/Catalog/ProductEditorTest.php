@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\DownloadFile;
 use Sunrice\Commerce\Catalog\Models\Product;
-use Sunrice\Cms\Models\Entry;
 
 beforeEach(function () {
     app(ScaffoldStore::class)->handle();

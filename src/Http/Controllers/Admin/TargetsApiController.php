@@ -6,11 +6,11 @@ namespace Sunrice\Commerce\Http\Controllers\Admin;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Sunrice\Commerce\Catalog\Models\Product;
-use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\Cms\Models\Term;
 use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Catalog\Models\Product;
+use Sunrice\Commerce\Catalog\Models\Variant;
 
 /** GET commerce/api/targets?q=…&types[]=product&taxonomies[]=brands — choices for the targets picker. */
 class TargetsApiController extends Controller

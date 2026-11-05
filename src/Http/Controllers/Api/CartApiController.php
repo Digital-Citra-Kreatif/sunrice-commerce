@@ -15,6 +15,7 @@ use Sunrice\Commerce\Cart\CartException;
 use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\VariantFromOptions;
+use Sunrice\Commerce\Catalog\LiveEntries;
 
 /**
  * {api}/cart — the cart as JSON for themes (mini cart, AJAX add to cart):
@@ -46,7 +47,7 @@ class CartApiController
             $variant = VariantFromOptions::fromRequest($data) ?? throw new CartException(__('commerce::storefront.product.unavailable'));
             $item = $add->handle($variant, (int) ($data['quantity'] ?? 1));
 
-            return __('commerce::storefront.cart.added', ['product' => (string) ((($e = $item->variant->product->entry()) !== null ? \Sunrice\Commerce\Catalog\LiveEntries::translation($e)?->title : null) ?? '')]);
+            return __('commerce::storefront.cart.added', ['product' => (string) ((($e = $item->variant->product->entry()) !== null ? LiveEntries::translation($e)?->title : null) ?? '')]);
         });
     }
 

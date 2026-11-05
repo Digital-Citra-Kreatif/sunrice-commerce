@@ -12,13 +12,14 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Admin\Tables\Column;
 use Sunrice\Commerce\Admin\Tables\TableQuery;
 use Sunrice\Commerce\Catalog\Models\StockMovement;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Inventory\Actions\AdjustStock;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Support\Staff;
 
 /** Shop → Inventory: stock of every variant, adjustments and their history. */
 class InventoryController extends Controller
@@ -97,7 +98,7 @@ class InventoryController extends Controller
     {
         $this->authorizeFeature('inventory');
         $this->authorize('commerce.inventory.view');
-        $users = \Sunrice\Commerce\Support\Staff::userModel();
+        $users = Staff::userModel();
         $movements = StockMovement::query()->where('variant_id', $variant->id)->latest('id')->limit(100)->get();
         $names = $movements->pluck('user_id')->filter()->unique()->isEmpty() ? collect() : $users::query()->whereIn('id', $movements->pluck('user_id')->filter())->pluck('name', 'id');
 

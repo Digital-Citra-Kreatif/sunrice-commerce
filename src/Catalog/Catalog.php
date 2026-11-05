@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Catalog;
 
+use Sunrice\Cms\Models\Collection;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Contracts\Inventory;
 use Sunrice\Commerce\Contracts\SaleLimits;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Cms\Models\Collection;
 
 /**
  * Purchasability (ARCHITECTURE.md §7.3): one place deciding whether a

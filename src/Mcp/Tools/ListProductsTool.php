@@ -11,8 +11,8 @@ use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
-use Sunrice\Commerce\Mcp\OrderData;
 use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Mcp\OrderData;
 
 #[IsReadOnly]
 #[Description('List products with their commerce data: entry id (for commerce_get_product and cms_save_entry), title, type, price or price range, stock and publication status. Search by title or SKU; filter by stock (in, out, low) or featured.')]

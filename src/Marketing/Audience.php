@@ -10,10 +10,11 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Marketing\Models\Campaign;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Support\Staff;
 
 /**
  * Who a marketing email goes to: customers who accept marketing (never
@@ -201,7 +202,7 @@ class Audience
 
     protected static function userMorphClass(): string
     {
-        $class = \Sunrice\Commerce\Support\Staff::userModel();
+        $class = Staff::userModel();
 
         return class_exists($class) && is_subclass_of($class, Model::class) ? (new $class)->getMorphClass() : $class;
     }

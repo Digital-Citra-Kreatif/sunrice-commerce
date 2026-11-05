@@ -7,11 +7,11 @@ namespace Sunrice\Commerce\Marketing\Actions;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Sunrice\Cms\Support\HtmlSanitizer;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Marketing\Audience;
 use Sunrice\Commerce\Marketing\Automations\Triggers;
 use Sunrice\Commerce\Marketing\Models\Campaign;
-use Sunrice\Cms\Support\HtmlSanitizer;
-use Sunrice\Cms\Support\Locales;
 
 /**
  * Saves a campaign or automation: name, audience rules, content per

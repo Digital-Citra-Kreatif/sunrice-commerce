@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use Sunrice\Cms\Models\Entry;
-
 return [
     'base prices and quantities' => [
         'products' => ['MUG' => 50000, 'TEA' => ['price' => 25000, 'compare_at_price' => 30000]],

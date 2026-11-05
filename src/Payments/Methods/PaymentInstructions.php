@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Payments\Methods;
 
+use Sunrice\Admin\Media\Media;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Models\Payment;
 use Sunrice\Commerce\Payments\PaymentStart;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Admin\Media\Media;
 
 /**
  * A title, an image (a static QRIS code, an e-wallet number) and

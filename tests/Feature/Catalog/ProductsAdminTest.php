@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use Inertia\Testing\AssertableInertia;
+use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
-use Sunrice\Cms\Models\Entry;
 
 beforeEach(function () {
     app(ScaffoldStore::class)->handle();

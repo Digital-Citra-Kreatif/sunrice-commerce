@@ -7,6 +7,7 @@ namespace Sunrice\Commerce\Customers;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Features\Features;
+use Sunrice\Commerce\Support\Staff;
 
 /** The customer signed in to the storefront (null for guests, or while accounts are off). */
 class CurrentCustomer
@@ -40,6 +41,6 @@ class CurrentCustomer
     /** Whether the storefront shares the admin's guard (sign-ins by code or Google refuse staff then). */
     public static function sharesAdminGuard(): bool
     {
-        return self::guard() === \Sunrice\Commerce\Support\Staff::guard();
+        return self::guard() === Staff::guard();
     }
 }

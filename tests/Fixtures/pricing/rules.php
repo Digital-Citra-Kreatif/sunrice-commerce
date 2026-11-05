@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
 use Sunrice\Cms\Models\Entry;
 use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\Cms\Models\Term;
+use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
 
 $rule = function (array $attributes, array $targets = []): PriceRule {
     $rule = PriceRule::query()->create([...['name' => 'Rule', 'tiers' => [], 'scope' => 'all'], ...$attributes]);

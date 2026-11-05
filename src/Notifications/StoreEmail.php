@@ -10,6 +10,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
+use Sunrice\Admin\Media\Media;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Digital\Models\DownloadGrant;
@@ -17,7 +18,6 @@ use Sunrice\Commerce\Documents\Documents;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Admin\Media\Media;
 use Throwable;
 
 /**

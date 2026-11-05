@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Regions\Countries;
 use Sunrice\Commerce\Regions\Region;
@@ -18,7 +19,6 @@ use Sunrice\Commerce\Shipping\Models\ShippingMethod;
 use Sunrice\Commerce\Shipping\Models\ShippingZone;
 use Sunrice\Commerce\Shipping\ShippingTypes;
 use Sunrice\Commerce\Support\ActivityRecorder;
-use Sunrice\Cms\Support\Locales;
 
 /** Settings → Store → Shipping: zones in order, their methods, courier presets. */
 class ShippingController extends Controller

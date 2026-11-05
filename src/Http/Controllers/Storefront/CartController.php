@@ -17,6 +17,7 @@ use Sunrice\Commerce\Cart\CartException;
 use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\VariantFromOptions;
+use Sunrice\Commerce\Catalog\LiveEntries;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 
@@ -43,7 +44,7 @@ class CartController
         } catch (CartException $e) {
             return back()->with('commerce.error', $e->getMessage());
         }
-        $title = (string) ((($e = $item->variant->product->entry()) !== null ? \Sunrice\Commerce\Catalog\LiveEntries::translation($e)?->title : null) ?? '');
+        $title = (string) ((($e = $item->variant->product->entry()) !== null ? LiveEntries::translation($e)?->title : null) ?? '');
 
         return ($request->boolean('buy_now') && Route::has('commerce.checkout')
             ? redirect(StorefrontRoutes::url('commerce.checkout'))

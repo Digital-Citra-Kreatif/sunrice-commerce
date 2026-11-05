@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Sunrice\Admin\Panel;
 use Inertia\Testing\AssertableInertia;
+use Sunrice\Admin\Panel;
 use Sunrice\Commerce\Admin\Dashboard\StoreCard;
 use Sunrice\Commerce\Analytics\StatsRecorder;
 

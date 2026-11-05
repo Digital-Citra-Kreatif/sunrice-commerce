@@ -2,18 +2,19 @@
 
 declare(strict_types=1);
 
-use Sunrice\Commerce\Database\Seeders\CommerceRolesSeeder;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
 use Spatie\Permission\Models\Role;
+use Sunrice\Admin\Media\Media;
 use Sunrice\Commerce\Catalog\Models\DownloadFile;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
 use Sunrice\Commerce\Checkout\CheckoutData;
 use Sunrice\Commerce\Customers\Events\AccountDeletionRequested;
 use Sunrice\Commerce\Customers\Notifications\WelcomeCustomer;
+use Sunrice\Commerce\Database\Seeders\CommerceRolesSeeder;
 use Sunrice\Commerce\Digital\Models\DownloadGrant;
 use Sunrice\Commerce\Documents\Documents;
 use Sunrice\Commerce\Facades\Commerce;
@@ -36,7 +37,6 @@ use Sunrice\Commerce\Payments\Actions\ReviewPaymentConfirmation;
 use Sunrice\Commerce\Payments\Actions\SubmitPaymentConfirmation;
 use Sunrice\Commerce\Payments\PaymentResult;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Admin\Media\Media;
 use Workbench\App\Models\User;
 
 beforeEach(function () {

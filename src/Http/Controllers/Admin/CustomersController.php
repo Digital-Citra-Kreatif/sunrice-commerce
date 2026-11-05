@@ -14,7 +14,7 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
-use Sunrice\Commerce\Support\CsvExport;
+use Sunrice\Admin\Users\PermissionRank;
 use Sunrice\Commerce\Admin\Tables\Column;
 use Sunrice\Commerce\Admin\Tables\TableQuery;
 use Sunrice\Commerce\Customers\Actions\AnonymizeCustomer;
@@ -25,9 +25,10 @@ use Sunrice\Commerce\Orders\OrderStatus;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\ActivityRecorder;
 use Sunrice\Commerce\Support\Address;
+use Sunrice\Commerce\Support\CsvExport;
 use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Commerce\Support\Phone;
-use Sunrice\Admin\Users\PermissionRank;
+use Sunrice\Commerce\Support\Staff;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Shop → Customers: everyone who registered or ordered. */
@@ -155,7 +156,7 @@ class CustomersController extends Controller
 
     protected static function userMorphClass(): string
     {
-        $class = \Sunrice\Commerce\Support\Staff::userModel();
+        $class = Staff::userModel();
 
         return class_exists($class) && is_subclass_of($class, Model::class) ? (new $class)->getMorphClass() : $class;
     }

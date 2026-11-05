@@ -6,9 +6,9 @@ namespace Sunrice\Commerce\Storefront;
 
 use Closure;
 use Illuminate\Support\Facades\Route;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Http\Middleware\ForgetLocaleParameter;
 use Sunrice\Commerce\Http\Middleware\SetStoreLocale;
-use Sunrice\Cms\Support\Locales;
 
 /**
  * Registers store routes in the visitor's language, like the CMS's own

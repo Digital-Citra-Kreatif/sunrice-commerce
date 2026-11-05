@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Orders;
 
 use Illuminate\Contracts\Auth\Authenticatable;
+use Sunrice\Commerce\Support\Staff;
 
 /** Who changed an order, for the timeline: staff, the customer, the system, a gateway or AI. */
 final class Actor
@@ -19,7 +20,7 @@ final class Actor
 
     public static function admin(?Authenticatable $user = null): self
     {
-        $user ??= auth()->guard(\Sunrice\Commerce\Support\Staff::guard())->user();
+        $user ??= auth()->guard(Staff::guard())->user();
 
         return new self('admin', $user === null ? null : (int) $user->getAuthIdentifier(), $user?->getAttribute('name'));
     }

@@ -6,10 +6,10 @@ namespace Sunrice\Commerce\Promotions\PriceRules;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Sunrice\Cms\Models\Term;
 use Sunrice\Commerce\Catalog\CatalogVersion;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Pricing\PricingContext;
-use Sunrice\Cms\Models\Term;
 
 /**
  * Which pricing rules apply to a variant for a customer (ARCHITECTURE.md

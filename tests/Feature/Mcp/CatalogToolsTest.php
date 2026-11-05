@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Sunrice\Admin\Activity\Activity;
 use Sunrice\Admin\Panel;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
@@ -14,7 +15,6 @@ use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
 use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Shipping\Models\ShippingMethod;
-use Sunrice\Admin\Activity\Activity;
 
 beforeEach(function () {
     $this->mug = checkoutStore(['track_stock' => true, 'initial_stock' => 5]);

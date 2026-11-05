@@ -5,10 +5,11 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
+use Sunrice\Cms\Content;
+use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Cms\Models\Entry;
 
 beforeEach(fn () => app(ScaffoldStore::class)->handle());
 
@@ -93,7 +94,7 @@ it('builds views for a page of products in a fixed number of queries', function 
             ['id' => "m{$i}", 'options' => ['size' => 'm'], 'sku' => "K{$i}-M", 'price' => 109000],
         ]]), title: "Kaos {$i}");
     }
-    $entries = \Sunrice\Cms\Content::entries('products')->get();
+    $entries = Content::entries('products')->get();
     app(ProductViewFactory::class)->flush();
 
     DB::enableQueryLog();

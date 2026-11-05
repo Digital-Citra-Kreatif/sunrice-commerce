@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Payments\Methods;
 
+use Sunrice\Admin\Media\Media;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Contracts\AddsUniqueCode;
 use Sunrice\Commerce\Payments\Models\Payment;
 use Sunrice\Commerce\Payments\PaymentStart;
-use Sunrice\Admin\Media\Media;
 
 /**
  * Bank transfer to one of the store's accounts, with an optional unique

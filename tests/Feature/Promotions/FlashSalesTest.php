@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Event;
+use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Catalog;
 use Sunrice\Commerce\Catalog\Models\Product;
@@ -17,7 +18,6 @@ use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSaleBoundaries;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSaleItem;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSaleReservations;
-use Sunrice\Cms\Models\Entry;
 
 beforeEach(function () {
     app(ScaffoldStore::class)->handle();

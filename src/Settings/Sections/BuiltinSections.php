@@ -7,13 +7,13 @@ namespace Sunrice\Commerce\Settings\Sections;
 use Closure;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
+use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Settings\SettingsRegistry;
 use Sunrice\Commerce\Settings\SettingsSection;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\NumberFormat;
-use Sunrice\Cms\Models\Taxonomy;
-use Sunrice\Cms\Support\Locales;
 
 /**
  * The Settings → Store sections commerce itself provides. Sections of

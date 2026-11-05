@@ -8,8 +8,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
-use Sunrice\Commerce\Marketing\Tracker;
 use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Marketing\Tracker;
 
 /**
  * Marketing email links (stateless, like webhooks: no session or CSRF;

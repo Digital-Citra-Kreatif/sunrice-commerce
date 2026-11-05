@@ -11,6 +11,7 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Notifications\EmailDefinition;
@@ -20,7 +21,6 @@ use Sunrice\Commerce\Notifications\StoreEmail;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\ActivityRecorder;
-use Sunrice\Cms\Support\Locales;
 
 /** Settings → Store → Emails: every email's switch, recipients, texts and attachments, with a preview and a test. */
 class EmailsSettingsController extends Controller

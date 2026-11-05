@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use Sunrice\Commerce\Database\Seeders\CommerceRolesSeeder;
-use Sunrice\Commerce\Permissions\CommercePermissions;
+use Sunrice\Admin\Actions\Permissions\SyncPermissions;
 use Sunrice\Cms\Models\Blueprint;
 use Sunrice\Cms\Models\Collection;
+use Sunrice\Commerce\Database\Seeders\CommerceRolesSeeder;
+use Sunrice\Commerce\Permissions\CommercePermissions;
 use Workbench\App\Models\User;
 
 it('registers commerce permissions with the panel', function () {
-    app(\Sunrice\Admin\Actions\Permissions\SyncPermissions::class)->handle();
+    app(SyncPermissions::class)->handle();
 
     expect(Permission::query()->where('name', 'commerce.orders.refund')->exists())->toBeTrue()
         ->and(Permission::query()->where('name', 'like', 'commerce.%')->count())->toBe(count(CommercePermissions::all()));

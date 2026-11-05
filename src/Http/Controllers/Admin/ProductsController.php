@@ -11,17 +11,17 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
-use Sunrice\Commerce\Admin\Tables\Column;
-use Sunrice\Commerce\Admin\Tables\TableQuery;
-use Sunrice\Commerce\Catalog\Actions\UpdateProductValues;
-use Sunrice\Commerce\Catalog\Models\Variant;
-use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Models\Entry;
 use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\Cms\Models\Term;
 use Sunrice\Cms\Support\Access;
 use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Admin\Tables\Column;
+use Sunrice\Commerce\Admin\Tables\TableQuery;
+use Sunrice\Commerce\Catalog\Actions\UpdateProductValues;
+use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Support\MoneyFormatter;
 
 /** Shop → Products: product entries with their commerce data; rows open Sunrice's entry editor. */
 class ProductsController extends Controller

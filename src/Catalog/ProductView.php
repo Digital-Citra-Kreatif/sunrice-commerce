@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Catalog;
 
 use Closure;
-use Sunrice\Admin\Media\Media;
 use JsonSerializable;
 use LogicException;
+use Sunrice\Admin\Media\Media;
+use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Cms\Models\EntryTranslation;
 
 /**
  * What templates show for a product (ARCHITECTURE.md §7.4): its price

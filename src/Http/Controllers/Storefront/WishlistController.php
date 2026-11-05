@@ -15,7 +15,6 @@ use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 use Sunrice\Commerce\Wishlist\Wishlist;
 use Sunrice\Commerce\Wishlist\WishlistManager;
-use Sunrice\Cms\Models\Entry;
 
 /** The wishlist page, add/remove (forms or JSON), sharing and the shared page. */
 class WishlistController

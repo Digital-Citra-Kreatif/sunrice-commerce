@@ -7,6 +7,8 @@ namespace Sunrice\Commerce\Catalog;
 use Closure;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\Models\PriceTier;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
@@ -19,8 +21,6 @@ use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\PageCache;
 use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Commerce\Taxes\TaxDisplay;
-use Sunrice\Cms\Models\Entry;
-use Sunrice\Cms\Models\EntryTranslation;
 
 /**
  * Builds ProductViews for a page of entries in a fixed number of queries

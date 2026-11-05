@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use Spatie\Permission\Models\Role;
 use Inertia\Testing\AssertableInertia;
+use Spatie\Permission\Models\Role;
+use Sunrice\Admin\Activity\Activity;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Admin\Activity\Activity;
 
 it('opens the first section the user may edit from the Store tab', function () {
     actingAsUserWith(['commerce.settings.catalog']);

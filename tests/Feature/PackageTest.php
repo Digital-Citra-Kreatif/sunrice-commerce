@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use Sunrice\Commerce\Commerce as CommerceManager;
-use Sunrice\Commerce\CommerceServiceProvider;
-use Sunrice\Commerce\Facades\Commerce;
 use Inertia\Testing\AssertableInertia;
 use Sunrice\Admin\AdminServiceProvider;
 use Sunrice\Cms\CmsServiceProvider;
+use Sunrice\Commerce\Commerce as CommerceManager;
+use Sunrice\Commerce\CommerceServiceProvider;
+use Sunrice\Commerce\Facades\Commerce;
 
 it('loads next to the panel and the CMS', function () {
     expect(app()->getProviders(AdminServiceProvider::class))->not->toBeEmpty()

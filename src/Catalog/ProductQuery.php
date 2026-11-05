@@ -10,13 +10,13 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Sunrice\Commerce\Catalog\Models\Product;
-use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\Cms\Models\Term;
 use Sunrice\Cms\Query\EntryQuery;
 use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Catalog\Models\Product;
+use Sunrice\Commerce\Settings\StoreSettings;
 
 /**
  * Product listings (ARCHITECTURE.md §7.5): Sunrice decides which entries

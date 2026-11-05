@@ -3,16 +3,16 @@
 declare(strict_types=1);
 
 use Illuminate\Contracts\Auth\Authenticatable;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
+use Sunrice\Cms\Models\Term;
+use Sunrice\Cms\Models\TermTranslation;
 use Sunrice\Commerce\Catalog\ProductView;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 use Sunrice\Commerce\Support\MoneyFormatter;
-use Sunrice\Cms\Models\Entry;
-use Sunrice\Cms\Models\EntryTranslation;
-use Sunrice\Cms\Models\Term;
-use Sunrice\Cms\Models\TermTranslation;
 
 /*
  * Global helpers for templates. Each is wrapped in function_exists().

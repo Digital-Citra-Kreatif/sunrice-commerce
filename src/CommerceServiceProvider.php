@@ -7,7 +7,6 @@ namespace Sunrice\Commerce;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Http\Request;
 use Illuminate\Queue\Events\JobProcessing;
@@ -23,6 +22,7 @@ use Sunrice\Cms\Content;
 use Sunrice\Cms\Events\EntryDeleted;
 use Sunrice\Cms\Events\EntryPublished;
 use Sunrice\Cms\Site\Page;
+use Sunrice\Commerce\Http\Middleware\SetStoreLocale;
 
 class CommerceServiceProvider extends PackageServiceProvider
 {
@@ -148,7 +148,7 @@ class CommerceServiceProvider extends PackageServiceProvider
             });
             Route::group([], __DIR__.'/../routes/webhooks.php');
             Route::group([], __DIR__.'/../routes/marketing.php');
-            Route::middleware(['web', \Sunrice\Commerce\Http\Middleware\SetStoreLocale::class])->group(__DIR__.'/../routes/oauth.php');
+            Route::middleware(['web', SetStoreLocale::class])->group(__DIR__.'/../routes/oauth.php');
         });
 
         Blade::component(View\Components\Slot::class, 'commerce::slot');
@@ -421,5 +421,4 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->publishes(Storefront\Templates::starter(), 'commerce-starter');
         $this->publishes([__DIR__.'/../resources/lang' => $this->app->langPath('vendor/commerce')], 'commerce-translations');
     }
-
 }

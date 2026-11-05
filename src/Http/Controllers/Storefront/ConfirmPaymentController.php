@@ -7,12 +7,12 @@ namespace Sunrice\Commerce\Http\Controllers\Storefront;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Sunrice\Admin\Security\Captcha;
 use Sunrice\Commerce\Customers\Auth\Throttle;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Actions\SubmitPaymentConfirmation;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
-use Sunrice\Admin\Security\Captcha;
 
 /**
  * /confirm-payment: "I have paid" for an order, reached from the order

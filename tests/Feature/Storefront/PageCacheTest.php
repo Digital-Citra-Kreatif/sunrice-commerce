@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Sunrice\Cms\Events\ContentChanged;
+use Sunrice\Cms\Site\Page;
+use Sunrice\Cms\Site\PageCache as SitePageCache;
 use Sunrice\Commerce\Catalog\CatalogVersion;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Contracts\Inventory;
 use Sunrice\Commerce\Storefront\PageCache;
-use Sunrice\Cms\Events\ContentChanged;
-use Sunrice\Cms\Site\Page;
-use Sunrice\Cms\Site\PageCache as SitePageCache;
 use Workbench\App\Models\User;
 
 use function Pest\Laravel\get;

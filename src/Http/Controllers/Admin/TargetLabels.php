@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Http\Controllers\Admin;
 
-use Sunrice\Commerce\Catalog\Models\Product;
-use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Cms\Models\Term;
 use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Catalog\Models\Product;
+use Sunrice\Commerce\Catalog\Models\Variant;
 
 /** Labels of stored targets for the targets picker. */
 final class TargetLabels

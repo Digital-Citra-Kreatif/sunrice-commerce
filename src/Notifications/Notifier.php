@@ -6,13 +6,14 @@ namespace Sunrice\Commerce\Notifications;
 
 use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Role;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\Timeline;
-use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Support\Staff;
 
 /**
  * Sends a store email (ARCHITECTURE.md §19): checks the module and the
@@ -72,7 +73,7 @@ class Notifier
         }
         $roles = Role::query()->whereIn('name', $this->settings->roles($key))->pluck('name')->all();
         if ($roles !== []) {
-            $model = \Sunrice\Commerce\Support\Staff::userModel();
+            $model = Staff::userModel();
             foreach ($model::query()->role($roles)->get() as $user) {
                 $mail = mb_strtolower((string) $user->getAttribute('email'));
                 if ($mail !== '' && ! isset($out[$mail])) {

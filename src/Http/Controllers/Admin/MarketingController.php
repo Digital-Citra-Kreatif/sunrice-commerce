@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Http\Controllers\Admin;
 
-use Sunrice\Commerce\Admin\SchemaForm;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -14,6 +13,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Admin\Tables\Column;
 use Sunrice\Commerce\Admin\Tables\TableQuery;
 use Sunrice\Commerce\Customers\Models\Customer;
@@ -29,7 +30,6 @@ use Sunrice\Commerce\Marketing\SmartTags;
 use Sunrice\Commerce\Marketing\StartingPoints;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\ActivityRecorder;
-use Sunrice\Cms\Support\Locales;
 
 /** Shop → Marketing (Campaigns and Automations): marketing emails, their audiences and results. */
 class MarketingController extends Controller

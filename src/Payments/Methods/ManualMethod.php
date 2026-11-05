@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Payments\Methods;
 
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Models\Payment;
 use Sunrice\Commerce\Payments\PaymentMethodBase;
-use Sunrice\Cms\Support\Locales;
 
 /** Shared parts of the manual methods: per-language instructions and the confirmation setting. */
 abstract class ManualMethod extends PaymentMethodBase

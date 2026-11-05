@@ -6,10 +6,10 @@ namespace Sunrice\Commerce\View\Components;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
-use Sunrice\Commerce\Catalog\ProductView;
-use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Cms\Models\Entry;
 use Sunrice\Cms\Models\EntryTranslation;
+use Sunrice\Commerce\Catalog\ProductView;
+use Sunrice\Commerce\Storefront\Layout;
 
 /**
  * <x-commerce::product :entry="$entry" /> — the buying block of a product:

@@ -7,13 +7,13 @@ use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\Term;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Pricing\Calculator;
 use Sunrice\Commerce\Pricing\PricingContext;
 use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
-use Sunrice\Cms\Models\Entry;
-use Sunrice\Cms\Models\Taxonomy;
-use Sunrice\Cms\Models\Term;
 use Workbench\App\Models\User;
 
 /*

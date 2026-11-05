@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Sunrice\Admin\Media\Media;
 use Sunrice\Commerce\Notifications\Templates;
 use Sunrice\Commerce\Orders\Models\Document;
 use Sunrice\Commerce\Orders\Models\Order;
@@ -15,7 +16,6 @@ use Sunrice\Commerce\Orders\Numbering;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\Address;
 use Sunrice\Commerce\Support\MoneyFormatter;
-use Sunrice\Admin\Media\Media;
 
 /**
  * Invoices, packing slips and quotations (ARCHITECTURE.md §18): HTML in

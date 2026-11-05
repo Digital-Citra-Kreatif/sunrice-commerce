@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Http\Controllers\Storefront;
 
-use Sunrice\Admin\Media\Media;
 use Illuminate\Contracts\View\View;
+use Sunrice\Admin\Media\Media;
+use Sunrice\Cms\Models\Term;
 use Sunrice\Commerce\Catalog\ProductQuery;
 use Sunrice\Commerce\Storefront\Layout;
-use Sunrice\Cms\Models\Term;
 
 /** GET /brands — every brand with live products. */
 class BrandsController

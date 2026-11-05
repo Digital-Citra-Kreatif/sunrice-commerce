@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Promotions;
 
 use Illuminate\Support\Facades\DB;
-use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Cms\Models\Term;
+use Sunrice\Commerce\Catalog\Models\Variant;
 
 /**
  * Whether a variant is among targets (products, variants, terms with

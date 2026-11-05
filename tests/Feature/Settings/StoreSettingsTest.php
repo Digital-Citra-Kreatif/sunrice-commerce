@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use Illuminate\Validation\ValidationException;
+use Sunrice\Admin\Activity\Activity;
 use Sunrice\Commerce\Facades\Commerce;
 use Sunrice\Commerce\Settings\Actions\SaveStoreSettings;
 use Sunrice\Commerce\Settings\SettingsSection;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Admin\Activity\Activity;
 
 it('lays saved values over the config defaults', function () {
     $settings = app(StoreSettings::class);

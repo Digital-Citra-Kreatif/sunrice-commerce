@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Analytics\Reports;
 
 use Illuminate\Support\Facades\DB;
-use Sunrice\Commerce\Analytics\Period;
 use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Analytics\Period;
 
 /**
  * Sales grouped by the terms of one product taxonomy (categories, brands).

@@ -6,10 +6,10 @@ namespace Sunrice\Commerce\Marketing\Automations;
 
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Marketing\Audience;
 use Sunrice\Commerce\Marketing\Recipient;
-use Sunrice\Cms\Support\Locales;
 
 /** A trigger on a customer's own date (sign-up, last order), shifted by the delay. */
 abstract class CustomerTrigger implements Trigger

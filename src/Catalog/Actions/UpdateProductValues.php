@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Catalog\Actions;
 
 use Closure;
+use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Catalog\ProductProjector;
 use Sunrice\Commerce\Catalog\ProductValue;
-use Sunrice\Cms\Models\Entry;
 
 /**
  * Changes the product field of entries outside the editor (bulk actions,

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Admin\Fields;
 
-use Sunrice\Commerce\Regions\Countries;
-use Sunrice\Commerce\Regions\Region;
 use Sunrice\Cms\Fields\Field;
 use Sunrice\Cms\Fields\FieldType;
 use Sunrice\Cms\Fields\Schema;
+use Sunrice\Commerce\Regions\Countries;
+use Sunrice\Commerce\Regions\Region;
 
 /**
  * Country, then (in Indonesia) province → city → district → village:

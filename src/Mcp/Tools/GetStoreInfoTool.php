@@ -8,13 +8,13 @@ use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
+use Sunrice\Admin\Panel;
 use Sunrice\Commerce\Admin\Dashboard\DashboardCards;
 use Sunrice\Commerce\Features\FeatureRegistry;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Mcp\CommerceTool;
 use Sunrice\Commerce\Mcp\OrderData;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Admin\Panel;
 
 #[IsReadOnly]
 #[Description('Start here for store work: the store\'s name, selling mode (shop, quote or WhatsApp), currency, which store modules are on, what needs doing (orders to ship, payments to verify, quotes, low stock) and which store tools you may use. Money in every store tool is an integer in the currency\'s smallest unit plus a formatted string.')]

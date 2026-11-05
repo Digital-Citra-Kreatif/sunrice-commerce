@@ -9,11 +9,10 @@ use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
+use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Mcp\OrderData;
-use Sunrice\Cms\Models\Entry;
-use Sunrice\Cms\Support\Locales;
 
 #[IsReadOnly]
 #[Description('One product by entry id or SKU: its title and status, the stored Product data (the `product` field) and the variants with their ids (for commerce_create_order), live stock and prices. Products are Sunrice entries: change the title, description or images and the Product data with cms_save_entry, sending the whole `product` field back in the shape shown under product (see `editing`).')]
