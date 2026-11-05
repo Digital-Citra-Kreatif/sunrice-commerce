@@ -89,7 +89,7 @@ class ProductCsv
             $raw[$line] = array_combine($header, array_pad($cells, count($header), null));
         }
         // Every SKU of the file in one query, with what may be changed.
-        $variants = Variant::query()->with('product')->whereIn('sku', collect($raw)->pluck('sku')->filter()->map(fn ($s) => trim((string) $s))->unique())->get()->keyBy('sku');
+        $variants = Variant::query()->with('product')->whereIn('sku', collect($raw)->pluck('sku')->map(fn ($s) => trim((string) $s))->reject(fn (string $s) => $s === '')->unique())->get()->keyBy('sku');
         $entries = Entry::query()->with(['collection', 'translations'])->whereIn('id', $variants->pluck('product.entry_id')->unique())->get()->keyBy('id');
 
         $rows = [];
@@ -133,7 +133,8 @@ class ProductCsv
         if ($rows->isEmpty()) {
             return 0;
         }
-        $variants = Variant::query()->with('product')->whereIn('sku', $rows->keys())->get();
+        // Keys as strings: PHP turns a SKU like "0" into an int key, which PostgreSQL won't compare with a varchar.
+        $variants = Variant::query()->with('product')->whereIn('sku', $rows->keys()->map(fn ($sku) => (string) $sku)->all())->get();
         $userId = (int) $user->getAuthIdentifier();
         // Checked again here: a preview is kept an hour, and the permission or the module may have gone since.
         $mayAdjustStock = $user->can('commerce.inventory.adjust') && app(Features::class)->active('inventory');
@@ -234,10 +235,13 @@ class ProductCsv
         if (preg_match($pattern, $cell) !== 1) {
             throw new \InvalidArgumentException("{$field}: \"{$cell}\" isn't an amount (digits".($decimals > 0 ? ', a dot for decimals' : ', no separators').').');
         }
-        $minor = (int) round((float) $cell * (10 ** $decimals));
-        if ($minor > ProductValue::MAX_PRICE) {
+        // In minor units as a string of digits, so a huge amount can't overflow (or round) on the way to an int.
+        [$whole, $fraction] = explode('.', $cell.'.');
+        $digits = ltrim($whole.str_pad($fraction, $decimals, '0'), '0');
+        if (strlen($digits) > strlen((string) ProductValue::MAX_PRICE) || (int) $digits > ProductValue::MAX_PRICE) {
             throw new \InvalidArgumentException("{$field}: \"{$cell}\" is too high.");
         }
+        $minor = (int) $digits;
         if (! $allowZero && $minor === 0) {
             throw new \InvalidArgumentException("{$field} can't be 0.");
         }

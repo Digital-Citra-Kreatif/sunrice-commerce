@@ -112,3 +112,16 @@ it('checks the stock permission again when a preview is applied', function () {
 
     expect($this->mug->fresh())->price->toBe(45000)->stock_quantity->toBe(5);
 });
+
+it('reads the SKU "0", and refuses an amount too big for an integer', function () {
+    actingAsUserWith(["cms.entries.{$this->collection}.update"]);
+    $this->mug->update(['sku' => '0']);
+    // 2^64: cast to an int, it would come out as 0 or negative.
+    $this->post('/admin/commerce/products/import', ['file' => csvUpload("sku,price\n0,18446744073709551616\n")])
+        ->assertInertia(fn ($p) => $p->where('preview.0.error', 'price: "18446744073709551616" is too high.'));
+    $page = $this->post('/admin/commerce/products/import', ['file' => csvUpload("sku,price\n0,45000\n")])
+        ->assertInertia(fn ($p) => $p->where('preview.0.changes.price', ['from' => 50000, 'to' => 45000])->where('preview.0.error', null));
+    $this->post('/admin/commerce/products/import/apply', ['token' => $page->viewData('page')['props']['token']])->assertSessionHas('success', '1 variant updated.');
+    expect($this->mug->fresh()->price)->toBe(45000);
+
+});
