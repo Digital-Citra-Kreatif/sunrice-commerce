@@ -88,3 +88,12 @@ it('is built again when a product or its stock changes', function () {
     ContentChanged::dispatch('entry '.$tee);
     expect(feedItems($this->get('/feeds/products.xml')->getContent()))->not->toHaveKey('TS-M');
 });
+
+it('weighs a bundle by its components', function () {
+    app(ToggleFeature::class)->handle('product_feeds', true);
+    $mug = Variant::query()->where('sku', 'MUG')->sole();
+    publishProduct(['type' => 'bundle', 'variants' => [['id' => 'gift', 'sku' => 'GIFT', 'price' => 90000]],
+        'bundle' => ['pricing' => 'fixed', 'value' => 0, 'items' => [['variant_id' => $mug->id, 'quantity' => 2]]]], title: 'Gift set');
+
+    expect(feedItems($this->get('/feeds/products.xml')->getContent())['GIFT']['shipping_weight'])->toBe('1000 g');
+});

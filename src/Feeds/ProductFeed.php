@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Sunrice\Admin\Media\Media;
 use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Catalog\Bundles;
 use Sunrice\Commerce\Catalog\LiveEntries;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
@@ -89,6 +90,8 @@ class ProductFeed
                 continue;
             }
             $image = $images->get($row['image']) ?? $gallery;
+            // A bundle without its own weight weighs its components.
+            $weight = $view->product->isBundle() ? app(Bundles::class)->weight($view->product, $variant) : $variant->weight;
             $regular = max((int) $row['price'], (int) $row['regular']);
             $xml .= '<item>'
                 .$this->tag('g:id', $variant->sku ?: 'V'.$variant->id)
@@ -105,7 +108,7 @@ class ProductFeed
                 .($brand !== null ? $this->tag('g:brand', $brand) : '')
                 .$this->tag('g:condition', 'new')
                 .$this->tag('g:identifier_exists', 'no')
-                .($variant->weight !== null && (int) $variant->weight > 0 ? $this->tag('g:shipping_weight', ((int) $variant->weight).' g') : '')
+                .($weight !== null && $weight > 0 ? $this->tag('g:shipping_weight', $weight.' g') : '')
                 .'</item>';
         }
 

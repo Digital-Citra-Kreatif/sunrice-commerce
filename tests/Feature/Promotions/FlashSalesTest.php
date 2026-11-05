@@ -11,6 +11,7 @@ use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
 use Sunrice\Commerce\Catalog\ProductViewHooks;
+use Sunrice\Commerce\Feeds\ProductFeed;
 use Sunrice\Commerce\Promotions\FlashSales\ActiveSales;
 use Sunrice\Commerce\Promotions\FlashSales\Events\FlashSaleEnded;
 use Sunrice\Commerce\Promotions\FlashSales\Events\FlashSaleStarted;
@@ -61,6 +62,23 @@ it('reserves units atomically under the cap', function () {
         ->and($item->fresh()->sold_quantity)->toBe(5);
     $reservations->release($item->id, 4);
     expect($item->fresh()->sold_quantity)->toBe(1);
+});
+
+it('clears the page cache and the feed when the cap is reached or left', function () {
+    $item = saleWithMug($this->product, [], ['quantity_limit' => 5])->items->first();
+    $reservations = app(FlashSaleReservations::class);
+    $version = ProductFeed::version();
+
+    $reservations->reserve($item->id, 3);
+    expect(ProductFeed::version())->toBe($version);
+
+    $reservations->reserve($item->id, 2);
+    expect(ProductFeed::version())->toBe($version + 1);
+
+    $reservations->release($item->id, 1);
+    expect(ProductFeed::version())->toBe($version + 2);
+    $reservations->release($item->id, 1);
+    expect(ProductFeed::version())->toBe($version + 2);
 });
 
 it('shows the sale on the product page and its own page', function () {
