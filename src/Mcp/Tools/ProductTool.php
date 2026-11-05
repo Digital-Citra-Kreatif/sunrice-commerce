@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Mcp\Tools;
 
+use Sunrice\Cms\Support\Access;
 use Illuminate\Support\Collection as Support;
 use Sunrice\Commerce\Mcp\CommerceTool;
 use Sunrice\Cms\Models\Collection;
@@ -25,6 +26,6 @@ abstract class ProductTool extends CommerceTool
         $user = auth()->user();
 
         return Collection::query()->whereIn('handle', (array) config('commerce.catalog.collections', ['products']))->get()
-            ->filter(fn (Collection $c) => $user !== null && $user->can('viewAny', [Entry::class, $c->id]))->values();
+            ->filter(fn (Collection $c) => $user instanceof \Illuminate\Contracts\Auth\Access\Authorizable && Access::entries($user, 'view', $c))->values();
     }
 }

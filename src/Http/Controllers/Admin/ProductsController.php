@@ -18,9 +18,9 @@ use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Models\Entry;
-use Sunrice\Models\Scopes\HiddenWithParent;
 use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\Cms\Models\Term;
+use Sunrice\Cms\Support\Access;
 use Sunrice\Cms\Support\Locales;
 
 /** Shop → Products: product entries with their commerce data; rows open Sunrice's entry editor. */
@@ -31,8 +31,8 @@ class ProductsController extends Controller
         $collections = $this->collections($request);
         abort_if($collections->isEmpty(), 403);
 
-        $query = Entry::query()->withTrashed()->withoutGlobalScope(HiddenWithParent::class)
-            ->select('sunrice_entries.*', 't.title as product_title', 'p.type', 'p.min_price', 'p.max_price', 'p.in_stock', 'p.featured', 'p.sync_status', 'p.sync_error', 'p.id as product_id')
+        $query = Entry::query()->withTrashed()
+            ->select('sunrice_entries.*', 't.draft_title as product_title', 't.status as main_status', 't.published_at as main_published_at', 'p.type', 'p.min_price', 'p.max_price', 'p.in_stock', 'p.featured', 'p.sync_status', 'p.sync_error', 'p.id as product_id')
             ->whereIn('sunrice_entries.collection_id', $collections->pluck('id'))
             ->leftJoin('sunrice_entry_translations as t', fn ($j) => $j->on('t.entry_id', '=', 'sunrice_entries.id')->where('t.locale', Locales::default()))
             ->leftJoin('commerce_products as p', 'p.entry_id', '=', 'sunrice_entries.id')
@@ -42,22 +42,22 @@ class ProductsController extends Controller
             // Title or SKU.
             ->searchUsing(function (Builder $q, string $term): void {
                 $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $term).'%';
-                $q->where(fn (Builder $w) => $w->whereLike('t.title', $like)
+                $q->where(fn (Builder $w) => $w->whereLike('t.draft_title', $like)
                     ->orWhereIn('p.id', fn ($s) => $s->from('commerce_variants')->select('product_id')->whereLike('sku', $like)));
             })
             ->filter('type', fn (Builder $q, mixed $v) => $q->where('p.type', $v))
             ->filter('stock', fn (Builder $q, mixed $v) => $q->where('p.in_stock', $v === 'in'))
             ->filter('sync', fn (Builder $q, mixed $v) => $q->where('p.sync_status', 'failed'))
             ->filter('state', fn (Builder $q, mixed $v) => match ($v) {
-                'published' => $q->whereNull('sunrice_entries.deleted_at')->where('status', 'published')->where('sunrice_entries.published_at', '<=', now()),
-                'scheduled' => $q->whereNull('sunrice_entries.deleted_at')->where('status', 'published')->where('sunrice_entries.published_at', '>', now()),
-                'draft' => $q->whereNull('sunrice_entries.deleted_at')->where('status', '!=', 'published'),
+                'published' => $q->whereNull('sunrice_entries.deleted_at')->where('t.status', 'published')->where('t.published_at', '<=', now()),
+                'scheduled' => $q->whereNull('sunrice_entries.deleted_at')->where('t.status', 'published')->where('t.published_at', '>', now()),
+                'draft' => $q->whereNull('sunrice_entries.deleted_at')->where('t.status', '!=', 'published'),
                 'trashed' => $q->whereNotNull('sunrice_entries.deleted_at'),
                 default => $q,
             })
             ->filter('category', fn (Builder $q, mixed $v) => $q->whereHas('terms', fn ($t) => $t->where('sunrice_terms.id', (int) $v)))
             ->filter('brand', fn (Builder $q, mixed $v) => $q->whereHas('terms', fn ($t) => $t->where('sunrice_terms.id', (int) $v)))
-            ->sortable(['product_title', 'min_price', 'published_at'])
+            ->sortable(['product_title', 'min_price', 'main_published_at'])
             ->apply($request);
         if (! $request->filled('filters.state')) {
             $table->builder()->whereNull('sunrice_entries.deleted_at');
@@ -104,14 +104,14 @@ class ProductsController extends Controller
                     'featured' => (bool) $entry->getAttribute('featured'),
                     'state' => match (true) {
                         $entry->trashed() => 'trashed',
-                        $entry->status !== 'published' => 'draft',
-                        $entry->published_at?->isFuture() ?? false => 'scheduled',
+                        $entry->getAttribute('main_status') !== 'published' => 'draft',
+                        $entry->getAttribute('main_published_at') !== null && now()->lt($entry->getAttribute('main_published_at')) => 'scheduled',
                         default => 'published',
                     },
                     'sync_failed' => $entry->getAttribute('sync_status') === 'failed',
                     'sync_error' => $entry->getAttribute('sync_error'),
-                    'categories' => $entry->terms->where('taxonomy_id', $categoryTaxonomy)->map(fn ($t) => $t->translations->firstWhere('locale', Locales::default())->name ?? '')->values()->implode(', '),
-                    'can_edit' => $user->can('update', $entry),
+                    'categories' => $entry->terms->where('taxonomy_id', $categoryTaxonomy)->map(fn ($t) => $t->translations->firstWhere('locale', Locales::default())?->title ?? '')->values()->implode(', '),
+                    'can_edit' => Access::entries($user, 'update', $entry->collection, $entry),
                 ];
             }), [
                 ['key' => 'type', 'label' => 'Type', 'type' => 'select', 'options' => [['value' => 'simple', 'label' => 'Simple'], ['value' => 'variable', 'label' => 'Variable'], ['value' => 'bundle', 'label' => 'Bundle']]],
@@ -142,7 +142,7 @@ class ProductsController extends Controller
         $entries = Entry::query()->whereIn('collection_id', $collections)->whereIn('id', $data['ids'])->with('translations')->get();
         $done = 0;
         foreach ($entries as $entry) {
-            if (! $request->user()->can('update', $entry)) {
+            if (! Access::entries($request->user(), 'update', $entry->collection, $entry)) {
                 continue;
             }
             $update->handle($entry, fn (array $value) => match ($data['action']) {
@@ -163,7 +163,7 @@ class ProductsController extends Controller
     protected function collections(Request $request): \Illuminate\Support\Collection
     {
         return Collection::query()->whereIn('handle', (array) config('commerce.catalog.collections', ['products']))->get()
-            ->filter(fn (Collection $c) => $request->user()->can('viewAny', [Entry::class, $c->id]))->values();
+            ->filter(fn (Collection $c) => Access::entries($request->user(), 'view', $c))->values();
     }
 
     /** @return array<int, array{value: string, label: string}> */

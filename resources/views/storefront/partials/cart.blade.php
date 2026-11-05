@@ -32,7 +32,7 @@
                                     @php($image = $row['entry'] ? collect((commerce_values($row['entry'])['gallery'] ?? null) ?? [])->first() : null)
                                     <span class="commerce-cart__thumb">@if (is_object($image))<img src="{{ $image->url() }}" alt="" width="96" height="120" loading="lazy">@endif</span>
                                     <span class="commerce-cart__info">
-                                        <a href="{{ $row['entry']?->url }}">{{ $row['entry']?->title }}</a>
+                                        <a href="{{ $row['entry']?->url() }}">{{ ($row['entry']?->title ?? $row['entry']?->draft_title) }}</a>
                                         @if ($line->variant->title !== '')<span class="commerce-cart__variant">{{ $line->variant->title }}</span>@endif
                                         @if ($line->priceSource['type'] === 'flash_sale')<span class="commerce-badge commerce-badge--sale">{{ $line->priceSource['label'] ?? '' }}</span>@endif
                                     </span>

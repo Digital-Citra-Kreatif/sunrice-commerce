@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
+use Sunrice\Cms\Actions\Entries\TrashEntry;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Event;
 use Sunrice\Cms\Actions\Entries\ForceDeleteEntry;
 use Sunrice\Cms\Actions\Entries\PublishEntry;
 use Sunrice\Commerce\Catalog\Events\ProductSynced;
-use Sunrice\Commerce\Catalog\Events\ProductSyncFailed;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\StockMovement;
 use Sunrice\Commerce\Catalog\Models\Variant;
@@ -73,24 +74,21 @@ it('skips an unchanged value and ignores drafts', function () {
     expect(Variant::query()->where('uid', 'v-s')->value('price'))->toBe(150000);
 });
 
-it('records a failure without breaking the publish', function () {
-    Event::fake([ProductSyncFailed::class]);
+it('refuses to publish a product whose SKU was taken after its draft was saved', function () {
     $entry = publishProduct(shirt(), publish: false);
     Variant::factory()->create(['sku' => 'TS-S']); // taken between saving and publishing
-    app(PublishEntry::class)->handle($entry->mainTranslation());
-    $entry->refresh();
 
-    expect($entry->status)->toBe('published');
-    $product = Product::query()->where('entry_id', $entry->id)->firstOrFail();
-    expect($product->sync_status)->toBe('failed')
-        ->and($product->sync_error)->toContain('TS-S')
-        ->and($product->variants)->toHaveCount(0);
-    Event::assertDispatched(ProductSyncFailed::class);
+    // The CMS checks the fields again when publishing: nothing goes live, nothing is projected.
+    expect(fn () => app(PublishEntry::class)->handle($entry->mainTranslation()))->toThrow(ValidationException::class, 'TS-S');
+    expect($entry->fresh()->mainTranslation()->status())->toBe('draft')
+        ->and(Product::query()->where('entry_id', $entry->id)->exists())->toBeFalse();
 });
+
 
 it('marks the product removed when the entry is deleted for good', function () {
     $entry = publishProduct(shirt());
-    app(ForceDeleteEntry::class)->handle($entry);
+    app(TrashEntry::class)->handle($entry);
+    app(ForceDeleteEntry::class)->handle($entry->fresh());
 
     $product = Product::query()->where('entry_id', $entry->id)->firstOrFail();
     expect($product->removed_at)->not->toBeNull()

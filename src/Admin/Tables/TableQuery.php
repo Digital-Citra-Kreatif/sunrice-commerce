@@ -53,6 +53,17 @@ final class TableQuery
         return new self($builder);
     }
 
+    /** @var (Closure(Builder<TModel>, string): mixed)|null */
+    private ?Closure $search = null;
+
+    /** Search with a closure of its own instead of searchable() columns. @param Closure(Builder<TModel>, string): mixed $search */
+    public function searchUsing(Closure $search): self
+    {
+        $this->search = $search;
+
+        return $this;
+    }
+
     /** @param list<string> $columns */
     public function searchable(array $columns): self
     {
@@ -80,7 +91,10 @@ final class TableQuery
     public function apply(Request $request): self
     {
         $search = trim((string) $request->query('search', ''));
-        if ($search !== '' && $this->searchable !== []) {
+        if ($search !== '' && $this->search !== null) {
+            ($this->search)($this->builder, mb_substr($search, 0, 100));
+            $this->meta['search'] = $search;
+        } elseif ($search !== '' && $this->searchable !== []) {
             $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], mb_substr($search, 0, 100)).'%';
             $this->builder->where(function (Builder $q) use ($like): void {
                 foreach ($this->searchable as $column) {

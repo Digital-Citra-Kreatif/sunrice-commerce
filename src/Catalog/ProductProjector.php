@@ -17,7 +17,6 @@ use Sunrice\Commerce\Catalog\Models\StockMovement;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Storefront\PageCache;
 use Sunrice\Cms\Models\Entry;
-use Sunrice\Models\Scopes\HiddenWithParent;
 use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\Cms\Models\Term;
 use Throwable;
@@ -313,6 +312,6 @@ class ProductProjector
     /** Whether an entry still exists (in the trash included). */
     public static function entryExists(int $entryId): bool
     {
-        return Entry::query()->withTrashed()->withoutGlobalScope(HiddenWithParent::class)->whereKey($entryId)->exists();
+        return Entry::query()->withTrashed()->whereKey($entryId)->exists();
     }
 }

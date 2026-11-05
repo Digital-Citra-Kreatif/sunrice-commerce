@@ -14,6 +14,8 @@ use Sunrice\Commerce\Admin\Tables\TableQuery;
 use Sunrice\Commerce\Catalog\ProductField;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Cms\Models\Collection;
+use Sunrice\Cms\Support\Access;
+use Sunrice\Cms\Fields\Field;
 
 /** Base of the Shop admin controllers. */
 abstract class Controller extends BaseController
@@ -26,10 +28,11 @@ abstract class Controller extends BaseController
      */
     protected function authorizeProductEditing(?Authenticatable $user): void
     {
-        $collections = Collection::query()->with('blueprint')->get()->filter(fn (Collection $c) => $c->blueprint !== null
-            && collect($c->blueprint->schema()->fields())->contains(fn (array $f) => ($f['type'] ?? null) === (new ProductField)->type()));
-        abort_unless($user instanceof Authorizable && $collections->contains(fn (Collection $c) => collect(['create', 'edit', 'edit-own'])
-            ->contains(fn (string $action) => $user->can("sunrice.entries.{$c->id}.{$action}"))), 403);
+        // Collections whose entries hold the Product data field, where the user may create or edit entries.
+        $type = (new ProductField)->type();
+        $collections = Collection::query()->get()->filter(fn (Collection $c) => collect($c->schema()->fields())->contains(fn (Field $f) => $f->type === $type));
+        abort_unless($user instanceof Authorizable && $collections->contains(fn (Collection $c) => collect(['create', 'update'])
+            ->contains(fn (string $action) => Access::entries($user, $action, $c))), 403);
     }
 
     /**

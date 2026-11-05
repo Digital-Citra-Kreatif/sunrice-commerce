@@ -8,10 +8,10 @@
         <h2 class="commerce-extras__title" id="commerce-bundle-title">{{ __('commerce::storefront.theme.bundle_contents') }}</h2>
         <ul class="commerce-bundle__items">
             @foreach ($model->bundleItems as $item)
-                @php($component = $item->variant?->product?->entry())
+                @php($component = ($e = $item->variant?->product?->entry()) !== null ? $e->shownIn() : null)
                 <li>
                     <span class="commerce-bundle__qty">{{ $item->quantity }} ×</span>
-                    @if ($component?->url)<a href="{{ $component->url }}">{{ $component->title }}</a>@else<span>{{ $component?->title ?? $item->variant?->sku }}</span>@endif
+                    @if ($component?->url())<a href="{{ $component->url() }}">{{ $component->title }}</a>@else<span>{{ $component?->title ?? $item->variant?->sku }}</span>@endif
                     @if (filled($item->variant?->title))<span class="commerce-muted">{{ $item->variant->title }}</span>@endif
                 </li>
             @endforeach

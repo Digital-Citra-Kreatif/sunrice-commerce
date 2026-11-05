@@ -29,7 +29,7 @@ class ListProductsTool extends ProductTool
             ->whereIn('e.collection_id', $this->collections()->pluck('id'))->whereNull('e.deleted_at')->whereNull('p.removed_at');
         if (! empty($args['search'])) {
             $like = '%'.$args['search'].'%';
-            $query->where(fn (Builder $q) => $q->whereLike('t.title', $like)
+            $query->where(fn (Builder $q) => $q->whereLike('t.draft_title', $like)
                 ->orWhereExists(fn (Builder $v) => $v->from('commerce_variants')->whereColumn('commerce_variants.product_id', 'p.id')->whereLike('commerce_variants.sku', $like)));
         }
         match ($args['stock'] ?? null) {
@@ -43,11 +43,12 @@ class ListProductsTool extends ProductTool
             $query->where('p.featured', (bool) $args['featured']);
         }
         $total = (clone $query)->count();
-        $rows = $query->orderBy('t.title')->limit((int) ($args['limit'] ?? 25))
-            ->get(['e.id as entry_id', 'p.id as product_id', 't.title', 'p.type', 'p.min_price', 'p.max_price', 'p.in_stock', 'p.featured', 'e.status']);
+        $rows = $query->orderBy('t.draft_title')->limit((int) ($args['limit'] ?? 25))
+            ->get(['e.id as entry_id', 'p.id as product_id', 't.draft_title as title', 'p.type', 'p.min_price', 'p.max_price', 'p.in_stock', 'p.featured', 't.status', 't.published_at']);
 
         return $this->json(['total' => $total, 'products' => $rows->map(fn (object $r) => [
-            'id' => (int) $r->entry_id, 'product_id' => (int) $r->product_id, 'title' => $r->title, 'type' => $r->type, 'status' => $r->status,
+            'id' => (int) $r->entry_id, 'product_id' => (int) $r->product_id, 'title' => $r->title, 'type' => $r->type,
+            'status' => $r->status !== 'published' ? 'draft' : (($r->published_at !== null && now()->lt($r->published_at)) ? 'scheduled' : 'published'),
             'price' => $r->min_price === null ? null : OrderData::money((int) $r->min_price),
             'max_price' => $r->max_price !== null && $r->max_price !== $r->min_price ? OrderData::money((int) $r->max_price) : null,
             'in_stock' => (bool) $r->in_stock, 'featured' => (bool) $r->featured,

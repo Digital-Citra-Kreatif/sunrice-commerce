@@ -14,7 +14,7 @@ use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Mcp\CommerceTool;
 use Sunrice\Commerce\Mcp\OrderData;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Sunrice;
+use Sunrice\Admin\Panel;
 
 #[IsReadOnly]
 #[Description('Start here for store work: the store\'s name, selling mode (shop, quote or WhatsApp), currency, which store modules are on, what needs doing (orders to ship, payments to verify, quotes, low stock) and which store tools you may use. Money in every store tool is an integer in the currency\'s smallest unit plus a formatted string.')]
@@ -37,7 +37,7 @@ class GetStoreInfoTool extends CommerceTool
             'orders_paused' => (bool) $settings->get('general.pause_orders', false),
             'modules' => array_values(array_map(fn ($f) => ['key' => $f->key, 'label' => $f->label, 'on' => $features->active($f->key)], app(FeatureRegistry::class)->all())),
             'todo' => array_map(fn (array $t) => ['what' => $t['label'], 'count' => $t['count']], $todo),
-            'tools' => array_values(array_map(fn (string $class) => app($class)->name(), array_filter(app(Sunrice::class)->mcpTools(),
+            'tools' => array_values(array_map(fn (string $class) => app($class)->name(), array_filter(app(Panel::class)->getTools(),
                 fn (string $class) => is_subclass_of($class, CommerceTool::class) && app($class)->shouldRegister()))),
         ]);
     }
