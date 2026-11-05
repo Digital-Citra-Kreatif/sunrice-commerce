@@ -18,7 +18,8 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         return [
-            'entry_id' => fake()->unique()->numberBetween(1, 1_000_000),
+            // Above any real entry's id, so a factory product never takes a published product's entry.
+            'entry_id' => fake()->unique()->numberBetween(1_000_000, 9_999_999),
             'collection_id' => 1,
             'type' => 'simple',
             'purchase_mode' => 'default',
