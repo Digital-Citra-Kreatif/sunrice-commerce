@@ -8,10 +8,11 @@ use Illuminate\Support\Collection as BaseCollection;
 use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\LiveEntries;
+use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Catalog\StockStatus;
 use Sunrice\Commerce\Notifications\EmailSettings;
 use Sunrice\Commerce\Notifications\Notifier;
 use Sunrice\Commerce\StockAlerts\Models\StockAlert;
-use Sunrice\Commerce\StockAlerts\SoldOut;
 use Throwable;
 
 /**
@@ -26,7 +27,7 @@ class SendStockAlerts
 {
     public const BATCH = 200;
 
-    public function __construct(protected Notifier $notifier, protected SoldOut $soldOut, protected EmailSettings $emails) {}
+    public function __construct(protected Notifier $notifier, protected StockStatus $stock, protected EmailSettings $emails) {}
 
     public function handle(): int
     {
@@ -35,45 +36,71 @@ class SendStockAlerts
             return 0;
         }
         $sent = 0;
-        StockAlert::query()->whereNull('notified_at')
-            // Bundles' availability comes from their components: checked below.
-            ->whereHas('variant', fn ($q) => $q->where('active', true)->whereNull('deleted_at')
-                ->where(fn ($q) => $q->where('stock_status', '!=', 'out_of_stock')->orWhereHas('product', fn ($p) => $p->where('type', 'bundle'))))
-            ->whereHas('product', fn ($q) => $q->whereNull('removed_at'))
-            ->with(['variant.product', 'product'])
-            ->chunkById(self::BATCH, function (BaseCollection $alerts) use (&$sent): bool {
-                $live = $this->liveEntries($alerts);
-                $pages = EntryTranslation::query()->whereIn('entry_id', $live)->get()->filter(fn (EntryTranslation $t) => $t->isLive())->groupBy('entry_id');
-                foreach ($alerts as $alert) {
-                    /** @var StockAlert $alert */
-                    if (! in_array($alert->product->entry_id, $live, true) || $this->soldOut->variant($alert->variant)) {
-                        continue;
-                    }
-                    // Claimed before it's sent: a tick running at the same time skips it.
-                    if (StockAlert::query()->whereKey($alert->id)->whereNull('notified_at')->update(['notified_at' => now()]) === 0) {
-                        continue;
-                    }
-                    $page = ($pages[$alert->product->entry_id] ?? collect())->sortByDesc(fn (EntryTranslation $t) => $t->locale === $alert->locale)->first();
-                    try {
-                        $sent += $this->notifier->sendTo('back_in_stock', $alert->email, (string) ($alert->locale ?? ''), $alert->variant, [
-                            'product' => trim((string) $page?->title.($alert->variant->title !== '' ? ' — '.$alert->variant->title : '')),
-                            'url' => $page?->url() !== null ? url((string) $page->url()) : url('/'),
-                        ]);
-                    } catch (Throwable $e) {
-                        // Not sent (the queue is down…): the next tick tries again.
-                        StockAlert::query()->whereKey($alert->id)->update(['notified_at' => null]);
+        foreach (array_chunk($this->orderable(), self::BATCH) as $variantIds) {
+            StockAlert::query()->whereNull('notified_at')->whereIn('variant_id', $variantIds)
+                ->with(['variant.product', 'product'])
+                ->chunkById(self::BATCH, function (BaseCollection $alerts) use (&$sent): bool {
+                    $live = $this->liveEntries($alerts);
+                    $pages = EntryTranslation::query()->whereIn('entry_id', $live)->get()->filter(fn (EntryTranslation $t) => $t->isLive())->groupBy('entry_id');
+                    foreach ($alerts as $alert) {
+                        /** @var StockAlert $alert */
+                        if (! in_array($alert->product->entry_id, $live, true)) {
+                            continue;
+                        }
+                        // Claimed before it's sent: a tick running at the same time skips it.
+                        if (StockAlert::query()->whereKey($alert->id)->whereNull('notified_at')->update(['notified_at' => now()]) === 0) {
+                            continue;
+                        }
+                        $page = ($pages[$alert->product->entry_id] ?? collect())->sortByDesc(fn (EntryTranslation $t) => $t->locale === $alert->locale)->first();
+                        try {
+                            $sent += $this->notifier->sendTo('back_in_stock', $alert->email, (string) ($alert->locale ?? ''), $alert->variant, [
+                                'product' => trim((string) $page?->title.($alert->variant->title !== '' ? ' — '.$alert->variant->title : '')),
+                                'url' => $page?->url() !== null ? url((string) $page->url()) : url('/'),
+                            ]);
+                        } catch (Throwable $e) {
+                            // Not sent (the queue is down…): the next tick tries again.
+                            StockAlert::query()->whereKey($alert->id)->update(['notified_at' => null]);
 
-                        throw $e;
+                            throw $e;
+                        }
+                        if ($sent >= self::BATCH) {
+                            return false;
+                        }
                     }
-                    if ($sent >= self::BATCH) {
-                        return false;
-                    }
-                }
 
-                return true;
-            });
+                    return true;
+                });
+            if ($sent >= self::BATCH) {
+                break;
+            }
+        }
 
         return $sent;
+    }
+
+    /**
+     * The variants people are waiting for that can be ordered again, each
+     * checked once through StockStatus (the Inventory contract; a bundle by
+     * its components).
+     *
+     * @return list<int>
+     */
+    protected function orderable(): array
+    {
+        $ids = [];
+        Variant::query()->whereIn('id', StockAlert::query()->whereNull('notified_at')->select('variant_id'))
+            ->where('active', true)->whereHas('product', fn ($q) => $q->whereNull('removed_at'))
+            ->with('product')
+            ->chunkById(500, function (BaseCollection $variants) use (&$ids): void {
+                foreach ($variants as $variant) {
+                    /** @var Variant $variant */
+                    if (! $this->stock->soldOut($variant)) {
+                        $ids[] = $variant->id;
+                    }
+                }
+            });
+
+        return $ids;
     }
 
     /**

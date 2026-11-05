@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
 use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Contracts\Inventory;
 use Sunrice\Commerce\Customers\Actions\AnonymizeCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
@@ -153,4 +155,51 @@ it('keeps alerts waiting while the Back in stock email is switched off', functio
     app(StoreSettings::class)->saveSection('emails', ['back_in_stock' => ['enabled' => true]]);
     $this->artisan('commerce:tick')->assertSuccessful();
     Notification::assertSentOnDemandTimes(StoreEmail::class, 1);
+});
+
+it('follows an external stock source over the stored status', function () {
+    Notification::fake();
+    app(AdjustStock::class)->handle($this->mug, 5, set: true);
+    $external = new class(app(Inventory::class)) implements Inventory
+    {
+        public int $stock = 0;
+
+        public function __construct(private Inventory $inner) {}
+
+        public function available(Variant $variant): int
+        {
+            return $this->stock;
+        }
+
+        public function reserve(array $lines, ?Model $reference = null, string $reason = 'order'): void {}
+
+        public function release(array $lines, ?Model $reference = null, string $reason = 'cancel'): void {}
+
+        public function adjust(Variant $variant, int $quantity, bool $set = false, string $reason = 'manual', ?string $note = null, ?int $userId = null): Variant
+        {
+            return $this->inner->adjust($variant, $quantity, $set, $reason, $note, $userId);
+        }
+    };
+    // Scoped like the real binding, so each request keeps it.
+    app()->scoped(Inventory::class, fn () => $external);
+
+    // Stored as in stock, sold out at the source: the form shows and takes the alert.
+    $this->get('/products/mug')->assertSee('Kabari saya saat tersedia');
+    $this->post('/stock-alerts', ['variant' => $this->mug->id, 'email' => 'rina@example.com'])->assertSessionHasNoErrors();
+    expect(app(SendStockAlerts::class)->handle())->toBe(0);
+
+    $external->stock = 2;
+    expect(app(SendStockAlerts::class)->handle())->toBe(1);
+});
+
+it('gives a renewed alert a fresh half-year before it is pruned', function () {
+    $this->travelTo(now()->subDays(190));
+    $this->post('/stock-alerts', ['variant' => $this->mug->id, 'email' => 'rina@example.com']);
+    $this->travelBack();
+    StockAlert::query()->update(['notified_at' => now()->subDays(20)]);
+
+    $this->post('/stock-alerts', ['variant' => $this->mug->id, 'email' => 'rina@example.com'])->assertSessionHasNoErrors();
+    $this->artisan('commerce:prune')->assertSuccessful();
+
+    expect(StockAlert::query()->sole())->notified_at->toBeNull()->created_at->isToday()->toBeTrue();
 });

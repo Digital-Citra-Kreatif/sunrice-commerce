@@ -12,7 +12,6 @@ use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\Models\PriceTier;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
-use Sunrice\Commerce\Contracts\Inventory;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Pricing\PricingContext;
 use Sunrice\Commerce\Promotions\PriceRules\RuleMatcher;
@@ -42,7 +41,7 @@ class ProductViewFactory
         protected PriceVisibility $visibility,
         protected CallToAction $cta,
         protected MoneyFormatter $money,
-        protected Inventory $inventory,
+        protected StockStatus $stock,
         protected Catalog $catalog,
     ) {}
 
@@ -223,7 +222,7 @@ class ProductViewFactory
         ];
 
         // Stock
-        $statuses = $variants->map(fn (Variant $v) => $this->stockStatus($product, $v))->all();
+        $statuses = $variants->map(fn (Variant $v) => $this->stock->of($product, $v))->all();
         $status = in_array('in_stock', $statuses, true) ? 'in_stock' : (in_array('backorder', $statuses, true) ? 'backorder' : 'out_of_stock');
         $quantity = $product->isVariable() ? null : ($single?->track_stock ? (int) $single->stock_quantity : null);
         $stock = ['status' => $status, 'quantity' => $quantity, 'message' => $this->stockMessage($status, $quantity, $single)];
@@ -371,19 +370,6 @@ class ProductViewFactory
     protected function shown(Product $product, int $price): int
     {
         return app(TaxDisplay::class)->price($price, $product->tax_class);
-    }
-
-    protected function stockStatus(Product $product, Variant $variant): string
-    {
-        if ($product->isBundle()) {
-            return app(Bundles::class)->available($product) > 0 ? 'in_stock' : 'out_of_stock';
-        }
-        $available = $this->inventory->available($variant);
-        if ($available > 0) {
-            return $variant->track_stock && $variant->backorders !== 'no' && (int) $variant->stock_quantity <= 0 ? 'backorder' : 'in_stock';
-        }
-
-        return $variant->track_stock && $variant->backorders !== 'no' ? 'backorder' : ($variant->stock_status === 'backorder' ? 'backorder' : 'out_of_stock');
     }
 
     protected function stockMessage(string $status, ?int $quantity, ?Variant $variant): string

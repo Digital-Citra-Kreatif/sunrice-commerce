@@ -3,7 +3,7 @@
     of its variants is sold out. $product: ProductView. A variable product
     lists its sold-out variants; signed-in customers aren't asked for an email.
 --}}
-@php($soldOut = $product->product->variants->filter(fn ($v) => $v->active && app(\Sunrice\Commerce\StockAlerts\SoldOut::class)->variant($v->setRelation('product', $product->product)))->values())
+@php($soldOut = $product->product->variants->filter(fn ($v) => $v->active && app(\Sunrice\Commerce\Catalog\StockStatus::class)->soldOut($v->setRelation('product', $product->product)))->values())
 @if ($soldOut->isNotEmpty() && commerce_feature('stock_alerts') && \Illuminate\Support\Facades\Route::has('commerce.stock-alerts.store'))
     @php($customer = app(\Sunrice\Commerce\Customers\CurrentCustomer::class)->get())
     <form class="commerce-stock-alert" method="POST" action="{{ commerce_url('commerce.stock-alerts.store') }}">
