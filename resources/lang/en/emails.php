@@ -76,6 +76,18 @@ return [
         'intro' => '',
         'action' => 'View your order',
     ],
+    'return_updated' => [
+        'subject' => 'Your return for :number',
+        'heading' => 'Your return has an update',
+        'intro' => '',
+        'action' => 'View your order',
+    ],
+    'staff_return_requested' => [
+        'subject' => 'Return requested for :number',
+        'heading' => 'A customer wants to return items',
+        'intro' => '',
+        'action' => 'Review the return',
+    ],
     'back_in_stock' => [
         'subject' => 'Back in stock: :product',
         'heading' => ':product is back',

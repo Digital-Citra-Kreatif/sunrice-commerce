@@ -37,6 +37,7 @@ table) is on and the email is switched on.
 | `order_refunded` | Order refunded | `orders` | A refund is recorded |
 | `order_updated` | Order changed | `orders` | Staff edit an unpaid order and choose to tell the customer |
 | `customer_note` | Note to the customer | `orders` | Staff add a note "to the customer" on the order page |
+| `return_updated` | Return updated | `returns` | Staff change a return's status, with their note |
 | `back_in_stock` | Back in stock | `stock_alerts` | A sold-out variant someone asked about can be ordered again |
 | `downloads_ready` | Downloads ready | `digital` | Digital access is granted: links or files |
 | `quote_received` | Quote request received | `orders` | A quote request is placed (Quotation mode) |
@@ -57,6 +58,7 @@ table) is on and the email is switched on.
 | `staff_new_quote` | New quote request | `orders` | A quote request is placed |
 | `staff_low_stock` | Low stock | `inventory` | A variant reaches its low-stock level |
 | `staff_out_of_stock` | Out of stock | `inventory` | A variant runs out |
+| `staff_return_requested` | Return requested | `returns` | A customer asks to return items |
 | `staff_deletion_request` | Account deletion request | `accounts` | A customer asks for their account to be deleted |
 
 `verify_email`, `login_code` and `password_reset` are **locked**: they are always sent, because

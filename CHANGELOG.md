@@ -7,6 +7,13 @@ The first release. Commerce is a plugin for the Sunrice panel (`sunrice/admin`) 
 editor, the store's admin pages live in the panel under Shop, and the storefront renders through
 the CMS's templates and full-page cache.
 
+### Returns
+- `returns` module (off by default): customers request returns of completed orders within
+  `checkout.returns_days` from My Account (items, quantities, reason, details); staff review them
+  in Shop → Orders → Returns (`commerce.returns.manage`) with a note emailed to the customer; the
+  "Return requested" (staff) and "Return updated" emails; entries on the order's timeline. New
+  tables `commerce_returns` and `commerce_return_items`.
+
 ### Product CSV
 - Shop → Products → Export CSV (every variant) and Import CSV: bulk price, compare-at price, cost,
   stock, weight and active changes by SKU, previewed with every change and every unusable row before

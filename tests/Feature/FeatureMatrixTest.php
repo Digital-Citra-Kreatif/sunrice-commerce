@@ -45,6 +45,7 @@ const MODULE_SURFACES = [
     'reviews' => [['/admin/commerce/reviews'], ['Reviews']],
     'stock_alerts' => [[], []],
     'product_feeds' => [['/feeds/products.xml'], []],
+    'returns' => [['/admin/commerce/returns'], ['Returns']],
     'marketing' => [['/admin/commerce/marketing/campaigns', '/admin/commerce/marketing/automations'], ['Campaigns', 'Automations']],
     'analytics' => [['/admin/commerce/reports/sales'], ['Reports']],
     'ai_tools' => [[], []],

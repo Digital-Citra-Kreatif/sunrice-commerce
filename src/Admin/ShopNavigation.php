@@ -60,6 +60,7 @@ final class ShopNavigation
             self::item('dashboard', 'Dashboard', 'commerce', 'shopping-bag', 'commerce.dashboard.view'),
             self::item('orders', 'Orders', 'commerce/orders', 'shopping-cart', 'commerce.orders.view', 'orders', sort: 1),
             self::item('confirmations', 'Payments to verify', 'commerce/confirmations', 'credit-card', 'commerce.payments.verify', 'manual_payments', 'orders'),
+            self::item('returns', 'Returns', 'commerce/returns', 'undo-2', 'commerce.returns.manage', 'returns', 'orders', 1),
             NavigationItem::make('commerce-products')->label('Products')->url('commerce/products')->icon('package')->group(self::GROUP)->sort(self::SORT + 2)
                 ->visible(fn (Authorizable $user): bool => collect((array) config('commerce.catalog.collections', ['products']))
                     ->contains(fn (mixed $handle): bool => is_string($handle) && Access::entries($user, 'view', $handle))),
