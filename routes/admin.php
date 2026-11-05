@@ -23,6 +23,10 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
 
     Route::get('products', [Admin\ProductsController::class, 'index'])->name('products');
     Route::post('products/bulk', [Admin\ProductsController::class, 'bulk'])->name('products.bulk');
+    Route::get('products/export', [Admin\ProductCsvController::class, 'export'])->name('products.export');
+    Route::get('products/import', [Admin\ProductCsvController::class, 'form'])->name('products.import');
+    Route::post('products/import', [Admin\ProductCsvController::class, 'preview'])->name('products.import.preview');
+    Route::post('products/import/apply', [Admin\ProductCsvController::class, 'apply'])->name('products.import.apply');
 
     Route::get('inventory', [Admin\InventoryController::class, 'index'])->name('inventory');
     Route::post('inventory/{variant}/adjust', [Admin\InventoryController::class, 'adjust'])->name('inventory.adjust');

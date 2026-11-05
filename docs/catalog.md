@@ -596,6 +596,17 @@ It prints each failure and exits with an error code when any failed.
   failed sync;
   searches title and SKU; bulk actions mark featured, unmark featured, and set the stock status.
   Opening a product goes to Sunrice's entry editor.
+- **Export CSV / Import CSV** on Shop → Products: the export has one row per variant of the
+  products the user may see (`sku`, `product`, `variant`, `price`, `compare_at_price`, `cost`,
+  `stock`, `weight`, `active`; bundles left out). An import matches rows by SKU and changes
+  `price`, `compare_at_price`, `cost`, `stock`, `weight` and `active`: a blank cell keeps the value,
+  amounts are in the store's currency with a dot for decimals, 0 clears a compare-at price or cost,
+  `stock` sets a tracked variant's quantity (a movement with the reason "import", and only with
+  `commerce.inventory.adjust`). The import shows every change and every row it can't use (unknown
+  SKU, a SKU on two rows, a product the user may not edit, a bad value, a compare-at price not
+  above the price) before **Apply**; a cell the export wrote with a leading apostrophe (so a
+  spreadsheet doesn't read `-2` as a formula) is read without it; the changes go into the
+  product field's live value and its draft, as the bulk actions do. Up to 5,000 rows.
 - **The Product data field** has tabs: General, Variants (variable products), Bundle (bundles),
   Inventory, Shipping (when it requires shipping), Bulk prices and Digital (when downloadable).
   Extensions add tabs with `api.registerProductTab()` (see

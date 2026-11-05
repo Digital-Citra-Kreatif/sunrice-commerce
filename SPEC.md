@@ -295,6 +295,9 @@ keys, for example a Midtrans package requiring `payments`.
   Opening a product goes to Sunrice's entry editor.
 - **Shop → Inventory** lists variants with their stock. Permitted users adjust stock inline (add,
   subtract or set, with a reason).
+- **CSV export and import** (Shop → Products): every variant as CSV; an import changes price,
+  compare-at price, cost, stock, weight and active by SKU, showing every change and every unusable
+  row before it applies.
 - **Product data errors**: when the product data can't be applied (for example, a SKU used by
   another product), the product is not purchasable and the editor shows why. Validation normally
   catches this before publishing.
@@ -1195,8 +1198,7 @@ Deliberately not used:
 - Configurable bundles (customer-picked components), product add-ons and personalization fields,
   deposits and installments.
 - A returns/RMA workflow and exchanges; refunds are recorded by hand.
-- Product CSV import/export and bulk price editing. These are planned right after v1 and need
-  upstream U5.
+- Creating products from CSV (the import changes existing variants by SKU).
 - A headless/REST API (the MCP server and the Blade components are the interfaces); search engines
   (Scout).
 - e-Faktur/Coretax tax invoices and accounting integrations (separate packages).
