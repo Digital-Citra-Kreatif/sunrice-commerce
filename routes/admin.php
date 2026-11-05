@@ -98,6 +98,11 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::post('orders/{order}/restore', [Admin\OrdersController::class, 'restore'])->whereNumber('order')->name('orders.restore');
     Route::delete('orders/{order}/force', [Admin\OrdersController::class, 'forceDelete'])->whereNumber('order')->name('orders.force-delete');
 
+    Route::get('reviews', [Admin\ReviewsController::class, 'index'])->name('reviews');
+    Route::post('reviews/bulk', [Admin\ReviewsController::class, 'bulk'])->name('reviews.bulk');
+    Route::get('reviews/{review}', [Admin\ReviewsController::class, 'edit'])->whereNumber('review')->name('reviews.edit');
+    Route::put('reviews/{review}', [Admin\ReviewsController::class, 'update'])->whereNumber('review')->name('reviews.update');
+    Route::delete('reviews/{review}', [Admin\ReviewsController::class, 'destroy'])->whereNumber('review')->name('reviews.destroy');
     Route::get('confirmations', [Admin\ConfirmationsController::class, 'index'])->name('confirmations');
     Route::get('confirmations/{confirmation}/proof', [Admin\ConfirmationsController::class, 'proof'])->name('confirmations.proof');
     Route::post('confirmations/{confirmation}/approve', [Admin\ConfirmationsController::class, 'approve'])->name('confirmations.approve');

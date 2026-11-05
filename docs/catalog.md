@@ -21,6 +21,7 @@ field into its own tables so carts, orders and listings can read it fast.
 - [Categories, tags, brands and attributes](#categories-tags-brands-and-attributes)
 - [Listings and filters](#listings-and-filters)
 - [Wishlist and compare](#wishlist-and-compare)
+- [Reviews](#reviews)
 - [The projection](#the-projection)
 - [Admin pages](#admin-pages)
 
@@ -504,6 +505,27 @@ on cards and the product page, and a page at `/wishlist`.
 
 Both pages are `noindex`.
 
+## Reviews
+
+**Reviews** (`reviews` module, on by default): customers rate a product from 1 to 5 stars and write
+a review on its page (`<x-commerce::reviews :entry="$entry" />`); staff approve, reject, reply to
+and delete them in Shop → Products → Reviews (permission `commerce.reviews.manage`).
+
+- Settings → Store → Catalog: **Who may review products** (`catalog.reviews_who`: `everyone`,
+  `customers` signed in, or `buyers`) and **Reviews show** (`catalog.reviews_approval`: `manual`,
+  `buyers` at once and others once approved, or `none`, at once).
+- A review by a customer with a processing or completed order for the product is a **verified
+  purchase**. A customer has one review per product: writing again replaces it, and it's checked
+  again under the approval setting.
+- Guests give a name and an email (never shown), and answer the panel's captcha when one is set up.
+  The form has a honeypot and takes 5 reviews an hour from an address.
+- Approved reviews make the product's rating (`commerce_products.rating_count` and
+  `rating_average`), shown on cards, under the product's title and in its JSON-LD
+  (`aggregateRating`).
+- When a customer is anonymised, their reviews stay without their name, email and address; review
+  IP addresses are pruned with the others (`commerce.privacy.ip_retention_days`).
+- `Reviews\Events\ReviewSubmitted` fires for every review written.
+
 ## The projection
 
 On `EntryPublished` for an entry of a product collection, `Catalog\ProductProjector` copies the live
@@ -550,3 +572,6 @@ It prints each failure and exits with an error code when any failed.
   [extending.md](extending.md#admin-javascript)).
 - **Shop → Inventory** lists the variants (bundles excluded) with their stock, filters low, out of
   stock and untracked, and adjusts stock inline with a reason.
+- **Shop → Products → Reviews** lists reviews with their product, rating and status; filters by
+  status, rating and verified purchase; searches the reviewer and text; bulk actions approve, reject
+  and delete. Opening a review shows what was written and sets its status and the store's reply.

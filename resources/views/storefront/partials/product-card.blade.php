@@ -1,7 +1,7 @@
 {{--
     A product in a listing. $entry: the product entry.
     Shows the first image (the second on hover), the colour swatches and
-    size range of a variable product, badges, title and price, and the
+    size range of a variable product, badges, title, price and rating, and the
     wishlist heart. Everything it reads is loaded with the listing, so a
     card adds no queries: swatches come from the colour terms' `swatch`
     field (a hex colour), read from the terms the product view loaded.
@@ -53,6 +53,10 @@
     @if ($card)
         @include(\Sunrice\Commerce\Storefront\Layout::view('partials.badges'), ['product' => $card])
         @include(\Sunrice\Commerce\Storefront\Layout::view('partials.price'), ['product' => $card])
+        @if ($card->product->rating_count > 0 && commerce_feature('reviews'))
+            <p class="commerce-rating commerce-card__rating" aria-label="{{ __('commerce::storefront.reviews.average', ['rating' => number_format((float) $card->product->rating_average, 1), 'count' => $card->product->rating_count]) }}">
+                <span aria-hidden="true">★ {{ number_format((float) $card->product->rating_average, 1) }} ({{ $card->product->rating_count }})</span></p>
+        @endif
         @if (commerce_feature('wishlist') && \Illuminate\Support\Facades\Route::has('commerce.wishlist.add'))
             <div class="commerce-card__wishlist">
                 @include(\Sunrice\Commerce\Storefront\Layout::view('partials.wishlist-button'), ['productId' => $card->id(), 'saved' => app(\Sunrice\Commerce\Wishlist\WishlistManager::class)->has($card->id()), 'compact' => true])

@@ -834,6 +834,21 @@ Google), earlier guest orders with that email join the account.
   specifications (matched by label) and any fields chosen in settings.
 - The list is stored in the session, so it works for guests.
 
+### Reviews (`reviews`)
+
+- Customers rate a product 1–5 and write a review (optional title, text) on its page.
+- Who may write one: everyone (guests give a name and an email, never shown), signed-in customers,
+  or customers who bought the product. A review from a customer with a processing or completed
+  order for it is a verified purchase. One review per customer and product; writing again replaces
+  it.
+- Reviews show once approved, at once from buyers, or at once, by setting. Staff approve, reject,
+  reply to and delete them in Shop → Products → Reviews.
+- The product page shows the average, a breakdown by rating, the approved reviews (newest first,
+  paged) with the store's replies and the form; cards and the product title show the rating;
+  JSON-LD gets `aggregateRating`.
+- Spam: a honeypot, the panel's captcha for guests, and 5 reviews an hour per address.
+- Anonymising a customer removes their name, email and address from their reviews.
+
 ### Marketing emails (`marketing`)
 
 - Email campaigns: one email to an audience of customers who accept marketing, sent now or at a
@@ -1154,7 +1169,7 @@ Deliberately not used:
 
 - Multiple currencies; multiple stores or warehouses; marketplaces (multi-vendor); point of sale.
 - Payment gateway and courier API integrations (separate packages); shipping labels.
-- Product reviews and ratings; product Q&A.
+- Product Q&A.
 - Subscriptions, memberships, gift cards, store credit and loyalty points (loyalty is a separate
   package).
 - Back-in-stock and price-drop alerts, product feeds (Google Merchant, Meta).

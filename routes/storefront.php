@@ -72,6 +72,9 @@ Route::middleware(['commerce.feature:manual_payments', 'commerce.noindex'])->pre
     Route::post('/', [Storefront\ConfirmPaymentController::class, 'submit'])->middleware([ProtectAgainstSpam::class, 'throttle:commerce-confirm'])->name('commerce.confirm-payment.submit'.$suffix);
 });
 
+Route::post(StorefrontRoutes::path('reviews').'/{product}', [Storefront\ReviewsController::class, 'store'])->whereNumber('product')
+    ->middleware(['commerce.feature:reviews', 'commerce.noindex', ProtectAgainstSpam::class, 'throttle:commerce-reviews'])->name('commerce.reviews.store'.$suffix);
+
 // Downloads keep working while the digital module is off: what was bought stays available.
 Route::get(StorefrontRoutes::path('downloads').'/{token}', Storefront\DownloadController::class)
     ->middleware(['commerce.noindex', 'throttle:commerce-downloads'])->name('commerce.download'.$suffix);

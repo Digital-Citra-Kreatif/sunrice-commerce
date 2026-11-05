@@ -65,6 +65,7 @@ final class ShopNavigation
                     ->contains(fn (mixed $handle): bool => is_string($handle) && Access::entries($user, 'view', $handle))),
             ...self::taxonomyItems(),
             self::item('inventory', 'Inventory', 'commerce/inventory', 'clipboard-list', 'commerce.inventory.view', 'inventory', 'products', sort: 9),
+            self::item('reviews', 'Reviews', 'commerce/reviews', 'star', 'commerce.reviews.manage', 'reviews', 'products', sort: 10),
             self::item('customers', 'Customers', 'commerce/customers', 'users', 'commerce.customers.view', sort: 3),
             NavigationItem::make('commerce-promotions')->label('Promotions')->url('commerce/promotions')->icon('megaphone')->group(self::GROUP)
                 ->sort(self::SORT + 4)->visible($promotions),

@@ -26,6 +26,7 @@ Constructor arguments in camelCase are kebab-case attributes: `onSale` is `on-sa
 - [`commerce::mini-cart`](#commercemini-cart)
 - [`commerce::wishlist-button`](#commercewishlist-button)
 - [`commerce::compare-button`](#commercecompare-button)
+- [`commerce::reviews`](#commercereviews)
 - [`@commerceFeature`](#commercefeature)
 
 ## Overview
@@ -42,6 +43,7 @@ Constructor arguments in camelCase are kebab-case attributes: `onSale` is `on-sa
 | `<x-commerce::mini-cart>` | — | `partials.mini-cart` | `cart` is off |
 | `<x-commerce::wishlist-button>` | `entry` | `partials.wishlist-button` | `wishlist` is off, or no product |
 | `<x-commerce::compare-button>` | `entry` | `partials.compare-button` | `compare` is off, or no product |
+| `<x-commerce::reviews>` | `entry` | `partials.reviews` | `reviews` is off, or no product |
 
 "No product" means the entry isn't a synced product of a product collection
 ([catalog.md](catalog.md)).
@@ -78,7 +80,7 @@ The buying block of a product, as on the product page:
 
 | Attribute | Type | Default | |
 | --- | --- | --- | --- |
-| `entry` | `Sunrice\Models\Entry` | required | The product entry |
+| `entry` | `Sunrice\Cms\Models\Entry` | required | The product entry |
 
 ```blade
 <x-commerce::product :entry="$entry" />
@@ -96,7 +98,7 @@ prices" (linked to sign-in) or "Price on request".
 
 | Attribute | Type | Default | |
 | --- | --- | --- | --- |
-| `entry` | `?Sunrice\Models\Entry` | `null` | The product entry |
+| `entry` | `?Sunrice\Cms\Models\Entry` | `null` | The product entry |
 | `product` | `?ProductView` | `null` | A product view you already have; wins over `entry` |
 
 ```blade
@@ -242,7 +244,7 @@ Adds a product to the wishlist, or removes it when it's saved already.
 
 | Attribute | Type | Default | |
 | --- | --- | --- | --- |
-| `entry` | `Sunrice\Models\Entry` | required | The product entry |
+| `entry` | `Sunrice\Cms\Models\Entry` | required | The product entry |
 
 ```blade
 <x-commerce::wishlist-button :entry="$entry" />
@@ -257,7 +259,7 @@ Adds a product to the comparison, or removes it.
 
 | Attribute | Type | Default | |
 | --- | --- | --- | --- |
-| `entry` | `Sunrice\Models\Entry` | required | The product entry |
+| `entry` | `Sunrice\Cms\Models\Entry` | required | The product entry |
 
 ```blade
 <x-commerce::compare-button :entry="$entry" />
@@ -265,6 +267,23 @@ Adds a product to the comparison, or removes it.
 
 It's a form that posts and comes back. The button has `aria-pressed`. The partial gets
 `$productId` and `$added`.
+
+## commerce::reviews
+
+The product's rating, its approved reviews (10 a page, `?reviews=2`) and the form to write one
+(see [Reviews](catalog.md#reviews)). The default product page shows it after the details.
+
+| Attribute | Type | Default | |
+| --- | --- | --- | --- |
+| `entry` | `Sunrice\Cms\Models\Entry` | required | The product entry |
+
+```blade
+<x-commerce::reviews :entry="$entry" />
+```
+
+The section has `id="reviews"`, so `#reviews` links to it. The partial gets `$product` (its
+`rating_count` and `rating_average`), `$reviews` (a paginator), `$breakdown` (rating => count),
+`$blocked` (`sign_in`, `buyers_only` or `null` when the form shows), `$guest` and `$captcha`.
 
 ## @commerceFeature
 

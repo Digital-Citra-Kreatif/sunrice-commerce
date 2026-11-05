@@ -159,7 +159,8 @@ final class ProductView implements JsonSerializable
     }
 
     /**
-     * schema.org Product (JSON-LD): offers only when prices are visible.
+     * schema.org Product (JSON-LD): offers only when prices are visible, the
+     * rating when the product has approved reviews.
      *
      * @return array<string, mixed>
      */
@@ -194,6 +195,11 @@ final class ProductView implements JsonSerializable
             $data['offers'] = $this->price['isRange']
                 ? ['@type' => 'AggregateOffer', 'priceCurrency' => $currency, 'lowPrice' => $amount((int) $this->price['from']), 'highPrice' => $amount((int) $this->price['to']), 'availability' => $availability, 'offerCount' => count($this->variants)]
                 : ['@type' => 'Offer', 'priceCurrency' => $currency, 'price' => $amount((int) $this->price['amount']), 'availability' => $availability];
+        }
+        // The rating of the approved reviews the page shows (<x-commerce::reviews>).
+        if ($this->product->rating_count > 0 && commerce_feature('reviews')) {
+            $data['aggregateRating'] = ['@type' => 'AggregateRating', 'ratingValue' => number_format((float) $this->product->rating_average, 1, '.', ''),
+                'reviewCount' => $this->product->rating_count, 'bestRating' => '5', 'worstRating' => '1'];
         }
 
         return $data;

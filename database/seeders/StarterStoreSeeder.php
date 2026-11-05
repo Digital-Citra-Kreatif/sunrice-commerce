@@ -59,6 +59,8 @@ use Sunrice\Commerce\Promotions\Actions\SaveVoucher;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
 use Sunrice\Commerce\Promotions\Vouchers\Voucher;
+use Sunrice\Commerce\Reviews\Models\Review;
+use Sunrice\Commerce\Reviews\ProductRating;
 use Sunrice\Commerce\Settings\Actions\SaveStoreSettings;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Shipping\Models\ShippingMethod;
@@ -692,8 +694,35 @@ class StarterStoreSeeder extends Seeder
                 $wishlist->items()->firstOrCreate(['product_id' => $productId]);
             }
         }
+        $this->reviews($customer, $completed);
         Auth::forgetGuards();
         app()->forgetScopedInstances();
+    }
+
+    /** Approved reviews: the demo customer's of what she bought (verified), and a few from guests. */
+    protected function reviews(Customer $customer, Order $completed): void
+    {
+        $product = fn (string $code) => (int) Variant::query()->where('sku', 'like', self::SKU_PREFIX.$code.'-%')->value('product_id');
+        $reviews = [
+            ['W04', 5, $this->t('Pas dan adem', 'Fits well, breathes well'), $this->t('Bahannya adem dan jahitannya rapi. Ukuran M pas untuk saya.', 'Cool fabric and neat stitching. The M fits me just right.'), true],
+            ['W01', 4, null, $this->t('Warnanya cantik, sedikit lebih panjang dari perkiraan.', 'Lovely colour, a little longer than I expected.'), true],
+            ['W04', 4, $this->t('Bagus untuk kerja', 'Good for work'), $this->t('Nyaman dipakai seharian di kantor.', 'Comfortable for a whole day at the office.'), false],
+            ['W07', 5, null, $this->t('Kualitas premium, pengiriman cepat.', 'Premium quality, quick delivery.'), false],
+            ['M10', 3, $this->t('Lumayan', 'Decent'), $this->t('Bahannya bagus tapi ukurannya agak kecil, sebaiknya naik satu ukuran.', 'Good fabric but it runs small; go one size up.'), false],
+        ];
+        $names = ['Rina Wijaya', 'Andi Pratama', 'Sari Utami'];
+        foreach ($reviews as $i => [$code, $rating, $title, $body, $hers]) {
+            $productId = $product($code);
+            if ($productId === 0) {
+                continue;
+            }
+            Review::query()->firstOrCreate(['product_id' => $productId, 'body' => $body], [
+                'customer_id' => $hers ? $customer->id : null, 'order_id' => $hers ? $completed->id : null,
+                'name' => $hers ? (string) $customer->name : $names[$i % 3], 'rating' => $rating, 'title' => $title,
+                'locale' => $this->locale, 'status' => 'approved', 'created_at' => now()->subDays(30 - $i * 5),
+            ]);
+            ProductRating::refresh($productId);
+        }
     }
 
     /**

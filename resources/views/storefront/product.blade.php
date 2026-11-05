@@ -7,7 +7,7 @@
     variant picker, quantity, add to cart, stock), wishlist and compare,
     bundle contents and download details; the details as collapsible
     sections (description, specifications, size guide, questions); the
-    inquiry form; upsells and related products.
+    inquiry form; reviews (<x-commerce::reviews>); upsells and related products.
 --}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
@@ -60,6 +60,10 @@
                 <p class="commerce-eyebrow"><a href="{{ $brand->url() }}">{{ $brand->title($locale) }}</a></p>
             @endif
             <h1 class="commerce-product__title">{{ $entry->title }}</h1>
+            @if ($product && commerce_feature('reviews') && $product->product->rating_count > 0)
+                <p class="commerce-rating"><a href="#reviews"><span aria-hidden="true">{{ str_repeat('★', (int) round((float) $product->product->rating_average)).str_repeat('☆', 5 - (int) round((float) $product->product->rating_average)) }}</span>
+                    {{ trans_choice('commerce::storefront.reviews.count', $product->product->rating_count, ['count' => $product->product->rating_count]) }}</a></p>
+            @endif
             @if (filled((commerce_values($entry)['excerpt'] ?? null)))
                 <p class="commerce-product__excerpt">{{ (commerce_values($entry)['excerpt'] ?? null) }}</p>
             @endif
@@ -110,6 +114,7 @@
                 @include($L::view('partials.inquiry-form'))
             </section>
         @endif
+        <x-commerce::reviews :entry="$entry" />
         @foreach (['upsells' => __('commerce::storefront.theme.upsells'), 'related_products' => __('commerce::storefront.product.related')] as $field => $heading)
             @php($items = collect(commerce_values($entry)[$field] ?? [])->filter())
             @if ($items->isNotEmpty())
