@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
+use Spatie\Permission\Models\Role;
 use Inertia\Testing\AssertableInertia;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Admin\Activity\ActivityLog;
+use Sunrice\Admin\Activity\Activity;
 
 it('opens the first section the user may edit from the Store tab', function () {
     actingAsUserWith(['commerce.settings.catalog']);
@@ -16,13 +17,14 @@ it('opens the first section the user may edit from the Store tab', function () {
         ->where('section.key', 'catalog')
         ->where('sections', [['key' => 'catalog', 'label' => 'Catalog', 'href' => 'commerce/settings/catalog'], ['key' => 'digital', 'label' => 'Digital products', 'href' => 'commerce/settings/digital']])
         ->where('form.values.price_visibility', 'everyone')
-        ->where('settingsTabs.0.key', 'store'));
+        ->where('commerce.settingsNav.0.url', 'commerce/settings'));
     $this->get('/admin/commerce/settings/general')->assertForbidden();
     $this->put('/admin/commerce/settings/general', ['values' => ['name' => 'X']])->assertForbidden();
 });
 
 it('renders and saves every built-in section', function (string $section, array $values, string $key, mixed $expected) {
     actingAsSuperAdmin();
+    Role::findOrCreate('Customer', 'web'); // the role customer_roles may name
 
     $this->get("/admin/commerce/settings/{$section}")->assertOk();
     $this->from("/admin/commerce/settings/{$section}")
@@ -58,7 +60,7 @@ it('refuses a selling mode the switched-on modules cannot serve, and logs saves'
     $this->put('/admin/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'shop']])
         ->assertSessionHasErrors(['section' => 'Online store mode needs Payment methods. Choose another selling mode first, or switch on what it needs.']);
     expect(app(StoreSettings::class)->get('general.selling_mode'))->toBe('quote')
-        ->and(ActivityLog::query()->where('subject_label', 'Store settings: General')->exists())->toBeTrue();
+        ->and(Activity::query()->where('subject_label', 'Store settings: General')->exists())->toBeTrue();
 });
 
 it('refuses WhatsApp orders without a number and the online store without a payment method', function () {

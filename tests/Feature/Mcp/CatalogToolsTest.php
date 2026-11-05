@@ -13,7 +13,7 @@ use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
 use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Shipping\Models\ShippingMethod;
-use Sunrice\Admin\Activity\ActivityLog;
+use Sunrice\Admin\Activity\Activity;
 
 beforeEach(function () {
     $this->mug = checkoutStore(['track_stock' => true, 'initial_stock' => 5]);
@@ -68,7 +68,7 @@ it('saves vouchers through the admin form, describing it first', function () {
     $saved = mcpTool(Tools\SaveVoucherTool::class, ['values' => ['name' => 'Hemat 10%', 'code' => 'hemat10', 'active' => true, 'type' => 'percent', 'percent' => 10]]);
     expect($saved)->toMatchArray(['saved' => true, 'code' => 'HEMAT10', 'type' => 'percent'])
         ->and(Voucher::query()->where('code', 'HEMAT10')->value('value'))->toBe(1000)
-        ->and(ActivityLog::query()->where('subject_label', 'like', 'Voucher:%')->value('source'))->toBe('ai');
+        ->and(Activity::query()->where('subject_label', 'like', 'Voucher:%')->value('source'))->toBe('ai');
 
     // Only the changed keys are needed.
     mcpTool(Tools\SaveVoucherTool::class, ['id' => $saved['id'], 'values' => ['percent' => 15]]);

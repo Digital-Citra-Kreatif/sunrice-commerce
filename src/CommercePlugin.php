@@ -65,7 +65,12 @@ final class CommercePlugin extends BasePlugin
             ->sort(10)->permission('commerce.dashboard.view')
             ->data(fn (Authorizable $user): array => StoreCard::data($user)));
         // The store's money format, for the admin's money inputs and figures.
-        $panel->share('commerce', fn (): array => ['currency' => (array) app(StoreSettings::class)->get('general.currency', [])]);
+        // On Settings → Store's pages, the panel's Settings menu too (SettingsLayout).
+        $panel->share('commerce', fn (): array => [
+            'currency' => (array) app(StoreSettings::class)->get('general.currency', []),
+            'settingsNav' => str_starts_with((string) request()->route()?->getName(), 'sunrice.admin.commerce.settings') && ($user = request()->user()) instanceof Authorizable
+                ? $panel->settingsNavigation($user) : [],
+        ]);
         $panel->tools(...StoreTools::ALL);
         $panel->aiInstructions(StoreTools::INSTRUCTIONS);
         $panel->defaultRole('shop-manager', CommercePermissions::shopManager());
