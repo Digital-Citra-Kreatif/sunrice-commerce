@@ -31,7 +31,7 @@ class CompareController
 
         $labels = [];
         foreach ($entries as $entry) {
-            foreach ((array) (commerce_values($entry)['specifications'] ?? []) as $row) {
+            foreach (collect(commerce_values($entry)['specifications'] ?? []) as $row) {
                 $label = trim((string) data_get($row, 'label', ''));
                 if ($label !== '' && ! in_array(mb_strtolower($label), array_map('mb_strtolower', $labels), true)) {
                     $labels[] = $label;

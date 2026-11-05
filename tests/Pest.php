@@ -70,16 +70,16 @@ function actingAsUserWith(array $permissions, string $email = 'staff@example.com
     return $user;
 }
 
-/** The products collection with a blueprint holding the product field. */
+/** The products collection with the store's product blueprint. */
 function productCollection(): Collection
 {
     $existing = Collection::query()->where('handle', 'products')->first();
     if ($existing !== null) {
         return $existing;
     }
-    Blueprint::query()->firstOrCreate(['handle' => 'product'], ['title' => 'Product', 'fields' => [
-        ['handle' => 'product', 'type' => 'commerce_product', 'label' => 'Product'],
-    ]]);
+    // The store's own product blueprint (resources/structure/commerce.php): product data, excerpt, gallery, specifications…
+    $definition = collect((require __DIR__.'/../resources/structure/commerce.php')['blueprints'])->firstWhere('handle', 'product');
+    Blueprint::query()->firstOrCreate(['handle' => 'product'], ['title' => 'Product', 'fields' => $definition['fields']]);
 
     return Collection::query()->create(['handle' => 'products', 'title' => 'Products', 'blueprint' => 'product', 'route' => '/products/{slug}']);
 }
