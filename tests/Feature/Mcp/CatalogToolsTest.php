@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Sunrice\Admin\Panel;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Features\Features;
@@ -148,11 +149,6 @@ it('quotes shipping to a destination', function () {
     expect((new Tools\QuoteShippingTool)->shouldRegister())->toBeFalse();
 });
 
-it('adds the store guidance to the MCP server instructions', function () {
-    $sunrice = app(Sunrice\Sunrice::class);
-    if (! method_exists($sunrice, 'mcpInstructions')) {
-        $this->markTestSkipped('Needs Sunrice with MCP instructions (U6).');
-    }
-
-    expect($sunrice->mcpInstructions())->toContain(StoreTools::INSTRUCTIONS);
+it('adds the store guidance to the AI agents\' instructions', function () {
+    expect(app(Panel::class)->getAiInstructions())->toContain(StoreTools::INSTRUCTIONS);
 });

@@ -7,7 +7,7 @@ namespace Sunrice\Commerce\Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use Sunrice\Cms\Actions\Entries\PublishEntry;
-use Sunrice\Cms\Actions\Entries\SaveDraft;
+use Sunrice\Cms\Actions\Entries\CreateEntry;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Orders\Actions\CreateManualOrder;
@@ -95,11 +95,8 @@ class DemoStoreSeeder extends Seeder
     protected function product(string $title, array $value, string $excerpt): Variant
     {
         $collection = Collection::query()->where('handle', (string) (config('commerce.catalog.collections', ['products'])[0] ?? 'products'))->firstOrFail();
-        $entry = Entry::query()->create(['collection_id' => $collection->id, 'status' => 'draft', 'sort_order' => 0]);
-        $translation = $entry->translations()->create(['locale' => Locales::default(), 'collection_id' => $collection->id, 'title' => $title,
-            'slug' => Str::slug($title), 'data' => [], 'seo' => []]);
-        app(SaveDraft::class)->handle($translation, ['title' => $title, 'slug' => Str::slug($title), 'data' => ['excerpt' => $excerpt, 'product' => $value]]);
-        app(PublishEntry::class)->handle($translation->fresh());
+        $translation = app(CreateEntry::class)->handle($collection, ['title' => $title, 'slug' => Str::slug($title), 'data' => ['excerpt' => $excerpt, 'product' => $value]]);
+        app(PublishEntry::class)->handle($translation);
 
         return Variant::query()->where('sku', $value['variants'][0]['sku'])->firstOrFail();
     }

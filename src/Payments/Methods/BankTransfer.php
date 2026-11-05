@@ -8,7 +8,7 @@ use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Contracts\AddsUniqueCode;
 use Sunrice\Commerce\Payments\Models\Payment;
 use Sunrice\Commerce\Payments\PaymentStart;
-use Sunrice\Models\Asset;
+use Sunrice\Admin\Media\Media;
 
 /**
  * Bank transfer to one of the store's accounts, with an optional unique
@@ -80,7 +80,7 @@ class BankTransfer extends ManualMethod implements AddsUniqueCode
                 'number' => (string) ($a['number'] ?? ''),
                 'holder' => (string) ($a['holder'] ?? ''),
                 'branch' => $a['branch'] ?? null,
-                'logo' => $logoId !== null && class_exists(Asset::class) ? Asset::query()->find($logoId)?->url() : null,
+                'logo' => $logoId !== null ? Media::query()->find($logoId)?->url() : null,
             ];
         }, array_filter((array) $this->setting('accounts', []), 'is_array')));
     }

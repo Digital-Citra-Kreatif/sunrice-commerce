@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Sunrice\Admin\Panel;
 use Inertia\Testing\AssertableInertia;
 use Sunrice\Commerce\Admin\Dashboard\StoreCard;
 use Sunrice\Commerce\Analytics\StatsRecorder;
@@ -69,10 +70,9 @@ it('gives Sunrice\'s dashboard a Store card for store staff only', function () {
         ->and(StoreCard::props($manager))->toMatchArray(['sales' => 'Rp120.000', 'orders' => 1])
         ->and(collect(StoreCard::props($manager)['todo'])->firstWhere('key', 'to_ship')['count'])->toBe(1);
 
-    // On Sunrice versions with dashboard cards (U2) the card is registered for those who may see it.
-    $sunrice = app(Sunrice\Sunrice::class);
-    if (method_exists($sunrice, 'dashboardCards')) {
-        expect(array_column($sunrice->dashboardCards($manager), 'name'))->toContain('commerce-store')
-            ->and(array_column($sunrice->dashboardCards($editor), 'name'))->not->toContain('commerce-store');
-    }
+    // The panel's dashboard: the Store widget for those who may see it.
+    $widget = collect(app(Panel::class)->getWidgets())->firstWhere('key', 'commerce.store');
+    expect($widget->isVisibleTo($manager))->toBeTrue()
+        ->and($widget->isVisibleTo($editor))->toBeFalse()
+        ->and(StoreCard::data($manager)['value'])->toBe('Rp120.000');
 });

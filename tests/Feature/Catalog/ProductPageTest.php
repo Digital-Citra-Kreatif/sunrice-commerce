@@ -81,7 +81,7 @@ it('previews draft prices without writing', function () {
     $draft['variants'][0]['price'] = 59000;
     publishProduct($draft, $entry, title: 'Kaos Polos', publish: false);
 
-    $url = URL::temporarySignedRoute('sunrice.frontend.preview', now()->addMinutes(5), ['entry' => $entry->id, 'locale' => 'id']);
+    $url = URL::temporarySignedRoute('sunrice.cms.preview', now()->addMinutes(5), ['translation' => $entry->translations()->where('locale', 'id')->value('id')]);
     $this->get($url)->assertOk()->assertSee('Rp59.000');
     expect(commerce_product(Entry::query()->find($entry->id))->price['from'])->toBe(99000);
 });

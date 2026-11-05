@@ -62,7 +62,7 @@ return [
     'category targets include subcategories' => [
         'products' => ['MUG' => 50000, 'TEA' => 20000],
         'setup' => function (array $v) use ($rule) {
-            $taxonomy = Taxonomy::query()->create(['handle' => 'product_categories', 'title' => 'Categories', 'settings' => []]);
+            $taxonomy = Taxonomy::query()->create(['handle' => 'product_categories', 'title' => 'Categories']);
             $parent = Term::query()->create(['taxonomy_id' => $taxonomy->id, 'sort_order' => 0]);
             $child = Term::query()->create(['taxonomy_id' => $taxonomy->id, 'parent_id' => $parent->id, 'sort_order' => 0]);
             Entry::query()->find($v['MUG']->product->entry_id)->terms()->attach($child->id);

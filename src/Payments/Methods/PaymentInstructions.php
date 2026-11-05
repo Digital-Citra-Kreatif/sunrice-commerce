@@ -8,7 +8,7 @@ use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Models\Payment;
 use Sunrice\Commerce\Payments\PaymentStart;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Models\Asset;
+use Sunrice\Admin\Media\Media;
 
 /**
  * A title, an image (a static QRIS code, an e-wallet number) and
@@ -45,7 +45,7 @@ class PaymentInstructions extends ManualMethod
         $image = $this->setting('image');
         $id = is_array($image) ? ($image[0] ?? null) : $image;
 
-        return $id !== null && class_exists(Asset::class) ? Asset::query()->find($id)?->url() : null;
+        return $id !== null ? Media::query()->find($id)?->url() : null;
     }
 
     public function start(Order $order, Payment $payment): PaymentStart

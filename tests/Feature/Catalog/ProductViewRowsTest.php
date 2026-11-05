@@ -161,7 +161,7 @@ it('builds preview rows from the draft options', function () {
     $draft['variants'][3]['price'] = 59000;
     publishProduct($draft, $entry, title: 'Kaos Warna', publish: false);
 
-    $url = URL::temporarySignedRoute('sunrice.frontend.preview', now()->addMinutes(5), ['entry' => $entry->id, 'locale' => 'id']);
+    $url = URL::temporarySignedRoute('sunrice.cms.preview', now()->addMinutes(5), ['translation' => $entry->translations()->where('locale', 'id')->value('id')]);
     $this->get($url)->assertOk()->assertSee('&quot;price&quot;:59000', false);
     $live = commerce_product(Entry::query()->find($entry->id));
 

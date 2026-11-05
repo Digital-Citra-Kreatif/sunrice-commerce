@@ -17,7 +17,7 @@ use Sunrice\Commerce\Documents\Documents;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Models\Asset;
+use Sunrice\Admin\Media\Media;
 use Throwable;
 
 /**
@@ -98,7 +98,7 @@ class StoreEmail extends Notification implements ShouldQueue
     {
         $logo = app(StoreSettings::class)->get('general.logo');
         $id = is_array($logo) ? ($logo[0] ?? null) : $logo;
-        $asset = $id !== null ? Asset::query()->find($id) : null;
+        $asset = $id !== null ? Media::query()->find($id) : null;
         if ($asset === null) {
             return null;
         }

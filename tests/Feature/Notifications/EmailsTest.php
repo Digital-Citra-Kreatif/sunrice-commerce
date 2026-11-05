@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Sunrice\Commerce\Database\Seeders\CommerceRolesSeeder;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;

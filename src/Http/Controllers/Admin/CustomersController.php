@@ -14,9 +14,9 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
-use Spatie\SimpleExcel\SimpleExcelWriter;
-use Sunrice\Admin\Table\Column;
-use Sunrice\Admin\Table\TableQuery;
+use Sunrice\Commerce\Support\CsvExport;
+use Sunrice\Commerce\Admin\Tables\Column;
+use Sunrice\Commerce\Admin\Tables\TableQuery;
 use Sunrice\Commerce\Customers\Actions\AnonymizeCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Customers\Notifications\CustomerResetPassword;
@@ -28,7 +28,6 @@ use Sunrice\Commerce\Support\Address;
 use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Commerce\Support\Phone;
 use Sunrice\Admin\Users\PermissionRank;
-use Sunrice\Support\CsvCell;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Shop → Customers: everyone who registered or ordered. */
@@ -89,12 +88,12 @@ class CustomersController extends Controller
         app(ActivityRecorder::class)->record('exported', 'Customers', [], 'customers');
 
         return response()->streamDownload(function () use ($query): void {
-            $writer = SimpleExcelWriter::streamDownload('customers.csv');
+            $writer = CsvExport::toOutput();
             $query->reorder()->with('addresses')->chunkById(500, function ($customers) use ($writer): void {
                 foreach ($customers as $c) {
                     if ($c instanceof Customer) {
                         $address = $c->addresses->firstWhere('default_shipping', true) ?? $c->addresses->first();
-                        $writer->addRow(array_map(CsvCell::safe(...), [
+                        $writer->addRow(([
                             'name' => $c->name, 'email' => $c->email, 'phone' => $c->phone,
                             'account' => $c->user_id ? 'registered' : 'guest',
                             'orders' => $c->orders_count, 'spent' => $c->total_spent,

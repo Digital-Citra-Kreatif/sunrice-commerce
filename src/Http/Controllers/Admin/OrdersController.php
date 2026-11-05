@@ -14,9 +14,9 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\SimpleExcel\SimpleExcelWriter;
-use Sunrice\Admin\Table\Column;
-use Sunrice\Admin\Table\TableQuery;
+use Sunrice\Commerce\Support\CsvExport;
+use Sunrice\Commerce\Admin\Tables\Column;
+use Sunrice\Commerce\Admin\Tables\TableQuery;
 use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Analytics\Day;
 use Sunrice\Commerce\Digital\Models\DownloadGrant;
@@ -50,8 +50,7 @@ use Sunrice\Commerce\Shipping\Couriers;
 use Sunrice\Commerce\Support\Address;
 use Sunrice\Commerce\Support\DomainException;
 use Sunrice\Commerce\Support\MoneyFormatter;
-use Sunrice\Http\Controllers\Admin\TablePreferencesController;
-use Sunrice\Support\CsvCell;
+use Sunrice\Admin\Preferences\Preferences;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Shop → Orders: the list (search, filters, columns, bulk actions, export) and the order page. */
@@ -65,7 +64,9 @@ class OrdersController extends Controller
         $table = $this->table($request);
         // The items column: summed in the page query rather than once per row.
         $table->builder()->withSum(['items as items_quantity' => fn (Builder $q) => $q->whereNull('parent_id')], 'quantity');
-        $rows = $table->defaultPerPage(TablePreferencesController::perPageFor($request, self::TABLE, 25))->paginate($request);
+        // The page size and columns this user chose for the list (the panel's table preferences).
+        $saved = app(Preferences::class)->table($request->user(), self::TABLE);
+        $rows = $table->defaultPerPage($saved['perPage'] ?? 25)->paginate($request);
         $columns = $this->columns();
 
         return Inertia::render('Commerce/Shared/ResourceIndex', [
@@ -75,8 +76,7 @@ class OrdersController extends Controller
             'createLabel' => 'New order',
             ...$this->tableProps(self::TABLE, $table, $columns, $rows->through(fn (Model $o) => $o instanceof Order ? $this->row($o, $money) : []),
                 $this->filters(), $this->bulkActions($request)),
-            'visibleColumns' => TablePreferencesController::columnsFor((int) $request->user()->getAuthIdentifier(), self::TABLE,
-                ['number', 'date', 'customer', 'status', 'payment', 'fulfillment', 'total']),
+            'visibleColumns' => $saved['columns'] ?? ['number', 'date', 'customer', 'status', 'payment', 'fulfillment', 'total'],
             'bulkUrl' => route('sunrice.admin.commerce.orders.bulk', [], false),
             'exportUrl' => $request->user()->can('commerce.orders.export') ? route('sunrice.admin.commerce.orders.export', [], false) : null,
             'searchPlaceholder' => 'Number, name, email, phone or SKU…',
@@ -91,12 +91,12 @@ class OrdersController extends Controller
         $query = $this->table($request)->builder();
 
         return response()->streamDownload(function () use ($query): void {
-            $writer = SimpleExcelWriter::streamDownload('orders.csv');
+            $writer = CsvExport::toOutput();
             $query->with('items')->chunk(500, function ($orders) use ($writer): void {
                 foreach ($orders as $order) {
                     if ($order instanceof Order) {
                         // Customer-typed text (names, addresses) must not run as a spreadsheet formula.
-                        $writer->addRow(array_map(CsvCell::safe(...), $this->exportRow($order)));
+                        $writer->addRow(($this->exportRow($order)));
                     }
                 }
             });

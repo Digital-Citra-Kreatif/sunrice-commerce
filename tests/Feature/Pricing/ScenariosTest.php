@@ -128,7 +128,7 @@ it('hashes the same input the same way, and any price change differently', funct
 
 it('expands a category rule\'s terms once per request, not once per line', function () {
     $variants = seedPricingProducts(['MUG' => 50000, 'TEA' => 20000, 'PEN' => 5000, 'CUP' => 30000]);
-    $taxonomy = Taxonomy::query()->create(['handle' => 'product_categories', 'title' => 'Categories', 'settings' => []]);
+    $taxonomy = Taxonomy::query()->create(['handle' => 'product_categories', 'title' => 'Categories']);
     $parent = Term::query()->create(['taxonomy_id' => $taxonomy->id, 'sort_order' => 0]);
     $child = Term::query()->create(['taxonomy_id' => $taxonomy->id, 'parent_id' => $parent->id, 'sort_order' => 0]);
     foreach ($variants as $variant) {

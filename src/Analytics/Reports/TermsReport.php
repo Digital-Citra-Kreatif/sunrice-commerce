@@ -27,8 +27,8 @@ abstract class TermsReport extends Report
             ->join('sunrice_terms as t', fn ($j) => $j->on('t.id', '=', 'et.term_id')->where('t.taxonomy_id', $taxonomyId))
             ->leftJoin('sunrice_term_translations as tt', fn ($j) => $j->on('tt.term_id', '=', 't.id')->where('tt.locale', Locales::default()))
             ->whereBetween('s.date', [$period->from, $period->to])
-            ->groupBy('t.id', 'tt.name')
-            ->selectRaw('t.id, tt.name, count(distinct s.product_id) as products, sum(s.units_sold) as units, sum(s.revenue) as revenue, sum(s.views) as views')
+            ->groupBy('t.id', 'tt.title')
+            ->selectRaw('t.id, tt.title as name, count(distinct s.product_id) as products, sum(s.units_sold) as units, sum(s.revenue) as revenue, sum(s.views) as views')
             ->orderByDesc('revenue')->get();
 
         return new ReportResult(
