@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Sunrice\Cms\Actions\Entries\CreateTranslation;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Customers\Models\Customer;
@@ -79,4 +80,13 @@ it('compares products up to the maximum, matching specifications by label', func
 
     app(StoreSettings::class)->saveSection('catalog', ['price_visibility' => 'nobody']);
     $this->get('/compare')->assertOk()->assertDontSee('Rp50.000');
+});
+
+it('compares products whose translation ids differ from their entry ids', function () {
+    app(CreateTranslation::class)->handle($this->mug, 'en');   // an extra translation: the next product's ids part ways
+    $jam = publishProduct(['variants' => [['id' => 'jam', 'sku' => 'JAM', 'price' => 30000]]], title: 'Jam');
+    expect($jam->translations->first()->id)->not->toBe($jam->id);
+
+    $this->post('/compare/items', ['product' => Product::query()->where('entry_id', $jam->id)->value('id')]);
+    $this->get('/compare')->assertOk()->assertSee('Jam')->assertSee('Rp30.000');
 });

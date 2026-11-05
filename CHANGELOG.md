@@ -2,10 +2,10 @@
 
 ## Unreleased — 1.0.0
 
-The first release. Needs Sunrice CMS 1.x with the settings tabs, users scope and structure import
-changes (`dev-main` until Sunrice is tagged), PHP 8.4 and Laravel 13. On Sunrice versions with dashboard cards, MCP instructions and
-full-page cache control, commerce also adds a Store card to Sunrice's dashboard, adds its guidance
-to the MCP server's instructions and keeps store pages out of the full-page cache.
+The first release. Commerce is a plugin for the Sunrice panel (`sunrice/admin`) and CMS
+(`sunrice/cms`), on PHP 8.4 and Laravel 13: products are CMS entries edited in the CMS's entry
+editor, the store's admin pages live in the panel under Shop, and the storefront renders through
+the CMS's templates and full-page cache.
 
 ### Starter theme
 - `commerce:install --starter` (tag `commerce-starter`) publishes a complete shop: the storefront
@@ -77,6 +77,8 @@ to the MCP server's instructions and keeps store pages out of the full-page cach
 - `commerce:install [--templates] [--demo]`, `commerce:doctor`, `commerce:stats` and the other
   commands in `docs/commands.md`.
 - Documentation in `docs/`.
+- Template helpers `commerce_values($entryOrTerm)` (a CMS entry translation's or term's field
+  values, worked out once per request) and `commerce_body_classes()`; see `docs/helpers.md`.
 - `ProductView::$variants` (the picker rows) is built the first time it's read, and the variants'
   option values load then, in one query for the page. Listing cards, cart lines and checkout no
   longer build a row per variant, which made pages of products with many variants slow (24

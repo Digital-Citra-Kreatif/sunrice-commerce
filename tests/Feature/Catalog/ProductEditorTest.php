@@ -8,6 +8,7 @@ use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\DownloadFile;
 use Sunrice\Commerce\Catalog\Models\Product;
+use Sunrice\Commerce\Http\Controllers\Admin\TargetLabels;
 
 beforeEach(function () {
     app(ScaffoldStore::class)->handle();
@@ -93,4 +94,12 @@ it('uploads digital files privately and attaches them on publish', function () {
     $this->artisan('commerce:prune')->assertSuccessful();
     expect(DownloadFile::withTrashed()->find($orphan->id))->toBeNull()
         ->and($file->fresh())->not->toBeNull();
+});
+
+it('finds and labels category targets by their title', function () {
+    $kitchen = term((string) config('commerce.catalog.category_taxonomy'), 'Kitchen');
+    actingAsUserWith(['commerce.vouchers.manage'], 'promo@example.com');
+
+    $this->getJson('/admin/commerce/api/targets?q=kitch&types[]=term')->assertOk()->assertJsonFragment(['type' => 'term', 'id' => $kitchen->id, 'label' => 'Kitchen']);
+    expect(TargetLabels::for([['type' => 'term', 'id' => $kitchen->id]]))->toContain(['type' => 'term', 'id' => $kitchen->id, 'label' => 'Kitchen']);
 });
