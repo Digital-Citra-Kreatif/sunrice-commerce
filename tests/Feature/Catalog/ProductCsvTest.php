@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 use Illuminate\Http\UploadedFile;
+use Spatie\Permission\PermissionRegistrar;
 use Sunrice\Commerce\Catalog\Models\StockMovement;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Catalog\ProductProjector;
+use Sunrice\Commerce\Features\Actions\ToggleFeature;
 
 beforeEach(function () {
     $this->mug = checkoutStore(['price' => 50000, 'cost' => 20000]);
@@ -74,13 +76,39 @@ it('keeps a preview to the user who made it', function () {
 
 it('reads back what it exports, and refuses a SKU twice or a price at or above the compare-at price', function () {
     actingAsUserWith(["cms.entries.{$this->collection}.update", 'commerce.inventory.adjust']);
-    // Negative stock is exported as '-2 (so spreadsheets don't read a formula): the import reads -2.
-    $this->post('/admin/commerce/products/import', ['file' => csvUpload("sku,stock\nMUG,'-2\n")])
-        ->assertInertia(fn ($p) => $p->where('preview.0.changes.stock', ['from' => 5, 'to' => -2])->where('preview.0.error', null));
+    // An oversold mug exports its stock as '-2 (so spreadsheets don't read a formula): read back as -2, no change.
+    $this->mug->update(['stock_quantity' => -2]);
+    $this->post('/admin/commerce/products/import', ['file' => csvUpload("sku,stock,price\nMUG,'-2,45000\n")])
+        ->assertInertia(fn ($p) => $p->where('preview.0.changes', ['price' => ['from' => 50000, 'to' => 45000]])->where('preview.0.error', null));
+    // Stock is only ever set to 0 or more.
+    $this->post('/admin/commerce/products/import', ['file' => csvUpload("sku,stock\nMUG,-3\n")])
+        ->assertInertia(fn ($p) => $p->where('preview.0.error', "stock can't be set below 0."));
+    $this->mug->update(['stock_quantity' => 5]);
     $this->post('/admin/commerce/products/import', ['file' => csvUpload("sku,price\nMUG,40000\nMUG,30000\n")])
         ->assertInertia(fn ($p) => $p->where('preview.0.error', null)->where('preview.1.error', 'This SKU is on line 2 too.'));
 
     $this->mug->update(['compare_at_price' => 60000]);
     $this->post('/admin/commerce/products/import', ['file' => csvUpload("sku,price\nMUG,60000\n")])
         ->assertInertia(fn ($p) => $p->where('preview.0.error', 'The compare-at price must be above the price.'));
+});
+
+it('refuses amounts above the price limit, and stock while the inventory module is off', function () {
+    actingAsUserWith(["cms.entries.{$this->collection}.update", 'commerce.inventory.adjust']);
+    $this->post('/admin/commerce/products/import', ['file' => csvUpload("sku,price\nMUG,100000000000001\n")])
+        ->assertInertia(fn ($p) => $p->where('preview.0.error', 'price: "100000000000001" is too high.'));
+
+    app(ToggleFeature::class)->handle('inventory', false);
+    $this->post('/admin/commerce/products/import', ['file' => csvUpload("sku,stock\nMUG,3\n")])
+        ->assertInertia(fn ($p) => $p->where('preview.0.error', 'Stock tracking is switched off (Settings → Modules).'));
+});
+
+it('checks the stock permission again when a preview is applied', function () {
+    $user = actingAsUserWith(["cms.entries.{$this->collection}.update", 'commerce.inventory.adjust']);
+    $token = $this->post('/admin/commerce/products/import', ['file' => csvUpload("sku,price,stock\nMUG,45000,12\n")])->viewData('page')['props']['token'];
+
+    $user->roles->first()->revokePermissionTo('commerce.inventory.adjust');
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+    $this->actingAs($user->fresh(), 'web')->post('/admin/commerce/products/import/apply', ['token' => $token])->assertRedirect('/admin/commerce/products');
+
+    expect($this->mug->fresh())->price->toBe(45000)->stock_quantity->toBe(5);
 });

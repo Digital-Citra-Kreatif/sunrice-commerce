@@ -601,8 +601,10 @@ It prints each failure and exits with an error code when any failed.
   `stock`, `weight`, `active`; bundles left out). An import matches rows by SKU and changes
   `price`, `compare_at_price`, `cost`, `stock`, `weight` and `active`: a blank cell keeps the value,
   amounts are in the store's currency with a dot for decimals, 0 clears a compare-at price or cost,
-  `stock` sets a tracked variant's quantity (a movement with the reason "import", and only with
-  `commerce.inventory.adjust`). The import shows every change and every row it can't use (unknown
+  `stock` sets a tracked variant's quantity to 0 or more (a movement with the reason "import"; only
+  with `commerce.inventory.adjust` and the inventory module on, both checked again on **Apply**).
+  Amounts above the product price limit are refused. Rows are exported in the order the variants
+  were created. The import shows every change and every row it can't use (unknown
   SKU, a SKU on two rows, a product the user may not edit, a bad value, a compare-at price not
   above the price) before **Apply**; a cell the export wrote with a leading apostrophe (so a
   spreadsheet doesn't read `-2` as a formula) is read without it; the changes go into the

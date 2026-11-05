@@ -23,6 +23,9 @@ final class ProductValue
 
     public const BUNDLE_PRICING = ['fixed', 'percent_off', 'amount_off'];
 
+    /** The highest price a variant may have, in minor units. */
+    public const MAX_PRICE = 100_000_000_000_000;
+
     public const DELIVERY_MODES = ['attachment', 'link', 'account'];
 
     /** @return array<string, mixed> */
@@ -281,7 +284,7 @@ final class ProductValue
                     $errors["{$at}.{$key}"] = 'Enter 0 or more.';
                 }
             }
-            if ($v['price'] > 100_000_000_000_000) {
+            if ($v['price'] > self::MAX_PRICE) {
                 $errors["{$at}.price"] = 'The price is too high.';
             }
             if ($v['max_qty'] !== null && $v['max_qty'] < $v['min_qty']) {

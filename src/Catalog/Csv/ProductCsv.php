@@ -6,11 +6,14 @@ namespace Sunrice\Commerce\Catalog\Csv;
 
 use Illuminate\Contracts\Auth\Access\Authorizable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Sunrice\Cms\Models\Entry;
 use Sunrice\Cms\Support\Access;
 use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Catalog\Actions\UpdateProductValues;
 use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Catalog\ProductValue;
+use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Inventory\Actions\AdjustStock;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\ActivityRecorder;
@@ -44,7 +47,8 @@ class ProductCsv
         $query = Variant::query()->join('commerce_products', 'commerce_products.id', '=', 'commerce_variants.product_id')
             ->leftJoin('sunrice_entry_translations as t', fn ($j) => $j->on('t.entry_id', '=', 'commerce_products.entry_id')->where('t.locale', Locales::default()))
             ->whereNull('commerce_products.removed_at')->where('commerce_products.type', '!=', 'bundle')->whereIn('commerce_products.collection_id', $collectionIds)
-            ->select('commerce_variants.*', 't.title as product_title')->orderBy('t.title')->orderBy('commerce_variants.position');
+            ->select('commerce_variants.*', 't.title as product_title');
+        // In id order: lazyById pages by id, so any other order would skip or repeat rows.
         foreach ($query->lazyById(500, 'commerce_variants.id', 'id') as $v) {
             yield [
                 'sku' => $v->sku, 'product' => (string) $v->getAttribute('product_title'), 'variant' => $v->title,
@@ -131,6 +135,8 @@ class ProductCsv
         }
         $variants = Variant::query()->with('product')->whereIn('sku', $rows->keys())->get();
         $userId = (int) $user->getAuthIdentifier();
+        // Checked again here: a preview is kept an hour, and the permission or the module may have gone since.
+        $mayAdjustStock = $user->can('commerce.inventory.adjust') && app(Features::class)->active('inventory');
         foreach ($variants->groupBy('product.entry_id') as $entryId => $group) {
             /** @var Collection<int, Variant> $group */
             $entry = Entry::query()->with('collection')->find($entryId);
@@ -138,20 +144,23 @@ class ProductCsv
                 continue;
             }
             $bySku = $group->mapWithKeys(fn (Variant $v) => [$v->uid => $rows[$v->sku]['changes']]);
-            app(UpdateProductValues::class)->handle($entry, fn (array $value) => [...$value, 'variants' => array_map(function (array $v) use ($bySku) {
-                foreach ($bySku[$v['id']] ?? [] as $field => $change) {
-                    if ($field !== 'stock') {
-                        $v[$field] = $change['to'];
+            // A product's values and its stock change together, or not at all.
+            DB::transaction(function () use ($entry, $bySku, $group, $rows, $mayAdjustStock, $userId): void {
+                app(UpdateProductValues::class)->handle($entry, fn (array $value) => [...$value, 'variants' => array_map(function (array $v) use ($bySku) {
+                    foreach ($bySku[$v['id']] ?? [] as $field => $change) {
+                        if ($field !== 'stock') {
+                            $v[$field] = $change['to'];
+                        }
+                    }
+
+                    return $v;
+                }, $value['variants'])]);
+                foreach ($group as $variant) {
+                    if ($mayAdjustStock && isset($rows[$variant->sku]['changes']['stock'])) {
+                        app(AdjustStock::class)->handle($variant->fresh() ?? $variant, (int) $rows[$variant->sku]['changes']['stock']['to'], true, 'import', 'CSV import', $userId);
                     }
                 }
-
-                return $v;
-            }, $value['variants'])]);
-            foreach ($group as $variant) {
-                if (isset($rows[$variant->sku]['changes']['stock'])) {
-                    app(AdjustStock::class)->handle($variant->fresh() ?? $variant, (int) $rows[$variant->sku]['changes']['stock']['to'], true, 'import', 'CSV import', $userId);
-                }
-            }
+            });
         }
         app(ActivityRecorder::class)->record('imported', $rows->count() === 1 ? '1 variant' : "{$rows->count()} variants", ['changes' => self::CHANGEABLE], 'products');
 
@@ -199,6 +208,9 @@ class ProductCsv
 
     protected function stock(Variant $variant, string $cell, Authorizable $user): int
     {
+        if (! app(Features::class)->active('inventory')) {
+            throw new \InvalidArgumentException('Stock tracking is switched off (Settings → Modules).');
+        }
         if (! $variant->track_stock) {
             throw new \InvalidArgumentException("This variant doesn't track stock.");
         }
@@ -206,7 +218,13 @@ class ProductCsv
             throw new \InvalidArgumentException('You may not adjust stock.');
         }
 
-        return $this->whole($cell, 'stock', negative: true);
+        // An oversold variant exports its negative stock; it may stay, but stock is only ever set to 0 or more.
+        $stock = $this->whole($cell, 'stock', negative: true);
+        if ($stock < 0 && $stock !== (int) $variant->stock_quantity) {
+            throw new \InvalidArgumentException("stock can't be set below 0.");
+        }
+
+        return $stock;
     }
 
     protected function minor(string $cell, string $field, bool $allowZero = false): int
@@ -217,6 +235,9 @@ class ProductCsv
             throw new \InvalidArgumentException("{$field}: \"{$cell}\" isn't an amount (digits".($decimals > 0 ? ', a dot for decimals' : ', no separators').').');
         }
         $minor = (int) round((float) $cell * (10 ** $decimals));
+        if ($minor > ProductValue::MAX_PRICE) {
+            throw new \InvalidArgumentException("{$field}: \"{$cell}\" is too high.");
+        }
         if (! $allowZero && $minor === 0) {
             throw new \InvalidArgumentException("{$field} can't be 0.");
         }
@@ -226,7 +247,7 @@ class ProductCsv
 
     protected function whole(string $cell, string $field, bool $negative = false): int
     {
-        if (preg_match($negative ? '/^-?\d+$/' : '/^\d+$/', $cell) !== 1) {
+        if (preg_match($negative ? '/^-?\d{1,9}$/' : '/^\d{1,9}$/', $cell) !== 1) {
             throw new \InvalidArgumentException("{$field}: \"{$cell}\" isn't a whole number.");
         }
 
