@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Sunrice\Activity\ActivityLogger;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Features\Features;
@@ -19,7 +18,6 @@ use Sunrice\Admin\Activity\ActivityLog;
 beforeEach(function () {
     $this->mug = checkoutStore(['track_stock' => true, 'initial_stock' => 5]);
     $this->admin = actingAsSuperAdmin();
-    app(ActivityLogger::class)->actingVia('ai', 'Claude');
 });
 
 /** A user with only these permissions, acting from now on. */

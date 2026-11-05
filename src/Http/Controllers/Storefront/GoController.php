@@ -51,7 +51,7 @@ class GoController
             'variant' => $variant?->title ? "({$variant->title})" : '',
             'quantity' => max(1, (int) $request->query('qty', 1)),
             'price' => '',
-            'url' => $entry->url !== null ? url($entry->url) : '',
+            'url' => ($url = $entry->url()) !== null ? url($url) : '',
         ]);
 
         return $whatsapp->url($number, $text);

@@ -99,7 +99,7 @@ class AuthController
         return view(Layout::view('account.register'), [
             'seoTitle' => __('commerce::account.register.title'),
             'termsUrl' => TermsPage::url(),
-            'captcha' => Captcha::widget(app()->getLocale()),
+            'captcha' => app(Captcha::class)->widget(app()->getLocale()),
         ]);
     }
 
@@ -115,7 +115,7 @@ class AuthController
             'accepts_marketing' => ['nullable', 'boolean'],
             'terms' => $this->settings()->get('checkout.terms_page') ? ['accepted'] : ['nullable'],
         ], [], ['terms' => __('commerce::checkout.terms_link')]);
-        if (($field = Captcha::field()) !== null && ! Captcha::verify((string) $request->input($field), $request->ip())) {
+        if (! app(Captcha::class)->passes($request)) {
             return back()->withInput($request->except(['password', 'password_confirmation']))->withErrors(['captcha' => __('commerce::payments.confirm.captcha')]);
         }
         Throttle::check('commerce-register', $request, '', 100, 5, 3600);

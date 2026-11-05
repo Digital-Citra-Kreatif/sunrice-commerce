@@ -7,64 +7,31 @@ namespace Sunrice\Commerce\Database\Seeders;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
-use Sunrice\Commerce\Permissions\CommercePermissions;
-use Sunrice\Database\Seeders\RolesSeeder;
-use Sunrice\Cms\Models\Collection;
-use Sunrice\Cms\Models\Form;
-use Sunrice\Cms\Models\Taxonomy;
-use Sunrice\Permissions\PermissionRegistry;
-use Sunrice\Admin\Actions\Permissions\SyncPermissions;
+use Sunrice\Admin\Actions\Permissions\SeedRoles;
+use Sunrice\Commerce\Support\Staff;
 
 /**
- * The store's roles. Permissions are only ever added, so changes made to
- * these roles in the admin are kept; run again after adding attribute
- * taxonomies (php artisan commerce:seed-roles).
+ * The store's roles, through the panel's default roles (SeedRoles, as
+ * `sunrice:roles` does). Permissions are only ever added, and only those
+ * not given before, so changes made to these roles in the admin are kept;
+ * run again after adding attribute taxonomies (php artisan commerce:seed-roles).
  *
- * - Shop Manager: the admin, the product collections and taxonomies,
- *   assets, the inquiry form's submissions and every commerce permission.
+ * - Shop Manager (shop-manager, CommercePlugin's default role): the panel,
+ *   media, the product collections and taxonomies, the inquiry form's
+ *   submissions and every commerce permission.
  * - Customer: no admin permissions (the storefront role).
- * - Administrator (Sunrice's): every commerce permission too.
+ * - The panel's administrator has every permission, commerce's included.
  */
 class CommerceRolesSeeder extends Seeder
 {
-    public const SHOP_MANAGER = 'Shop Manager';
+    public const SHOP_MANAGER = 'shop-manager';
 
     public const CUSTOMER = 'Customer';
 
     public function run(): void
     {
-        app(SyncPermissions::class)->handle();
-        $guard = \Sunrice\Commerce\Support\Staff::guard();
-        $names = app(PermissionRegistry::class)->names();
-
-        $commerce = array_keys(CommercePermissions::all());
-        $collectionIds = Collection::query()->whereIn('handle', (array) config('commerce.catalog.collections', []))->pluck('id');
-        $taxonomyIds = Taxonomy::query()->whereIn('handle', array_filter([
-            config('commerce.catalog.category_taxonomy'),
-            config('commerce.catalog.tag_taxonomy'),
-            config('commerce.catalog.brand_taxonomy'),
-            ...(array) config('commerce.catalog.attribute_taxonomies', []),
-        ]))->pluck('id');
-        $formIds = Form::query()->where('handle', config('commerce.catalog.inquiry_form'))->pluck('id');
-
-        $manager = RolesSeeder::match($names, [
-            'sunrice.access-admin',
-            'sunrice.view-drafts',
-            'sunrice.guide.view',
-            'sunrice.assets.view',
-            'sunrice.media.upload',
-            'sunrice.assets.edit',
-            ...$collectionIds->map(fn (int $id) => "sunrice.entries.{$id}.*")->all(),
-            ...$taxonomyIds->map(fn (int $id) => "sunrice.terms.{$id}.*")->all(),
-            ...$formIds->map(fn (int $id) => "sunrice.forms.{$id}.*-submissions")->all(),
-        ]);
-
-        Role::findOrCreate(self::SHOP_MANAGER, $guard)->givePermissionTo([...$manager, ...$commerce]);
-        Role::findOrCreate(self::CUSTOMER, $guard);
-        if (($administrator = Role::query()->where('name', 'Administrator')->where('guard_name', $guard)->first()) !== null) {
-            $administrator->givePermissionTo($commerce);
-        }
-
+        app(SeedRoles::class)->handle();
+        Role::findOrCreate(self::CUSTOMER, Staff::guard());
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }

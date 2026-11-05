@@ -97,12 +97,12 @@ it('does not send switched-off emails, but always sends security ones', function
 
 it('sends staff emails to the addresses and to users with the roles, once each', function () {
     Notification::fake();
-    $role = Role::findOrCreate('Shop Manager', 'web');
+    $role = Role::findOrCreate(CommerceRolesSeeder::SHOP_MANAGER, 'web');
     $ana = User::query()->create(['name' => 'Ana', 'email' => 'ana@example.com', 'password' => 'x']);
     $ana->assignRole($role);
     $dup = User::query()->create(['name' => 'Ops', 'email' => 'ops@example.com', 'password' => 'x']);
     $dup->assignRole($role);
-    app(StoreSettings::class)->saveSection('emails', ['staff_new_order' => ['addresses' => ['ops@example.com', 'boss@example.com'], 'roles' => ['Shop Manager']]]);
+    app(StoreSettings::class)->saveSection('emails', ['staff_new_order' => ['addresses' => ['ops@example.com', 'boss@example.com'], 'roles' => [CommerceRolesSeeder::SHOP_MANAGER]]]);
     placeOrderFor($this->mug);
     expect(emailsTo('staff_new_order'))->toEqualCanonicalizing(['ops@example.com', 'boss@example.com', 'ana@example.com']);
 });

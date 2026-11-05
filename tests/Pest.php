@@ -20,6 +20,7 @@ use Sunrice\Commerce\Shipping\Models\ShippingMethod;
 use Sunrice\Commerce\Shipping\Models\ShippingZone;
 use Sunrice\Commerce\Tests\TestCase;
 use Sunrice\Admin\Actions\Permissions\SyncPermissions;
+use Sunrice\Admin\Activity\ActivityLog;
 use Sunrice\Admin\Ai\PanelServer;
 use Sunrice\Admin\Panel;
 use Sunrice\Cms\Actions\Entries\CreateEntry;
@@ -198,7 +199,8 @@ function term(string $taxonomy, string $name, ?Term $parent = null): Term
 /** A store MCP tool's result: its JSON, or ['error' => message]. */
 function mcpTool(string $tool, array $arguments = [], mixed $user = null): array
 {
-    $response = PanelServer::actingAs($user ?? auth()->user())->tool($tool, $arguments);
+    // As the token middleware does: what the tool changes is the agent's.
+    $response = app(ActivityLog::class)->withSource('ai', 'Claude', fn () => PanelServer::actingAs($user ?? auth()->user())->tool($tool, $arguments));
     $result = (new ReflectionProperty(TestResponse::class, 'response'))->getValue($response)->toArray();
     if (isset($result['error'])) {
         return ['error' => (string) ($result['error']['message'] ?? 'error')];

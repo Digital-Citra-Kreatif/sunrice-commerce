@@ -153,7 +153,7 @@ class CartView implements JsonSerializable
                 'id' => $row['item']->id,
                 'variant_id' => $row['line']->variant->id,
                 'title' => $this->title($row['entry'], $row['line']),
-                'url' => $row['entry']?->url,
+                'url' => $row['entry']?->url(),
                 'sku' => $row['line']->variant->sku,
                 'quantity' => $row['line']->quantity,
                 'min_qty' => $row['line']->variant->min_qty,

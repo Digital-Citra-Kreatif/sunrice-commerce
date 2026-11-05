@@ -165,15 +165,6 @@ class CommerceServiceProvider extends PackageServiceProvider
         // Product pages (and the shop's listings) when the app has no template of its own.
         Content::resolveTemplateUsing(fn (Page $page): ?string => Storefront\TemplateFallback::resolve($page->view, $page));
 
-        Content::bodyClassUsing(function (array $classes): array {
-            $name = (string) request()->route()?->getName();
-            if (str_starts_with($name, 'commerce.') && ! str_starts_with($name, 'commerce.api.')) {
-                $page = str_replace('.', '-', substr(preg_replace('/\.locale$/', '', $name) ?? $name, strlen('commerce.')));
-                array_push($classes, 'page-commerce', 'commerce-'.$page);
-            }
-
-            return $classes;
-        });
     }
 
     /**

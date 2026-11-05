@@ -10,6 +10,8 @@ use Sunrice\Commerce\Cart\CompareList;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Cms\Models\Entry;
+use Sunrice\Commerce\Catalog\LiveEntries;
+use Sunrice\Cms\Models\EntryTranslation;
 
 /** <x-commerce::compare-button :entry="$entry" /> — add to / remove from the comparison. */
 class CompareButton extends Component
@@ -18,9 +20,9 @@ class CompareButton extends Component
 
     public bool $added;
 
-    public function __construct(Entry $entry)
+    public function __construct(Entry|EntryTranslation $entry)
     {
-        $this->productId = Product::query()->where('entry_id', $entry->id)->value('id');
+        $this->productId = Product::query()->where('entry_id', LiveEntries::id($entry))->value('id');
         $this->added = $this->productId !== null && app(CompareList::class)->has($this->productId);
     }
 

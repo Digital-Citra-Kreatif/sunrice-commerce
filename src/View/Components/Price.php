@@ -9,13 +9,14 @@ use Illuminate\View\Component;
 use Sunrice\Commerce\Catalog\ProductView;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
 
 /** <x-commerce::price :entry="$entry" /> — the product's price (or "Sign in to see prices"). */
 class Price extends Component
 {
     public ?ProductView $product;
 
-    public function __construct(?Entry $entry = null, ?ProductView $product = null)
+    public function __construct(Entry|EntryTranslation|null $entry = null, ?ProductView $product = null)
     {
         $this->product = $product ?? ($entry !== null ? commerce_product($entry) : null);
     }

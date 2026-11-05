@@ -9,6 +9,7 @@ use Illuminate\View\Component;
 use Sunrice\Commerce\Catalog\ProductView;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
 
 /**
  * <x-commerce::product :entry="$entry" /> — the buying block of a product:
@@ -19,7 +20,7 @@ class Product extends Component
 {
     public ?ProductView $product;
 
-    public function __construct(public Entry $entry)
+    public function __construct(public Entry|EntryTranslation $entry)
     {
         $this->product = commerce_product($entry);
     }

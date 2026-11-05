@@ -1,7 +1,7 @@
 {{--
     The product inquiry form (Sunrice form "product_inquiry"). $product: ProductView.
 --}}
-<x-sunrice::form :handle="config('commerce.catalog.inquiry_form')" class="commerce-inquiry__form">
+<x-sunrice-cms::form :handle="config('commerce.catalog.inquiry_form')" class="commerce-inquiry__form">
     @foreach ($component->form->fields as $field)
         @if ($field['config']['hidden'] ?? false)
             <input type="hidden" name="{{ $field['handle'] }}" value="{{ match ($field['handle']) { 'product' => $entry->title, 'product_url' => url($entry->url() ?? ''), default => '' } }}" @if ($field['handle'] === 'variant') data-commerce-inquiry-variant @endif>
@@ -19,4 +19,4 @@
             </label>
         @endif
     @endforeach
-</x-sunrice::form>
+</x-sunrice-cms::form>

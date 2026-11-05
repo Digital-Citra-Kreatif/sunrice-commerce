@@ -84,6 +84,12 @@ final class LiveEntries
         return $entry->shownIn() ?? $entry->mainTranslation()?->setRelation('entry', $entry);
     }
 
+    /** The entry's id, from the entry or one of its translations. */
+    public static function id(Entry|EntryTranslation $entry): int
+    {
+        return (int) ($entry instanceof EntryTranslation ? $entry->entry_id : $entry->id);
+    }
+
     /** Whether this is the entry an editor is previewing (its draft is shown). */
     public static function previewing(EntryTranslation $translation): bool
     {

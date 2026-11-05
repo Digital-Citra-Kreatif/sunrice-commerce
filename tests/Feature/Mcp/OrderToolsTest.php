@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Sunrice\Activity\ActivityLogger;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Mcp\Tools;
 use Sunrice\Commerce\Orders\Models\Order;
@@ -12,7 +11,6 @@ use Sunrice\Commerce\Payments\Models\PaymentConfirmation;
 beforeEach(function () {
     $this->mug = checkoutStore();
     $this->admin = actingAsSuperAdmin();
-    app(ActivityLogger::class)->actingVia('ai', 'Claude'); // what the token middleware does
 });
 
 function paidMugOrder(): Order

@@ -67,7 +67,7 @@ class WishlistController
         return back()->with('commerce.success', __('commerce::storefront.wishlist.'.($request->boolean('on', true) ? 'shared' : 'unshared')));
     }
 
-    /** @return Collection<int, Entry> */
+    /** @return Collection<int, EntryTranslation> */
     protected function products(?Wishlist $wishlist): Collection
     {
         if ($wishlist === null) {

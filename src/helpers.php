@@ -92,3 +92,22 @@ if (! function_exists('commerce_values')) {
         return $memo[$item] ??= $item instanceof Term ? ($item->translation()?->values() ?? []) : $item->values();
     }
 }
+
+if (! function_exists('commerce_body_classes')) {
+    /**
+     * The store's classes for the <body> of its own pages (cart, checkout,
+     * account…): `page-commerce commerce-cart`. Layouts add them with
+     * `@bodyClass(commerce_body_classes())`; elsewhere, none.
+     *
+     * @return list<string>
+     */
+    function commerce_body_classes(): array
+    {
+        $name = (string) request()->route()?->getName();
+        if (! str_starts_with($name, 'commerce.') || str_starts_with($name, 'commerce.api.')) {
+            return [];
+        }
+
+        return ['page-commerce', 'commerce-'.str_replace('.', '-', substr(preg_replace('/\.locale$/', '', $name) ?? $name, strlen('commerce.')))];
+    }
+}

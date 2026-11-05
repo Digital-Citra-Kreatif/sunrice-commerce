@@ -35,7 +35,7 @@ class FlashSaleController
         return view(Layout::view('flash-sale'), ['sale' => $model, 'products' => static::products($model), 'seoTitle' => $model->name]);
     }
 
-    /** @return Collection<int, Entry> */
+    /** @return Collection<int, EntryTranslation> */
     public static function products(FlashSale $sale): Collection
     {
         $entryIds = Product::query()->whereIn('id', $sale->items()->pluck('product_id'))->pluck('entry_id')->all();

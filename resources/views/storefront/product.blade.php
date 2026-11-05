@@ -111,7 +111,7 @@
             </section>
         @endif
         @foreach (['upsells' => __('commerce::storefront.theme.upsells'), 'related_products' => __('commerce::storefront.product.related')] as $field => $heading)
-            @php($items = collect($entry->get($field) ?? [])->filter())
+            @php($items = collect(commerce_values($entry)[$field] ?? [])->filter())
             @if ($items->isNotEmpty())
                 <section @class(['commerce-related', 'commerce-related--'.$field])>
                     <h2 class="commerce-section__title">{{ $heading }}</h2>

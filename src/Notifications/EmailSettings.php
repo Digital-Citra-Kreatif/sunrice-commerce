@@ -100,7 +100,7 @@ class EmailSettings
     /** @return array<int, string> */
     public function roles(string $key): array
     {
-        return array_values(array_filter((array) ($this->for($key)['roles'] ?? ['Shop Manager'])));
+        return array_values(array_filter((array) ($this->for($key)['roles'] ?? [\Sunrice\Commerce\Database\Seeders\CommerceRolesSeeder::SHOP_MANAGER])));
     }
 
     public static function mainLocale(): string

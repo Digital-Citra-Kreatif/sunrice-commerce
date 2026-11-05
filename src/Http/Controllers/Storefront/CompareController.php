@@ -27,11 +27,11 @@ class CompareController
         $entries = $entryIds->isEmpty() ? collect() : ProductQuery::make()->entries($entryIds->values()->all())->get($list->max());
         // In the order they were added.
         $order = array_flip(array_map(fn (int $id) => (int) ($entryIds[$id] ?? 0), $list->ids()));
-        $entries = $entries->sortBy(fn ($e) => $order[$e->id] ?? 99)->values();
+        $entries = $entries->sortBy(fn ($e) => $order[$e->entry_id] ?? 99)->values();
 
         $labels = [];
         foreach ($entries as $entry) {
-            foreach ($entry->get('specifications') ?? [] as $row) {
+            foreach ((array) (commerce_values($entry)['specifications'] ?? []) as $row) {
                 $label = trim((string) data_get($row, 'label', ''));
                 if ($label !== '' && ! in_array(mb_strtolower($label), array_map('mb_strtolower', $labels), true)) {
                     $labels[] = $label;
