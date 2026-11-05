@@ -40,6 +40,6 @@ class CurrentCustomer
     /** Whether the storefront shares the admin's guard (sign-ins by code or Google refuse staff then). */
     public static function sharesAdminGuard(): bool
     {
-        return self::guard() === (string) config('sunrice.auth.guard', 'web');
+        return self::guard() === \Sunrice\Commerce\Support\Staff::guard();
     }
 }

@@ -175,7 +175,7 @@ class SaveVoucher
             }
             $voucher->customers()->delete();
             if ($voucher->audience === 'customers') {
-                $users = config('sunrice.auth.user_model');
+                $users = \Sunrice\Commerce\Support\Staff::userModel();
                 $ids = $users::query()->whereIn('email', $emails)->pluck('id', 'email');
                 foreach ($emails as $email) {
                     $voucher->customers()->create(['email' => $email, 'customer_id' => $ids[$email] ?? null]);

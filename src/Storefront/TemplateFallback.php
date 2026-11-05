@@ -7,19 +7,24 @@ namespace Sunrice\Commerce\Storefront;
 use Sunrice\Cms\Site\Page;
 
 /**
- * Swaps Sunrice's generic templates for commerce's store views on product
+ * Swaps the CMS's generic templates for commerce's store views on product
  * pages, the shop page and product term pages. Templates the app
- * publishes (sunrice/products/show.blade.php, …) are found first by
- * Sunrice and kept. With Brands off, brand term pages answer 404.
+ * publishes (cms/collections/products/show.blade.php, …) are found first
+ * by the CMS and kept. With Brands off, brand term pages answer 404.
  */
 final class TemplateFallback
 {
-    public const GENERIC = ['sunrice::defaults.show', 'sunrice::defaults.index', 'sunrice::defaults.term', 'sunrice.show', 'sunrice.index', 'sunrice.taxonomies.show'];
+    /** The CMS's built-in views and an app's views for every collection or taxonomy. */
+    public const GENERIC = [
+        'sunrice-cms::entry', 'sunrice-cms::listing', 'sunrice-cms::term',
+        'cms.collections.show', 'cms.collections.index', 'cms.taxonomies.show',
+    ];
 
-    public static function resolve(string $view, Page $context): ?string
+    public static function resolve(string $view, Page $page): ?string
     {
+        $taxonomy = $page->type === Page::TERM ? $page->term?->term?->taxonomy?->handle : null;
         // With Brands off, brand pages don't exist (published templates included).
-        if ($context->pageType === 'term' && $context->taxonomy?->handle === config('commerce.catalog.brand_taxonomy') && ! commerce_feature('brands')) {
+        if ($taxonomy !== null && $taxonomy === config('commerce.catalog.brand_taxonomy') && ! commerce_feature('brands')) {
             abort(404);
         }
         if (! in_array($view, self::GENERIC, true)) {
@@ -27,10 +32,10 @@ final class TemplateFallback
         }
         $collections = (array) config('commerce.catalog.collections', ['products']);
 
-        return match ($context->pageType) {
-            'entry' => in_array($context->collection?->handle, $collections, true) ? Layout::view('product') : null,
-            'archive' => in_array($context->collection?->handle, $collections, true) ? Layout::view('shop') : null,
-            'term' => match ($context->taxonomy?->handle) {
+        return match ($page->type) {
+            Page::ENTRY => in_array($page->collection?->handle, $collections, true) ? Layout::view('product') : null,
+            Page::LISTING => in_array($page->collection?->handle, $collections, true) ? Layout::view('shop') : null,
+            Page::TERM => match ($taxonomy) {
                 config('commerce.catalog.category_taxonomy') => Layout::view('category'),
                 config('commerce.catalog.brand_taxonomy') => Layout::view('brand'),
                 config('commerce.catalog.tag_taxonomy') => Layout::view('tag'),

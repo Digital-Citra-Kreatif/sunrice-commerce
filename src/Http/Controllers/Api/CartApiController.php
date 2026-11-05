@@ -25,15 +25,16 @@ use Sunrice\Commerce\Cart\VariantFromOptions;
 class CartApiController
 {
     // Per request (the router keeps controller instances).
-    protected CartManager $carts {
-        get => app(CartManager::class);
+    protected function carts(): CartManager
+    {
+        return app(CartManager::class);
     }
 
     public function show(Request $request): JsonResponse
     {
         $lines = $request->filled('lines') ? max(0, $request->integer('lines')) : null;
 
-        return response()->json(['cart' => CartView::for($this->carts->current())->toArray($lines)])->header('Cache-Control', 'no-store');
+        return response()->json(['cart' => CartView::for($this->carts()->current())->toArray($lines)])->header('Cache-Control', 'no-store');
     }
 
     public function add(Request $request, AddToCart $add): JsonResponse
@@ -81,7 +82,7 @@ class CartApiController
         try {
             $message = $action();
         } catch (CartException $e) {
-            return response()->json(['message' => $e->getMessage(), 'reason' => $e->reason, 'cart' => CartView::for($this->carts->current())], 422);
+            return response()->json(['message' => $e->getMessage(), 'reason' => $e->reason, 'cart' => CartView::for($this->carts()->current())], 422);
         }
 
         return $this->cart($message);
@@ -89,6 +90,6 @@ class CartApiController
 
     protected function cart(?string $message = null): JsonResponse
     {
-        return response()->json(array_filter(['message' => $message, 'cart' => CartView::for($this->carts->current())]))->header('Cache-Control', 'no-store');
+        return response()->json(array_filter(['message' => $message, 'cart' => CartView::for($this->carts()->current())]))->header('Cache-Control', 'no-store');
     }
 }

@@ -4,19 +4,21 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Catalog\Actions;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Sunrice\Facades\Sunrice;
+use Sunrice\Cms\Models\Blueprint;
 use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Models\Menu;
 use Sunrice\Cms\Structure\ImportReport;
+use Sunrice\Cms\Structure\StructureImporter;
 use Sunrice\Cms\Support\Locales;
 
 /**
  * Creates the store structure in Sunrice (resources/structure/commerce.php):
  * the product blueprint and collection, the product taxonomies, the
  * inquiry form, legal pages (when a `pages` collection exists) and the
- * `shop` menu. Safe to run again; changed items are reported and only
- * overwritten with $force.
+ * `shop` menu, legal pages as drafts. Safe to run again: what exists is
+ * kept as it is (reported as KEPT) and only replaced with $force.
  */
 class ScaffoldStore
 {
@@ -27,9 +29,32 @@ class ScaffoldStore
         'shipping' => ['en' => ['shipping-policy', 'Shipping Policy'], 'id' => ['kebijakan-pengiriman', 'Kebijakan Pengiriman']],
     ];
 
+    /** Items left as they are because they exist (run with $force to replace them). */
+    public const KEPT = 'kept';
+
+    /** The tables of what the definition makes, by section. */
+    private const TABLES = ['blueprints' => 'sunrice_blueprints', 'collections' => 'sunrice_collections', 'taxonomies' => 'sunrice_taxonomies', 'forms' => 'sunrice_forms'];
+
     public function handle(bool $dryRun = false, bool $force = false): ImportReport
     {
-        return Sunrice::importStructure($this->definition(), $dryRun, $force);
+        $definition = $this->definition();
+        $kept = [];
+        if (! $force) {
+            // What exists stays as the store's staff left it.
+            foreach (self::TABLES as $section => $table) {
+                $existing = DB::table($table)->whereIn('handle', array_column($definition[$section] ?? [], 'handle'))->pluck('handle')->all();
+                foreach ($existing as $handle) {
+                    $kept[] = [rtrim($section === 'taxonomies' ? 'taxonomy' : $section, 's'), (string) $handle];
+                }
+                $definition[$section] = array_values(array_filter($definition[$section] ?? [], fn (array $item): bool => ! in_array($item['handle'], $existing, true)));
+            }
+        }
+        $report = app(StructureImporter::class)->import($definition, $dryRun, $force);
+        foreach ($kept as [$type, $handle]) {
+            $report->add($type, $handle, self::KEPT, ['Exists: kept as it is.']);
+        }
+
+        return $report;
     }
 
     /** @return array<string, mixed> */
@@ -47,12 +72,12 @@ class ScaffoldStore
     /** @return array<int, array<string, mixed>> */
     protected function legalPages(): array
     {
-        $pages = Collection::query()->with('blueprint')->where('handle', 'pages')->first();
+        $pages = Collection::query()->where('handle', 'pages')->first();
         if ($pages === null) {
             return [];
         }
         // The text goes into the page blueprint's first rich text (or textarea) field.
-        $fields = (array) ($pages->blueprint->fields ?? []);
+        $fields = (array) (Blueprint::query()->where('handle', $pages->blueprint)->value('fields') ?? []);
         $body = collect($fields)->firstWhere('type', 'rich_text') ?? collect($fields)->firstWhere('type', 'textarea');
         $language = Locales::default() === 'id' ? 'id' : 'en';
 
@@ -63,8 +88,12 @@ class ScaffoldStore
             $entries[] = [
                 'collection' => 'pages',
                 'slug' => $slug,
-                'title' => $title,
-                'data' => $body === null ? [] : [$body['handle'] => ($body['type'] === 'rich_text' ? Str::markdown($markdown) : $markdown)],
+                'translations' => [Locales::default() => [
+                    'title' => $title,
+                    'slug' => $slug,
+                    'data' => $body === null ? [] : [$body['handle'] => ($body['type'] === 'rich_text' ? Str::markdown($markdown) : $markdown)],
+                    'published' => false,
+                ]],
             ];
         }
 
@@ -75,12 +104,14 @@ class ScaffoldStore
     protected function menu(): array
     {
         $prefix = fn (string $path) => '/'.ltrim((string) config("commerce.storefront.paths.{$path}", $path), '/');
+        // Only the site's languages: the importer refuses texts in others.
+        $labels = fn (array $texts): array => array_intersect_key($texts, array_flip(Locales::all()));
 
         return ['handle' => 'shop', 'title' => 'Shop', 'items' => [
-            ['type' => 'collection', 'target' => 'products', 'labels' => ['id' => 'Belanja', 'en' => 'Shop']],
-            ['type' => 'url', 'url' => $prefix('brands'), 'labels' => ['id' => 'Merek', 'en' => 'Brands']],
-            ['type' => 'url', 'url' => $prefix('cart'), 'labels' => ['id' => 'Keranjang', 'en' => 'Cart']],
-            ['type' => 'url', 'url' => $prefix('account'), 'labels' => ['id' => 'Akun', 'en' => 'Account']],
+            ['collection' => 'products', 'labels' => $labels(['id' => 'Belanja', 'en' => 'Shop'])],
+            ['url' => $prefix('brands'), 'labels' => $labels(['id' => 'Merek', 'en' => 'Brands'])],
+            ['url' => $prefix('cart'), 'labels' => $labels(['id' => 'Keranjang', 'en' => 'Cart'])],
+            ['url' => $prefix('account'), 'labels' => $labels(['id' => 'Akun', 'en' => 'Account'])],
         ]];
     }
 }

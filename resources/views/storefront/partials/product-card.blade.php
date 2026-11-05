@@ -13,7 +13,7 @@
     $sizes = [];
     foreach ($card?->product->options ?? [] as $option) {
         $values = $option->values->map(fn ($value) => [
-            'label' => $value->label ?? (string) ($value->term?->resolveFor(app()->getLocale())->name ?? ''),
+            'label' => $value->label ?? (string) ($value->term?->title() ?? ''),
             'swatch' => $value->term?->translations->first()?->data['swatch'] ?? null,
         ]);
         if ($values->contains(fn ($value) => filled($value['swatch']))) {

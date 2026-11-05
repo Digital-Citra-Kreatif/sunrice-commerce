@@ -16,7 +16,7 @@ class AssignCustomerRole
         if (! method_exists($user, 'assignRole')) {
             return;
         }
-        $guard = (string) config('sunrice.auth.guard', 'web');
+        $guard = \Sunrice\Commerce\Support\Staff::guard();
         foreach ((array) app(StoreSettings::class)->get('accounts.customer_roles', ['Customer']) as $role) {
             $user->assignRole(Role::findOrCreate((string) $role, $guard));
         }

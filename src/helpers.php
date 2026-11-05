@@ -10,6 +10,7 @@ use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
 
 /*
  * Global helpers for templates. Each is wrapped in function_exists().
@@ -53,8 +54,8 @@ if (! function_exists('commerce_customer')) {
 }
 
 if (! function_exists('commerce_product')) {
-    /** The product view of a product entry (price, stock, call-to-action, variants), or null. */
-    function commerce_product(Entry|int $entry): ?ProductView
+    /** The product view of a product entry (price, stock, call-to-action, variants), or null: the `$entry` of a template, an Entry or its id. */
+    function commerce_product(Entry|EntryTranslation|int $entry): ?ProductView
     {
         if (is_int($entry)) {
             $entry = Entry::query()->find($entry);

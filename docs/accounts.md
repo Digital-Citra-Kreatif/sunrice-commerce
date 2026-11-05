@@ -65,7 +65,7 @@ are off and sends guests to the sign-in page, then back.
 
 If you set `commerce.auth.guard` to Sunrice's guard (`sunrice.auth.guard`, usually `web`), the shop
 and the admin share one session. Sign-ins by emailed code and by Google are then refused for
-accounts that can open the admin (`sunrice.access-admin`), so the admin stays behind a password.
+accounts that can open the admin (`sunrice.access`), so the admin stays behind a password.
 With Sunrice's two-factor login on (`sunrice.auth.two_factor`), those accounts can't sign in with
 their password on the storefront either: they use the admin login page, which asks for the code.
 
@@ -366,7 +366,7 @@ your changes in Users → Roles are kept. Run it again after adding attribute ta
 
 | Role | Gets |
 | --- | --- |
-| Shop Manager | `sunrice.access-admin`, `sunrice.view-drafts`, `sunrice.assets.view`, `.upload` and `.edit`, every entry permission of the products collection, the term permissions of the product categories, tags, brands and attribute taxonomies, the inquiry form's submission permissions, and every `commerce.*` permission |
+| Shop Manager | `sunrice.access`, `cms.entries.view-drafts`, `sunrice.assets.view`, `.upload` and `.edit`, every entry permission of the products collection, the term permissions of the product categories, tags, brands and attribute taxonomies, the inquiry form's submission permissions, and every `commerce.*` permission |
 | Customer | No admin permissions. The storefront role, used by price visibility and pricing rules |
 | Administrator (Sunrice's, when it exists) | Every `commerce.*` permission as well |
 
@@ -415,4 +415,4 @@ Suggested custom roles (not seeded):
 | Finance | `commerce.orders.view`, `commerce.payments.verify`, `commerce.orders.refund`, `commerce.reports.view`, `commerce.reports.export` |
 | Reseller | A customer role (add it to Customer roles) for pricing rules |
 
-Give staff roles `sunrice.access-admin` too, or they can't open the admin.
+Give staff roles `sunrice.access` too, or they can't open the admin.

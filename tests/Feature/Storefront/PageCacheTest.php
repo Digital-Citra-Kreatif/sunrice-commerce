@@ -14,7 +14,7 @@ use Workbench\App\Models\User;
 
 use function Pest\Laravel\get;
 
-$unsupported = ! PageCache::bypassSupported();
+$unsupported = false;
 
 beforeEach(function () {
     $this->mug = checkoutStore();
@@ -59,7 +59,7 @@ it('leaves product pages out with a zero lifetime', function () {
 })->skip($unsupported, 'Needs Sunrice::bypassPageCacheUsing()');
 
 it('clears the page cache when availability or prices change', function () {
-    config(['sunrice.cache.full_page' => true]);
+    config(['sunrice-cms.cache.pages' => true]);
     Event::fake([ContentChanged::class]);
     $inventory = app(Inventory::class);
 
@@ -74,7 +74,7 @@ it('clears the page cache when availability or prices change', function () {
     Event::assertDispatched(ContentChanged::class, fn (ContentChanged $e) => $e->reason === 'commerce.catalog_changed');
 
     // Nothing to clear without the full-page cache.
-    config(['sunrice.cache.full_page' => false]);
+    config(['sunrice-cms.cache.pages' => false]);
     Event::fake([ContentChanged::class]);
     CatalogVersion::bump();
     Event::assertNotDispatched(ContentChanged::class);

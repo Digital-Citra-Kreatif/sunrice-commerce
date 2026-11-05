@@ -82,7 +82,7 @@ class InstallCommand extends Command
     /** Sign-in with an emailed code needs HasOneTimePasswords on the user model. */
     protected function userModel(): void
     {
-        $model = config('sunrice.auth.user_model');
+        $model = \Sunrice\Commerce\Support\Staff::userModel();
         if (! is_string($model) || ! class_exists($model)) {
             $this->components->warn('No user model configured (sunrice.auth.user_model).');
 

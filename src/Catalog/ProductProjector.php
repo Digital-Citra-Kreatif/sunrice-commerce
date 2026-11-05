@@ -130,7 +130,7 @@ class ProductProjector
 
         // Labels of attribute values (main language) for variant titles.
         $termIds = collect($valueRows)->flatten()->pluck('term_id')->filter()->all();
-        $termNames = $termIds === [] ? collect() : Term::query()->with('translations')->whereIn('id', $termIds)->get()->mapWithKeys(fn (Term $t) => [$t->id => (string) $t->name]);
+        $termNames = $termIds === [] ? collect() : Term::query()->with('translations')->whereIn('id', $termIds)->get()->mapWithKeys(fn (Term $t) => [$t->id => $t->title()]);
 
         // Variants, by uid: restored when they come back, soft-deleted when removed.
         $existing = Variant::withTrashed()->where('product_id', $product->id)->get()->keyBy('uid');
@@ -182,7 +182,7 @@ class ProductProjector
             }
             $variant->save();
             if ($initial !== null && ($initial !== 0 || $isNew)) {
-                StockMovement::query()->create(['variant_id' => $variant->id, 'delta' => $initial, 'quantity_after' => $initial, 'reason' => 'initial', 'user_id' => auth(config('sunrice.auth.guard', 'web'))->id()]);
+                StockMovement::query()->create(['variant_id' => $variant->id, 'delta' => $initial, 'quantity_after' => $initial, 'reason' => 'initial', 'user_id' => auth(\Sunrice\Commerce\Support\Staff::guard())->id()]);
             }
             $variant->optionValues()->sync($valueIds);
             $kept[$v['id']] = $variant;

@@ -30,11 +30,11 @@ it('seeds a Shop Manager who can open the admin and a Customer who can not', fun
     $customer = User::query()->create(['name' => 'C', 'email' => 'c@example.com', 'password' => 'x']);
     $customer->assignRole(CommerceRolesSeeder::CUSTOMER);
 
-    expect($manager->can('sunrice.access-admin'))->toBeTrue()
+    expect($manager->can('sunrice.access'))->toBeTrue()
         ->and($manager->can("sunrice.entries.{$products->id}.publish"))->toBeTrue()
         ->and($manager->can('commerce.orders.refund'))->toBeTrue()
         ->and($manager->can('sunrice.users.view'))->toBeFalse()
-        ->and($customer->can('sunrice.access-admin'))->toBeFalse()
+        ->and($customer->can('sunrice.access'))->toBeFalse()
         ->and(Role::findByName('Administrator')->hasPermissionTo('commerce.settings.features'))->toBeTrue();
 
     $this->actingAs($manager)->get('/cms')->assertOk();

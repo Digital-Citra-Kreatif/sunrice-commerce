@@ -97,7 +97,7 @@ class InventoryController extends Controller
     {
         $this->authorizeFeature('inventory');
         $this->authorize('commerce.inventory.view');
-        $users = config('sunrice.auth.user_model');
+        $users = \Sunrice\Commerce\Support\Staff::userModel();
         $movements = StockMovement::query()->where('variant_id', $variant->id)->latest('id')->limit(100)->get();
         $names = $movements->pluck('user_id')->filter()->unique()->isEmpty() ? collect() : $users::query()->whereIn('id', $movements->pluck('user_id')->filter())->pluck('name', 'id');
 

@@ -68,7 +68,7 @@ it('does not link an unverified Google email', function () {
 it('refuses staff in shared-guard mode', function () {
     config(['commerce.auth.guard' => 'web']);
     $user = User::query()->create(['name' => 'Ana', 'email' => 'ana@example.com', 'password' => 'x']);
-    $user->assignRole(Role::findOrCreate(config('sunrice.super_admin_role'), 'web'));
+    $user->assignRole(Role::findOrCreate(config('sunrice-admin.super_admin_role'), 'web'));
     fakeGoogle('g-4', 'ana@example.com');
 
     $this->get('/account/login/google/callback')->assertRedirect('/account/login')->assertSessionHas('commerce.error');

@@ -201,7 +201,7 @@ class Audience
 
     protected static function userMorphClass(): string
     {
-        $class = (string) config('sunrice.auth.user_model');
+        $class = \Sunrice\Commerce\Support\Staff::userModel();
 
         return class_exists($class) && is_subclass_of($class, Model::class) ? (new $class)->getMorphClass() : $class;
     }

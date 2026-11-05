@@ -20,6 +20,7 @@ use Sunrice\Commerce\Storefront\PageCache;
 use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Commerce\Taxes\TaxDisplay;
 use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
 
 /**
  * Builds ProductViews for a page of entries in a fixed number of queries
@@ -65,55 +66,63 @@ class ProductViewFactory
         app(ProductViewHooks::class)->extenders[] = $extender;
     }
 
-    public function forEntry(Entry $entry): ?ProductView
+    /** The view of an entry as shown (an Entry shows its translation in the page's language, see LiveEntries::translation()). */
+    public function forEntry(Entry|EntryTranslation $entry): ?ProductView
     {
-        if ($entry->hydrationContext->preview ?? false) {
-            // Drafts are never memoized: the live page must not see them.
-            return $this->forEntries(collect([$entry]))[$entry->id] ?? null;
+        $entry = LiveEntries::translation($entry);
+        if ($entry === null) {
+            return null;
         }
-        if (! array_key_exists($entry->id, $this->memo)) {
+        if (LiveEntries::previewing($entry)) {
+            // Drafts are never memoized: the live page must not see them.
+            return $this->forEntries(collect([$entry]))[$entry->entry_id] ?? null;
+        }
+        if (! array_key_exists($entry->entry_id, $this->memo)) {
             $this->forEntries(collect([$entry]));
         }
 
-        return $this->memo[$entry->id] ?? null;
+        return $this->memo[$entry->entry_id] ?? null;
     }
 
     /**
-     * @param  Collection<int, Entry>  $entries
+     * @param  Collection<int, EntryTranslation>  $entries  as shown
      * @return array<int, ProductView> entry id => view (entries without a product are left out)
      */
     public function forEntries(Collection $entries): array
     {
-        $ids = $entries->pluck('id')->all();
+        $ids = $entries->pluck('entry_id')->all();
         $products = Product::query()->whereIn('entry_id', $ids)->whereNull('removed_at')
             ->with(['variants', 'options.values.term.translations', 'tiers'])
             ->get()->keyBy('entry_id');
         $this->prepare($products);
-        $live = $entries->reject(fn (Entry $e) => (bool) ($e->hydrationContext->preview ?? false))
-            ->map(fn (Entry $e) => $products->get($e->id))->filter()->values()->all();
+        $live = $entries->reject(fn (EntryTranslation $e) => LiveEntries::previewing($e))
+            ->map(fn (EntryTranslation $e) => $products->get($e->entry_id))->filter()->values()->all();
         $outer = $this->optionValues;
         $this->optionValues = $this->optionValuesLoader($live);
 
         $views = [];
         try {
             foreach ($entries as $entry) {
-                $preview = (bool) ($entry->hydrationContext->preview ?? false);
-                $product = $products->get($entry->id);
+                $preview = LiveEntries::previewing($entry);
+                $id = (int) $entry->entry_id;
+                $product = $products->get($id);
                 if ($preview) {
-                    $draft = (array) ($entry->data ?? []);
+                    // The product field is shared: the main language's draft holds it.
+                    $main = $entry->isMain() ? $entry : ($entry->entry?->mainTranslation() ?? $entry);
+                    $draft = (array) ($main->draft_data ?? []);
                     $field = (string) config('commerce.catalog.field', 'product');
                     $product = app(ProductProjector::class)->map($draft[$field] ?? null, $product);
                     $product->collection_id = $entry->collection_id;
-                    $product->entry_id = $entry->id;
+                    $product->entry_id = $id;
                 }
                 if ($product === null) {
-                    $this->memo[$entry->id] = null; // previews always map a product
+                    $this->memo[$id] = null; // previews always map a product
 
                     continue;
                 }
-                $views[$entry->id] = $this->build($entry, $product, $preview);
+                $views[$id] = $this->build($entry, $product, $preview);
                 if (! $preview) {
-                    $this->memo[$entry->id] = $views[$entry->id];
+                    $this->memo[$id] = $views[$id];
                 }
             }
         } finally {
@@ -176,7 +185,7 @@ class ProductViewFactory
         };
     }
 
-    protected function build(Entry $entry, Product $product, bool $preview): ProductView
+    protected function build(EntryTranslation $entry, Product $product, bool $preview): ProductView
     {
         PageCache::markDynamic();
         $loadOptionValues = $this->optionValues;
@@ -239,7 +248,7 @@ class ProductViewFactory
         $options = $product->options->map(fn ($option) => [
             'id' => $option->uid,
             'name' => $option->name,
-            'values' => $option->values->map(fn ($value) => ['id' => $value->uid, 'label' => $value->label ?? (string) ($value->term->name ?? '')])->values()->all(),
+            'values' => $option->values->map(fn ($value) => ['id' => $value->uid, 'label' => $value->label ?? (string) ($value->term?->title() ?? '')])->values()->all(),
         ])->values()->all();
         // Picker rows, one per active variant: built when first read (listing cards and cart lines don't).
         $rows = null;

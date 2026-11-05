@@ -156,7 +156,7 @@ class CustomersController extends Controller
 
     protected static function userMorphClass(): string
     {
-        $class = (string) config('sunrice.auth.user_model');
+        $class = \Sunrice\Commerce\Support\Staff::userModel();
 
         return class_exists($class) && is_subclass_of($class, Model::class) ? (new $class)->getMorphClass() : $class;
     }
@@ -249,7 +249,7 @@ class CustomersController extends Controller
      */
     protected static function givableRoles(mixed $staff): array
     {
-        return Role::query()->with('permissions')->whereDoesntHave('permissions', fn ($q) => $q->where('name', 'sunrice.access-admin'))->get()
+        return Role::query()->with('permissions')->whereDoesntHave('permissions', fn ($q) => $q->where('name', 'sunrice.access'))->get()
             ->filter(fn (Role $role) => ! class_exists(PermissionRank::class) || PermissionRank::roleBelow($role, $staff))
             ->pluck('name')->values()->all();
     }
@@ -279,7 +279,7 @@ class CustomersController extends Controller
     {
         $this->authorize('commerce.customers.delete');
         $user = $customer->user();
-        abort_if($user !== null && method_exists($user, 'can') && $user->can('sunrice.access-admin'), 403, 'Staff accounts are managed in Users.');
+        abort_if($user !== null && method_exists($user, 'can') && $user->can('sunrice.access'), 403, 'Staff accounts are managed in Users.');
         $anonymize->handle($customer);
 
         return redirect()->route('sunrice.admin.commerce.customers')->with('success', 'Personal data removed.');

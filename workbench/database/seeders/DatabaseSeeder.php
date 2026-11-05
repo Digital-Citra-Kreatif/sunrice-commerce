@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'admin@example.com'],
             ['name' => 'Admin', 'password' => bcrypt('password')],
         );
-        $admin->assignRole(Role::findOrCreate((string) config('sunrice.super_admin_role'), (string) config('sunrice.auth.guard', 'web')));
+        $admin->assignRole(Role::findOrCreate((string) config('sunrice.super_admin_role'), \Sunrice\Commerce\Support\Staff::guard()));
         $this->call(DemoStoreSeeder::class);
     }
 }

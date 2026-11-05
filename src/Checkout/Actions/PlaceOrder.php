@@ -197,7 +197,7 @@ class PlaceOrder
      */
     protected function createAccount(CheckoutData $data, string $password): ?Authenticatable
     {
-        $model = (string) config('sunrice.auth.user_model');
+        $model = \Sunrice\Commerce\Support\Staff::userModel();
         $email = (string) $data->email();
         if ($model::query()->where('email', $email)->exists()) {
             return null;
@@ -509,7 +509,7 @@ class PlaceOrder
         $variant->loadMissing('optionValues.option', 'optionValues.term.translations');
         $options = [];
         foreach ($variant->optionValues as $value) {
-            $options[(string) $value->option->name] = (string) ($value->label ?? $value->term->name ?? '');
+            $options[(string) $value->option->name] = (string) ($value->label ?? $value->term?->title() ?? '');
         }
 
         return $options ?: null;

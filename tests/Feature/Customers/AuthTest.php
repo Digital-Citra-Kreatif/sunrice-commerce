@@ -145,7 +145,7 @@ it('uses the customer roles with can() under the commerce guard', function () {
 it('sends staff to the admin login when the storefront shares its guard and two-factor is on', function () {
     config(['commerce.auth.guard' => 'web', 'sunrice.auth.two_factor' => true]);
     $staff = customerUser();
-    $staff->assignRole(Role::findOrCreate(config('sunrice.super_admin_role'), 'web'));
+    $staff->assignRole(Role::findOrCreate(config('sunrice-admin.super_admin_role'), 'web'));
 
     $this->post('/account/login', ['email' => 'ana@example.com', 'password' => 'secret-pass'])->assertSessionHasErrors('email');
     $this->assertGuest('web');

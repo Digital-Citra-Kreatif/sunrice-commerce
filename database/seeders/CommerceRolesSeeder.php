@@ -34,7 +34,7 @@ class CommerceRolesSeeder extends Seeder
     public function run(): void
     {
         app(SyncPermissions::class)->handle();
-        $guard = (string) config('sunrice.auth.guard', 'web');
+        $guard = \Sunrice\Commerce\Support\Staff::guard();
         $names = app(PermissionRegistry::class)->names();
 
         $commerce = array_keys(CommercePermissions::all());
@@ -52,7 +52,7 @@ class CommerceRolesSeeder extends Seeder
             'sunrice.view-drafts',
             'sunrice.guide.view',
             'sunrice.assets.view',
-            'sunrice.assets.upload',
+            'sunrice.media.upload',
             'sunrice.assets.edit',
             ...$collectionIds->map(fn (int $id) => "sunrice.entries.{$id}.*")->all(),
             ...$taxonomyIds->map(fn (int $id) => "sunrice.terms.{$id}.*")->all(),

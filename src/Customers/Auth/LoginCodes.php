@@ -25,7 +25,7 @@ class LoginCodes
 
     public function supported(): bool
     {
-        $model = config('sunrice.auth.user_model');
+        $model = \Sunrice\Commerce\Support\Staff::userModel();
 
         return is_string($model) && method_exists($model, 'createOneTimePassword');
     }
@@ -66,6 +66,6 @@ class LoginCodes
     /** In shared-guard mode, staff can't sign in by code or Google (their admin must stay password-protected). */
     public static function isRefusedStaff(Authenticatable $user): bool
     {
-        return CurrentCustomer::sharesAdminGuard() && method_exists($user, 'can') && $user->can('sunrice.access-admin');
+        return CurrentCustomer::sharesAdminGuard() && method_exists($user, 'can') && $user->can('sunrice.access');
     }
 }

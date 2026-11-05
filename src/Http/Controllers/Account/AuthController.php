@@ -43,8 +43,9 @@ use Sunrice\Admin\Security\Captcha;
 class AuthController
 {
     // Per request (the router keeps controller instances).
-    protected StoreSettings $settings {
-        get => app(StoreSettings::class);
+    protected function settings(): StoreSettings
+    {
+        return app(StoreSettings::class);
     }
 
     public function showLogin(): View|RedirectResponse
@@ -70,7 +71,7 @@ class AuthController
         if (TwoFactorLogin::enabled() && LoginCodes::isRefusedStaff($user)) {
             throw ValidationException::withMessages(['email' => __('commerce::account.staff_two_factor')]);
         }
-        if ($this->settings->get('accounts.verify_email', true) && $user->getAttribute('email_verified_at') === null) {
+        if ($this->settings()->get('accounts.verify_email', true) && $user->getAttribute('email_verified_at') === null) {
             $user->notify(new VerifyCustomerEmail(app()->getLocale()));
             throw ValidationException::withMessages(['email' => __('commerce::account.verify.required')]);
         }
@@ -93,7 +94,7 @@ class AuthController
 
     public function showRegister(): View
     {
-        abort_unless($this->settings->get('accounts.registration', true), 404);
+        abort_unless($this->settings()->get('accounts.registration', true), 404);
 
         return view(Layout::view('account.register'), [
             'seoTitle' => __('commerce::account.register.title'),
@@ -104,15 +105,15 @@ class AuthController
 
     public function register(Request $request, AssignCustomerRole $roles): RedirectResponse
     {
-        abort_unless($this->settings->get('accounts.registration', true), 404);
+        abort_unless($this->settings()->get('accounts.registration', true), 404);
         $passwordless = commerce_feature('passwordless_login') && $request->boolean('passwordless');
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'string', 'email', 'max:190'],
-            'phone' => [$this->settings->get('accounts.require_phone') ? 'required' : 'nullable', 'string', 'max:30'],
+            'phone' => [$this->settings()->get('accounts.require_phone') ? 'required' : 'nullable', 'string', 'max:30'],
             'password' => $passwordless ? ['nullable'] : ['required', 'confirmed', PasswordRule::min(8)],
             'accepts_marketing' => ['nullable', 'boolean'],
-            'terms' => $this->settings->get('checkout.terms_page') ? ['accepted'] : ['nullable'],
+            'terms' => $this->settings()->get('checkout.terms_page') ? ['accepted'] : ['nullable'],
         ], [], ['terms' => __('commerce::checkout.terms_link')]);
         if (($field = Captcha::field()) !== null && ! Captcha::verify((string) $request->input($field), $request->ip())) {
             return back()->withInput($request->except(['password', 'password_confirmation']))->withErrors(['captcha' => __('commerce::payments.confirm.captcha')]);
@@ -147,7 +148,7 @@ class AuthController
         if ($passwordless) {
             return app(LoginCodeController::class)->send($request->merge(['email' => $email]), app(LoginCodes::class));
         }
-        if ($this->settings->get('accounts.verify_email', true)) {
+        if ($this->settings()->get('accounts.verify_email', true)) {
             $user->notify(new VerifyCustomerEmail(app()->getLocale()));
 
             return redirect(StorefrontRoutes::url('commerce.account.login'))->with('commerce.success', __('commerce::account.register.check_email'));
@@ -235,6 +236,6 @@ class AuthController
     /** @return class-string<Model&Authenticatable> */
     protected function users(): string
     {
-        return config('sunrice.auth.user_model');
+        return \Sunrice\Commerce\Support\Staff::userModel();
     }
 }

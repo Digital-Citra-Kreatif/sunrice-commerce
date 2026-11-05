@@ -77,7 +77,7 @@ class Customer extends Model
 
     public function user(): ?Authenticatable
     {
-        $model = config('sunrice.auth.user_model');
+        $model = \Sunrice\Commerce\Support\Staff::userModel();
 
         return $this->user_id === null ? null : $model::query()->find($this->user_id);
     }

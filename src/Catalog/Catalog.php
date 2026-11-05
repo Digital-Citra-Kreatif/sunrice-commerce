@@ -11,7 +11,6 @@ use Sunrice\Commerce\Contracts\SaleLimits;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Cms\Models\Collection;
-use Sunrice\Cms\Query\EntryQuery;
 
 /**
  * Purchasability (ARCHITECTURE.md §7.3): one place deciding whether a
@@ -132,8 +131,8 @@ class Catalog
         }
         foreach ($byCollection as $collectionId => $entryIds) {
             $collection = Collection::query()->find($collectionId);
-            $visible = $collection === null ? [] : EntryQuery::forCollection($collection)
-                ->where('id', 'in', $entryIds)->toBase()->reorder()->pluck('sunrice_entries.id')->map(fn ($id) => (int) $id)->all();
+            $visible = $collection === null ? [] : LiveEntries::ids($collection->handle)
+                ->whereIn('sunrice_entry_translations.entry_id', $entryIds)->pluck('entry_id')->map(fn ($id) => (int) $id)->all();
             foreach ($entryIds as $id) {
                 $this->published[$id] = in_array($id, $visible, true);
             }

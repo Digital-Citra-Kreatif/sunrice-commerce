@@ -297,7 +297,7 @@ class LoadTestSeeder extends Seeder
         $cities = [];
         $now = now();
         $customerUser = User::query()->firstOrCreate(['email' => 'customer@example.com'], ['name' => 'Pelanggan Uji', 'password' => bcrypt('password')]);
-        $customerUser->assignRole(Role::findOrCreate('Customer', (string) config('sunrice.auth.guard', 'web')));
+        $customerUser->assignRole(Role::findOrCreate('Customer', \Sunrice\Commerce\Support\Staff::guard()));
         $rows = [];
         for ($i = 1; $i <= $this->customers; $i++) {
             $rows[] = ['user_id' => $i === 1 ? $customerUser->id : null, 'email' => $i === 1 ? 'customer@example.com' : "pelanggan{$i}@example.com",

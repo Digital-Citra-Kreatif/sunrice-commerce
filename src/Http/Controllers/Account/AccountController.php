@@ -25,16 +25,17 @@ use Sunrice\Commerce\Storefront\Layout;
 class AccountController
 {
     // Per request (the router keeps controller instances).
-    protected CurrentCustomer $current {
-        get => app(CurrentCustomer::class);
+    protected function current(): CurrentCustomer
+    {
+        return app(CurrentCustomer::class);
     }
 
     public function overview(): View
     {
         return $this->page('overview', __('commerce::account.overview.title'), [
-            'addresses' => $this->current->get()->addresses()->orderByDesc('default_shipping')->get(),
+            'addresses' => $this->current()->get()->addresses()->orderByDesc('default_shipping')->get(),
             'recentOrders' => commerce_feature('orders')
-                ? Order::query()->where('user_id', $this->current->user()?->getAuthIdentifier())->where('type', 'order')->latest('placed_at')->latest('id')->limit(3)->get()
+                ? Order::query()->where('user_id', $this->current()->user()?->getAuthIdentifier())->where('type', 'order')->latest('placed_at')->latest('id')->limit(3)->get()
                 : collect(),
             'links' => array_values(array_filter(app(AccountNavigation::class)->items(), fn (array $item) => $item['key'] !== 'overview')),
         ]);
@@ -43,20 +44,20 @@ class AccountController
     public function profile(): View
     {
         return $this->page('profile', __('commerce::account.profile.title'), ['google' => DB::table('commerce_social_accounts')
-            ->where('user_id', $this->current->user()?->getAuthIdentifier())->where('provider', 'google')->value('email')]);
+            ->where('user_id', $this->current()->user()?->getAuthIdentifier())->where('provider', 'google')->value('email')]);
     }
 
     public function updateProfile(Request $request, UpdateProfile $update): RedirectResponse
     {
-        $sent = $update->handle($this->current->user(), $this->current->get(), $request->only(['name', 'email', 'phone', 'accepts_marketing', 'current_password']));
+        $sent = $update->handle($this->current()->user(), $this->current()->get(), $request->only(['name', 'email', 'phone', 'accepts_marketing', 'current_password']));
 
         return back()->with('commerce.success', __($sent ? 'commerce::account.profile.verify_new_email' : 'commerce::account.profile.saved'));
     }
 
     public function updatePassword(Request $request): RedirectResponse
     {
-        $user = $this->current->user();
-        $customer = $this->current->get();
+        $user = $this->current()->user();
+        $customer = $this->current()->get();
         $data = $request->validate(['current_password' => ['nullable', 'string'], 'password' => ['required', 'confirmed', PasswordRule::min(8)]]);
         // Accounts made by code or Google set their first password without an old one.
         if (($customer->meta['password_set'] ?? true) !== false && ! Hash::check((string) ($data['current_password'] ?? ''), (string) $user->getAuthPassword())) {
@@ -73,29 +74,29 @@ class AccountController
     public function addresses(): View
     {
         return $this->page('addresses', __('commerce::account.addresses.title'), [
-            'addresses' => $this->current->get()->addresses()->orderByDesc('default_shipping')->orderBy('id')->get(),
-            'editing' => request()->filled('edit') ? $this->current->get()->addresses()->find((int) request('edit')) : null,
+            'addresses' => $this->current()->get()->addresses()->orderByDesc('default_shipping')->orderBy('id')->get(),
+            'editing' => request()->filled('edit') ? $this->current()->get()->addresses()->find((int) request('edit')) : null,
         ]);
     }
 
     public function storeAddress(Request $request, SaveAddress $save): RedirectResponse
     {
-        $save->handle($this->current->get(), (array) $request->input('address', []));
+        $save->handle($this->current()->get(), (array) $request->input('address', []));
 
         return redirect()->to(url()->previous())->with('commerce.success', __('commerce::account.addresses.saved'));
     }
 
     public function updateAddress(Request $request, int $address, SaveAddress $save): RedirectResponse
     {
-        $model = Address::query()->where('customer_id', $this->current->get()->id)->findOrFail($address);
-        $save->handle($this->current->get(), (array) $request->input('address', []), $model);
+        $model = Address::query()->where('customer_id', $this->current()->get()->id)->findOrFail($address);
+        $save->handle($this->current()->get(), (array) $request->input('address', []), $model);
 
         return back()->with('commerce.success', __('commerce::account.addresses.saved'));
     }
 
     public function deleteAddress(int $address): RedirectResponse
     {
-        Address::query()->where('customer_id', $this->current->get()->id)->findOrFail($address)->delete();
+        Address::query()->where('customer_id', $this->current()->get()->id)->findOrFail($address)->delete();
 
         return back()->with('commerce.success', __('commerce::account.addresses.deleted'));
     }
@@ -103,7 +104,7 @@ class AccountController
     public function requestDeletion(Request $request, RequestAccountDeletion $request_): RedirectResponse
     {
         $request->validate(['confirm' => ['accepted']]);
-        $request_->handle($this->current->get());
+        $request_->handle($this->current()->get());
 
         return back()->with('commerce.success', __('commerce::account.delete.requested'));
     }
@@ -113,8 +114,8 @@ class AccountController
     {
         return view(Layout::view('account.'.$name), [
             ...$data,
-            'customer' => $this->current->get(),
-            'user' => $this->current->user(),
+            'customer' => $this->current()->get(),
+            'user' => $this->current()->user(),
             'navigation' => app(AccountNavigation::class)->items(),
             'current' => $name,
             'seoTitle' => $title,

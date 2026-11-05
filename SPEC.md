@@ -1116,7 +1116,7 @@ Product content uses Sunrice's own permissions: the entry permissions of the pro
 
 | Role | Gets |
 | --- | --- |
-| Shop Manager | `sunrice.access-admin`, `sunrice.view-drafts`, every entry permission of the products collection, the term permissions of the product categories, tags, brands and attribute taxonomies, `sunrice.assets.view`/`upload`/`edit`, the inquiry form's submission permissions, and every `commerce.*` permission |
+| Shop Manager | `sunrice.access`, `cms.entries.view-drafts`, every entry permission of the products collection, the term permissions of the product categories, tags, brands and attribute taxonomies, `sunrice.assets.view`/`upload`/`edit`, the inquiry form's submission permissions, and every `commerce.*` permission |
 | Customer | No admin permissions. It is the storefront role, used by price visibility and pricing rules |
 | Administrator (Sunrice's) | Every `commerce.*` permission as well |
 

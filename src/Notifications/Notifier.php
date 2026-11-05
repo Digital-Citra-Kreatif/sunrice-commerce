@@ -72,7 +72,7 @@ class Notifier
         }
         $roles = Role::query()->whereIn('name', $this->settings->roles($key))->pluck('name')->all();
         if ($roles !== []) {
-            $model = (string) config('sunrice.auth.user_model');
+            $model = \Sunrice\Commerce\Support\Staff::userModel();
             foreach ($model::query()->role($roles)->get() as $user) {
                 $mail = mb_strtolower((string) $user->getAttribute('email'));
                 if ($mail !== '' && ! isset($out[$mail])) {

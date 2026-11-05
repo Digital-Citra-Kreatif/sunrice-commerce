@@ -62,7 +62,7 @@ it('gives Sunrice\'s dashboard a Store card for store staff only', function () {
     paidOrder((int) $this->mug->product_id, 120000, '2026-03-10 08:00:00');
     app(StatsRecorder::class)->recompute('2026-03-10');
     $manager = actingAsUserWith(['commerce.dashboard.view', 'commerce.orders.view']);
-    $editor = actingAsUserWith(['sunrice.access-admin'], 'editor@example.com');
+    $editor = actingAsUserWith(['sunrice.access'], 'editor@example.com');
 
     expect(StoreCard::visible($manager))->toBeTrue()
         ->and(StoreCard::visible($editor))->toBeFalse()

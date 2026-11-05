@@ -77,7 +77,7 @@ it('warns while the full-page cache is on', function () {
     $status = fn () => app(HealthRegistry::class)->run()['full_page_cache']['result']->status;
 
     expect($status())->toBe(HealthResult::OK);
-    config(['sunrice.cache.full_page' => true, 'responsecache.cache_profile' => null]);
+    config(['sunrice-cms.cache.pages' => true, 'responsecache.cache_profile' => null]);
     expect($status())->toBe(HealthResult::WARNING);
 
     // With Sunrice's cache profile, commerce leaves store pages out.

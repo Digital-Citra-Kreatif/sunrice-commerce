@@ -52,7 +52,7 @@
                     <li class="commerce-tile">
                         <a href="{{ $department->url }}">
                             @if (is_object($image))<img src="{{ $image->url() }}" alt="" loading="lazy" width="600" height="600">@endif
-                            <span class="commerce-tile__label">{{ $department->resolveFor(app()->getLocale())->name }}</span>
+                            <span class="commerce-tile__label">{{ $department->title() }}</span>
                         </a>
                     </li>
                 @endforeach
@@ -71,7 +71,7 @@
                     <li class="commerce-tile">
                         <a href="{{ $category->url }}">
                             @if (is_object($image))<img src="{{ $image->url() }}" alt="" loading="lazy" width="600" height="600">@endif
-                            <span class="commerce-tile__label">{{ $category->parent?->resolveFor(app()->getLocale())->name }} · {{ $category->resolveFor(app()->getLocale())->name }}</span>
+                            <span class="commerce-tile__label">{{ $category->parent?->title() }} · {{ $category->title() }}</span>
                         </a>
                     </li>
                 @endforeach
@@ -115,7 +115,7 @@
                     <li>
                         <a href="{{ $brand->url }}">
                             @if (is_object($logo))<img src="{{ $logo->url() }}" alt="" loading="lazy" width="200" height="100">@endif
-                            <span>{{ $brand->resolveFor(app()->getLocale())->name }}</span>
+                            <span>{{ $brand->title() }}</span>
                         </a>
                     </li>
                 @endforeach

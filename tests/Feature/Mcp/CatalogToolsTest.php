@@ -25,7 +25,7 @@ beforeEach(function () {
 /** A user with only these permissions, acting from now on. */
 function staffWith(array $permissions): mixed
 {
-    return actingAsUserWith(['sunrice.access-admin', ...$permissions], 'staff-'.md5(implode(',', $permissions)).'@example.com');
+    return actingAsUserWith(['sunrice.access', ...$permissions], 'staff-'.md5(implode(',', $permissions)).'@example.com');
 }
 
 it('lists and reads products, and documents the product field', function () {

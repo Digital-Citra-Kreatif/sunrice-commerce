@@ -38,29 +38,33 @@ use Sunrice\Commerce\Support\MoneyFormatter;
 class CheckoutController
 {
     // Per request (the router keeps controller instances).
-    protected CartManager $carts {
-        get => app(CartManager::class);
+    protected function carts(): CartManager
+    {
+        return app(CartManager::class);
     }
 
-    protected StoreSettings $settings {
-        get => app(StoreSettings::class);
+    protected function settings(): StoreSettings
+    {
+        return app(StoreSettings::class);
     }
 
-    protected CheckoutMode $mode {
-        get => app(CheckoutMode::class);
+    protected function mode(): CheckoutMode
+    {
+        return app(CheckoutMode::class);
     }
 
-    protected PaymentManager $payments {
-        get => app(PaymentManager::class);
+    protected function payments(): PaymentManager
+    {
+        return app(PaymentManager::class);
     }
 
     public function show(Request $request): View|RedirectResponse
     {
-        $cart = $this->carts->current();
+        $cart = $this->carts()->current();
         if ($cart === null || $cart->items()->doesntExist()) {
             return redirect(StorefrontRoutes::url('commerce.cart'))->with('commerce.error', __('commerce::checkout.errors.empty'));
         }
-        if (commerce_customer() === null && ! $this->settings->get('checkout.guest_checkout', true) && commerce_feature('accounts')) {
+        if (commerce_customer() === null && ! $this->settings()->get('checkout.guest_checkout', true) && commerce_feature('accounts')) {
             $request->session()->put('url.intended', StorefrontRoutes::url('commerce.checkout'));
 
             return redirect(StorefrontRoutes::url('commerce.account.login'))->with('commerce.error', __('commerce::checkout.errors.sign_in'));
@@ -78,7 +82,7 @@ class CheckoutController
 
     public function submit(Request $request, PlaceOrder $place, UpdateCheckoutData $update): RedirectResponse
     {
-        $cart = $this->carts->current();
+        $cart = $this->carts()->current();
         if ($cart === null) {
             return redirect(StorefrontRoutes::url('commerce.cart'));
         }
@@ -98,7 +102,7 @@ class CheckoutController
         } catch (ValidationException $e) {
             return redirect(StorefrontRoutes::url('commerce.checkout'))->withErrors($e->errors())->withInput($request->except('password'));
         }
-        $this->carts->forget();
+        $this->carts()->forget();
         $request->session()->put('commerce.orders.'.$placed->order->id, $placed->order->order_key);
 
         return redirect($placed->response->url)->with('commerce.success', $placed->response->message);
@@ -107,7 +111,7 @@ class CheckoutController
     /** JSON: save what was entered and return the rates, payment methods and totals. */
     public function refresh(Request $request, UpdateCheckoutData $update): JsonResponse
     {
-        $cart = $this->carts->current();
+        $cart = $this->carts()->current();
         abort_if($cart === null, 404);
         $data = CheckoutData::fromCart($cart)->merge($request->except(['password', 'totals_hash', 'action']));
         $update->handle($cart, $data->toArray());
@@ -153,8 +157,8 @@ class CheckoutController
         $state = $view->state;
         $user = commerce_customer();
         $methods = [];
-        if ($this->mode->payment() && $state->totals['total'] > 0) {
-            foreach ($this->payments->available(PaymentContext::fromState($state)) as $key => $method) {
+        if ($this->mode()->payment() && $state->totals['total'] > 0) {
+            foreach ($this->payments()->available(PaymentContext::fromState($state)) as $key => $method) {
                 $methods[] = ['key' => $key, 'title' => PaymentManager::titleOf($method), 'description' => method_exists($method, 'description') ? $method->description() : null];
             }
         }
@@ -164,18 +168,18 @@ class CheckoutController
             'cart' => $view,
             'state' => $state,
             'data' => $data,
-            'mode' => $this->mode,
-            'settings' => $this->settings,
-            'needsAddress' => $state->shipping['needed'] && $this->mode->shipping(),
+            'mode' => $this->mode(),
+            'settings' => $this->settings(),
+            'needsAddress' => $state->shipping['needed'] && $this->mode()->shipping(),
             'paymentMethods' => $methods,
             'savedAddresses' => $user !== null ? Customer::forUser($user)->addresses()->get() : collect(),
             'guest' => $user === null,
-            'offerAccount' => $user === null && commerce_feature('accounts') && $this->settings->get('accounts.registration', true)
-                && $this->settings->get('checkout.create_account', 'offer') !== 'never',
-            'accountRequired' => $user === null && $validator->createsAccount($data->merge(['create_account' => true])) && $this->settings->get('checkout.create_account') === 'always',
+            'offerAccount' => $user === null && commerce_feature('accounts') && $this->settings()->get('accounts.registration', true)
+                && $this->settings()->get('checkout.create_account', 'offer') !== 'never',
+            'accountRequired' => $user === null && $validator->createsAccount($data->merge(['create_account' => true])) && $this->settings()->get('checkout.create_account') === 'always',
             'extraFields' => app(CheckoutFields::class)->for($data, $state),
             'termsUrl' => TermsPage::url(),
-            'submitLabel' => __('commerce::checkout.submit.'.$this->mode->completion()),
+            'submitLabel' => __('commerce::checkout.submit.'.$this->mode()->completion()),
         ];
     }
 }

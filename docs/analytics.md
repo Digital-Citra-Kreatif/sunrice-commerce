@@ -138,7 +138,7 @@ Not counted:
 
 - requests whose user agent is empty or contains one of `analytics.bot_user_agents` (`bot`, `crawl`,
   `spider`, `slurp`, `facebookexternalhit`, `preview`, `curl`, `wget`, `python`, `headless`);
-- staff: visitors signed in to the admin with `sunrice.access-admin`;
+- staff: visitors signed in to the admin with `sunrice.access`;
 - Sunrice previews.
 
 Switch off product page views with `analytics.track_views`:

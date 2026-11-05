@@ -25,7 +25,7 @@ class UpdateProfile
      */
     public function handle(Authenticatable $user, Customer $customer, array $input): bool
     {
-        $model = config('sunrice.auth.user_model');
+        $model = \Sunrice\Commerce\Support\Staff::userModel();
         $data = Validator::make($input, [
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:190', Rule::unique((new $model)->getTable(), 'email')->ignore($user->getAuthIdentifier())],

@@ -65,7 +65,7 @@ class GoogleController
         } catch (Throwable) {
             return redirect($login)->with('commerce.error', __('commerce::account.google.failed', [], $locale));
         }
-        $model = config('sunrice.auth.user_model');
+        $model = \Sunrice\Commerce\Support\Staff::userModel();
         $accounts = DB::table('commerce_social_accounts');
 
         $linked = $accounts->clone()->where('provider', 'google')->where('provider_id', (string) $google->getId())->value('user_id');

@@ -1316,7 +1316,7 @@ interface BooksShipments  { public function book(Order $order, Shipment $shipmen
   customer row on first use. Guests resolve to `null`.
 - Middleware `commerce.auth` redirects guests to `/account/login`.
 - **Shared-guard mode** (`commerce.auth.guard` = `sunrice.auth.guard`): `EnsureNotStaff` refuses
-  code and Google sign-ins for users who `can('sunrice.access-admin')`.
+  code and Google sign-ins for users who `can('sunrice.access')`.
 - **Signing out** of the storefront regenerates the session id and logs out the `commerce` guard
   only. It doesn't invalidate the whole session, so the admin sign-in and the cart cookie survive.
 

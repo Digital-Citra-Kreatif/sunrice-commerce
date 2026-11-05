@@ -19,7 +19,7 @@ final class Actor
 
     public static function admin(?Authenticatable $user = null): self
     {
-        $user ??= auth()->guard((string) config('sunrice.auth.guard', 'web'))->user();
+        $user ??= auth()->guard(\Sunrice\Commerce\Support\Staff::guard())->user();
 
         return new self('admin', $user === null ? null : (int) $user->getAuthIdentifier(), $user?->getAttribute('name'));
     }

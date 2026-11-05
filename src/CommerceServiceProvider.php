@@ -163,7 +163,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         Blade::component(View\Components\CompareButton::class, 'commerce::compare-button');
 
         // Product pages (and the shop's listings) when the app has no template of its own.
-        Content::resolveTemplateUsing(fn (string $view, Page $page): ?string => Storefront\TemplateFallback::resolve($view, $page));
+        Content::resolveTemplateUsing(fn (Page $page): ?string => Storefront\TemplateFallback::resolve($page->view, $page));
 
         Content::bodyClassUsing(function (array $classes): array {
             $name = (string) request()->route()?->getName();

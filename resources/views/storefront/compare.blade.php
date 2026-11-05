@@ -50,7 +50,7 @@
                                         'dimensions' => $variant?->length ? ($variant->length / 10).' × '.($variant->width / 10).' × '.($variant->height / 10).' cm' : '—',
                                         'excerpt' => (string) ($entry->get('excerpt') ?? '—'),
                                         'brand', 'categories' => $entry->terms->filter(fn ($t) => $t->taxonomy?->handle === config($field === 'brand' ? 'commerce.catalog.brand_taxonomy' : 'commerce.catalog.category_taxonomy'))
-                                            ->map(fn ($t) => $t->resolveFor(app()->getLocale())->name)->implode(', ') ?: '—',
+                                            ->map(fn ($t) => $t->title())->implode(', ') ?: '—',
                                         'attributes' => collect($view?->options ?? [])->map(fn ($o) => $o['name'].': '.collect($o['values'])->pluck('label')->implode(', '))->implode('; ') ?: '—',
                                         default => '—',
                                     } }}</td>

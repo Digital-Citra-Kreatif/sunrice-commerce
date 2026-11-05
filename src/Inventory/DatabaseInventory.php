@@ -126,7 +126,7 @@ class DatabaseInventory implements Inventory
             'reason' => $reason,
             'reference_type' => $reference?->getMorphClass(),
             'reference_id' => $reference?->getKey(),
-            'user_id' => $userId ?? auth(config('sunrice.auth.guard', 'web'))->id(),
+            'user_id' => $userId ?? auth(\Sunrice\Commerce\Support\Staff::guard())->id(),
             'note' => $note,
         ]);
 

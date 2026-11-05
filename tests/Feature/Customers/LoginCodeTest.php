@@ -68,7 +68,7 @@ it('rejects a code from another browser and rate-limits requests', function () {
 
 it('refuses staff when the storefront shares the admin guard', function () {
     config(['commerce.auth.guard' => 'web']);
-    $this->user->assignRole(Role::findOrCreate(config('sunrice.super_admin_role'), 'web'));
+    $this->user->assignRole(Role::findOrCreate(config('sunrice-admin.super_admin_role'), 'web'));
     $this->post('/account/login/code', ['email' => 'ana@example.com']);
     Notification::assertNothingSent();
 });

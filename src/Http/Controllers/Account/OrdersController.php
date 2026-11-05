@@ -24,8 +24,9 @@ use Sunrice\Commerce\Storefront\StorefrontRoutes;
  */
 class OrdersController
 {
-    protected CurrentCustomer $current {
-        get => app(CurrentCustomer::class);
+    protected function current(): CurrentCustomer
+    {
+        return app(CurrentCustomer::class);
     }
 
     public function index(Request $request, AccountController $account): View
@@ -93,7 +94,7 @@ class OrdersController
     public function downloads(AccountController $account): View
     {
         $grants = DownloadGrant::query()->with(['file', 'item', 'order'])
-            ->whereHas('order', fn ($q) => $q->where('user_id', $this->current->user()?->getAuthIdentifier()))
+            ->whereHas('order', fn ($q) => $q->where('user_id', $this->current()->user()?->getAuthIdentifier()))
             ->latest('id')->get();
 
         return $account->page('downloads', __('commerce::digital.title'), ['grants' => $grants]);
@@ -101,7 +102,7 @@ class OrdersController
 
     protected function list(AccountController $account, string $type, string $page): View
     {
-        $orders = Order::query()->where('user_id', $this->current->user()?->getAuthIdentifier())->where('type', $type)
+        $orders = Order::query()->where('user_id', $this->current()->user()?->getAuthIdentifier())->where('type', $type)
             ->latest('placed_at')->latest('id')->paginate(10);
 
         return $account->page($page, __('commerce::account.orders.'.($type === 'quote' ? 'quotes' : 'title')), ['orders' => $orders, 'type' => $type]);
@@ -110,7 +111,7 @@ class OrdersController
     /** One of the signed-in customer's orders (404 for anyone else's). */
     protected function own(int $id): Order
     {
-        $order = Order::query()->whereKey($id)->where('user_id', $this->current->user()?->getAuthIdentifier())->first();
+        $order = Order::query()->whereKey($id)->where('user_id', $this->current()->user()?->getAuthIdentifier())->first();
         abort_if($order === null, 404);
 
         return $order;
