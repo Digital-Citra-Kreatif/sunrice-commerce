@@ -130,6 +130,11 @@ class StarterStoreSeeder extends Seeder
         $this->pages();
         $this->menus();
         $this->customer();
+        // PostgreSQL plans tables it hasn't analysed yet as nearly empty: the shop's filtered
+        // listings would take minutes until autovacuum gets to them. Analyse after the bulk load.
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::statement('analyze');
+        }
     }
 
     /**
