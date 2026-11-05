@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Sunrice\Cms\Events\ContentChanged;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Catalog\ProductViewHooks;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
+use Sunrice\Commerce\Feeds\ProductFeed;
 use Sunrice\Commerce\Health\Checks\ProductFeedCheck;
 use Sunrice\Commerce\Inventory\Actions\AdjustStock;
 use Sunrice\Commerce\Settings\StoreSettings;
@@ -118,4 +120,13 @@ it('is built again when the components of a bundle run short', function () {
     // 1 left: no threshold crossed for the mug, but the bundle of two can't be bought.
     app(AdjustStock::class)->handle($mug->fresh(), 1, set: true);
     expect(feedItems($this->get('/feeds/products.xml')->getContent()))->not->toHaveKey('GIFT')->toHaveKey('MUG');
+});
+
+it('moves to a new version only once the change commits', function () {
+    $version = ProductFeed::version();
+    DB::transaction(function () use ($version) {
+        ProductFeed::forget();
+        expect(ProductFeed::version())->toBe($version);
+    });
+    expect(ProductFeed::version())->toBe($version + 1);
 });

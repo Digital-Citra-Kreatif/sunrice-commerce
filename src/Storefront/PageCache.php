@@ -96,7 +96,7 @@ final class PageCache
      */
     public static function forget(string $reason): void
     {
-        DB::afterCommit(fn () => ProductFeed::forget());
+        ProductFeed::forget();
         if (! SitePageCache::enabled()) {
             return;
         }

@@ -38,9 +38,10 @@ class ProductFeed
         return (int) Cache::rememberForever(self::VERSION, fn () => 1);
     }
 
+    /** Once the current transaction commits: a feed built before that would cache the old data under the new version. */
     public static function forget(): void
     {
-        Cache::forever(self::VERSION, self::version() + 1);
+        DB::afterCommit(fn () => Cache::forever(self::VERSION, self::version() + 1));
     }
 
     public function xml(): string
@@ -58,12 +59,15 @@ class ProductFeed
             Product::query()->whereIn('entry_id', LiveEntries::ids($collection))->whereNull('removed_at')->where('sync_status', 'ok')
                 ->orderBy('id')->select(['id', 'entry_id'])->chunk(self::CHUNK, function ($products) use ($collection, $money, &$out): void {
                     $entries = LiveEntries::shown($collection, $products->pluck('entry_id')->map(fn ($id) => (int) $id)->all());
-                    $views = app(ProductViewFactory::class)->forEntries($entries);
+                    $factory = app(ProductViewFactory::class);
+                    $views = $factory->forEntries($entries);
                     $brands = $this->brands(array_keys($views));
                     $images = Media::query()->whereIn('id', collect($views)->flatMap(fn (ProductView $v) => [$this->galleryId($v), ...array_column($v->variants, 'image')])->filter()->unique())->get()->keyBy('id');
                     foreach ($views as $entryId => $view) {
                         $out .= $this->items($view, $brands[$entryId] ?? null, $images, $money);
                     }
+                    // Only the XML is kept: the next chunk doesn't hold this one's views in memory.
+                    $factory->flush();
                 });
         }
 
