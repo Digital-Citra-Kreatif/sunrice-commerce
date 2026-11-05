@@ -240,3 +240,14 @@ it('keeps alerts waiting while the product cannot be bought', function () {
     $this->mug->product->forceFill(['purchase_mode' => 'default'])->save();
     expect(app(SendStockAlerts::class)->handle())->toBe(1);
 });
+
+it('checks stock while prices are hidden from guests', function () {
+    Notification::fake();
+    app(StoreSettings::class)->saveSection('catalog', ['price_visibility' => 'signed_in']);
+
+    $this->post('/stock-alerts', ['variant' => $this->mug->id, 'email' => 'rina@example.com'])->assertSessionHasNoErrors();
+    expect(app(SendStockAlerts::class)->handle())->toBe(0);
+
+    app(AdjustStock::class)->handle($this->mug, 5, set: true);
+    expect(app(SendStockAlerts::class)->handle())->toBe(1);
+});
