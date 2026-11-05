@@ -8,6 +8,7 @@ use Illuminate\Support\Collection as BaseCollection;
 use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\LiveEntries;
+use Sunrice\Commerce\Notifications\EmailSettings;
 use Sunrice\Commerce\Notifications\Notifier;
 use Sunrice\Commerce\StockAlerts\Models\StockAlert;
 use Sunrice\Commerce\StockAlerts\SoldOut;
@@ -25,10 +26,14 @@ class SendStockAlerts
 {
     public const BATCH = 200;
 
-    public function __construct(protected Notifier $notifier, protected SoldOut $soldOut) {}
+    public function __construct(protected Notifier $notifier, protected SoldOut $soldOut, protected EmailSettings $emails) {}
 
     public function handle(): int
     {
+        // The email switched off (Settings → Emails): nothing is claimed, so the alerts wait for it.
+        if (! $this->emails->enabled('back_in_stock')) {
+            return 0;
+        }
         $sent = 0;
         StockAlert::query()->whereNull('notified_at')
             // Bundles' availability comes from their components: checked below.

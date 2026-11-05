@@ -12,6 +12,7 @@ use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Inventory\Actions\AdjustStock;
 use Sunrice\Commerce\Notifications\Notifier;
 use Sunrice\Commerce\Notifications\StoreEmail;
+use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\StockAlerts\Actions\SendStockAlerts;
 use Sunrice\Commerce\StockAlerts\Models\StockAlert;
 use Workbench\App\Models\User;
@@ -137,4 +138,19 @@ it('keeps alerts for products that are no longer live, and gives a failed send b
     $this->mock(Notifier::class)->shouldReceive('sendTo')->once()->andThrow(new RuntimeException('Queue down'));
     expect(fn () => app(SendStockAlerts::class)->handle())->toThrow(RuntimeException::class);
     expect(StockAlert::query()->sole()->notified_at)->toBeNull();
+});
+
+it('keeps alerts waiting while the Back in stock email is switched off', function () {
+    Notification::fake();
+    StockAlert::query()->create(['product_id' => $this->mug->product_id, 'variant_id' => $this->mug->id, 'email' => 'rina@example.com']);
+    app(AdjustStock::class)->handle($this->mug, 5, set: true);
+
+    app(StoreSettings::class)->saveSection('emails', ['back_in_stock' => ['enabled' => false]]);
+    $this->artisan('commerce:tick')->assertSuccessful();
+    Notification::assertNothingSent();
+    expect(StockAlert::query()->sole()->notified_at)->toBeNull();
+
+    app(StoreSettings::class)->saveSection('emails', ['back_in_stock' => ['enabled' => true]]);
+    $this->artisan('commerce:tick')->assertSuccessful();
+    Notification::assertSentOnDemandTimes(StoreEmail::class, 1);
 });
