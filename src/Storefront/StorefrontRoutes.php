@@ -7,13 +7,13 @@ namespace Sunrice\Commerce\Storefront;
 use Closure;
 use Illuminate\Support\Facades\Route;
 use Sunrice\Commerce\Http\Middleware\ForgetLocaleParameter;
-use Sunrice\Cms\Site\SetSiteLocale;
+use Sunrice\Commerce\Http\Middleware\SetStoreLocale;
 use Sunrice\Cms\Support\Locales;
 
 /**
- * Registers store routes in the visitor's language, like Sunrice's own
- * pages: once without a prefix (main language) and once under /{locale}
- * for every other language. The closure receives the route-name suffix
+ * Registers store routes in the visitor's language, like the CMS's own
+ * pages: once without a prefix (the language at the plain addresses) and
+ * once under /{locale} for the others (their address segments). The closure receives the route-name suffix
  * ('' or '.locale'):
  *
  *     StorefrontRoutes::localized(function (string $suffix) {
@@ -27,11 +27,12 @@ final class StorefrontRoutes
     /** @param  Closure(string): void  $routes */
     public static function localized(Closure $routes): void
     {
-        $middleware = [...(array) config('sunrice.frontend.middleware', ['web']), SetSiteLocale::class, ForgetLocaleParameter::class];
+        $middleware = ['web', SetStoreLocale::class, ForgetLocaleParameter::class];
 
         Route::middleware($middleware)->group(fn () => $routes(''));
 
-        $others = array_values(array_filter(Locales::all(), fn (string $l) => ! ($l === Locales::default())));
+        // Each other language under its address segment (Settings → Languages: by default its code).
+        $others = array_values(array_filter(Locales::segments(), fn (string $segment) => $segment !== ''));
         if ($others !== []) {
             Route::middleware($middleware)
                 ->prefix('{locale}')
@@ -48,8 +49,9 @@ final class StorefrontRoutes
     public static function url(string $name, array $parameters = [], ?string $locale = null, bool $absolute = true): string
     {
         $locale ??= app()->getLocale();
-        if (! ($locale === Locales::default()) && Locales::has($locale) && Route::has($name.self::LOCALE_SUFFIX)) {
-            return route($name.self::LOCALE_SUFFIX, ['locale' => $locale, ...$parameters], $absolute);
+        $segment = Locales::has($locale) ? (Locales::segments()[$locale] ?? $locale) : '';
+        if ($segment !== '' && Route::has($name.self::LOCALE_SUFFIX)) {
+            return route($name.self::LOCALE_SUFFIX, ['locale' => $segment, ...$parameters], $absolute);
         }
 
         return route($name, $parameters, $absolute);

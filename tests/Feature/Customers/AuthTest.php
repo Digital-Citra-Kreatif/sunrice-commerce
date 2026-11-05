@@ -82,7 +82,7 @@ it('asks new customers to agree to the terms and pass the captcha', function () 
     app(ScaffoldStore::class)->handle();
     $page = publishProduct(['variants' => [['id' => 'v', 'sku' => 'T', 'price' => 1000]]], title: 'Syarat');
     app(StoreSettings::class)->saveSection('checkout', ['terms_page' => $page->id]);
-    config(['sunrice.forms.captcha' => ['provider' => 'turnstile', 'site_key' => 'site', 'secret_key' => 'secret']]);
+    config(['sunrice-admin.captcha' => ['provider' => 'turnstile', 'site_key' => 'site', 'secret_key' => 'secret']]);
     Http::fake(['*' => Http::response(['success' => true])]);
     $input = ['name' => 'Budi', 'email' => 'budi@example.com', 'password' => 'long-enough', 'password_confirmation' => 'long-enough'];
 
@@ -142,8 +142,8 @@ it('uses the customer roles with can() under the commerce guard', function () {
     expect(commerce_customer()->can('commerce.demo'))->toBeTrue();
 });
 
-it('sends staff to the admin login when the storefront shares its guard and two-factor is on', function () {
-    config(['commerce.auth.guard' => 'web', 'sunrice.auth.two_factor' => true]);
+it('sends staff to the admin login when the storefront shares its guard', function () {
+    config(['commerce.auth.guard' => 'web']);
     $staff = customerUser();
     $staff->assignRole(Role::findOrCreate(config('sunrice-admin.super_admin_role'), 'web'));
 

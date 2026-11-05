@@ -23,7 +23,6 @@ use Sunrice\Cms\Content;
 use Sunrice\Cms\Events\EntryDeleted;
 use Sunrice\Cms\Events\EntryPublished;
 use Sunrice\Cms\Site\Page;
-use Sunrice\Cms\Site\SetSiteLocale;
 
 class CommerceServiceProvider extends PackageServiceProvider
 {
@@ -148,7 +147,7 @@ class CommerceServiceProvider extends PackageServiceProvider
             });
             Route::group([], __DIR__.'/../routes/webhooks.php');
             Route::group([], __DIR__.'/../routes/marketing.php');
-            Route::middleware(['web', SetSiteLocale::class])->group(__DIR__.'/../routes/oauth.php');
+            Route::middleware(['web', \Sunrice\Commerce\Http\Middleware\SetStoreLocale::class])->group(__DIR__.'/../routes/oauth.php');
         });
 
         Blade::component(View\Components\Slot::class, 'commerce::slot');

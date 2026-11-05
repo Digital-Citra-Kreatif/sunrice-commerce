@@ -19,7 +19,6 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Validation\ValidationException;
-use Sunrice\Admin\Auth\TwoFactorLogin;
 use Sunrice\Commerce\Checkout\TermsPage;
 use Sunrice\Commerce\Customers\Actions\AssignCustomerRole;
 use Sunrice\Commerce\Customers\Actions\LinkGuestOrders;
@@ -67,8 +66,8 @@ class AuthController
             Throttle::hit('commerce-login', $request, $data['email']);
             throw ValidationException::withMessages(['email' => __('commerce::account.login.failed')]);
         }
-        // Sharing the admin's session, the storefront would skip the admin's two-factor step.
-        if (TwoFactorLogin::enabled() && LoginCodes::isRefusedStaff($user)) {
+        // Sharing the admin's session, the storefront would skip the admin's own sign-in (two-factor, lockouts): staff use it.
+        if (LoginCodes::isRefusedStaff($user)) {
             throw ValidationException::withMessages(['email' => __('commerce::account.staff_two_factor')]);
         }
         if ($this->settings()->get('accounts.verify_email', true) && $user->getAttribute('email_verified_at') === null) {

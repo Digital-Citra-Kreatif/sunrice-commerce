@@ -34,11 +34,8 @@ class TestCase extends Orchestra
 
     protected function defineEnvironment($app): void
     {
-        $app['config']->set('sunrice-cms.locales', [
-            'main' => 'id',
-            'available' => ['id', 'en'],
-            'names' => ['id' => 'Bahasa Indonesia', 'en' => 'English'],
-        ]);
+        $app['config']->set('sunrice-cms.locales', ['id', 'en']);
+        $app['config']->set('sunrice-cms.locale_names', ['id' => 'Bahasa Indonesia', 'en' => 'English']);
         // No calls to Have I Been Pwned from the tests.
         $app['config']->set('sunrice-admin.auth.password_uncompromised', false);
         $app['config']->set('auth.providers.users.model', User::class);
