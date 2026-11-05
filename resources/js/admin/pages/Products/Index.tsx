@@ -1,4 +1,5 @@
-import { adminUrl, components, inertia, Sunrice, ui } from '../../lib/sunrice';
+import { adminUrl, inertia, ui, useBreadcrumbs } from '../../lib/sunrice';
+import { DataTable, type DataTableProps } from '../../components/DataTable';
 import { PageHeader } from '../../components/PageHeader';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useCommerceShared } from '../../lib/store';
@@ -7,12 +8,11 @@ interface Row { id: number; product_title: string; href: string; type: string; s
 
 const stateTone: Record<string, string> = { published: 'ok', draft: 'neutral', scheduled: 'info', trashed: 'error' };
 
-export default function ProductsIndex(props: Record<string, unknown> & { createUrl: string; bulkUrl: string }) {
-    const { DataTable } = components;
+export default function ProductsIndex(props: DataTableProps & { createUrl: string; bulkUrl: string }) {
     const { Button } = ui;
     const { Link } = inertia;
     useCommerceShared();
-    Sunrice.useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Products' }]);
+    useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Products' }]);
 
     return (
         <div className="cm:grid cm:gap-6 cm:p-4 cm:md:p-6">

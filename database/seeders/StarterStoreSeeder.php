@@ -881,8 +881,12 @@ class StarterStoreSeeder extends Seeder
     /** @param  array<string, mixed>  $p */
     protected function description(array $p, string $material): string
     {
-        return '<p>'.e($this->excerpt($p, $material)).' '.e($this->t('Dirancang di Jakarta untuk iklim tropis, dengan detail yang dibuat untuk dipakai bertahun-tahun.', 'Designed in Jakarta for the tropics, with details made to last for years.')).'</p>'
-            .'<ul><li>'.e($this->t('Jahitan ganda yang kuat', 'Strong double stitching')).'</li><li>'.e($this->t('Warna tahan lama setelah dicuci', 'Colour that lasts wash after wash')).'</li><li>'.e($material).'</li></ul>';
+        // In the rich text editor's own form (list items as paragraphs, a paragraph last), so it opens unchanged.
+        $item = fn (string $text): string => '<li><p>'.e($text).'</p></li>';
+
+        return '<p>'.e($this->excerpt($p, $material)).'</p>'
+            .'<ul>'.$item($this->t('Jahitan ganda yang kuat', 'Strong double stitching')).$item($this->t('Warna tahan lama setelah dicuci', 'Colour that lasts wash after wash')).$item($material).'</ul>'
+            .'<p>'.e($this->t('Dirancang di Jakarta untuk iklim tropis, dengan detail yang dibuat untuk dipakai bertahun-tahun.', 'Designed in Jakarta for the tropics, with details made to last for years.')).'</p>';
     }
 
     /** @param  array<int, string>  $sizes */

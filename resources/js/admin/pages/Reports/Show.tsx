@@ -1,4 +1,4 @@
-import { adminUrl, inertia, React, Sunrice, ui } from '../../lib/sunrice';
+import { React, adminUrl, inertia, ui, useBreadcrumbs } from '../../lib/sunrice';
 import { Chart } from '../../components/Chart';
 import { EmptyState } from '../../components/EmptyState';
 import { KpiCard } from '../../components/KpiCard';
@@ -41,7 +41,7 @@ export default function ReportShow({ report, reports, period, result, exportUrl 
         Table, TableBody, TableCell, TableHead, TableHeader, TableRow } = ui;
     const { Link, router } = inertia;
     useCommerceShared();
-    Sunrice.useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Reports', href: adminUrl('commerce/reports') }, { label: report.label }]);
+    useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Reports', href: adminUrl('commerce/reports') }, { label: report.label }]);
     const [from, setFrom] = React.useState(period.from);
     const [to, setTo] = React.useState(period.to);
     const visit = (query: Record<string, string>) =>

@@ -10,10 +10,9 @@ use Sunrice\Commerce\Health\HealthResult;
 use Sunrice\Commerce\Storefront\PageCache;
 
 /**
- * Sunrice's full-page cache wraps every frontend page, product pages
- * included, so stock, prices and the header cart would be served stale
- * (ARCHITECTURE.md §26). With Sunrice's cache profile (U11) commerce
- * leaves them out (Storefront\PageCache); otherwise, warn.
+ * Says how the CMS's full-page cache treats store pages (ARCHITECTURE.md
+ * §26): commerce's own pages and visitors with a cart, wishlist or
+ * account are never kept, product pages briefly (Storefront\PageCache).
  */
 class FullPageCacheCheck implements HealthCheck
 {

@@ -1,4 +1,4 @@
-import { adminUrl, fetchJson, React } from '../../lib/sunrice';
+import { React, adminUrl, fetchJson } from '../../lib/sunrice';
 import { TextInput } from './controls';
 
 /** A SKU field that checks, when left, whether another product uses it. */

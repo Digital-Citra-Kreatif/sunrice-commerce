@@ -1,4 +1,5 @@
-import { adminUrl, components, inertia, Sunrice, ui } from '../../lib/sunrice';
+import { adminUrl, inertia, ui, useBreadcrumbs } from '../../lib/sunrice';
+import { DataTable, type DataTableProps } from '../../components/DataTable';
 import { PageHeader } from '../../components/PageHeader';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useCommerceShared } from '../../lib/store';
@@ -9,12 +10,11 @@ import { useCommerceShared } from '../../lib/store';
  * Rows link to row.href; columns of type "badge" read row[key + '_tone'] for their color. An
  * exportUrl adds an "Export CSV" button that carries the list's current filters and search.
  */
-export default function ResourceIndex(props: Record<string, unknown> & { title: string; description?: string; createUrl?: string | null; createLabel?: string; bulkUrl?: string; exportUrl?: string | null }) {
-    const { DataTable } = components;
+export default function ResourceIndex(props: DataTableProps & { title: string; description?: string; createUrl?: string | null; createLabel?: string; bulkUrl?: string; exportUrl?: string | null }) {
     const { Button } = ui;
     const { Link } = inertia;
     useCommerceShared();
-    Sunrice.useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: props.title }]);
+    useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: props.title }]);
 
     return (
         <div className="cm:grid cm:gap-6 cm:p-4 cm:md:p-6">
@@ -29,7 +29,7 @@ export default function ResourceIndex(props: Record<string, unknown> & { title: 
                 {...props}
                 bulkUrl={props.bulkUrl ? adminUrl(props.bulkUrl) : undefined}
                 rowHref={(row: { href?: string }) => (row.href ? adminUrl(row.href) : null)}
-                renderCell={(row: Record<string, unknown>, column: { key: string; type: string }) =>
+                renderCell={(row: Record<string, unknown>, column: { key: string; type?: string }) =>
                     column.type === 'badge' && row[column.key] != null
                         ? <StatusBadge tone={(row[`${column.key}_tone`] as string) ?? 'neutral'}>{String(row[column.key])}</StatusBadge>
                         : undefined}

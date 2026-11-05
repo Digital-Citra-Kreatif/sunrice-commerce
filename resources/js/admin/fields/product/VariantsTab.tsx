@@ -1,4 +1,5 @@
-import { components, fetchJson, adminUrl, React, ui } from '../../lib/sunrice';
+import { React, ui } from '../../lib/sunrice';
+import { FieldRenderer } from '../../components/FieldRenderer';
 import { formatMoney } from '../../lib/money';
 import { generateVariants, newId, variantTitle, type ProductOption } from '../../lib/variants';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -6,24 +7,8 @@ import { Grid, Money, NativeSelect, NumberInput, Row, Section, TextInput, Toggle
 import { SkuInput } from './SkuInput';
 import { emptyVariant, type TabProps, type Variant } from './types';
 
-/** Titles of attribute terms, fetched from Sunrice's term search. */
-function useTermTitles(ids: number[]): Record<number, string> {
-    const [titles, setTitles] = React.useState<Record<number, string>>({});
-    const missing = ids.filter((id) => !(id in titles));
-    React.useEffect(() => {
-        if (missing.length === 0) return;
-        const query = missing.map((id) => `ids[]=${id}`).join('&');
-        fetchJson<{ data: Array<{ id: number; title: string }> }>(adminUrl(`api/terms?${query}`))
-            .then((r) => setTitles((t) => ({ ...t, ...Object.fromEntries(r.data.map((x) => [x.id, x.title])) })))
-            .catch(() => undefined);
-    }, [missing.join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    return titles;
-}
-
 function OptionEditor({ option, onChange, onRemove, config, path }: { option: ProductOption; onChange: (o: ProductOption) => void; onRemove: () => void; config: TabProps['config']; path: string }) {
     const { Button, Input, Badge } = ui;
-    const { FieldRenderer } = components;
     const [draft, setDraft] = React.useState('');
     const addValue = () => {
         const labels = draft.split(',').map((s) => s.trim()).filter(Boolean)
@@ -49,7 +34,8 @@ function OptionEditor({ option, onChange, onRemove, config, path }: { option: Pr
             </div>
             {option.taxonomy ? (
                 <FieldRenderer
-                    fields={[{ handle: 'terms', type: 'terms', label: 'Values', config: { taxonomy: option.taxonomy } }]}
+                    fields={[{ handle: 'terms', type: 'terms', label: 'Values', config: { multiple: true,
+                        options: (config.attribute_taxonomies.find((t) => t.handle === option.taxonomy)?.terms ?? []).map((t) => ({ value: String(t.id), label: t.title })) } }]}
                     values={{ terms: termIds }}
                     pathPrefix={`${path}-terms`}
                     onChange={(values: { terms?: number[] }) => {
@@ -82,7 +68,7 @@ function OptionEditor({ option, onChange, onRemove, config, path }: { option: Pr
 }
 
 function VariantDetails({ variant, index, updateVariant, tab }: { variant: Variant; index: number; updateVariant: TabProps['updateVariant']; tab: TabProps }) {
-    const { FieldRenderer } = components;
+    const { MediaPickerInput } = ui;
     const p = `${tab.path}-v${index}`;
     const live = tab.live?.variants[variant.id];
 
@@ -121,8 +107,9 @@ function VariantDetails({ variant, index, updateVariant, tab }: { variant: Varia
                     )}
                 </Grid>
             )}
-            <FieldRenderer fields={[{ handle: 'image', type: 'asset', label: 'Image', config: { image_only: true } }]} values={{ image: variant.image }}
-                pathPrefix={`${p}-image`} onChange={(v: { image?: number | null }) => updateVariant(index, { image: v.image ?? null })} />
+            <Row label="Image" htmlFor={`${p}-image`}>
+                <MediaPickerInput id={`${p}-image`} value={variant.image} types={['image']} onChange={(image: number | null) => updateVariant(index, { image })} />
+            </Row>
         </div>
     );
 }
@@ -131,7 +118,7 @@ export function VariantsTab(tab: TabProps) {
     const { value, update, updateVariant, config, entryId, live } = tab;
     const { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Switch } = ui;
     const [open, setOpen] = React.useState<string | null>(null);
-    const termTitles = useTermTitles(value.options.flatMap((o) => o.values.map((v) => v.term_id).filter((x): x is number => !!x)));
+    const termTitles: Record<number, string> = Object.fromEntries(tab.config.attribute_taxonomies.flatMap((t) => t.terms.map((term) => [term.id, term.title])));
     const template = value.variants[0] ?? { ...emptyVariant, id: newId() };
     const generate = (options = value.options) => update({ options, variants: generateVariants(options, value.variants, { ...template, initial_stock: null, image: null }, config.max_variants) as Variant[] });
 

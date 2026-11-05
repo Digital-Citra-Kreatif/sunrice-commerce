@@ -1,4 +1,4 @@
-import { adminUrl, fetchJson, inertia, React, Sunrice, ui } from '../../lib/sunrice';
+import { React, adminUrl, fetchJson, inertia, ui, useBreadcrumbs } from '../../lib/sunrice';
 import { PageHeader } from '../../components/PageHeader';
 import { MoneyInput } from '../../components/MoneyInput';
 import { useCommerceShared } from '../../lib/store';
@@ -20,7 +20,7 @@ type Preview = { lines: Array<{ variant_id: number; unit_price_formatted: string
 export default function OrderEditor({ mode, order, paymentMethods, canOverride, variantsUrl, previewUrl, submitUrl }: Props) {
     const { Card, CardContent, CardHeader, CardTitle, Button, Input, Label, Checkbox, Textarea } = ui;
     useCommerceShared();
-    Sunrice.useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Orders', href: adminUrl('commerce/orders') },
+    useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Orders', href: adminUrl('commerce/orders') },
         ...(order ? [{ label: order.number, href: adminUrl(`commerce/orders/${order.id}`) }] : []), { label: mode === 'create' ? 'New order' : mode === 'quote' ? 'Quote' : 'Edit items' }]);
     const form = inertia.useForm({
         email: '', name: '', phone: '',
@@ -132,7 +132,7 @@ export default function OrderEditor({ mode, order, paymentMethods, canOverride, 
                                             <Input id={`a-${key}`} value={String(form.data.shipping_address[key] ?? '')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => form.setData('shipping_address', { ...form.data.shipping_address, [key]: e.target.value })} /></div>
                                     ))}
                                 </div>
-                                <RegionField field={{ handle: 'region', type: 'commerce_region', label: 'Region', config: { depth: 'village' } }} pathPrefix="shipping_address"
+                                <RegionField field={{ handle: 'region', type: 'commerce_region', label: 'Region', config: { depth: 'village' } }} id="shipping_address"
                                     value={form.data.shipping_address as never}
                                     onChange={(v: Record<string, unknown> | null) => form.setData('shipping_address', { ...form.data.shipping_address, ...(v ?? {}) })} />
                                 <div className="cm:grid cm:gap-1"><Label htmlFor="a-line1">Street address</Label>

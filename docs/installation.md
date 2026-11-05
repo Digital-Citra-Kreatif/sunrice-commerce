@@ -66,7 +66,7 @@ pages, search results and the 404 page ([templates.md](templates.md#the-starter-
 | Login | Email | Password |
 | --- | --- | --- |
 | Demo customer (storefront, `/account`) | `customer@example.com` | `password` |
-| Admin (workbench only, `/cms`) | `admin@example.com` | `password` |
+| Admin (workbench only, `/admin`) | `admin@example.com` | `Sunrice-Demo-2026!` |
 
 On your own site the admin is your existing Sunrice user. Run the seeder on its own with
 `php artisan db:seed --class="Sunrice\Commerce\Database\Seeders\StarterStoreSeeder"`. It is safe

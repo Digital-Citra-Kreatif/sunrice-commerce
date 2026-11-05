@@ -1,4 +1,5 @@
-import { adminUrl, components, fetchJson, inertia, React, Sunrice, ui } from '../../lib/sunrice';
+import { React, adminUrl, fetchJson, inertia, ui, useBreadcrumbs } from '../../lib/sunrice';
+import { DataTable, type DataTableProps } from '../../components/DataTable';
 import { PageHeader } from '../../components/PageHeader';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useCommerceShared } from '../../lib/store';
@@ -70,11 +71,10 @@ function AdjustDialog({ row, reasons, onClose }: { row: Row; reasons: string[]; 
     );
 }
 
-export default function InventoryIndex(props: Record<string, unknown> & { can: { adjust: boolean }; reasons: string[] }) {
-    const { DataTable } = components;
+export default function InventoryIndex(props: DataTableProps & { can: { adjust: boolean }; reasons: string[] }) {
     const [adjusting, setAdjusting] = React.useState<Row | null>(null);
     useCommerceShared();
-    Sunrice.useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Inventory' }]);
+    useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Inventory' }]);
 
     return (
         <div className="cm:grid cm:gap-6 cm:p-4 cm:md:p-6">

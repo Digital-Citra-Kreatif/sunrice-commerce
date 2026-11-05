@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
-import { adminUrl, components, Sunrice } from '../lib/sunrice';
+import { adminUrl, inertia, ui, useBreadcrumbs } from '../lib/sunrice';
 import { useCommerceShared, type MenuItem } from '../lib/store';
 import { PageHeader } from './PageHeader';
 import { SectionNav } from './SectionNav';
 
-/** Settings → Store: the Settings tabs, the section menu and the section. */
+/** Settings → Store: the panel's Settings menu, the store's section menu and the section. */
 export function SettingsLayout({ sections, current, title, description, children }: {
     sections: MenuItem[];
     current: string;
@@ -12,20 +12,22 @@ export function SettingsLayout({ sections, current, title, description, children
     description?: ReactNode;
     children: ReactNode;
 }) {
-    const { SettingsTabs } = components;
+    const { SettingsLayout: PanelSettings } = ui;
     useCommerceShared();
-    Sunrice.useBreadcrumbs([{ label: 'Settings', href: adminUrl('settings') }, { label: 'Store', href: adminUrl('commerce/settings') }, { label: title }]);
+    const settingsNav = (inertia.usePage<{ commerce?: { settingsNav?: unknown[] } }>().props.commerce?.settingsNav ?? []) as unknown[];
+    useBreadcrumbs([{ label: 'Settings', href: adminUrl('settings') }, { label: 'Store', href: adminUrl('commerce/settings') }, { label: title }]);
 
     return (
-        <div className="cm:mx-auto cm:grid cm:w-full cm:max-w-6xl cm:gap-6 cm:p-4 cm:md:p-6">
-            <SettingsTabs current="store" />
-            <div className="cm:grid cm:gap-6 cm:md:grid-cols-[12rem_1fr]">
-                <SectionNav items={sections} current={current} label="Store settings" />
-                <div className="cm:grid cm:min-w-0 cm:content-start cm:gap-6">
-                    <PageHeader title={title} description={description} />
-                    {children}
+        <div className="cm:p-4 cm:md:p-6">
+            <PanelSettings items={settingsNav} current="commerce-settings">
+                <div className="cm:grid cm:gap-6 cm:md:grid-cols-[12rem_1fr]">
+                    <SectionNav items={sections} current={current} label="Store settings" />
+                    <div className="cm:grid cm:min-w-0 cm:content-start cm:gap-6">
+                        <PageHeader title={title} description={description} />
+                        {children}
+                    </div>
                 </div>
-            </div>
+            </PanelSettings>
         </div>
     );
 }

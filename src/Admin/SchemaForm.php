@@ -9,6 +9,11 @@ use Illuminate\Validation\ValidationException;
 use JsonSerializable;
 use Sunrice\Cms\Fields\Field;
 use Sunrice\Cms\Fields\Schema;
+use Sunrice\Cms\Models\Collection;
+use Sunrice\Cms\Models\EntryTranslation;
+use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\Term;
+use Sunrice\Cms\Support\Locales;
 
 /**
  * A form built from Sunrice field definitions, rendered by the admin page
@@ -22,6 +27,9 @@ use Sunrice\Cms\Fields\Schema;
  */
 class SchemaForm implements JsonSerializable
 {
+    /** At most this many entries or terms offered by an entries or terms field. */
+    public const CHOICES = 300;
+
     protected string $action = '';
 
     protected string $method = 'post';
@@ -153,12 +161,44 @@ class SchemaForm implements JsonSerializable
         $defaults = $this->schema()->defaults();
 
         return [
-            'fields' => $this->schema()->toAdmin(),
+            'fields' => self::withChoices($this->schema()->toAdmin()),
             'values' => array_replace($defaults, array_intersect_key($this->values, array_flip(array_column($this->fields, 'handle')))),
             'action' => $this->action,
             'method' => $this->method,
             'submitLabel' => $this->submitLabel,
         ];
+    }
+
+    /**
+     * Entries and terms fields with what they can point at as options
+     * (`config.options`), so the form offers them as a select: entries of
+     * the field's collections (their main language's titles), terms of its
+     * taxonomy. At most CHOICES of each.
+     *
+     * @param  list<array<string, mixed>>  $fields
+     * @return list<array<string, mixed>>
+     */
+    public static function withChoices(array $fields): array
+    {
+        return array_map(function (array $field): array {
+            $config = (array) ($field['config'] ?? []);
+            if (($field['type'] ?? null) === 'entries') {
+                $collections = array_values(array_filter((array) ($field['collections'] ?? $config['collections'] ?? []), 'is_string'));
+                $config['options'] = EntryTranslation::query()->where('locale', Locales::default())
+                    ->whereIn('collection_id', Collection::query()->whereIn('handle', $collections)->pluck('id'))->whereHas('entry')
+                    ->orderBy('draft_title')->limit(self::CHOICES)->get(['entry_id', 'draft_title'])
+                    ->map(fn (EntryTranslation $t): array => ['value' => (string) $t->entry_id, 'label' => $t->draft_title])->all();
+            } elseif (($field['type'] ?? null) === 'terms' && is_string($config['taxonomy'] ?? null)) {
+                $taxonomy = Taxonomy::query()->where('handle', $config['taxonomy'])->value('id');
+                $config['options'] = $taxonomy === null ? [] : Term::query()->where('taxonomy_id', $taxonomy)->with('translations')->orderBy('sort_order')
+                    ->limit(self::CHOICES)->get()->map(fn (Term $t): array => ['value' => (string) $t->id, 'label' => $t->title()])->all();
+            }
+            if (is_array($field['fields'] ?? null)) {
+                $field['fields'] = self::withChoices(array_values($field['fields']));
+            }
+
+            return ['config' => $config] + $field;
+        }, $fields);
     }
 
     /** @return array<string, mixed> */

@@ -1,10 +1,10 @@
-import { fetchJson, React, ui } from '../lib/sunrice';
+import { React, fetchJson, ui } from '../lib/sunrice';
 import type { FieldProps } from '../sunrice';
 
 type Target = { type: 'product' | 'variant' | 'term'; id: number; label: string; group?: string };
 
 /** commerce_targets: products, variants and categories/brands a promotion applies to. */
-export default function TargetsField({ field, value, onChange, pathPrefix }: FieldProps<Target[] | null>) {
+export default function TargetsField({ field, value, onChange, id }: FieldProps<Target[] | null>) {
     const { Input, Badge } = ui;
     const config = field.config ?? {};
     const targets = Array.isArray(value) ? value : [];
@@ -38,7 +38,7 @@ export default function TargetsField({ field, value, onChange, pathPrefix }: Fie
                 </div>
             )}
             <div className="cm:relative">
-                <Input id={pathPrefix} value={query} placeholder="Search products, SKUs, categories, brands…" onFocus={() => setOpen(true)}
+                <Input id={id} value={query} placeholder="Search products, SKUs, categories, brands…" onFocus={() => setOpen(true)}
                     onBlur={() => setTimeout(() => setOpen(false), 150)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)} />
                 {open && results.length > 0 && (
                     <ul className="cm:absolute cm:z-20 cm:mt-1 cm:max-h-72 cm:w-full cm:overflow-auto cm:rounded-md cm:border cm:bg-background cm:shadow">

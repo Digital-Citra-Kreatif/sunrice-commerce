@@ -57,10 +57,12 @@ final class CommercePlugin extends BasePlugin
         $panel->routes(function (): void {
             require __DIR__.'/../routes/admin.php';
         });
-        // dist/ published to public/vendor/commerce (sunrice:assets, commerce:publish-assets); loaded on the Commerce/ pages.
+        // dist/ published to public/vendor/commerce (sunrice:assets, commerce:publish-assets).
         $panel->bundle(PluginBundle::make(self::ID)->named('Sunrice Commerce')
             ->publishedFrom(dirname(__DIR__).'/dist', public_path('vendor/commerce'))
-            ->module('admin.js')->style('admin.css')->pages('Commerce/'));
+            ->module('admin.js')->style('admin.css')->pages('Commerce/')
+            // The Product data and other field inputs in the CMS's editors.
+            ->extends('Cms/'));
         $panel->widgets(Widget::stat('commerce.store')->title('Store')->icon('shopping-bag')->link('commerce', 'Store dashboard')
             ->sort(10)->permission('commerce.dashboard.view')
             ->data(fn (Authorizable $user): array => StoreCard::data($user)));

@@ -1,4 +1,4 @@
-import { adminUrl, React, toast, ui } from '../../lib/sunrice';
+import { React, adminUrl, toast, ui } from '../../lib/sunrice';
 import { newId } from '../../lib/variants';
 import { NumberInput, Row, Section, TextInput, Toggle } from './controls';
 import type { Download, TabProps } from './types';

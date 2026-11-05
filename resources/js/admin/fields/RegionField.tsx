@@ -1,4 +1,4 @@
-import { fetchJson, React, ui } from '../lib/sunrice';
+import { React, fetchJson, ui } from '../lib/sunrice';
 import type { FieldProps } from '../sunrice';
 
 type Region = { country: string; province_code: string | null; city_code: string | null; district_code: string | null; village_code: string | null };
@@ -25,7 +25,7 @@ function children(api: string, parent: string | null): Promise<Option[]> {
 const selectClass = 'cm:h-9 cm:w-full cm:rounded-md cm:border cm:border-border cm:bg-background cm:px-3 cm:text-sm cm:disabled:opacity-50';
 
 /** commerce_region: country, then province → city → district (→ village) in Indonesia. */
-export default function RegionField({ field, value, onChange, pathPrefix }: FieldProps<Partial<Region> | null>) {
+export default function RegionField({ field, value, onChange, id }: FieldProps<Partial<Region> | null>) {
     const { Label } = ui;
     const config = field.config ?? {};
     const api = String(config.api ?? '');
@@ -57,8 +57,8 @@ export default function RegionField({ field, value, onChange, pathPrefix }: Fiel
         <div className="cm:grid cm:gap-3 cm:sm:grid-cols-2">
             {countries.length > 0 && (
                 <div className="cm:grid cm:gap-1">
-                    <Label htmlFor={`${pathPrefix}-country`}>Country</Label>
-                    <select id={`${pathPrefix}-country`} className={selectClass} value={region.country}
+                    <Label htmlFor={`${id}-country`}>Country</Label>
+                    <select id={`${id}-country`} className={selectClass} value={region.country}
                         onChange={(e) => onChange({ country: e.target.value, province_code: null, city_code: null, district_code: null, village_code: null })}>
                         {countries.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                     </select>
@@ -66,8 +66,8 @@ export default function RegionField({ field, value, onChange, pathPrefix }: Fiel
             )}
             {region.country === 'ID' && levels.map((level, i) => (
                 <div key={level.key} className="cm:grid cm:gap-1">
-                    <Label htmlFor={`${pathPrefix}-${level.key}`}>{level.label}</Label>
-                    <select id={`${pathPrefix}-${level.key}`} className={selectClass} value={region[level.key] ?? ''}
+                    <Label htmlFor={`${id}-${level.key}`}>{level.label}</Label>
+                    <select id={`${id}-${level.key}`} className={selectClass} value={region[level.key] ?? ''}
                         disabled={i > 0 && !parents[i]} onChange={(e) => set(i, e.target.value)}>
                         <option value="">Choose…</option>
                         {(options[level.key] ?? []).map((o) => <option key={o.code} value={o.code}>{o.name}</option>)}

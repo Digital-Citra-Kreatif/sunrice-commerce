@@ -1,4 +1,4 @@
-import { adminUrl, inertia, React, Sunrice, ui } from '../../lib/sunrice';
+import { React, adminUrl, inertia, ui, useBreadcrumbs } from '../../lib/sunrice';
 import { PageHeader } from '../../components/PageHeader';
 import { StatusBadge } from '../../components/StatusBadge';
 import { EmptyState } from '../../components/EmptyState';
@@ -18,7 +18,7 @@ export default function ConfirmationsIndex({ status, confirmations }: { status: 
     const { Card, CardContent, Button, Input, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } = ui;
     const { Link, router } = inertia;
     useCommerceShared();
-    Sunrice.useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Payments to verify' }]);
+    useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Payments to verify' }]);
     const [rejecting, setRejecting] = React.useState<Confirmation | null>(null);
     const [reason, setReason] = React.useState('');
     const approve = (c: Confirmation) => {

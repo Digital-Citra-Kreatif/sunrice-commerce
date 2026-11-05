@@ -11,6 +11,7 @@ use Sunrice\Cms\Fields\HydrationContext;
 use Sunrice\Cms\Fields\Reference;
 use Sunrice\Cms\Fields\Schema;
 use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\Term;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Settings\StoreSettings;
 
@@ -101,9 +102,12 @@ class ProductField extends FieldType
             'max_options' => (int) config('commerce.catalog.max_options', 3),
             'max_variants' => (int) config('commerce.catalog.max_variants', 100),
             'link_presets' => ProductValue::LINK_PRESETS,
+            // With their terms, for the variant options built from them.
             'attribute_taxonomies' => Taxonomy::query()
                 ->whereIn('handle', (array) app(StoreSettings::class)->get('catalog.attribute_taxonomies', []))
-                ->orderBy('title')->get(['handle', 'title'])->toArray(),
+                ->with(['terms' => fn ($q) => $q->orderBy('sort_order'), 'terms.translations'])->orderBy('title')->get()
+                ->map(fn (Taxonomy $t): array => ['handle' => $t->handle, 'title' => $t->title,
+                    'terms' => $t->terms->map(fn (Term $term): array => ['id' => $term->id, 'title' => $term->title()])->values()->all()])->all(),
             'tax_classes' => (array) app(StoreSettings::class)->get('taxes.classes', ['standard']),
             'features' => app(Features::class)->states(),
         ]] + parent::toAdmin($field, $schema);

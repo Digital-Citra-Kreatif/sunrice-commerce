@@ -5,9 +5,10 @@ import { defineConfig } from 'vite';
 const shim = (name: string) => fileURLToPath(new URL(`./resources/js/admin/shims/${name}.ts`, import.meta.url));
 
 /**
- * The admin bundle loaded by Sunrice's admin (Sunrice::registerAdminScript).
- * React, ReactDOM and Inertia are not bundled: they come from
- * window.Sunrice, so the bundle shares the admin's single React.
+ * The admin bundle the panel loads on the Commerce/ pages and, for the
+ * field inputs, on the CMS's (CommercePlugin's PluginBundle). React,
+ * ReactDOM, Inertia and the panel's UI are not bundled: the shims read
+ * them from window.Sunrice.modules, so the bundle shares the panel's.
  */
 export default defineConfig({
     plugins: [tailwindcss()],
@@ -19,6 +20,7 @@ export default defineConfig({
             { find: /^react\/jsx-dev-runtime$/, replacement: shim('jsx-runtime') },
             { find: /^react-dom$/, replacement: shim('react-dom') },
             { find: /^react$/, replacement: shim('react') },
+            { find: /^@inertiajs\/react$/, replacement: shim('inertia') },
             { find: '@', replacement: fileURLToPath(new URL('./resources/js/admin', import.meta.url)) },
         ],
     },
