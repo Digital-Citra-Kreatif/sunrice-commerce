@@ -97,7 +97,7 @@ it('sells in the online store: from browsing to a refund and a download', functi
     $this->post('/confirm-payment', ['order' => $order->order_key, 'sender_name' => 'Rina', 'sender_bank' => 'BCA', 'amount' => $order->total,
         'transferred_at' => now()->toDateString(), 'account' => 0, 'proof' => UploadedFile::fake()->create('bukti.pdf', 100, 'application/pdf')])->assertRedirect();
     $confirmation = PaymentConfirmation::query()->where('order_id', $order->id)->firstOrFail();
-    $this->actingAs($this->manager)->post("/cms/commerce/confirmations/{$confirmation->id}/approve")->assertRedirect();
+    $this->actingAs($this->manager)->post("/admin/commerce/confirmations/{$confirmation->id}/approve")->assertRedirect();
     expect($order->refresh())->payment_status->toBe('paid')->status->toBe('processing');
 
     // The digital file is ready right away.
@@ -109,12 +109,12 @@ it('sells in the online store: from browsing to a refund and a download', functi
     $this->actingAs($this->manager);
     $items = $order->items()->whereNull('parent_id')->where('requires_shipping', true)->get()
         ->map(fn ($i) => ['order_item_id' => $i->id, 'quantity' => $i->quantity])->all();
-    $this->post("/cms/commerce/orders/{$order->id}/shipments", ['courier' => 'jne', 'tracking_number' => 'JNE123', 'items' => $items])->assertRedirect()->assertSessionHasNoErrors();
+    $this->post("/admin/commerce/orders/{$order->id}/shipments", ['courier' => 'jne', 'tracking_number' => 'JNE123', 'items' => $items])->assertRedirect()->assertSessionHasNoErrors();
     expect($order->refresh()->fulfillment_status)->toBe('shipped');
-    $this->post("/cms/commerce/orders/{$order->id}/transition", ['to' => 'completed'])->assertRedirect();
+    $this->post("/admin/commerce/orders/{$order->id}/transition", ['to' => 'completed'])->assertRedirect();
     expect($order->refresh()->status)->toBe('completed');
     $mug = $order->items()->where('sku', 'DEMO-MUG')->firstOrFail();
-    $this->post("/cms/commerce/orders/{$order->id}/refunds", ['amount' => $mug->unit_price, 'reason' => 'Pecah', 'restock' => false,
+    $this->post("/admin/commerce/orders/{$order->id}/refunds", ['amount' => $mug->unit_price, 'reason' => 'Pecah', 'restock' => false,
         'items' => [['order_item_id' => $mug->id, 'quantity' => 1]]])->assertRedirect()->assertSessionHasNoErrors();
     expect($order->refresh())->refunded_total->toBe($mug->unit_price)->payment_status->toBe('partially_refunded');
 
@@ -135,7 +135,7 @@ it('takes quote requests, prices them and turns accepted quotes into orders', fu
 
     // The shop manager prices it (a bulk price) and sends it.
     $line = $quote->items()->firstOrFail();
-    $this->actingAs($this->manager)->put("/cms/commerce/orders/{$quote->id}/quote", [
+    $this->actingAs($this->manager)->put("/admin/commerce/orders/{$quote->id}/quote", [
         'lines' => [['item_id' => $line->id, 'variant_id' => $line->variant_id, 'quantity' => 30, 'unit_price' => 70000]],
         'shipping' => ['label' => 'Kargo', 'cost' => 50000], 'send' => true,
     ])->assertRedirect()->assertSessionHasNoErrors();

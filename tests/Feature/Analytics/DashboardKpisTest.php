@@ -26,7 +26,7 @@ it('shows sales figures against the previous period, a chart and top products', 
     app(StatsRecorder::class)->rebuild('2026-02-25', '2026-03-10');
     actingAsUserWith(['commerce.dashboard.view', 'commerce.orders.view']);
 
-    $this->get('/cms/commerce?period=7d')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+    $this->get('/admin/commerce?period=7d')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
         ->where('period.key', '7d')
         ->missing('kpis')
         ->loadDeferredProps('figures', fn (AssertableInertia $page) => $page
@@ -47,14 +47,14 @@ it('shows sales figures against the previous period, a chart and top products', 
             ->has('recentOrders', 4)
             ->where('todo', fn ($todo) => collect($todo)->firstWhere('key', 'to_ship')['count'] === 3)));
 
-    $this->get('/cms/commerce?period=today')->assertInertia(fn (AssertableInertia $page) => $page
+    $this->get('/admin/commerce?period=today')->assertInertia(fn (AssertableInertia $page) => $page
         ->loadDeferredProps('figures', fn (AssertableInertia $page) => $page->where('kpis.0.raw', 100000)->where('kpis.0.previous', 0)->where('kpis.0.change', null)->has('sales', 7)));
 });
 
 it('hides recent orders and to-dos the user may not see', function () {
     actingAsUserWith(['commerce.dashboard.view']);
 
-    $this->get('/cms/commerce')->assertInertia(fn (AssertableInertia $page) => $page
+    $this->get('/admin/commerce')->assertInertia(fn (AssertableInertia $page) => $page
         ->loadDeferredProps('lists', fn (AssertableInertia $page) => $page->where('recentOrders', [])->where('todo', [])));
 });
 

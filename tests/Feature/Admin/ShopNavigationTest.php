@@ -10,7 +10,7 @@ use Sunrice\Commerce\Features\Actions\ToggleFeature;
 function shopItems(): array
 {
     $items = [];
-    test()->get('/cms/commerce/settings/features')->assertInertia(function (AssertableInertia $page) use (&$items) {
+    test()->get('/admin/commerce/settings/features')->assertInertia(function (AssertableInertia $page) use (&$items) {
         $groups = $page->toArray()['props']['navigation'];
         foreach ($groups as $index => $group) {
             if ($group['label'] === 'Shop') {
@@ -43,7 +43,7 @@ it('keeps the whole store in one group: products, their taxonomies and the setti
     app(ScaffoldStore::class)->handle();
     actingAsSuperAdmin();
 
-    $this->get('/cms/commerce/settings/features')->assertInertia(function (AssertableInertia $page) {
+    $this->get('/admin/commerce/settings/features')->assertInertia(function (AssertableInertia $page) {
         $groups = collect($page->toArray()['props']['navigation'])->keyBy('label');
         $shop = collect($groups['Shop']['items'])->keyBy('label');
         $elsewhere = $groups->except('Shop')->flatMap(fn ($g) => array_column($g['items'], 'href'));

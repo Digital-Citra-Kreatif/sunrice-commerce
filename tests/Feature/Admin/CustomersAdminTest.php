@@ -14,7 +14,7 @@ it('lists staff only under Users', function () {
     $customer = User::query()->create(['name' => 'Budi', 'email' => 'budi@example.com', 'password' => 'x']);
     $customer->assignRole(Role::findOrCreate('Customer', 'web'));
 
-    $this->get('/cms/users')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+    $this->get('/admin/users')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
         ->where('rows.data', fn ($rows) => collect($rows)->pluck('email')->all() === [$admin->email]));
 });
 
@@ -26,13 +26,13 @@ it('lists, filters, edits and anonymizes customers', function () {
     $guest = Customer::query()->create(['email' => 'guest@example.com', 'name' => 'Guest']);
     Address::query()->create(['customer_id' => $registered->id, 'name' => 'Budi', 'line1' => 'Jl. A', 'country' => 'ID']);
 
-    $this->get('/cms/commerce/customers?filters[account]=guest')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+    $this->get('/admin/commerce/customers?filters[account]=guest')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
         ->where('rows.data', fn ($rows) => collect($rows)->pluck('email')->all() === ['guest@example.com']));
-    $this->get("/cms/commerce/customers/{$registered->id}")->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+    $this->get("/admin/commerce/customers/{$registered->id}")->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
         ->component('Commerce/Customers/Show', false)->where('account.roles', ['Customer']));
 
     Role::findOrCreate('Reseller', 'web');
-    $this->put("/cms/commerce/customers/{$registered->id}", ['name' => 'Budi S', 'phone' => '0812 1111 2222', 'accepts_marketing' => true, 'roles' => ['Customer', 'Reseller']])
+    $this->put("/admin/commerce/customers/{$registered->id}", ['name' => 'Budi S', 'phone' => '0812 1111 2222', 'accepts_marketing' => true, 'roles' => ['Customer', 'Reseller']])
         ->assertSessionHasNoErrors();
     expect($registered->fresh()->phone)->toBe('+6281211112222')->and($user->fresh()->getRoleNames()->sort()->values()->all())->toBe(['Customer', 'Reseller']);
 
@@ -40,16 +40,16 @@ it('lists, filters, edits and anonymizes customers', function () {
     $super = auth()->user();
     actingAsUserWith(['commerce.customers.view', 'commerce.customers.edit'], 'support@example.com');
     Role::findOrCreate('Agent', 'web')->givePermissionTo(Permission::findOrCreate('sunrice.ai-access', 'web'));
-    $this->get("/cms/commerce/customers/{$registered->id}")->assertInertia(fn (AssertableInertia $page) => $page
+    $this->get("/admin/commerce/customers/{$registered->id}")->assertInertia(fn (AssertableInertia $page) => $page
         ->where('roleOptions', fn ($options) => ! collect($options)->contains('Agent') && collect($options)->contains('Reseller')));
-    $this->put("/cms/commerce/customers/{$registered->id}", ['roles' => ['Customer', 'Agent']])->assertSessionHasNoErrors();
+    $this->put("/admin/commerce/customers/{$registered->id}", ['roles' => ['Customer', 'Agent']])->assertSessionHasNoErrors();
     expect($user->fresh()->hasRole('Agent'))->toBeFalse();
     $user->assignRole('Agent');
-    $this->put("/cms/commerce/customers/{$registered->id}", ['roles' => ['Customer']])->assertSessionHasNoErrors();
+    $this->put("/admin/commerce/customers/{$registered->id}", ['roles' => ['Customer']])->assertSessionHasNoErrors();
     expect($user->fresh()->getRoleNames()->sort()->values()->all())->toBe(['Agent', 'Customer']);
     $this->actingAs($super);
 
-    $this->post("/cms/commerce/customers/{$registered->id}/anonymize")->assertRedirect('/cms/commerce/customers');
+    $this->post("/admin/commerce/customers/{$registered->id}/anonymize")->assertRedirect('/admin/commerce/customers');
     $registered->refresh();
     expect($registered->anonymized_at)->not->toBeNull()
         ->and($registered->name)->toBeNull()->and($registered->phone)->toBeNull()->and($registered->email)->toStartWith('deleted-')
@@ -70,15 +70,15 @@ it('filters by role, orders, spending and sign-up date, and exports the filtered
     Customer::query()->create(['email' => 'new@example.com', 'name' => 'New']);
     $emails = fn (string $query) => fn (AssertableInertia $page) => $page->where('rows.data', fn ($rows) => collect($rows)->pluck('email')->sort()->values()->all() === explode(',', $query));
 
-    $this->get('/cms/commerce/customers?filters[role]=Customer')->assertInertia($emails('budi@example.com'));
-    $this->get('/cms/commerce/customers?filters[orders]=loyal')->assertInertia($emails('budi@example.com'));
-    $this->get('/cms/commerce/customers?filters[orders]=none')->assertInertia($emails('new@example.com'));
-    $this->get('/cms/commerce/customers?filters[spent]=under_1m')->assertInertia($emails('old@example.com'));
-    $this->get('/cms/commerce/customers?filters[spent]=5m')->assertInertia($emails('budi@example.com'));
-    $this->get('/cms/commerce/customers?filters[joined]=30d')->assertInertia($emails('budi@example.com,new@example.com'));
-    $this->get('/cms/commerce/customers')->assertInertia(fn (AssertableInertia $page) => $page->where('exportUrl', '/cms/commerce/customers/export'));
+    $this->get('/admin/commerce/customers?filters[role]=Customer')->assertInertia($emails('budi@example.com'));
+    $this->get('/admin/commerce/customers?filters[orders]=loyal')->assertInertia($emails('budi@example.com'));
+    $this->get('/admin/commerce/customers?filters[orders]=none')->assertInertia($emails('new@example.com'));
+    $this->get('/admin/commerce/customers?filters[spent]=under_1m')->assertInertia($emails('old@example.com'));
+    $this->get('/admin/commerce/customers?filters[spent]=5m')->assertInertia($emails('budi@example.com'));
+    $this->get('/admin/commerce/customers?filters[joined]=30d')->assertInertia($emails('budi@example.com,new@example.com'));
+    $this->get('/admin/commerce/customers')->assertInertia(fn (AssertableInertia $page) => $page->where('exportUrl', '/admin/commerce/customers/export'));
 
-    $csv = $this->get('/cms/commerce/customers/export?filters[joined]=30d')->assertOk()->streamedContent();
+    $csv = $this->get('/admin/commerce/customers/export?filters[joined]=30d')->assertOk()->streamedContent();
     expect($csv)->toContain('budi@example.com')->toContain('new@example.com')->not->toContain('old@example.com')
         ->and(str($csv)->before("\n")->toString())->toContain('accepts_marketing');
 });
@@ -87,8 +87,8 @@ it('needs customer permissions', function () {
     $customer = Customer::query()->create(['email' => 'guest@example.com']);
     actingAsUserWith(['commerce.customers.view']);
 
-    $this->get('/cms/commerce/customers')->assertOk();
-    $this->put("/cms/commerce/customers/{$customer->id}", ['name' => 'X'])->assertForbidden();
-    $this->post("/cms/commerce/customers/{$customer->id}/anonymize")->assertForbidden();
-    $this->get('/cms/commerce/customers/export')->assertForbidden();
+    $this->get('/admin/commerce/customers')->assertOk();
+    $this->put("/admin/commerce/customers/{$customer->id}", ['name' => 'X'])->assertForbidden();
+    $this->post("/admin/commerce/customers/{$customer->id}/anonymize")->assertForbidden();
+    $this->get('/admin/commerce/customers/export')->assertForbidden();
 });

@@ -134,6 +134,6 @@ it('moves an order to Processing only once it is paid (or cash on delivery, or f
 
     // The admin's bulk action skips it too.
     actingAsUserWith(['commerce.orders.view', 'commerce.orders.edit']);
-    $this->post('/cms/commerce/orders/bulk', ['action' => 'processing', 'ids' => [$unpaid->id, $paid->id]])->assertRedirect();
+    $this->post('/admin/commerce/orders/bulk', ['action' => 'processing', 'ids' => [$unpaid->id, $paid->id]])->assertRedirect();
     expect($unpaid->fresh()->status)->toBe('pending')->and($paid->fresh()->status)->toBe('processing');
 });

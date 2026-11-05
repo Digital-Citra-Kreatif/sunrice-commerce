@@ -27,6 +27,7 @@ return [
         'size_guide' => 'Panduan ukuran',
         'related' => 'Produk terkait',
         'inquiry' => 'Tanya produk ini',
+        'send_inquiry' => 'Kirim',
     ],
     'listing' => [
         'shop' => 'Belanja',

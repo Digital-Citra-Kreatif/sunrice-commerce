@@ -384,7 +384,7 @@ class OrdersController extends Controller
                     'regular_unit_price' => $i->regular_unit_price > $i->unit_price ? $f($i->regular_unit_price) : null,
                     'price_source' => $this->priceSource($i), 'subtotal' => $f($i->subtotal),
                     'discount' => $i->discount_total > 0 ? $f($i->discount_total) : null, 'total' => $f($i->total),
-                    'product_href' => $i->entry_id !== null ? "collections/products/entries/{$i->entry_id}" : null,
+                    'product_href' => $i->entry_id !== null ? "cms/collections/products/entries/{$i->entry_id}" : null,
                     'components' => $i->children->map(fn (OrderItem $c) => ['name' => $c->title(), 'sku' => $c->sku, 'quantity' => $c->quantity])->values()->all(),
                 ])->all(),
                 'totals' => [

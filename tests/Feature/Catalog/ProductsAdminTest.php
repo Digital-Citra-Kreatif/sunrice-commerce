@@ -20,7 +20,7 @@ beforeEach(function () {
 function productRows($test, string $query = ''): array
 {
     $rows = [];
-    $test->get('/cms/commerce/products'.$query)->assertOk()->assertInertia(function (AssertableInertia $page) use (&$rows) {
+    $test->get('/admin/commerce/products'.$query)->assertOk()->assertInertia(function (AssertableInertia $page) use (&$rows) {
         $rows = $page->toArray()['props']['rows']['data'];
     });
 
@@ -53,8 +53,8 @@ it('marks a sync failure', function () {
 });
 
 it('marks products featured and sets stock status in bulk, through their values', function () {
-    $this->post('/cms/commerce/products/bulk', ['action' => 'featured', 'ids' => [$this->mug->id, $this->shirt->id]])->assertSessionHas('success', '2 products updated.');
-    $this->post('/cms/commerce/products/bulk', ['action' => 'out_of_stock', 'ids' => [$this->mug->id]]);
+    $this->post('/admin/commerce/products/bulk', ['action' => 'featured', 'ids' => [$this->mug->id, $this->shirt->id]])->assertSessionHas('success', '2 products updated.');
+    $this->post('/admin/commerce/products/bulk', ['action' => 'out_of_stock', 'ids' => [$this->mug->id]]);
 
     $mug = Product::query()->where('entry_id', $this->mug->id)->firstOrFail();
     expect($mug->featured)->toBeTrue()->and($mug->in_stock)->toBeFalse()
@@ -65,7 +65,7 @@ it('marks products featured and sets stock status in bulk, through their values'
 it('needs entry permissions for bulk changes', function () {
     actingAsUserWith(['commerce.dashboard.view']);
 
-    $this->get('/cms/commerce/products')->assertForbidden();
-    $this->post('/cms/commerce/products/bulk', ['action' => 'featured', 'ids' => [$this->mug->id]])->assertSessionHas('success', '0 products updated.');
+    $this->get('/admin/commerce/products')->assertForbidden();
+    $this->post('/admin/commerce/products/bulk', ['action' => 'featured', 'ids' => [$this->mug->id]])->assertSessionHas('success', '0 products updated.');
     expect(Product::query()->where('entry_id', $this->mug->id)->value('featured'))->toBeFalsy();
 });

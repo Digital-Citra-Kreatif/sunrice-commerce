@@ -23,7 +23,7 @@ it('loads its config defaults', function () {
 it('loads its admin bundle on admin pages', function () {
     actingAsSuperAdmin();
 
-    $this->get('/cms')->assertOk()
+    $this->get('/admin')->assertOk()
         ->assertSee('vendor/commerce/admin.js?v=', false)
         ->assertSee('vendor/commerce/admin.css?v=', false);
 });

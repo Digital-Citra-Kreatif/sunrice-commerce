@@ -259,43 +259,43 @@ it('emails customers who stopped ordering, once per last order, within the autom
 it('lets staff with the permission build, preview, test and send campaigns', function () {
     marketingCustomer('ana@example.com', ['name' => 'Ana Putri', 'orders_count' => 0]);
     actingAsUserWith(['commerce.customers.view'], 'helper@example.com');
-    get('/cms/commerce/marketing/campaigns')->assertForbidden();
+    get('/admin/commerce/marketing/campaigns')->assertForbidden();
 
     actingAsUserWith(['commerce.marketing.manage'], 'marketer@example.com');
-    get('/cms/commerce/marketing/campaigns')->assertOk();
-    get('/cms/commerce/marketing/campaigns/create?template=first_order')->assertOk()
+    get('/admin/commerce/marketing/campaigns')->assertOk();
+    get('/admin/commerce/marketing/campaigns/create?template=first_order')->assertOk()
         ->assertInertia(fn ($page) => $page->component('Commerce/Marketing/Editor')
             ->where('campaign.audience.rules.1.rule', 'never_ordered')
             ->where('campaign.content.id.subject', 'Siap untuk pesanan pertama, {first_name|Kak}?'));
 
     $audience = ['match' => 'all', 'rules' => [['rule' => 'never_ordered']]];
-    $this->postJson('/cms/commerce/marketing/audience', ['audience' => $audience])->assertOk()->assertJson(['count' => 1, 'sample' => [['email' => 'ana@example.com']]]);
+    $this->postJson('/admin/commerce/marketing/audience', ['audience' => $audience])->assertOk()->assertJson(['count' => 1, 'sample' => [['email' => 'ana@example.com']]]);
 
     $content = ['id' => ['subject' => 'Halo {first_name}', 'body' => '<p>Hai {first_name|Kak}!</p>', 'button_label' => 'Lihat', 'button_url' => '{store_url}']];
-    post('/cms/commerce/marketing/preview', ['content' => $content, 'audience' => $audience])->assertOk()->assertSee('Hai Ana!', false);
-    post('/cms/commerce/marketing/test', ['content' => $content, 'audience' => $audience])->assertRedirect();
+    post('/admin/commerce/marketing/preview', ['content' => $content, 'audience' => $audience])->assertOk()->assertSee('Hai Ana!', false);
+    post('/admin/commerce/marketing/test', ['content' => $content, 'audience' => $audience])->assertRedirect();
     Mail::assertSent(MarketingMail::class, fn (MarketingMail $mail) => $mail->hasTo('marketer@example.com') && $mail->subject === '[Test] Halo Ana');
 
-    post('/cms/commerce/marketing/campaigns', ['name' => 'Hello', 'audience' => $audience, 'content' => ['id' => ['subject' => '']]])
+    post('/admin/commerce/marketing/campaigns', ['name' => 'Hello', 'audience' => $audience, 'content' => ['id' => ['subject' => '']]])
         ->assertSessionHasErrors('content.id.subject');
-    post('/cms/commerce/marketing/campaigns', ['name' => 'Hello', 'audience' => $audience, 'content' => $content])->assertRedirect();
+    post('/admin/commerce/marketing/campaigns', ['name' => 'Hello', 'audience' => $audience, 'content' => $content])->assertRedirect();
     $campaign = Campaign::query()->where('name', 'Hello')->firstOrFail();
 
-    post("/cms/commerce/marketing/{$campaign->id}/send")->assertRedirect("/cms/commerce/marketing/{$campaign->id}");
+    post("/admin/commerce/marketing/{$campaign->id}/send")->assertRedirect("/admin/commerce/marketing/{$campaign->id}");
     expect($campaign->fresh()->status)->toBe('sent');
-    get("/cms/commerce/marketing/{$campaign->id}")->assertOk()->assertInertia(fn ($page) => $page->component('Commerce/Marketing/Report')->where('stats.sent', 1));
-    $this->put("/cms/commerce/marketing/{$campaign->id}", ['name' => 'Changed', 'content' => $content])->assertSessionHasErrors('name');
+    get("/admin/commerce/marketing/{$campaign->id}")->assertOk()->assertInertia(fn ($page) => $page->component('Commerce/Marketing/Report')->where('stats.sent', 1));
+    $this->put("/admin/commerce/marketing/{$campaign->id}", ['name' => 'Changed', 'content' => $content])->assertSessionHasErrors('name');
 });
 
 it('turns automations on from now, without emailing who was already due', function () {
     marketingCustomer('lapsed@example.com', ['orders_count' => 3, 'last_order_at' => now()->subDays(90)]);
     actingAsUserWith(['commerce.marketing.manage']);
-    post('/cms/commerce/marketing/automations', ['name' => 'Win back', 'trigger' => 'win_back', 'delay' => 60,
+    post('/admin/commerce/marketing/automations', ['name' => 'Win back', 'trigger' => 'win_back', 'delay' => 60,
         'content' => ['id' => ['subject' => 'Kangen', 'body' => '<p>Hai</p>']]])->assertRedirect();
     $automation = Campaign::query()->where('type', 'automation')->firstOrFail();
     expect($automation->status)->toBe('draft');
 
-    post("/cms/commerce/marketing/{$automation->id}/status", ['active' => true])->assertRedirect();
+    post("/admin/commerce/marketing/{$automation->id}/status", ['active' => true])->assertRedirect();
     RunAutomations::dispatchSync();
     expect($automation->fresh()->status)->toBe('active');
     Mail::assertNothingSent();
@@ -304,7 +304,7 @@ it('turns automations on from now, without emailing who was already due', functi
 it('keeps the module out of the way while it is off', function () {
     app(ToggleFeature::class)->handle('marketing', false);
     actingAsUserWith(['commerce.marketing.manage']);
-    get('/cms/commerce/marketing/campaigns')->assertNotFound();
+    get('/admin/commerce/marketing/campaigns')->assertNotFound();
 });
 
 it('forgets marketing emails sent to a customer who is anonymized', function () {
@@ -319,7 +319,7 @@ it('forgets marketing emails sent to a customer who is anonymized', function () 
 
 it('starts automations from their templates in every language', function () {
     actingAsUserWith(['commerce.marketing.manage']);
-    get('/cms/commerce/marketing/automations/create?trigger=abandoned_cart')->assertOk()
+    get('/admin/commerce/marketing/automations/create?trigger=abandoned_cart')->assertOk()
         ->assertInertia(fn ($page) => $page->where('campaign.trigger', 'abandoned_cart')->where('campaign.delay', 3)
             ->where('campaign.content.en.button_url', '{cart_url}')
             ->where('campaign.content.'.Locales::default().'.button_label', 'Kembali ke keranjang'));

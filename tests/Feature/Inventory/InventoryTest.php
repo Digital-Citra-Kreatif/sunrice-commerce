@@ -73,27 +73,27 @@ it('adjusts stock from the inventory page with permissions and history', functio
     $variant = Variant::factory()->tracked(3)->create();
     $user = actingAsUserWith(['commerce.inventory.view']);
 
-    $this->get('/cms/commerce/inventory')->assertOk();
-    $this->post("/cms/commerce/inventory/{$variant->id}/adjust", ['mode' => 'add', 'quantity' => 5, 'reason' => 'manual'])->assertForbidden();
+    $this->get('/admin/commerce/inventory')->assertOk();
+    $this->post("/admin/commerce/inventory/{$variant->id}/adjust", ['mode' => 'add', 'quantity' => 5, 'reason' => 'manual'])->assertForbidden();
 
     $user->roles->first()->givePermissionTo('commerce.inventory.adjust');
     app(PermissionRegistrar::class)->forgetCachedPermissions();
-    $this->post("/cms/commerce/inventory/{$variant->id}/adjust", ['mode' => 'add', 'quantity' => 5, 'reason' => 'manual', 'note' => 'Restock'])->assertSessionHasNoErrors();
-    $this->post("/cms/commerce/inventory/{$variant->id}/adjust", ['mode' => 'set', 'quantity' => 2, 'reason' => 'correction'])->assertSessionHasNoErrors();
+    $this->post("/admin/commerce/inventory/{$variant->id}/adjust", ['mode' => 'add', 'quantity' => 5, 'reason' => 'manual', 'note' => 'Restock'])->assertSessionHasNoErrors();
+    $this->post("/admin/commerce/inventory/{$variant->id}/adjust", ['mode' => 'set', 'quantity' => 2, 'reason' => 'correction'])->assertSessionHasNoErrors();
 
     expect($variant->fresh()->stock_quantity)->toBe(2);
-    $this->getJson("/cms/commerce/inventory/{$variant->id}/history")
+    $this->getJson("/admin/commerce/inventory/{$variant->id}/history")
         ->assertJsonPath('data.0.delta', -6)->assertJsonPath('data.0.reason', 'correction')
         ->assertJsonPath('data.1.note', 'Restock')->assertJsonPath('data.1.user', 'Staff');
 });
 
 it('needs the inventory permission and module', function () {
     actingAsUserWith(['commerce.dashboard.view']);
-    $this->get('/cms/commerce/inventory')->assertForbidden();
+    $this->get('/admin/commerce/inventory')->assertForbidden();
 
     actingAsSuperAdmin();
     app(ToggleFeature::class)->handle('inventory', false);
-    $this->get('/cms/commerce/inventory')->assertNotFound();
+    $this->get('/admin/commerce/inventory')->assertNotFound();
 });
 
 it('refuses to adjust a variant whose stock is not tracked', function () {

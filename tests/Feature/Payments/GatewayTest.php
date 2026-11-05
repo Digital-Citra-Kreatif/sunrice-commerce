@@ -116,12 +116,12 @@ it('lets the customer switch methods on the pay page, the fee following', functi
 
 it('manages methods in Settings → Payments', function () {
     actingAsUserWith(['commerce.settings.payments']);
-    $this->get('/cms/commerce/settings/payments')->assertOk()->assertInertia(fn ($p) => $p->component('Commerce/Settings/Payments')
+    $this->get('/admin/commerce/settings/payments')->assertOk()->assertInertia(fn ($p) => $p->component('Commerce/Settings/Payments')
         ->where('methods', fn ($m) => collect($m)->pluck('key')->all() === ['bank_transfer', 'cod', 'fake_gateway', 'test_transfer']));
-    $this->post('/cms/commerce/settings/payments/move', ['key' => 'test_transfer', 'direction' => 'up']);
-    $this->put('/cms/commerce/settings/payments/fake_gateway/active', ['active' => false]);
-    $this->put('/cms/commerce/settings/payments/test_transfer', ['values' => ['active' => true, 'title' => ['id' => 'Transfer BCA'], 'countries' => 'id, sg', 'account' => '777']])
-        ->assertRedirect('/cms/commerce/settings/payments');
+    $this->post('/admin/commerce/settings/payments/move', ['key' => 'test_transfer', 'direction' => 'up']);
+    $this->put('/admin/commerce/settings/payments/fake_gateway/active', ['active' => false]);
+    $this->put('/admin/commerce/settings/payments/test_transfer', ['values' => ['active' => true, 'title' => ['id' => 'Transfer BCA'], 'countries' => 'id, sg', 'account' => '777']])
+        ->assertRedirect('/admin/commerce/settings/payments');
     app()->forgetScopedInstances();
     expect(app(StoreSettings::class)->get('payments.order'))->toBe(['bank_transfer', 'cod', 'test_transfer', 'fake_gateway'])
         ->and(app(StoreSettings::class)->get('payments.methods.fake_gateway.active'))->toBeFalse()
@@ -131,14 +131,14 @@ it('manages methods in Settings → Payments', function () {
 
 it('adds and removes payment instruction methods', function () {
     actingAsUserWith(['commerce.settings.payments']);
-    $this->post('/cms/commerce/settings/payments/instances', ['type' => 'instructions'])->assertRedirect();
+    $this->post('/admin/commerce/settings/payments/instances', ['type' => 'instructions'])->assertRedirect();
     app()->forgetScopedInstances();
     $key = app(StoreSettings::class)->get('payments.instances.instructions')[0];
     expect($key)->toStartWith('instructions_');
-    $this->put("/cms/commerce/settings/payments/{$key}", ['values' => ['active' => true, 'title' => ['id' => 'QRIS'], 'instructions' => ['id' => 'Pindai kode QR.']]])->assertRedirect();
+    $this->put("/admin/commerce/settings/payments/{$key}", ['values' => ['active' => true, 'title' => ['id' => 'QRIS'], 'instructions' => ['id' => 'Pindai kode QR.']]])->assertRedirect();
     app()->forgetScopedInstances();
     expect(PaymentManager::titleOf(app(PaymentManager::class)->get($key)))->toBe('QRIS');
-    $this->delete("/cms/commerce/settings/payments/{$key}")->assertRedirect();
+    $this->delete("/admin/commerce/settings/payments/{$key}")->assertRedirect();
     app()->forgetScopedInstances();
     expect(app(PaymentManager::class)->get($key))->toBeNull();
 });

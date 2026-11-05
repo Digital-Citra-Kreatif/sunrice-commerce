@@ -145,16 +145,16 @@ it('brands emails with the store logo and color', function () {
 it('previews and sends a test from Settings → Emails', function () {
     placeOrderFor($this->mug);
     actingAsUserWith(['commerce.settings.emails']);
-    $this->get('/cms/commerce/settings/emails')->assertOk()->assertInertia(fn ($p) => $p->component('Commerce/Settings/Emails'));
-    $this->get('/cms/commerce/settings/emails/order_received/preview')->assertOk()->assertSee('Terima kasih atas pesanan Anda')->assertSee('Mug');
-    $this->put('/cms/commerce/settings/emails/order_received', ['values' => ['enabled' => true, 'subject' => ['id' => 'Pesanan :number diterima']]])->assertRedirect();
+    $this->get('/admin/commerce/settings/emails')->assertOk()->assertInertia(fn ($p) => $p->component('Commerce/Settings/Emails'));
+    $this->get('/admin/commerce/settings/emails/order_received/preview')->assertOk()->assertSee('Terima kasih atas pesanan Anda')->assertSee('Mug');
+    $this->put('/admin/commerce/settings/emails/order_received', ['values' => ['enabled' => true, 'subject' => ['id' => 'Pesanan :number diterima']]])->assertRedirect();
     app()->forgetScopedInstances();
     expect(app(StoreSettings::class)->get('emails.order_received.subject.id'))->toBe('Pesanan :number diterima');
 
     Notification::fake();
-    $this->post('/cms/commerce/settings/emails/order_received/test')->assertSessionHas('success');
+    $this->post('/admin/commerce/settings/emails/order_received/test')->assertSessionHas('success');
     Notification::assertSentOnDemand(StoreEmail::class, fn (StoreEmail $n, $c, $notifiable) => $notifiable->routes['mail'] === 'staff@example.com');
-    $this->put('/cms/commerce/settings/emails/staff_new_order', ['values' => ['addresses' => 'not-an-email']])->assertSessionHasErrors('values.addresses');
+    $this->put('/admin/commerce/settings/emails/staff_new_order', ['values' => ['addresses' => 'not-an-email']])->assertSessionHasErrors('values.addresses');
 });
 
 it('delivers downloads as attachments when small, links when large, and not by email for account-only products', function () {
@@ -269,11 +269,11 @@ it('emails a pay-again link when a payment fails', function () {
 
 it('sends hidden copies of customer emails, never of codes and reset links', function () {
     actingAsUserWith(['commerce.settings.emails']);
-    $this->put('/cms/commerce/settings/emails/order_received', ['values' => ['enabled' => true, 'copies' => 'owner@example.com, nope']])
+    $this->put('/admin/commerce/settings/emails/order_received', ['values' => ['enabled' => true, 'copies' => 'owner@example.com, nope']])
         ->assertSessionHasErrors('values.copies');
-    $this->put('/cms/commerce/settings/emails/order_received', ['values' => ['enabled' => true, 'copies' => 'Owner@example.com, admin@example.com']])
+    $this->put('/admin/commerce/settings/emails/order_received', ['values' => ['enabled' => true, 'copies' => 'Owner@example.com, admin@example.com']])
         ->assertSessionHasNoErrors();
-    $this->get('/cms/commerce/settings/emails/password_reset')->assertInertia(fn ($page) => $page
+    $this->get('/admin/commerce/settings/emails/password_reset')->assertInertia(fn ($page) => $page
         ->where('form.fields', fn ($fields) => ! collect($fields)->contains('handle', 'copies')));
 
     $mail = (new StoreEmail('order_received', placeOrderFor($this->mug), lang: 'id'))->toMail(null);

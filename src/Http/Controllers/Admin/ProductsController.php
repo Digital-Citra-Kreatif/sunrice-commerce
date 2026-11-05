@@ -95,7 +95,7 @@ class ProductsController extends Controller
                 return [
                     'id' => $entry->id,
                     'product_title' => $entry->getAttribute('product_title') ?: "Entry #{$entry->id}",
-                    'href' => "collections/{$entry->collection->handle}/entries/{$entry->id}/edit",
+                    'href' => "cms/collections/{$entry->collection->handle}/entries/{$entry->id}/edit",
                     'type' => $entry->getAttribute('type') ?? 'not published',
                     'sku' => $variants->count() > 1 ? $variants->count().' variants' : $variants->first()?->sku,
                     'min_price' => $min === null ? null : ($min === $max ? $money->format((int) $min) : $money->format((int) $min).' – '.$money->format((int) $max)),
@@ -127,7 +127,7 @@ class ProductsController extends Controller
                 ['key' => 'out_of_stock', 'label' => 'Set out of stock', 'confirm' => 'Mark the selected products out of stock? Variants that track stock keep their counts.'],
             ]),
             'bulkUrl' => route('sunrice.admin.commerce.products.bulk', [], false),
-            'createUrl' => "collections/{$collections->first()->handle}/entries/create",
+            'createUrl' => "cms/collections/{$collections->first()->handle}/entries/create",
         ]);
     }
 

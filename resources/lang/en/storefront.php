@@ -27,6 +27,7 @@ return [
         'size_guide' => 'Size guide',
         'related' => 'You may also like',
         'inquiry' => 'Ask about this product',
+        'send_inquiry' => 'Send',
     ],
     'listing' => [
         'shop' => 'Shop',

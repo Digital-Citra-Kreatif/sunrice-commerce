@@ -78,17 +78,17 @@ it('manages sales in the admin and refuses overlaps', function () {
     $values = fn (string $name) => ['name' => $name, 'active' => true, 'dates' => ['start' => now()->addDay()->toIso8601String(), 'end' => now()->addDays(2)->toIso8601String()],
         'items' => [['target' => [['type' => 'variant', 'id' => $variant->id, 'label' => 'Mug']], 'discount_type' => 'percent_off', 'percent' => 15, 'quantity_limit' => 20]]];
 
-    $this->post('/cms/commerce/flash-sales', ['values' => $values('Harbolnas')])->assertSessionHasNoErrors()->assertRedirect();
+    $this->post('/admin/commerce/flash-sales', ['values' => $values('Harbolnas')])->assertSessionHasNoErrors()->assertRedirect();
     $item = FlashSaleItem::query()->firstOrFail();
     expect($item->variant_id)->toBe($variant->id)->and($item->discount_value)->toBe(1500)->and($item->quantity_limit)->toBe(20);
 
-    $this->post('/cms/commerce/flash-sales', ['values' => $values('Clash')])->assertSessionHasErrors(['values.items']);
-    $this->get('/cms/commerce/flash-sales')->assertOk()->assertSee('Harbolnas');
+    $this->post('/admin/commerce/flash-sales', ['values' => $values('Clash')])->assertSessionHasErrors(['values.items']);
+    $this->get('/admin/commerce/flash-sales')->assertOk()->assertSee('Harbolnas');
     $sale = FlashSale::query()->firstOrFail();
-    $this->get("/cms/commerce/flash-sales/{$sale->id}/edit")->assertOk();
-    $this->put("/cms/commerce/flash-sales/{$sale->id}", ['values' => $values('Harbolnas 2')])->assertSessionHasNoErrors();
+    $this->get("/admin/commerce/flash-sales/{$sale->id}/edit")->assertOk();
+    $this->put("/admin/commerce/flash-sales/{$sale->id}", ['values' => $values('Harbolnas 2')])->assertSessionHasNoErrors();
     expect(FlashSaleItem::query()->count())->toBe(1);
-    $this->delete("/cms/commerce/flash-sales/{$sale->id}")->assertRedirect();
+    $this->delete("/admin/commerce/flash-sales/{$sale->id}")->assertRedirect();
 });
 
 it('refuses adding more than the per-customer limit while the sale price applies', function () {
