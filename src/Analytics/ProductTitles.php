@@ -30,7 +30,7 @@ final class ProductTitles
         foreach ($rows as $row) {
             $out[(int) $row->id] = [
                 'title' => (string) ($row->title ?? "Product #{$row->id}"),
-                'href' => $row->handle !== null ? "collections/{$row->handle}/entries/{$row->entry_id}/edit" : null,
+                'href' => $row->handle !== null ? "cms/collections/{$row->handle}/entries/{$row->entry_id}/edit" : null,
             ];
         }
 

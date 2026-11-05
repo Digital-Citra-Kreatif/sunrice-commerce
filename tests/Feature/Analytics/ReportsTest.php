@@ -60,6 +60,7 @@ it('reports sales per day and week with totals, comparison and drill-down', func
 
 it('reports products, categories, brands, vouchers, customers, stock and calls to action', function () {
     expect(run('products')['rows'][0])->toMatchArray(['product' => 'Tas', 'units' => 1, 'revenue' => 200000])
+        ->and(run('products')['rows'][0]['href'])->toMatch('#^cms/collections/products/entries/\d+/edit$#')
         ->and(collect(run('products')['rows'])->firstWhere('product', 'Kaos'))->toMatchArray(['units' => 2, 'views' => 40, 'add_to_carts' => 4, 'conversion' => 5.0]);
 
     expect(run('brands')['rows'])->toBe([['term' => 'Acme', 'products' => 2, 'units' => 3, 'revenue' => 360000, 'views' => 40, 'conversion' => 7.5]])
