@@ -64,6 +64,8 @@ class FakeLoyalty implements DiscountProvider, ReservesDiscounts
                 return back();
             })->name('loyalty.use');
         });
+        // Added after the app booted: let route() find them by name.
+        app('router')->getRoutes()->refreshNameLookups();
     }
 
     public static function balance(int $customerId): int

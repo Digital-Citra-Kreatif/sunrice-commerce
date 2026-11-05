@@ -7,6 +7,7 @@ use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
 
 it('creates, lists, edits and deletes a pricing rule', function () {
+    \Spatie\Permission\Models\Role::findOrCreate('Reseller', 'web');
     actingAsSuperAdmin();
     $variant = Variant::factory()->create();
 

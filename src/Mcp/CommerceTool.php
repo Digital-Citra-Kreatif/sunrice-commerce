@@ -58,10 +58,23 @@ abstract class CommerceTool extends Tool
         }
     }
 
+    /**
+     * Refuses unless the token's user has this permission (each change an
+     * agent asks for needs its own, as in the admin).
+     *
+     * @throws AuthorizationException
+     */
+    protected function authorize(string $permission): void
+    {
+        if (! $this->can($permission)) {
+            throw new AuthorizationException("You don't have permission for this ({$permission}).");
+        }
+    }
+
     /** Exceptions whose message is meant for the person (or agent) asking. */
     protected function refusal(Throwable $e): bool
     {
-        return $e instanceof \DomainException || $e instanceof \InvalidArgumentException
+        return $e instanceof \DomainException || $e instanceof \InvalidArgumentException || $e instanceof AuthorizationException
             || $e instanceof InvalidTransition || $e instanceof OutOfStock;
     }
 
