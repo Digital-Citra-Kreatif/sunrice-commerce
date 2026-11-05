@@ -11,7 +11,9 @@ use Sunrice\Commerce\Contracts\Inventory;
 /**
  * A variant's stock as the storefront shows it: in_stock, backorder or
  * out_of_stock, from the Inventory contract (so an external stock source
- * counts) and, for a bundle, from its components.
+ * counts) and, for a bundle, from its components. Sold out also while
+ * fewer are left than the variant's minimum order quantity, which
+ * Catalog::check() would refuse.
  */
 class StockStatus
 {
@@ -19,11 +21,12 @@ class StockStatus
 
     public function of(Product $product, Variant $variant): string
     {
+        $needed = max(1, (int) $variant->min_qty);
         if ($product->isBundle()) {
-            return $this->bundles->available($product) > 0 ? 'in_stock' : 'out_of_stock';
+            return $this->bundles->available($product) >= $needed ? 'in_stock' : 'out_of_stock';
         }
         $backorders = $variant->track_stock && $variant->backorders !== 'no';
-        if ($this->inventory->available($variant) > 0) {
+        if ($this->inventory->available($variant) >= $needed) {
             return $backorders && (int) $variant->stock_quantity <= 0 ? 'backorder' : 'in_stock';
         }
 

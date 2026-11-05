@@ -203,3 +203,16 @@ it('gives a renewed alert a fresh half-year before it is pruned', function () {
 
     expect(StockAlert::query()->sole())->notified_at->toBeNull()->created_at->isToday()->toBeTrue();
 });
+
+it('waits until the minimum order quantity can be bought', function () {
+    Notification::fake();
+    $this->mug->update(['min_qty' => 5]);
+    StockAlert::query()->create(['product_id' => $this->mug->product_id, 'variant_id' => $this->mug->id, 'email' => 'rina@example.com']);
+
+    app(AdjustStock::class)->handle($this->mug, 1, set: true);
+    $this->get('/products/mug')->assertSee('Kabari saya saat tersedia');
+    expect(app(SendStockAlerts::class)->handle())->toBe(0);
+
+    app(AdjustStock::class)->handle($this->mug, 5, set: true);
+    expect(app(SendStockAlerts::class)->handle())->toBe(1);
+});
