@@ -12,11 +12,11 @@ class ProductRating
 {
     public static function refresh(int $productId): void
     {
-        $approved = Review::query()->approved()->where('product_id', $productId);
-        $count = (clone $approved)->count();
+        // One statement: the count and the average are read and stored together, so two refreshes at once can't mix them.
+        $approved = fn (string $aggregate) => Review::query()->approved()->whereColumn('product_id', 'commerce_products.id')->selectRaw($aggregate);
         Product::query()->whereKey($productId)->update([
-            'rating_count' => $count,
-            'rating_average' => $count > 0 ? round((float) $approved->avg('rating'), 2) : null,
+            'rating_count' => $approved('count(*)'),
+            'rating_average' => $approved('round(avg(rating), 2)'),
         ]);
     }
 

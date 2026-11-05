@@ -55,10 +55,11 @@ it('shows buyers\' reviews at once as verified purchases, and replaces a custome
     reviewer(bought: true);
 
     $this->post("/reviews/{$this->product->id}", ['rating' => 5, 'body' => 'Best mug I have owned.'])->assertSessionHasNoErrors();
+    Review::query()->sole()->update(['reply' => 'Thank you, Ana!', 'replied_at' => now()]);
     $this->post("/reviews/{$this->product->id}", ['rating' => 3, 'body' => 'It chipped after a month.'])->assertSessionHasNoErrors();
 
     $review = Review::query()->sole();
-    expect($review)->status->toBe('approved')->rating->toBe(3)->name->toBe('Ana')->order_id->not->toBeNull()
+    expect($review)->status->toBe('approved')->rating->toBe(3)->name->toBe('Ana')->order_id->not->toBeNull()->reply->toBeNull()->replied_at->toBeNull()
         ->and($this->product->fresh()->rating_average)->toBe(3.0);
     $this->get('/products/mug')->assertSee('It chipped after a month.')->assertSee('Pembelian terverifikasi')->assertDontSee('Best mug');
 });

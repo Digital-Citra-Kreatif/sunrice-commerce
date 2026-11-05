@@ -54,6 +54,9 @@ class SubmitReview
             'body' => $input['body'],
             'locale' => app()->getLocale(),
             'status' => $approved ? 'approved' : 'pending',
+            // A replaced review starts without the store's reply to the old one.
+            'reply' => null,
+            'replied_at' => null,
             'ip_address' => $ip,
         ];
         $review = $customer !== null ? $this->replace($product, $customer, $attributes) : Review::query()->create(['product_id' => $product->id, ...$attributes]);
