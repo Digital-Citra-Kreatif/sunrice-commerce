@@ -89,7 +89,9 @@ class SendStockAlerts
     {
         $ids = [];
         Variant::query()->whereIn('id', StockAlert::query()->whereNull('notified_at')->select('variant_id'))
-            ->where('active', true)->whereHas('product', fn ($q) => $q->whereNull('removed_at'))
+            ->where('active', true)
+            // A product whose sync failed can't be ordered until it's repaired: its alerts wait.
+            ->whereHas('product', fn ($q) => $q->whereNull('removed_at')->where('sync_status', '!=', 'failed'))
             ->with('product')
             ->chunkById(500, function (BaseCollection $variants) use (&$ids): void {
                 foreach ($variants as $variant) {

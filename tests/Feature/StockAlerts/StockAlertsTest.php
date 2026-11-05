@@ -216,3 +216,15 @@ it('waits until the minimum order quantity can be bought', function () {
     app(AdjustStock::class)->handle($this->mug, 5, set: true);
     expect(app(SendStockAlerts::class)->handle())->toBe(1);
 });
+
+it('keeps alerts waiting while the product sync has failed', function () {
+    Notification::fake();
+    StockAlert::query()->create(['product_id' => $this->mug->product_id, 'variant_id' => $this->mug->id, 'email' => 'rina@example.com']);
+    $this->mug->product->forceFill(['sync_status' => 'failed', 'sync_error' => 'boom'])->save();
+    app(AdjustStock::class)->handle($this->mug, 5, set: true);
+
+    expect(app(SendStockAlerts::class)->handle())->toBe(0);
+
+    $this->mug->product->forceFill(['sync_status' => 'ok', 'sync_error' => null])->save();
+    expect(app(SendStockAlerts::class)->handle())->toBe(1);
+});
