@@ -65,6 +65,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->singleton(Catalog\PriceIndex::class);
         $this->app->scoped(Catalog\Catalog::class);
         $this->app->scoped(Catalog\ProductViewFactory::class);
+        $this->app->scoped(Catalog\BundleComponents::class);
         $this->app->singleton(Catalog\ProductViewHooks::class);
         $this->app->scoped(Promotions\PriceRules\RuleMatcher::class);
         $this->app->scoped(Promotions\FlashSales\ActiveSales::class);

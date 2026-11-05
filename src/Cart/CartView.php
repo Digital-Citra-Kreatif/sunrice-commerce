@@ -17,6 +17,8 @@ use Sunrice\Commerce\Pricing\CalculationState;
 use Sunrice\Commerce\Pricing\Calculator;
 use Sunrice\Commerce\Pricing\PricingContext;
 use Sunrice\Commerce\Support\MoneyFormatter;
+use Sunrice\Cms\Fields\HydrationContext;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Cms\Models\Entry;
 use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\LiveEntries;
@@ -73,6 +75,8 @@ class CartView implements JsonSerializable
         // As the page's language shows them; a product no longer live shows its main language's.
         $entries = $entryIds === [] ? collect() : Entry::query()->with('translations', 'collection')->whereIn('id', $entryIds)->get()
             ->map(fn (Entry $e) => LiveEntries::translation($e))->filter()->keyBy('entry_id');
+        // One hydration context for every line: what their fields point at loads once for all.
+        (new HydrationContext(Locales::current()))->share($entries->values()->all());
         $views = app(ProductViewFactory::class)->forEntries($entries->values());
         $money = app(MoneyFormatter::class);
 

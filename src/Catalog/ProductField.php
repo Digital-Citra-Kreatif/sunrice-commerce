@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Catalog;
 
 use Closure;
-use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Cms\Fields\Field;
@@ -82,9 +81,7 @@ class ProductField extends FieldType
         }
         $componentIds = array_filter(array_column($value['bundle']['items'] ?? [], 'variant_id'));
         if ($componentIds !== []) {
-            $entries = Variant::withTrashed()->join('commerce_products', 'commerce_products.id', '=', 'commerce_variants.product_id')
-                ->whereIn('commerce_variants.id', $componentIds)->distinct()->pluck('commerce_products.entry_id');
-            foreach ($entries as $entryId) {
+            foreach (app(BundleComponents::class)->entryIds(array_values(array_map('intval', $componentIds))) as $entryId) {
                 $references[] = new Reference(Reference::ENTRY, (int) $entryId, 'bundle');
             }
         }
