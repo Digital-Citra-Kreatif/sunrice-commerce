@@ -10,6 +10,7 @@ use Sunrice\Cms\Events\ContentChanged;
 use Sunrice\Cms\Site\Page;
 use Sunrice\Cms\Site\PageCache as SitePageCache;
 use Sunrice\Commerce\Cart\CompareList;
+use Sunrice\Commerce\Feeds\ProductFeed;
 use Sunrice\Commerce\Wishlist\WishlistManager;
 
 /**
@@ -90,11 +91,12 @@ final class PageCache
     }
 
     /**
-     * Clear the full-page cache once the current transaction commits: prices
-     * or availability shown on product pages changed.
+     * Clear the full-page cache and the product feed once the current
+     * transaction commits: prices or availability shown on product pages changed.
      */
     public static function forget(string $reason): void
     {
+        DB::afterCommit(fn () => ProductFeed::forget());
         if (! SitePageCache::enabled()) {
             return;
         }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Feeds;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Sunrice\Admin\Media\Media;
 use Sunrice\Cms\Support\Locales;
@@ -26,7 +27,20 @@ class ProductFeed
 {
     public const CHUNK = 100;
 
+    public const VERSION = 'commerce:feed-version';
+
     public function __construct(protected StoreSettings $settings) {}
+
+    /** The feed's cache generation: bumped whenever store content changes (PageCache::forget, CMS ContentChanged). */
+    public static function version(): int
+    {
+        return (int) Cache::rememberForever(self::VERSION, fn () => 1);
+    }
+
+    public static function forget(): void
+    {
+        Cache::forever(self::VERSION, self::version() + 1);
+    }
 
     public function xml(): string
     {
@@ -75,7 +89,7 @@ class ProductFeed
                 continue;
             }
             $image = $images->get($row['image']) ?? $gallery;
-            $regular = max((int) $row['price'], (int) ($variant->compare_at_price ?? 0));
+            $regular = max((int) $row['price'], (int) $row['regular']);
             $xml .= '<item>'
                 .$this->tag('g:id', $variant->sku ?: 'V'.$variant->id)
                 .($view->isVariable() ? $this->tag('g:item_group_id', 'P'.$view->product->id) : '')

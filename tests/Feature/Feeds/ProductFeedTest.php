@@ -2,9 +2,15 @@
 
 declare(strict_types=1);
 
+use Sunrice\Cms\Events\ContentChanged;
+use Sunrice\Commerce\Catalog\Models\Product;
+use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Catalog\ProductViewHooks;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Health\Checks\ProductFeedCheck;
+use Sunrice\Commerce\Inventory\Actions\AdjustStock;
 use Sunrice\Commerce\Settings\StoreSettings;
+use Workbench\App\Models\User;
 
 beforeEach(function () {
     checkoutStore(['price' => 50000, 'compare_at_price' => 65000]);
@@ -49,4 +55,36 @@ it('lists nothing whose price is hidden', function () {
     app(StoreSettings::class)->saveSection('catalog', ['price_visibility' => 'nobody']);
 
     expect(feedItems($this->get('/feeds/products.xml')->assertOk()->getContent()))->toBe([]);
+});
+
+it('compares a flash sale or discount with the regular price, as the store shows it', function () {
+    app(ToggleFeature::class)->handle('product_feeds', true);
+    app(ProductViewHooks::class)->priceAdjusters[] = fn ($variant, int $price) => $variant->sku === 'TS-M' ? 80000 : $price;
+
+    $items = feedItems($this->get('/feeds/products.xml')->getContent());
+
+    expect($items['TS-M'])->toMatchArray(['price' => '95000 IDR', 'sale_price' => '80000 IDR']);
+});
+
+it('is built as a guest sees the store, whoever asks first', function () {
+    app(ToggleFeature::class)->handle('product_feeds', true);
+    app(StoreSettings::class)->saveSection('catalog', ['price_visibility' => 'signed_in']);
+    $user = User::query()->create(['name' => 'Ana', 'email' => 'ana@example.com', 'password' => 'secret-pass', 'email_verified_at' => now()]);
+
+    $signedIn = $this->actingAs($user, 'commerce')->get('/feeds/products.xml')->assertOk()->getContent();
+    expect(feedItems($signedIn))->toBe([]);
+});
+
+it('is built again when a product or its stock changes', function () {
+    app(ToggleFeature::class)->handle('product_feeds', true);
+    expect(feedItems($this->get('/feeds/products.xml')->getContent())['MUG']['availability'])->toBe('in_stock');
+
+    // Sold out: a product that can't be added to the cart leaves the feed.
+    app(AdjustStock::class)->handle(Variant::query()->where('sku', 'MUG')->sole(), 0, set: true);
+    expect(feedItems($this->get('/feeds/products.xml')->getContent()))->not->toHaveKey('MUG')->toHaveKey('TS-M');
+
+    // Taken off in the CMS, which then tells the site its content changed.
+    unpublishEntry($tee = Product::query()->whereHas('variants', fn ($q) => $q->where('sku', 'TS-M'))->sole()->entry_id);
+    ContentChanged::dispatch('entry '.$tee);
+    expect(feedItems($this->get('/feeds/products.xml')->getContent()))->not->toHaveKey('TS-M');
 });

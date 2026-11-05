@@ -14,6 +14,8 @@ class CurrentCustomer
 {
     protected ?Customer $customer = null;
 
+    protected static bool $asGuest = false;
+
     public function __construct(protected Features $features) {}
 
     public function user(): ?Authenticatable
@@ -31,6 +33,31 @@ class CurrentCustomer
         return $this->customer !== null && $this->customer->user_id === (int) $user->getAuthIdentifier()
             ? $this->customer
             : $this->customer = Customer::forUser($user);
+    }
+
+    /**
+     * Run $callback as a guest sees the store (commerce_customer() is null
+     * inside): for what is built once and shared, like the product feed.
+     *
+     * @template T
+     *
+     * @param  \Closure(): T  $callback
+     * @return T
+     */
+    public static function asGuest(\Closure $callback): mixed
+    {
+        $was = self::$asGuest;
+        self::$asGuest = true;
+        try {
+            return $callback();
+        } finally {
+            self::$asGuest = $was;
+        }
+    }
+
+    public static function isGuestOnly(): bool
+    {
+        return self::$asGuest;
     }
 
     public static function guard(): string

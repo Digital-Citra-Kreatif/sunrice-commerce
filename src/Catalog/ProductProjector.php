@@ -308,6 +308,7 @@ class ProductProjector
         }
         Variant::query()->where('product_id', $product->id)->get()->each->delete();
         $product->forceFill(['removed_at' => now(), 'in_stock' => false])->save();
+        PageCache::forget('product_removed');
     }
 
     /** Whether an entry still exists (in the trash included). */

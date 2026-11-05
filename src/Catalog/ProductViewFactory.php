@@ -310,6 +310,8 @@ class ProductViewFactory
             ])->all(),
             'price' => $hidden ? null : $current[$v->uid],
             'price_formatted' => $hidden ? null : $this->money->format($current[$v->uid]),
+            // Before discounts (flash sales, rules), as shown: what a sale price is compared with.
+            'regular' => $hidden ? null : $this->shown($product, max($this->basePrice($product, $v), (int) $v->compare_at_price)),
             'compare_at' => $hidden || $v->compare_at_price === null || $this->shown($product, $v->compare_at_price) <= $current[$v->uid] ? null : $this->money->format($this->shown($product, $v->compare_at_price)),
             'stock' => $statuses[$i],
             'min_qty' => $v->min_qty,

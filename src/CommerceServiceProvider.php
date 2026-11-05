@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Storage;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Sunrice\Cms\Content;
+use Sunrice\Cms\Events\ContentChanged;
 use Sunrice\Cms\Events\EntryDeleted;
 use Sunrice\Cms\Events\EntryPublished;
 use Sunrice\Cms\Site\Page;
@@ -371,6 +372,8 @@ class CommerceServiceProvider extends PackageServiceProvider
     protected function registerHealthAndSchedule(): void
     {
         Storefront\PageCache::register();
+        // A product entry published, edited or taken off (and anything else the site shows): the feed is built again.
+        Event::listen(ContentChanged::class, fn () => Feeds\ProductFeed::forget());
         // Product pages show availability and "only a few left": clear them when it changes.
         foreach ([Inventory\Events\StockOut::class, Inventory\Events\StockLow::class, Inventory\Events\StockBackIn::class] as $event) {
             Event::listen($event, fn () => Storefront\PageCache::forget('stock_changed'));
