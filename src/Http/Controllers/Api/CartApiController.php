@@ -46,7 +46,7 @@ class CartApiController
             $variant = VariantFromOptions::fromRequest($data) ?? throw new CartException(__('commerce::storefront.product.unavailable'));
             $item = $add->handle($variant, (int) ($data['quantity'] ?? 1));
 
-            return __('commerce::storefront.cart.added', ['product' => (string) ($item->variant->product->entry()?->resolveFor(app()->getLocale())->title ?? '')]);
+            return __('commerce::storefront.cart.added', ['product' => (string) ((($e = $item->variant->product->entry()) !== null ? \Sunrice\Commerce\Catalog\LiveEntries::translation($e)?->title : null) ?? '')]);
         });
     }
 

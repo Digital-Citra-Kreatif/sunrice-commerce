@@ -55,7 +55,7 @@
                                 <div class="commerce-nav__panel">
                                     <ul class="commerce-nav__sublist">
                                         @foreach ($item->children as $child)
-                                            <li><a href="{{ $child->url }}" @if ($child->isActive) aria-current="page" @endif>{{ $child->label }}</a></li>
+                                            <li><a href="{{ $child->url() }}" @if ($child->isActive) aria-current="page" @endif>{{ $child->label }}</a></li>
                                         @endforeach
                                         <li class="commerce-nav__all"><a href="{{ $item->url }}">{{ __('commerce::storefront.theme.view_all_in', ['name' => $item->label]) }}</a></li>
                                     </ul>

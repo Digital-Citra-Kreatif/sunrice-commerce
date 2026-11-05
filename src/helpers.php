@@ -11,6 +11,7 @@ use Sunrice\Commerce\Storefront\StorefrontRoutes;
 use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Cms\Models\Entry;
 use Sunrice\Cms\Models\EntryTranslation;
+use Sunrice\Cms\Models\Term;
 
 /*
  * Global helpers for templates. Each is wrapped in function_exists().
@@ -73,5 +74,21 @@ if (! function_exists('commerce_store_name')) {
     function commerce_store_name(): string
     {
         return (string) (app(StoreSettings::class)->get('general.name') ?: config('app.name'));
+    }
+}
+
+if (! function_exists('commerce_values')) {
+    /**
+     * An entry's or term's fields as templates get them (the CMS's
+     * values()), worked out once per request for each: `commerce_values($entry)['excerpt'] ?? null`.
+     *
+     * @return array<mixed>
+     */
+    function commerce_values(EntryTranslation|Term $item): array
+    {
+        /** @var WeakMap<object, array<mixed>> $memo */
+        static $memo = new WeakMap;
+
+        return $memo[$item] ??= $item instanceof Term ? ($item->translation()?->values() ?? []) : $item->values();
     }
 }

@@ -93,7 +93,7 @@ it('builds views for a page of products in a fixed number of queries', function 
             ['id' => "m{$i}", 'options' => ['size' => 'm'], 'sku' => "K{$i}-M", 'price' => 109000],
         ]]), title: "Kaos {$i}");
     }
-    $entries = sunrice_entries('products')->get();
+    $entries = \Sunrice\Cms\Content::entries('products')->get();
     app(ProductViewFactory::class)->flush();
 
     DB::enableQueryLog();

@@ -38,7 +38,7 @@
                             <h2 class="commerce-footer__heading">{{ $item->label }}</h2>
                             <ul>
                                 @foreach ($item->children as $child)
-                                    <li><a href="{{ $child->url }}" @if ($child->newTab) target="_blank" rel="noopener" @endif>{{ $child->label }}</a></li>
+                                    <li><a href="{{ $child->url() }}" @if ($child->newTab) target="_blank" rel="noopener" @endif>{{ $child->label }}</a></li>
                                 @endforeach
                             </ul>
                         @else

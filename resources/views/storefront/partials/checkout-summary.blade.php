@@ -11,7 +11,7 @@
     <ul class="commerce-summary__lines">
         @foreach ($rows as $row)
             <li>
-                @php($image = $row['entry'] ? collect($row['entry']->get('gallery') ?? [])->first() : null)
+                @php($image = $row['entry'] ? collect((commerce_values($row['entry'])['gallery'] ?? null) ?? [])->first() : null)
                 <span class="commerce-summary__thumb">@if (is_object($image))<img src="{{ $image->url() }}" alt="" width="48" height="60" loading="lazy">@endif<span class="commerce-summary__badge">{{ $row['line']->quantity }}</span></span>
                 <span class="commerce-summary__qty">{{ $row['line']->quantity }} ×</span>
                 <span class="commerce-summary__name">{{ $row['entry']?->title }}@if ($row['line']->variant->title !== '') ({{ $row['line']->variant->title }})@endif</span>

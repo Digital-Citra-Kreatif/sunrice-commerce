@@ -29,7 +29,7 @@
                             @php($line = $row['line'])
                             <tr data-commerce-cart-line="{{ $row['item']->id }}">
                                 <td class="commerce-cart__product">
-                                    @php($image = $row['entry'] ? collect($row['entry']->get('gallery') ?? [])->first() : null)
+                                    @php($image = $row['entry'] ? collect((commerce_values($row['entry'])['gallery'] ?? null) ?? [])->first() : null)
                                     <span class="commerce-cart__thumb">@if (is_object($image))<img src="{{ $image->url() }}" alt="" width="96" height="120" loading="lazy">@endif</span>
                                     <span class="commerce-cart__info">
                                         <a href="{{ $row['entry']?->url }}">{{ $row['entry']?->title }}</a>
@@ -110,8 +110,8 @@
             </aside>
         </div>
 
-        @php($crossSells = collect($cart->lines)->flatMap(fn ($row) => collect($row['entry']?->get('cross_sells') ?? []))->filter()->unique('id')
-            ->reject(fn ($entry) => collect($cart->lines)->contains(fn ($row) => $row['entry']?->id === $entry->id))->take(5))
+        @php($crossSells = collect($cart->lines)->flatMap(fn ($row) => collect(($row['entry'] ? (commerce_values($row['entry'])['cross_sells'] ?? null) : null) ?? []))->filter()->unique('id')
+            ->reject(fn ($entry) => collect($cart->lines)->contains(fn ($row) => $row['entry']?->entry_id === $entry->entry_id))->take(5))
         @if ($crossSells->isNotEmpty())
             <section class="commerce-cross-sells">
                 <h2 class="commerce-section__title">{{ __('commerce::storefront.cart.cross_sells') }}</h2>

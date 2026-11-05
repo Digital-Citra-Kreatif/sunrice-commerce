@@ -21,8 +21,7 @@ final class TermsPage
             return null;
         }
         $entry = Entry::query()->with('translations', 'collection')->find(is_array($page) ? ($page[0] ?? null) : $page);
-        $entry?->resolveFor(app()->getLocale());
 
-        return $entry?->url;
+        return $entry?->shownIn()?->url();
     }
 }

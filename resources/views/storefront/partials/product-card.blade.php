@@ -8,7 +8,7 @@
 --}}
 @php
     $card = commerce_product($entry);
-    $images = collect($entry->get('gallery') ?? [])->filter(fn ($image) => is_object($image))->values();
+    $images = collect((commerce_values($entry)['gallery'] ?? null) ?? [])->filter(fn ($image) => is_object($image))->values();
     $swatches = [];
     $sizes = [];
     foreach ($card?->product->options ?? [] as $option) {
@@ -24,7 +24,7 @@
     }
 @endphp
 <article class="commerce-card">
-    <a href="{{ $entry->url }}" class="commerce-card__link">
+    <a href="{{ $entry->url() }}" class="commerce-card__link">
         <span class="commerce-card__media">
             @if ($images->isNotEmpty())
                 <img class="commerce-card__image" src="{{ $images[0]->url() }}" alt="{{ $images[0]->alt ?? $entry->title }}" loading="lazy" width="600" height="750">

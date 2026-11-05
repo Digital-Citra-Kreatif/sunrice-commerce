@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Http\Controllers\Storefront;
 
+use Sunrice\Commerce\Catalog\LiveEntries;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Sunrice\Commerce\Catalog\Catalog;
@@ -23,13 +24,13 @@ class GoController
     {
         $product = Product::query()->where('entry_id', $entry)->whereNull('removed_at')->first();
         abort_if($product === null || ! $catalog->isPublished($product), 404);
-        $model = Entry::query()->findOrFail($entry);
-        $model->resolveFor(app()->getLocale());
+        $model = LiveEntries::translation(Entry::query()->findOrFail($entry));
+        abort_if($model === null, 404);
 
         $target = match ($type) {
             'whatsapp' => $this->whatsapp($product, $model, $request, $whatsapp),
             'external' => $this->external($product, $request),
-            'inquiry' => ($model->url ?? '/').'#inquiry',
+            'inquiry' => ($model->url() ?? '/').'#inquiry',
             default => null,
         };
         abort_if($target === null, 404);

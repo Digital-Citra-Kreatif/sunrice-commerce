@@ -18,6 +18,8 @@ use Sunrice\Commerce\Pricing\Calculator;
 use Sunrice\Commerce\Pricing\PricingContext;
 use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
+use Sunrice\Commerce\Catalog\LiveEntries;
 
 /**
  * The cart as the customer sees it: lines with their product views,
@@ -26,7 +28,7 @@ use Sunrice\Cms\Models\Entry;
  */
 class CartView implements JsonSerializable
 {
-    /** @var array<int, array{item: CartItem, line: CalcLine, product: ?ProductView, entry: ?Entry}> */
+    /** @var array<int, array{item: CartItem, line: CalcLine, product: ?ProductView, entry: ?EntryTranslation}> */
     public array $lines = [];
 
     public function __construct(public readonly ?Cart $cart, public readonly CalculationState $state) {}
@@ -68,8 +70,9 @@ class CartView implements JsonSerializable
     {
         $items = $this->cart?->items->keyBy(fn (CartItem $i) => 'i'.$i->id) ?? collect();
         $entryIds = array_map(fn (CalcLine $l) => (int) $l->product()->entry_id, array_values($this->state->lines));
+        // As the page's language shows them; a product no longer live shows its main language's.
         $entries = $entryIds === [] ? collect() : Entry::query()->with('translations', 'collection')->whereIn('id', $entryIds)->get()
-            ->each(fn (Entry $e) => $e->resolveFor(app()->getLocale()))->keyBy('id');
+            ->map(fn (Entry $e) => LiveEntries::translation($e))->filter()->keyBy('entry_id');
         $views = app(ProductViewFactory::class)->forEntries($entries->values());
         $money = app(MoneyFormatter::class);
 
@@ -121,9 +124,9 @@ class CartView implements JsonSerializable
         return array_sum(array_map(fn (array $row) => $row['line']->quantity, $this->lines));
     }
 
-    protected function title(?Entry $entry, CalcLine $line): string
+    protected function title(?EntryTranslation $entry, CalcLine $line): string
     {
-        return trim(($entry->title ?? '').($line->variant->title !== '' ? ' ('.$line->variant->title.')' : ''));
+        return trim(($entry->title ?? $entry->draft_title ?? '').($line->variant->title !== '' ? ' ('.$line->variant->title.')' : ''));
     }
 
     /** @return array<string, mixed> */

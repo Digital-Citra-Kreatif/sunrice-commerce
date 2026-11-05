@@ -30,7 +30,7 @@
                                 <button type="submit" class="commerce-button commerce-button--primary commerce-button--block">{{ $view->cta['label'] }}</button>
                             </form>
                         @elseif ($view?->purchasable)
-                            <a class="commerce-button commerce-button--secondary commerce-button--block" href="{{ $entry->url }}">{{ __('commerce::storefront.theme.choose_options') }}</a>
+                            <a class="commerce-button commerce-button--secondary commerce-button--block" href="{{ $entry->url() }}">{{ __('commerce::storefront.theme.choose_options') }}</a>
                         @endif
                     </div>
                 @endforeach

@@ -12,7 +12,7 @@
     @php($trail = collect())
     @php($parent = $term->parent)
     @while ($parent !== null && $trail->count() < 5)
-        @php($trail->prepend(['label' => $parent->resolveFor($locale)->name, 'url' => $parent->url]))
+        @php($trail->prepend(['label' => $parent->title($locale), 'url' => $parent->url()]))
         @php($parent = $parent->parent)
     @endwhile
     <section class="commerce-term commerce-category">
@@ -22,19 +22,19 @@
                 ...$trail->all(),
                 ['label' => $term->name, 'url' => null],
             ]])
-            @php($banner = $term->get('banner'))
+            @php($banner = (commerce_values($term)['banner'] ?? null))
             @if (is_object($banner))
                 <img class="commerce-term__banner" src="{{ $banner->url() }}" alt="" width="1600" height="480">
             @endif
             <h1 class="commerce-listing__title">{{ $term->name }}</h1>
-            @if (filled($description = $term->get('description')))
+            @if (filled($description = (commerce_values($term)['description'] ?? null)))
                 <div class="commerce-term__description">{!! $description !!}</div>
             @endif
             @php($children = $term->children()->with('translations')->orderBy('sort_order')->get())
             @if ($children->isNotEmpty())
                 <ul class="commerce-term__children">
                     @foreach ($children as $child)
-                        <li><a href="{{ $child->url }}">{{ $child->resolveFor($locale)->name }}</a></li>
+                        <li><a href="{{ $child->url() }}">{{ $child->title($locale) }}</a></li>
                     @endforeach
                 </ul>
             @endif

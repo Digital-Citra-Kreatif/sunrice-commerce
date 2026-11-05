@@ -125,7 +125,7 @@ it('loads the option values of a whole page in one query when rows are read', fu
     foreach (range(1, 6) as $i) {
         publishProduct(colourShirt(['variants' => array_map(fn (array $v) => [...$v, 'id' => "{$v['id']}-{$i}", 'sku' => "{$v['sku']}-{$i}"], colourShirt()['variants'])]), title: "Kaos {$i}");
     }
-    $views = app(ProductViewFactory::class)->forEntries(sunrice_entries('products')->get());
+    $views = app(ProductViewFactory::class)->forEntries(\Sunrice\Cms\Content::entries('products')->get());
 
     DB::flushQueryLog();
     DB::enableQueryLog();

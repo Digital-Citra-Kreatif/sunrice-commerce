@@ -18,7 +18,7 @@
         </header>
         @php($image = $page->get('image'))
         @if (is_object($image))
-            <img class="commerce-page__image" src="{{ $image->url() }}" alt="{{ $image->alt ?? '' }}" width="1600" height="600">
+            <img class="commerce-page__image" src="{{ $image->url() }}" alt="{{ $image->altIn() ?? '' }}" width="1600" height="600">
         @endif
         @if (filled($body = $page->get('body')))
             <div class="commerce-prose">{!! $body !!}</div>

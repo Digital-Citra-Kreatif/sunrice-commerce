@@ -31,7 +31,7 @@
 
     <section class="commerce-hero commerce-bleed" aria-labelledby="commerce-hero-title">
         @if (is_object($heroImage))
-            <img class="commerce-hero__image" src="{{ $heroImage->url() }}" alt="{{ $heroImage->alt ?? '' }}" width="1600" height="700" fetchpriority="high">
+            <img class="commerce-hero__image" src="{{ $heroImage->url() }}" alt="{{ $heroImage->altIn() ?? '' }}" width="1600" height="700" fetchpriority="high">
         @endif
         <div class="commerce-hero__content">
             <p class="commerce-eyebrow">{{ commerce_store_name() }}</p>
@@ -48,9 +48,9 @@
             <h2 class="commerce-section__title" id="commerce-departments">{{ __('commerce::storefront.theme.departments') }}</h2>
             <ul class="commerce-tiles commerce-tiles--large">
                 @foreach ($departments->take(4) as $department)
-                    @php($image = $department->get('image'))
+                    @php($image = (commerce_values($department)['image'] ?? null))
                     <li class="commerce-tile">
-                        <a href="{{ $department->url }}">
+                        <a href="{{ $department->url() }}">
                             @if (is_object($image))<img src="{{ $image->url() }}" alt="" loading="lazy" width="600" height="600">@endif
                             <span class="commerce-tile__label">{{ $department->title() }}</span>
                         </a>
@@ -67,9 +67,9 @@
             </div>
             <ul class="commerce-tiles commerce-tiles--small">
                 @foreach ($categories as $category)
-                    @php($image = $category->get('image'))
+                    @php($image = (commerce_values($category)['image'] ?? null))
                     <li class="commerce-tile">
-                        <a href="{{ $category->url }}">
+                        <a href="{{ $category->url() }}">
                             @if (is_object($image))<img src="{{ $image->url() }}" alt="" loading="lazy" width="600" height="600">@endif
                             <span class="commerce-tile__label">{{ $category->parent?->title() }} · {{ $category->title() }}</span>
                         </a>
@@ -111,9 +111,9 @@
             </div>
             <ul class="commerce-logos">
                 @foreach ($brands as $brand)
-                    @php($logo = $brand->get('logo'))
+                    @php($logo = (commerce_values($brand)['logo'] ?? null))
                     <li>
-                        <a href="{{ $brand->url }}">
+                        <a href="{{ $brand->url() }}">
                             @if (is_object($logo))<img src="{{ $logo->url() }}" alt="" loading="lazy" width="200" height="100">@endif
                             <span>{{ $brand->title() }}</span>
                         </a>

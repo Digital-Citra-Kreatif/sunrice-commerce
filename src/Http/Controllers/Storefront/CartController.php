@@ -43,7 +43,7 @@ class CartController
         } catch (CartException $e) {
             return back()->with('commerce.error', $e->getMessage());
         }
-        $title = (string) ($item->variant->product->entry()?->resolveFor(app()->getLocale())->title ?? '');
+        $title = (string) ((($e = $item->variant->product->entry()) !== null ? \Sunrice\Commerce\Catalog\LiveEntries::translation($e)?->title : null) ?? '');
 
         return ($request->boolean('buy_now') && Route::has('commerce.checkout')
             ? redirect(StorefrontRoutes::url('commerce.checkout'))

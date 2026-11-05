@@ -399,16 +399,18 @@ class ProductQuery
     protected function applySort(Builder $query): Builder
     {
         $sort = in_array($this->sort, ['price', '-price'], true) && ! $this->pricesVisible() ? 'featured' : $this->sort;
-        $entries = fn () => $query->join('sunrice_entries as e', 'e.id', '=', 'commerce_products.entry_id');
+        // The entry (its manual order) and its main language (its publication date).
+        $entries = fn () => $query->join('sunrice_entries as e', 'e.id', '=', 'commerce_products.entry_id')
+            ->join('sunrice_entry_translations as pt', fn ($j) => $j->on('pt.entry_id', '=', 'commerce_products.entry_id')->where('pt.locale', Locales::default()));
 
         match ($sort) {
             'price' => $query->orderBy('commerce_products.min_price'),
             '-price' => $query->orderByDesc('commerce_products.max_price'),
             'best_selling' => $query->orderByDesc('commerce_products.sales_count'),
-            'newest' => $entries()->orderByDesc('e.published_at'),
+            'newest' => $entries()->orderByDesc('pt.published_at'),
             'name' => $query->join('sunrice_entry_translations as nt', fn ($j) => $j->on('nt.entry_id', '=', 'commerce_products.entry_id')->where('nt.locale', Locales::default()))
                 ->orderBy('nt.title'),
-            default => $entries()->orderByDesc('commerce_products.featured')->orderBy('e.sort_order')->orderByDesc('e.published_at'),
+            default => $entries()->orderByDesc('commerce_products.featured')->orderBy('e.sort_order')->orderByDesc('pt.published_at'),
         };
 
         return $query->orderBy('commerce_products.id')->select('commerce_products.*');
