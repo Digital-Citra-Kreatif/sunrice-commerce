@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Cart\Actions;
 
+use Sunrice\Cms\Models\EntryTranslation;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Cart\CartException;
 use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Cart\Events\CartItemAdded;
@@ -11,8 +13,6 @@ use Sunrice\Commerce\Cart\Models\CartItem;
 use Sunrice\Commerce\Catalog\Catalog;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Features\Features;
-use Sunrice\Models\EntryTranslation;
-use Sunrice\Support\Locales;
 
 /**
  * Adds a variant to the visitor's cart (or more of it), after checking it
@@ -60,7 +60,7 @@ class AddToCart
     protected function title(Variant $variant): string
     {
         $title = (string) EntryTranslation::query()->where('entry_id', $variant->product->entry_id)
-            ->whereIn('locale', [app()->getLocale(), Locales::main()])->orderByRaw('locale = ? desc', [app()->getLocale()])->value('title');
+            ->whereIn('locale', [app()->getLocale(), Locales::default()])->orderByRaw('locale = ? desc', [app()->getLocale()])->value('title');
 
         return $variant->title !== '' ? "{$title} ({$variant->title})" : $title;
     }

@@ -7,8 +7,13 @@ namespace Sunrice\Commerce\Cart;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\DB;
 use JsonSerializable;
+use Sunrice\Cms\Fields\HydrationContext;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Cart\Models\CartItem;
+use Sunrice\Commerce\Catalog\LiveEntries;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\ProductView;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
@@ -17,7 +22,6 @@ use Sunrice\Commerce\Pricing\CalculationState;
 use Sunrice\Commerce\Pricing\Calculator;
 use Sunrice\Commerce\Pricing\PricingContext;
 use Sunrice\Commerce\Support\MoneyFormatter;
-use Sunrice\Models\Entry;
 
 /**
  * The cart as the customer sees it: lines with their product views,
@@ -26,7 +30,7 @@ use Sunrice\Models\Entry;
  */
 class CartView implements JsonSerializable
 {
-    /** @var array<int, array{item: CartItem, line: CalcLine, product: ?ProductView, entry: ?Entry}> */
+    /** @var array<int, array{item: CartItem, line: CalcLine, product: ?ProductView, entry: ?EntryTranslation}> */
     public array $lines = [];
 
     public function __construct(public readonly ?Cart $cart, public readonly CalculationState $state) {}
@@ -68,8 +72,11 @@ class CartView implements JsonSerializable
     {
         $items = $this->cart?->items->keyBy(fn (CartItem $i) => 'i'.$i->id) ?? collect();
         $entryIds = array_map(fn (CalcLine $l) => (int) $l->product()->entry_id, array_values($this->state->lines));
+        // As the page's language shows them; a product no longer live shows its main language's.
         $entries = $entryIds === [] ? collect() : Entry::query()->with('translations', 'collection')->whereIn('id', $entryIds)->get()
-            ->each(fn (Entry $e) => $e->resolveFor(app()->getLocale()))->keyBy('id');
+            ->map(fn (Entry $e) => LiveEntries::translation($e))->filter()->keyBy('entry_id');
+        // One hydration context for every line: what their fields point at loads once for all.
+        (new HydrationContext(Locales::current()))->share($entries->values()->all());
         $views = app(ProductViewFactory::class)->forEntries($entries->values());
         $money = app(MoneyFormatter::class);
 
@@ -121,9 +128,9 @@ class CartView implements JsonSerializable
         return array_sum(array_map(fn (array $row) => $row['line']->quantity, $this->lines));
     }
 
-    protected function title(?Entry $entry, CalcLine $line): string
+    protected function title(?EntryTranslation $entry, CalcLine $line): string
     {
-        return trim(($entry->title ?? '').($line->variant->title !== '' ? ' ('.$line->variant->title.')' : ''));
+        return trim(($entry->title ?? $entry->draft_title ?? '').($line->variant->title !== '' ? ' ('.$line->variant->title.')' : ''));
     }
 
     /** @return array<string, mixed> */
@@ -150,7 +157,7 @@ class CartView implements JsonSerializable
                 'id' => $row['item']->id,
                 'variant_id' => $row['line']->variant->id,
                 'title' => $this->title($row['entry'], $row['line']),
-                'url' => $row['entry']?->url,
+                'url' => $row['entry']?->url(),
                 'sku' => $row['line']->variant->sku,
                 'quantity' => $row['line']->quantity,
                 'min_qty' => $row['line']->variant->min_qty,

@@ -12,6 +12,7 @@ use Illuminate\Validation\ValidationException;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Customers\Notifications\VerifyCustomerEmail;
 use Sunrice\Commerce\Support\Phone;
+use Sunrice\Commerce\Support\Staff;
 
 /**
  * Name, phone, marketing consent and email. A new email needs the current
@@ -25,7 +26,7 @@ class UpdateProfile
      */
     public function handle(Authenticatable $user, Customer $customer, array $input): bool
     {
-        $model = config('sunrice.auth.user_model');
+        $model = Staff::userModel();
         $data = Validator::make($input, [
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:190', Rule::unique((new $model)->getTable(), 'email')->ignore($user->getAuthIdentifier())],

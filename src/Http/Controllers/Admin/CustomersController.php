@@ -14,9 +14,9 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
-use Spatie\SimpleExcel\SimpleExcelWriter;
-use Sunrice\Admin\Table\Column;
-use Sunrice\Admin\Table\TableQuery;
+use Sunrice\Admin\Users\PermissionRank;
+use Sunrice\Commerce\Admin\Tables\Column;
+use Sunrice\Commerce\Admin\Tables\TableQuery;
 use Sunrice\Commerce\Customers\Actions\AnonymizeCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Customers\Notifications\CustomerResetPassword;
@@ -25,10 +25,10 @@ use Sunrice\Commerce\Orders\OrderStatus;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\ActivityRecorder;
 use Sunrice\Commerce\Support\Address;
+use Sunrice\Commerce\Support\CsvExport;
 use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Commerce\Support\Phone;
-use Sunrice\Permissions\PermissionRank;
-use Sunrice\Support\CsvCell;
+use Sunrice\Commerce\Support\Staff;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Shop → Customers: everyone who registered or ordered. */
@@ -89,12 +89,12 @@ class CustomersController extends Controller
         app(ActivityRecorder::class)->record('exported', 'Customers', [], 'customers');
 
         return response()->streamDownload(function () use ($query): void {
-            $writer = SimpleExcelWriter::streamDownload('customers.csv');
+            $writer = CsvExport::toOutput();
             $query->reorder()->with('addresses')->chunkById(500, function ($customers) use ($writer): void {
                 foreach ($customers as $c) {
                     if ($c instanceof Customer) {
                         $address = $c->addresses->firstWhere('default_shipping', true) ?? $c->addresses->first();
-                        $writer->addRow(array_map(CsvCell::safe(...), [
+                        $writer->addRow(([
                             'name' => $c->name, 'email' => $c->email, 'phone' => $c->phone,
                             'account' => $c->user_id ? 'registered' : 'guest',
                             'orders' => $c->orders_count, 'spent' => $c->total_spent,
@@ -156,9 +156,9 @@ class CustomersController extends Controller
 
     protected static function userMorphClass(): string
     {
-        $class = (string) config('sunrice.auth.user_model');
+        $class = Staff::userModel();
 
-        return class_exists($class) && is_subclass_of($class, Model::class) ? (new $class)->getMorphClass() : $class;
+        return (new $class)->getMorphClass();
     }
 
     /**
@@ -249,8 +249,8 @@ class CustomersController extends Controller
      */
     protected static function givableRoles(mixed $staff): array
     {
-        return Role::query()->with('permissions')->whereDoesntHave('permissions', fn ($q) => $q->where('name', 'sunrice.access-admin'))->get()
-            ->filter(fn (Role $role) => ! class_exists(PermissionRank::class) || PermissionRank::roleBelow($role, $staff))
+        return Role::query()->with('permissions')->whereDoesntHave('permissions', fn ($q) => $q->where('name', 'sunrice.access'))->get()
+            ->filter(fn (Role $role) => $staff instanceof Model && app(PermissionRank::class)->canManageRole($staff, $role))
             ->pluck('name')->values()->all();
     }
 
@@ -279,7 +279,7 @@ class CustomersController extends Controller
     {
         $this->authorize('commerce.customers.delete');
         $user = $customer->user();
-        abort_if($user !== null && method_exists($user, 'can') && $user->can('sunrice.access-admin'), 403, 'Staff accounts are managed in Users.');
+        abort_if($user !== null && method_exists($user, 'can') && $user->can('sunrice.access'), 403, 'Staff accounts are managed in Users.');
         $anonymize->handle($customer);
 
         return redirect()->route('sunrice.admin.commerce.customers')->with('success', 'Personal data removed.');

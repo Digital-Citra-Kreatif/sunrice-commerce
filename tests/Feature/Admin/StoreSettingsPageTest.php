@@ -3,31 +3,37 @@
 declare(strict_types=1);
 
 use Inertia\Testing\AssertableInertia;
+use Spatie\Permission\Models\Role;
+use Sunrice\Admin\Activity\Activity;
+use Sunrice\Cms\Actions\Entries\CreateEntry;
+use Sunrice\Cms\Models\Blueprint;
+use Sunrice\Cms\Models\Collection;
+use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Models\ActivityLog;
 
 it('opens the first section the user may edit from the Store tab', function () {
     actingAsUserWith(['commerce.settings.catalog']);
 
-    $this->get('/cms/commerce/settings')->assertRedirect('/cms/commerce/settings/catalog');
-    $this->get('/cms/commerce/settings/catalog')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+    $this->get('/admin/commerce/settings')->assertRedirect('/admin/commerce/settings/catalog');
+    $this->get('/admin/commerce/settings/catalog')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
         ->component('Commerce/Settings/Section', false)
         ->where('section.key', 'catalog')
         ->where('sections', [['key' => 'catalog', 'label' => 'Catalog', 'href' => 'commerce/settings/catalog'], ['key' => 'digital', 'label' => 'Digital products', 'href' => 'commerce/settings/digital']])
         ->where('form.values.price_visibility', 'everyone')
-        ->where('settingsTabs.0.key', 'store'));
-    $this->get('/cms/commerce/settings/general')->assertForbidden();
-    $this->put('/cms/commerce/settings/general', ['values' => ['name' => 'X']])->assertForbidden();
+        ->where('commerce.settingsNav.0.url', 'commerce/settings'));
+    $this->get('/admin/commerce/settings/general')->assertForbidden();
+    $this->put('/admin/commerce/settings/general', ['values' => ['name' => 'X']])->assertForbidden();
 });
 
 it('renders and saves every built-in section', function (string $section, array $values, string $key, mixed $expected) {
     actingAsSuperAdmin();
+    Role::findOrCreate('Customer', 'web'); // the role customer_roles may name
 
-    $this->get("/cms/commerce/settings/{$section}")->assertOk();
-    $this->from("/cms/commerce/settings/{$section}")
-        ->put("/cms/commerce/settings/{$section}", ['values' => $values])
-        ->assertSessionHasNoErrors()->assertRedirect("/cms/commerce/settings/{$section}");
+    $this->get("/admin/commerce/settings/{$section}")->assertOk();
+    $this->from("/admin/commerce/settings/{$section}")
+        ->put("/admin/commerce/settings/{$section}", ['values' => $values])
+        ->assertSessionHasNoErrors()->assertRedirect("/admin/commerce/settings/{$section}");
 
     expect(app(StoreSettings::class)->get("{$section}.{$key}"))->toBe($expected);
 })->with([
@@ -42,39 +48,39 @@ it('renders and saves every built-in section', function (string $section, array 
 it('shows validation errors under values.', function () {
     actingAsSuperAdmin();
 
-    $this->from('/cms/commerce/settings/checkout')
-        ->put('/cms/commerce/settings/checkout', ['values' => ['order_number_format' => 'ORD-{Y}', 'quote_number_format' => 'Q-{seq}']])
+    $this->from('/admin/commerce/settings/checkout')
+        ->put('/admin/commerce/settings/checkout', ['values' => ['order_number_format' => 'ORD-{Y}', 'quote_number_format' => 'Q-{seq}']])
         ->assertSessionHasErrors(['values.order_number_format']);
-    $this->put('/cms/commerce/settings/general', ['values' => ['name' => '', 'selling_mode' => 'shop', 'currency' => ['code' => 'rupiah', 'symbol' => 'Rp', 'decimals' => 0]]])
+    $this->put('/admin/commerce/settings/general', ['values' => ['name' => '', 'selling_mode' => 'shop', 'currency' => ['code' => 'rupiah', 'symbol' => 'Rp', 'decimals' => 0]]])
         ->assertSessionHasErrors(['values.name', 'values.currency.code']);
 });
 
 it('refuses a selling mode the switched-on modules cannot serve, and logs saves', function () {
     actingAsSuperAdmin();
     $general = ['name' => 'Toko', 'currency' => ['code' => 'IDR', 'symbol' => 'Rp', 'decimals' => 0]];
-    $this->put('/cms/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'quote']])->assertSessionHasNoErrors();
+    $this->put('/admin/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'quote']])->assertSessionHasNoErrors();
     app(ToggleFeature::class)->handle('payments', false);
 
-    $this->put('/cms/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'shop']])
+    $this->put('/admin/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'shop']])
         ->assertSessionHasErrors(['section' => 'Online store mode needs Payment methods. Choose another selling mode first, or switch on what it needs.']);
     expect(app(StoreSettings::class)->get('general.selling_mode'))->toBe('quote')
-        ->and(ActivityLog::query()->where('subject_label', 'Store settings: General')->exists())->toBeTrue();
+        ->and(Activity::query()->where('subject_label', 'Store settings: General')->exists())->toBeTrue();
 });
 
 it('refuses WhatsApp orders without a number and the online store without a payment method', function () {
     actingAsSuperAdmin();
     $general = ['name' => 'Toko', 'currency' => ['code' => 'IDR', 'symbol' => 'Rp', 'decimals' => 0]];
-    $this->put('/cms/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'catalog']])->assertSessionHasNoErrors();
+    $this->put('/admin/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'catalog']])->assertSessionHasNoErrors();
 
-    $this->put('/cms/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'whatsapp', 'whatsapp' => ['numbers' => []]]])
+    $this->put('/admin/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'whatsapp', 'whatsapp' => ['numbers' => []]]])
         ->assertSessionHasErrors(['section' => 'Add a WhatsApp number to take orders by WhatsApp.']);
-    $this->put('/cms/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'whatsapp', 'whatsapp' => ['numbers' => [['number' => '0812 0000 0000']]]]])
+    $this->put('/admin/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'whatsapp', 'whatsapp' => ['numbers' => [['number' => '0812 0000 0000']]]]])
         ->assertSessionHasNoErrors();
 
-    $this->put('/cms/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'shop']])
+    $this->put('/admin/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'shop']])
         ->assertSessionHasErrors(['section' => 'Turn on a payment method (Settings → Store → Payments) before switching to the online store.']);
     app(StoreSettings::class)->saveSection('payments', ['methods' => ['cod' => ['active' => true]]]);
-    $this->put('/cms/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'shop']])->assertSessionHasNoErrors();
+    $this->put('/admin/commerce/settings/general', ['values' => [...$general, 'selling_mode' => 'shop']])->assertSessionHasNoErrors();
     expect(app(StoreSettings::class)->get('general.selling_mode'))->toBe('shop');
 });
 
@@ -82,5 +88,19 @@ it('hides sections of inactive modules', function () {
     actingAsSuperAdmin();
     app(ToggleFeature::class)->handle('documents', false);
 
-    $this->get('/cms/commerce/settings/documents')->assertNotFound();
+    $this->get('/admin/commerce/settings/documents')->assertNotFound();
+});
+
+it('lets staff choose any site page as the terms page, but no product', function () {
+    actingAsSuperAdmin();
+    app(ScaffoldStore::class)->handle();
+    Blueprint::query()->create(['handle' => 'page', 'title' => 'Page', 'fields' => []]);
+    $pages = Collection::query()->create(['handle' => 'pages', 'title' => 'Pages', 'blueprint' => 'page', 'route' => '/{slug}']);
+    $terms = app(CreateEntry::class)->handle($pages, ['title' => 'Syarat', 'slug' => 'syarat']);
+    $product = publishProduct(['variants' => [['id' => 'v', 'sku' => 'T', 'price' => 1000]]], title: 'Kaos');
+    $section = app(StoreSettings::class)->section('checkout');
+
+    $this->put('/admin/commerce/settings/checkout', ['values' => [...$section, 'terms_page' => $product->id]])->assertSessionHasErrors('values.terms_page');
+    $this->put('/admin/commerce/settings/checkout', ['values' => [...$section, 'terms_page' => $terms->entry_id]])->assertSessionHasNoErrors();
+    expect(app(StoreSettings::class)->get('checkout.terms_page'))->toBe($terms->entry_id);
 });

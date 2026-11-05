@@ -7,12 +7,14 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
 use Spatie\Permission\Models\Role;
+use Sunrice\Admin\Media\Media;
 use Sunrice\Commerce\Catalog\Models\DownloadFile;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
 use Sunrice\Commerce\Checkout\CheckoutData;
 use Sunrice\Commerce\Customers\Events\AccountDeletionRequested;
 use Sunrice\Commerce\Customers\Notifications\WelcomeCustomer;
+use Sunrice\Commerce\Database\Seeders\CommerceRolesSeeder;
 use Sunrice\Commerce\Digital\Models\DownloadGrant;
 use Sunrice\Commerce\Documents\Documents;
 use Sunrice\Commerce\Facades\Commerce;
@@ -35,7 +37,6 @@ use Sunrice\Commerce\Payments\Actions\ReviewPaymentConfirmation;
 use Sunrice\Commerce\Payments\Actions\SubmitPaymentConfirmation;
 use Sunrice\Commerce\Payments\PaymentResult;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Models\Asset;
 use Workbench\App\Models\User;
 
 beforeEach(function () {
@@ -97,12 +98,12 @@ it('does not send switched-off emails, but always sends security ones', function
 
 it('sends staff emails to the addresses and to users with the roles, once each', function () {
     Notification::fake();
-    $role = Role::findOrCreate('Shop Manager', 'web');
+    $role = Role::findOrCreate(CommerceRolesSeeder::SHOP_MANAGER, 'web');
     $ana = User::query()->create(['name' => 'Ana', 'email' => 'ana@example.com', 'password' => 'x']);
     $ana->assignRole($role);
     $dup = User::query()->create(['name' => 'Ops', 'email' => 'ops@example.com', 'password' => 'x']);
     $dup->assignRole($role);
-    app(StoreSettings::class)->saveSection('emails', ['staff_new_order' => ['addresses' => ['ops@example.com', 'boss@example.com'], 'roles' => ['Shop Manager']]]);
+    app(StoreSettings::class)->saveSection('emails', ['staff_new_order' => ['addresses' => ['ops@example.com', 'boss@example.com'], 'roles' => [CommerceRolesSeeder::SHOP_MANAGER]]]);
     placeOrderFor($this->mug);
     expect(emailsTo('staff_new_order'))->toEqualCanonicalizing(['ops@example.com', 'boss@example.com', 'ana@example.com']);
 });
@@ -130,7 +131,7 @@ it('writes the subject in the order\'s language and attaches the invoice when se
 
 it('brands emails with the store logo and color', function () {
     $order = placeOrderFor($this->mug);
-    $logo = Asset::query()->create(['disk' => 'public', 'path' => 'logo.png', 'filename' => 'logo.png', 'mime_type' => 'image/png', 'size' => 10, 'sizes' => []]);
+    $logo = Media::query()->create(['disk' => 'public', 'path' => 'logo.png', 'filename' => 'logo.png', 'mime_type' => 'image/png', 'size' => 10, 'sizes' => []]);
     $settings = app(StoreSettings::class);
     $settings->saveSection('general', [...$settings->section('general'), 'logo' => [$logo->id], 'brand_color' => '#b45309']);
 
@@ -145,16 +146,16 @@ it('brands emails with the store logo and color', function () {
 it('previews and sends a test from Settings → Emails', function () {
     placeOrderFor($this->mug);
     actingAsUserWith(['commerce.settings.emails']);
-    $this->get('/cms/commerce/settings/emails')->assertOk()->assertInertia(fn ($p) => $p->component('Commerce/Settings/Emails'));
-    $this->get('/cms/commerce/settings/emails/order_received/preview')->assertOk()->assertSee('Terima kasih atas pesanan Anda')->assertSee('Mug');
-    $this->put('/cms/commerce/settings/emails/order_received', ['values' => ['enabled' => true, 'subject' => ['id' => 'Pesanan :number diterima']]])->assertRedirect();
+    $this->get('/admin/commerce/settings/emails')->assertOk()->assertInertia(fn ($p) => $p->component('Commerce/Settings/Emails'));
+    $this->get('/admin/commerce/settings/emails/order_received/preview')->assertOk()->assertSee('Terima kasih atas pesanan Anda')->assertSee('Mug');
+    $this->put('/admin/commerce/settings/emails/order_received', ['values' => ['enabled' => true, 'subject' => ['id' => 'Pesanan :number diterima']]])->assertRedirect();
     app()->forgetScopedInstances();
     expect(app(StoreSettings::class)->get('emails.order_received.subject.id'))->toBe('Pesanan :number diterima');
 
     Notification::fake();
-    $this->post('/cms/commerce/settings/emails/order_received/test')->assertSessionHas('success');
+    $this->post('/admin/commerce/settings/emails/order_received/test')->assertSessionHas('success');
     Notification::assertSentOnDemand(StoreEmail::class, fn (StoreEmail $n, $c, $notifiable) => $notifiable->routes['mail'] === 'staff@example.com');
-    $this->put('/cms/commerce/settings/emails/staff_new_order', ['values' => ['addresses' => 'not-an-email']])->assertSessionHasErrors('values.addresses');
+    $this->put('/admin/commerce/settings/emails/staff_new_order', ['values' => ['addresses' => 'not-an-email']])->assertSessionHasErrors('values.addresses');
 });
 
 it('delivers downloads as attachments when small, links when large, and not by email for account-only products', function () {
@@ -269,11 +270,11 @@ it('emails a pay-again link when a payment fails', function () {
 
 it('sends hidden copies of customer emails, never of codes and reset links', function () {
     actingAsUserWith(['commerce.settings.emails']);
-    $this->put('/cms/commerce/settings/emails/order_received', ['values' => ['enabled' => true, 'copies' => 'owner@example.com, nope']])
+    $this->put('/admin/commerce/settings/emails/order_received', ['values' => ['enabled' => true, 'copies' => 'owner@example.com, nope']])
         ->assertSessionHasErrors('values.copies');
-    $this->put('/cms/commerce/settings/emails/order_received', ['values' => ['enabled' => true, 'copies' => 'Owner@example.com, admin@example.com']])
+    $this->put('/admin/commerce/settings/emails/order_received', ['values' => ['enabled' => true, 'copies' => 'Owner@example.com, admin@example.com']])
         ->assertSessionHasNoErrors();
-    $this->get('/cms/commerce/settings/emails/password_reset')->assertInertia(fn ($page) => $page
+    $this->get('/admin/commerce/settings/emails/password_reset')->assertInertia(fn ($page) => $page
         ->where('form.fields', fn ($fields) => ! collect($fields)->contains('handle', 'copies')));
 
     $mail = (new StoreEmail('order_received', placeOrderFor($this->mug), lang: 'id'))->toMail(null);
@@ -300,4 +301,13 @@ it('lets developers replace an email body, the frame, account emails and documen
 
     Commerce::documentTemplate('invoice', 'custom.invoice');
     expect(app(Documents::class)->html(collect([$order]), 'invoice'))->toContain('Custom invoice');
+});
+
+it('links staff emails to the order in the admin', function () {
+    $order = placeOrderFor($this->mug);
+    $mail = (new StoreEmail('staff_new_order', $order))->data();
+
+    expect($mail['action']['url'] ?? null)->toBe(url("/admin/commerce/orders/{$order->id}"))
+        ->and((new StoreEmail('staff_payment_confirmation', $order))->data()['action']['url'] ?? null)->toBe(url("/admin/commerce/orders/{$order->id}"))
+        ->and((new StoreEmail('staff_payment_confirmation'))->data()['action']['url'] ?? null)->toBe(url('/admin/commerce/confirmations'));
 });

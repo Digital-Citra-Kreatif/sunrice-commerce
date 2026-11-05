@@ -5,13 +5,14 @@ declare(strict_types=1);
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
+use Sunrice\Cms\Content;
+use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Catalog\ProductView;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
-use Sunrice\Models\Entry;
 
 /*
  * A view's picker rows (ProductView::$variants) are built the first time
@@ -125,7 +126,7 @@ it('loads the option values of a whole page in one query when rows are read', fu
     foreach (range(1, 6) as $i) {
         publishProduct(colourShirt(['variants' => array_map(fn (array $v) => [...$v, 'id' => "{$v['id']}-{$i}", 'sku' => "{$v['sku']}-{$i}"], colourShirt()['variants'])]), title: "Kaos {$i}");
     }
-    $views = app(ProductViewFactory::class)->forEntries(sunrice_entries('products')->get());
+    $views = app(ProductViewFactory::class)->forEntries(Content::entries('products')->get());
 
     DB::flushQueryLog();
     DB::enableQueryLog();
@@ -148,7 +149,7 @@ it('keeps rows unbuilt through with() and extenders, and lets them replace the r
         ->and($copy->variants)->toBe($view->variants)
         ->and(CountingProductViewFactory::$built)->toBe(1) // the copy shares the built rows
         ->and($view->with(variants: [['uid' => 'only']])->variants)->toBe([['uid' => 'only']])
-        ->and(new ProductView($view->entry, $view->product, 'variable', $view->price, [], $view->stock, $view->cta, [], [], [['uid' => 'given']])->variants)->toBe([['uid' => 'given']]);
+        ->and((new ProductView($view->entry, $view->product, 'variable', $view->price, [], $view->stock, $view->cta, [], [], [['uid' => 'given']]))->variants)->toBe([['uid' => 'given']]);
 
     $restored = unserialize(serialize($copy));
     expect($restored->variants)->toBe($view->variants)->and($restored->price)->toBe($view->price);
@@ -161,7 +162,7 @@ it('builds preview rows from the draft options', function () {
     $draft['variants'][3]['price'] = 59000;
     publishProduct($draft, $entry, title: 'Kaos Warna', publish: false);
 
-    $url = URL::temporarySignedRoute('sunrice.frontend.preview', now()->addMinutes(5), ['entry' => $entry->id, 'locale' => 'id']);
+    $url = URL::temporarySignedRoute('sunrice.cms.preview', now()->addMinutes(5), ['translation' => $entry->translations()->where('locale', 'id')->value('id')]);
     $this->get($url)->assertOk()->assertSee('&quot;price&quot;:59000', false);
     $live = commerce_product(Entry::query()->find($entry->id));
 

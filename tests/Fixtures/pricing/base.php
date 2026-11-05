@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use Sunrice\Models\Entry;
-
 return [
     'base prices and quantities' => [
         'products' => ['MUG' => 50000, 'TEA' => ['price' => 25000, 'compare_at_price' => 30000]],
@@ -43,7 +41,7 @@ return [
     'unpublished products are removed' => [
         'products' => ['MUG' => 50000],
         'setup' => function (array $variants) {
-            Entry::query()->whereKey($variants['MUG']->product->entry_id)->update(['status' => 'draft']);
+            unpublishEntry($variants['MUG']->product->entry_id);
         },
         'cart' => [['MUG', 1]],
         'expect' => ['removed' => ['MUG'], 'notices' => ['not_published']],

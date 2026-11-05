@@ -12,13 +12,14 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
-use Sunrice\Admin\Table\Column;
-use Sunrice\Admin\Table\TableQuery;
+use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Admin\Tables\Column;
+use Sunrice\Commerce\Admin\Tables\TableQuery;
 use Sunrice\Commerce\Catalog\Models\StockMovement;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Inventory\Actions\AdjustStock;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Support\Locales;
+use Sunrice\Commerce\Support\Staff;
 
 /** Shop → Inventory: stock of every variant, adjustments and their history. */
 class InventoryController extends Controller
@@ -32,7 +33,7 @@ class InventoryController extends Controller
         $query = Variant::query()
             ->select('commerce_variants.*', 't.title as product_title', 'commerce_products.entry_id', 'commerce_products.collection_id')
             ->join('commerce_products', 'commerce_products.id', '=', 'commerce_variants.product_id')
-            ->leftJoin('sunrice_entry_translations as t', fn ($j) => $j->on('t.entry_id', '=', 'commerce_products.entry_id')->where('t.locale', Locales::main()))
+            ->leftJoin('sunrice_entry_translations as t', fn ($j) => $j->on('t.entry_id', '=', 'commerce_products.entry_id')->where('t.locale', Locales::default()))
             ->whereNull('commerce_products.removed_at')
             ->where('commerce_products.type', '!=', 'bundle');
 
@@ -97,7 +98,7 @@ class InventoryController extends Controller
     {
         $this->authorizeFeature('inventory');
         $this->authorize('commerce.inventory.view');
-        $users = config('sunrice.auth.user_model');
+        $users = Staff::userModel();
         $movements = StockMovement::query()->where('variant_id', $variant->id)->latest('id')->limit(100)->get();
         $names = $movements->pluck('user_id')->filter()->unique()->isEmpty() ? collect() : $users::query()->whereIn('id', $movements->pluck('user_id')->filter())->pluck('name', 'id');
 

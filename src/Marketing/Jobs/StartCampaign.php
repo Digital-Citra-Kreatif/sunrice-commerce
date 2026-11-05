@@ -9,11 +9,11 @@ use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Marketing\Audience;
 use Sunrice\Commerce\Marketing\Dispatcher;
 use Sunrice\Commerce\Marketing\Models\Campaign;
 use Sunrice\Commerce\Marketing\Recipient;
-use Sunrice\Support\Locales;
 
 /** Finds a campaign's audience when it starts sending and queues an email for each. */
 class StartCampaign implements ShouldBeUnique, ShouldQueue
@@ -35,7 +35,7 @@ class StartCampaign implements ShouldBeUnique, ShouldQueue
         }
         $recipients = (function () use ($audience, $campaign) {
             foreach ($audience->query($campaign->audience)->lazyById(500, 'commerce_customers.id', 'id') as $customer) {
-                yield new Recipient($customer, $customer->email, (string) ($customer->locale ?? Locales::main()));
+                yield new Recipient($customer, $customer->email, (string) ($customer->locale ?? Locales::default()));
             }
         })();
         $dispatcher->queue($campaign, $recipients);

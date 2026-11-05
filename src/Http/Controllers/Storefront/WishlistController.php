@@ -9,13 +9,13 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Cart\CartException;
 use Sunrice\Commerce\Catalog\ProductQuery;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 use Sunrice\Commerce\Wishlist\Wishlist;
 use Sunrice\Commerce\Wishlist\WishlistManager;
-use Sunrice\Models\Entry;
 
 /** The wishlist page, add/remove (forms or JSON), sharing and the shared page. */
 class WishlistController
@@ -67,7 +67,7 @@ class WishlistController
         return back()->with('commerce.success', __('commerce::storefront.wishlist.'.($request->boolean('on', true) ? 'shared' : 'unshared')));
     }
 
-    /** @return Collection<int, Entry> */
+    /** @return Collection<int, EntryTranslation> */
     protected function products(?Wishlist $wishlist): Collection
     {
         if ($wishlist === null) {

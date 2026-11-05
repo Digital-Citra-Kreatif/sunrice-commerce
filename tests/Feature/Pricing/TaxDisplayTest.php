@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
@@ -11,7 +12,6 @@ use Sunrice\Commerce\Pricing\PricingContext;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Taxes\TaxDisplay;
 use Sunrice\Commerce\Taxes\TaxRate;
-use Sunrice\Models\Entry;
 
 function taxesOn(array $settings): void
 {

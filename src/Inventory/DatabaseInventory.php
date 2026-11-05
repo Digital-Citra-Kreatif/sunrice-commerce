@@ -18,6 +18,7 @@ use Sunrice\Commerce\Inventory\Events\StockChanged;
 use Sunrice\Commerce\Inventory\Events\StockLow;
 use Sunrice\Commerce\Inventory\Events\StockOut;
 use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Commerce\Support\Staff;
 
 /**
  * Stock in commerce_variants (ARCHITECTURE.md §7.6): reservations are
@@ -126,7 +127,7 @@ class DatabaseInventory implements Inventory
             'reason' => $reason,
             'reference_type' => $reference?->getMorphClass(),
             'reference_id' => $reference?->getKey(),
-            'user_id' => $userId ?? auth(config('sunrice.auth.guard', 'web'))->id(),
+            'user_id' => $userId ?? auth(Staff::guard())->id(),
             'note' => $note,
         ]);
 

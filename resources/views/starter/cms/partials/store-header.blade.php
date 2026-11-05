@@ -10,17 +10,18 @@
     The search goes to the product listing (?q=), with its filters.
 --}}
 @php
-    $site = sunrice_global('site');
-    $mainMenu = sunrice_menu('main');
+    $site = cms_global('site');
+    $mainMenu = cms_menu('main');
     $L = \Sunrice\Commerce\Storefront\Layout::class;
-    $home = url(\Sunrice\Support\Locales::prefix($locale ?? app()->getLocale()) ?: '/');
-    $products = \Sunrice\Models\Collection::query()->where('handle', (string) (config('commerce.catalog.collections', ['products'])[0] ?? 'products'))->first();
-    $searchUrl = url($products !== null ? app(\Sunrice\Frontend\UrlGenerator::class)->archive($products, $locale ?? null) : '/products');
-    $storeName = $site->get('name') ?: commerce_store_name();
+    $home = url(\Sunrice\Cms\Support\Locales::prefix(app()->getLocale()) ?: '/');
+    $products = \Sunrice\Cms\Models\Collection::query()->where('handle', (string) (config('commerce.catalog.collections', ['products'])[0] ?? 'products'))->first();
+    $searchUrl = $products?->listingUrl() ?? url('/products');
+    $storeName = filled($site['name'] ?? null) ? (string) $site['name'] : commerce_store_name();
+    $logo = $site['logo'] ?? null;
 @endphp
 
-@if (filled($site->get('announcement')))
-    <p class="commerce-announcement">{{ $site->get('announcement') }}</p>
+@if (filled($site['announcement'] ?? null))
+    <p class="commerce-announcement">{{ $site['announcement'] }}</p>
 @endif
 
 <header class="commerce-header" data-commerce-header>
@@ -30,9 +31,9 @@
             <span class="commerce-visually-hidden">{{ __('commerce::storefront.theme.menu') }}</span>
         </button>
 
-        <a class="commerce-header__logo" href="{{ $home }}">
-            @if ($site->logo)
-                <img src="{{ $site->logo->url() }}" alt="{{ $storeName }}" width="120" height="40">
+        <a class="commerce-header__logo" href="{{ $home }}" @if (cms_page()?->home) aria-current="page" @endif>
+            @if (is_object($logo))
+                <img src="{{ $logo->url() }}" alt="{{ $storeName }}" width="120" height="40">
             @else
                 <span>{{ $storeName }}</span>
             @endif
@@ -46,18 +47,18 @@
                     <span class="commerce-visually-hidden">{{ __('commerce::storefront.cart.close') }}</span>
                 </button>
             </div>
-            @if ($mainMenu->isNotEmpty())
+            @if ($mainMenu !== [])
                 <ul class="commerce-nav__list">
                     @foreach ($mainMenu as $item)
-                        <li @class(['commerce-nav__item', 'commerce-nav__item--parent' => $item->children->isNotEmpty(), 'is-active' => $item->isActiveOrAncestor()])>
-                            <a class="commerce-nav__link" href="{{ $item->url }}" @if ($item->isActive) aria-current="page" @endif @if ($item->newTab) target="_blank" rel="noopener" @endif>{{ $item->label }}</a>
-                            @if ($item->children->isNotEmpty())
+                        <li @class(['commerce-nav__item', 'commerce-nav__item--parent' => $item['children'] !== [], 'is-active' => $item['active_trail']])>
+                            <a class="commerce-nav__link" href="{{ $item['url'] }}" @if ($item['active']) aria-current="page" @endif @if ($item['new_tab']) target="_blank" rel="noopener" @endif>{{ $item['label'] }}</a>
+                            @if ($item['children'] !== [])
                                 <div class="commerce-nav__panel">
                                     <ul class="commerce-nav__sublist">
-                                        @foreach ($item->children as $child)
-                                            <li><a href="{{ $child->url }}" @if ($child->isActive) aria-current="page" @endif>{{ $child->label }}</a></li>
+                                        @foreach ($item['children'] as $child)
+                                            <li><a href="{{ $child['url'] }}" @if ($child['active']) aria-current="page" @endif @if ($child['new_tab']) target="_blank" rel="noopener" @endif>{{ $child['label'] }}</a></li>
                                         @endforeach
-                                        <li class="commerce-nav__all"><a href="{{ $item->url }}">{{ __('commerce::storefront.theme.view_all_in', ['name' => $item->label]) }}</a></li>
+                                        <li class="commerce-nav__all"><a href="{{ $item['url'] }}">{{ __('commerce::storefront.theme.view_all_in', ['name' => $item['label']]) }}</a></li>
                                     </ul>
                                 </div>
                             @endif
@@ -65,7 +66,7 @@
                     @endforeach
                 </ul>
             @endif
-            @include('sunrice.partials.store-languages')
+            @include('cms.partials.store-languages')
         </nav>
 
         <form class="commerce-header__search" method="GET" action="{{ $searchUrl }}" role="search">

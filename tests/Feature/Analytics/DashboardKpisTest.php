@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Inertia\Testing\AssertableInertia;
+use Sunrice\Admin\Panel;
 use Sunrice\Commerce\Admin\Dashboard\StoreCard;
 use Sunrice\Commerce\Analytics\StatsRecorder;
 
@@ -26,7 +27,7 @@ it('shows sales figures against the previous period, a chart and top products', 
     app(StatsRecorder::class)->rebuild('2026-02-25', '2026-03-10');
     actingAsUserWith(['commerce.dashboard.view', 'commerce.orders.view']);
 
-    $this->get('/cms/commerce?period=7d')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+    $this->get('/admin/commerce?period=7d')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
         ->where('period.key', '7d')
         ->missing('kpis')
         ->loadDeferredProps('figures', fn (AssertableInertia $page) => $page
@@ -47,14 +48,14 @@ it('shows sales figures against the previous period, a chart and top products', 
             ->has('recentOrders', 4)
             ->where('todo', fn ($todo) => collect($todo)->firstWhere('key', 'to_ship')['count'] === 3)));
 
-    $this->get('/cms/commerce?period=today')->assertInertia(fn (AssertableInertia $page) => $page
+    $this->get('/admin/commerce?period=today')->assertInertia(fn (AssertableInertia $page) => $page
         ->loadDeferredProps('figures', fn (AssertableInertia $page) => $page->where('kpis.0.raw', 100000)->where('kpis.0.previous', 0)->where('kpis.0.change', null)->has('sales', 7)));
 });
 
 it('hides recent orders and to-dos the user may not see', function () {
     actingAsUserWith(['commerce.dashboard.view']);
 
-    $this->get('/cms/commerce')->assertInertia(fn (AssertableInertia $page) => $page
+    $this->get('/admin/commerce')->assertInertia(fn (AssertableInertia $page) => $page
         ->loadDeferredProps('lists', fn (AssertableInertia $page) => $page->where('recentOrders', [])->where('todo', [])));
 });
 
@@ -62,17 +63,16 @@ it('gives Sunrice\'s dashboard a Store card for store staff only', function () {
     paidOrder((int) $this->mug->product_id, 120000, '2026-03-10 08:00:00');
     app(StatsRecorder::class)->recompute('2026-03-10');
     $manager = actingAsUserWith(['commerce.dashboard.view', 'commerce.orders.view']);
-    $editor = actingAsUserWith(['sunrice.access-admin'], 'editor@example.com');
+    $editor = actingAsUserWith(['sunrice.access'], 'editor@example.com');
 
     expect(StoreCard::visible($manager))->toBeTrue()
         ->and(StoreCard::visible($editor))->toBeFalse()
         ->and(StoreCard::props($manager))->toMatchArray(['sales' => 'Rp120.000', 'orders' => 1])
         ->and(collect(StoreCard::props($manager)['todo'])->firstWhere('key', 'to_ship')['count'])->toBe(1);
 
-    // On Sunrice versions with dashboard cards (U2) the card is registered for those who may see it.
-    $sunrice = app(Sunrice\Sunrice::class);
-    if (method_exists($sunrice, 'dashboardCards')) {
-        expect(array_column($sunrice->dashboardCards($manager), 'name'))->toContain('commerce-store')
-            ->and(array_column($sunrice->dashboardCards($editor), 'name'))->not->toContain('commerce-store');
-    }
+    // The panel's dashboard: the Store widget for those who may see it.
+    $widget = collect(app(Panel::class)->getWidgets())->firstWhere('key', 'commerce.store');
+    expect($widget->isVisibleTo($manager))->toBeTrue()
+        ->and($widget->isVisibleTo($editor))->toBeFalse()
+        ->and(StoreCard::data($manager)['value'])->toBe('Rp120.000');
 });

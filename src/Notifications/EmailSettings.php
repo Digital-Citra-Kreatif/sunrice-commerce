@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Notifications;
 
+use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Database\Seeders\CommerceRolesSeeder;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Support\Locales;
 
 /** An email's stored settings (emails.{key}): switch, recipients, texts per language, attachments. */
 class EmailSettings
@@ -100,11 +101,11 @@ class EmailSettings
     /** @return array<int, string> */
     public function roles(string $key): array
     {
-        return array_values(array_filter((array) ($this->for($key)['roles'] ?? ['Shop Manager'])));
+        return array_values(array_filter((array) ($this->for($key)['roles'] ?? [CommerceRolesSeeder::SHOP_MANAGER])));
     }
 
     public static function mainLocale(): string
     {
-        return Locales::main();
+        return Locales::default();
     }
 }

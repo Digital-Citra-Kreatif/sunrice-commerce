@@ -20,7 +20,7 @@ it('creates unpaid and paid manual orders', function () use ($address) {
     Event::fake([PaymentLinkRequested::class]);
     actingAsUserWith(['commerce.orders.view', 'commerce.orders.create']);
 
-    $this->post('/cms/commerce/orders', [
+    $this->post('/admin/commerce/orders', [
         'email' => 'Rina@Example.com', 'name' => 'Rina', 'phone' => '0812 3456 7890',
         'lines' => [['variant_id' => $this->mug->id, 'quantity' => 2]],
         'shipping_address' => $address, 'shipping' => ['label' => 'JNE REG', 'cost' => 12000], 'discount' => ['label' => 'Langganan', 'amount' => 5000],
@@ -36,7 +36,7 @@ it('creates unpaid and paid manual orders', function () use ($address) {
         ->and($order->events->first()->source)->toBe('admin');
     Event::assertDispatched(PaymentLinkRequested::class);
 
-    $this->post('/cms/commerce/orders', [
+    $this->post('/admin/commerce/orders', [
         'email' => 'budi@example.com', 'lines' => [['variant_id' => $this->tea->id, 'quantity' => 1]], 'shipping_address' => $address,
         'payment_status' => 'paid', 'reference' => 'Cash',
     ])->assertRedirect();
@@ -48,24 +48,24 @@ it('creates unpaid and paid manual orders', function () use ($address) {
 it('refuses price overrides without the permission', function () use ($address) {
     actingAsUserWith(['commerce.orders.view', 'commerce.orders.create']);
     $input = ['email' => 'rina@example.com', 'lines' => [['variant_id' => $this->mug->id, 'quantity' => 1, 'unit_price' => 30000]], 'shipping_address' => $address, 'payment_status' => 'unpaid'];
-    $this->post('/cms/commerce/orders', $input)->assertSessionHasErrors('lines');
+    $this->post('/admin/commerce/orders', $input)->assertSessionHasErrors('lines');
     expect(Order::query()->count())->toBe(0);
 
     actingAsUserWith(['commerce.orders.view', 'commerce.orders.create', 'commerce.orders.override-prices'], 'boss@example.com');
-    $this->post('/cms/commerce/orders', $input)->assertRedirect();
+    $this->post('/admin/commerce/orders', $input)->assertRedirect();
     $item = Order::query()->sole()->items->sole();
     expect($item->unit_price)->toBe(30000)->and($item->price_source['type'])->toBe('manual');
 });
 
 it('edits unpaid orders with frozen prices and the stock difference', function () use ($address) {
     actingAsUserWith(['commerce.orders.view', 'commerce.orders.create', 'commerce.orders.edit']);
-    $this->post('/cms/commerce/orders', ['email' => 'rina@example.com', 'lines' => [['variant_id' => $this->mug->id, 'quantity' => 2]], 'shipping_address' => $address,
+    $this->post('/admin/commerce/orders', ['email' => 'rina@example.com', 'lines' => [['variant_id' => $this->mug->id, 'quantity' => 2]], 'shipping_address' => $address,
         'shipping' => ['label' => 'Kurir', 'cost' => 10000], 'payment_status' => 'unpaid', 'payment_method' => 'test_transfer']);
     $order = Order::query()->sole();
     $mugItem = $order->items->sole();
     Variant::query()->whereKey($this->mug->id)->update(['price' => 60000]); // a later price change doesn't touch the order
 
-    $this->put("/cms/commerce/orders/{$order->id}", ['lines' => [
+    $this->put("/admin/commerce/orders/{$order->id}", ['lines' => [
         ['item_id' => $mugItem->id, 'variant_id' => $this->mug->id, 'quantity' => 1],
         ['variant_id' => $this->tea->id, 'quantity' => 3],
     ]])->assertRedirect();
@@ -79,16 +79,16 @@ it('edits unpaid orders with frozen prices and the stock difference', function (
         ->and($order->events->last()->type)->toBe('edit');
 
     // Override without the permission is refused.
-    $this->put("/cms/commerce/orders/{$order->id}", ['lines' => [['variant_id' => $this->tea->id, 'quantity' => 1, 'unit_price' => 1]]])->assertSessionHasErrors('lines');
+    $this->put("/admin/commerce/orders/{$order->id}", ['lines' => [['variant_id' => $this->tea->id, 'quantity' => 1, 'unit_price' => 1]]])->assertSessionHasErrors('lines');
 
     // Paid orders can't be edited.
     app(RecordPaymentResult::class)->handle($order->payments->sole(), PaymentResult::paid());
-    $this->get("/cms/commerce/orders/{$order->id}/edit")->assertRedirect("/cms/commerce/orders/{$order->id}");
-    $this->put("/cms/commerce/orders/{$order->id}", ['lines' => [['variant_id' => $this->tea->id, 'quantity' => 1]]])->assertSessionHasErrors('lines');
+    $this->get("/admin/commerce/orders/{$order->id}/edit")->assertRedirect("/admin/commerce/orders/{$order->id}");
+    $this->put("/admin/commerce/orders/{$order->id}", ['lines' => [['variant_id' => $this->tea->id, 'quantity' => 1]]])->assertSessionHasErrors('lines');
 });
 
 it('previews totals for the editor', function () {
     actingAsUserWith(['commerce.orders.view', 'commerce.orders.create']);
-    $json = $this->postJson('/cms/commerce/orders/preview', ['lines' => [['variant_id' => $this->mug->id, 'quantity' => 2]], 'shipping' => ['label' => 'X', 'cost' => 5000]])->assertOk()->json();
+    $json = $this->postJson('/admin/commerce/orders/preview', ['lines' => [['variant_id' => $this->mug->id, 'quantity' => 2]], 'shipping' => ['label' => 'X', 'cost' => 5000]])->assertOk()->json();
     expect($json['totals']['total'])->toBe('Rp105.000')->and($json['lines'][0]['unit_price_formatted'])->toBe('Rp50.000');
 });

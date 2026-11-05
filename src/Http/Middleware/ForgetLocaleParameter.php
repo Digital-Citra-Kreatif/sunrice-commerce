@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Store routes in other languages live under /{locale}; the language is
- * already set (SetFrontendLocale), so controllers don't get it as a
+ * already set (SetStoreLocale), so controllers don't get it as a
  * parameter.
  */
 class ForgetLocaleParameter

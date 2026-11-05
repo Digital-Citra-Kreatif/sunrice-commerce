@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Schema;
 use Spatie\OneTimePasswords\Models\Concerns\HasOneTimePasswords;
 use Sunrice\Commerce\Database\Seeders\DemoStoreSeeder;
 use Sunrice\Commerce\Database\Seeders\StarterStoreSeeder;
+use Sunrice\Commerce\Support\Staff;
 use Sunrice\Commerce\Support\UserModelTraits;
 
 /**
@@ -20,7 +21,7 @@ use Sunrice\Commerce\Support\UserModelTraits;
 class InstallCommand extends Command
 {
     protected $signature = 'commerce:install
-        {--templates : Publish the storefront templates (resources/views/sunrice and resources/views/commerce) and theme (public/commerce-theme)}
+        {--templates : Publish the storefront templates (resources/views/cms and resources/views/commerce) and theme (public/commerce-theme)}
         {--starter : Publish the starter theme: the storefront templates plus the site layout, header, footer, home, content, search and 404 pages}
         {--demo : Add a demo store (products, payments, shipping, a voucher, a flash sale and an order); with --starter, the apparel store the starter theme shows}
         {--no-regions : Skip importing Indonesian regions}
@@ -82,12 +83,7 @@ class InstallCommand extends Command
     /** Sign-in with an emailed code needs HasOneTimePasswords on the user model. */
     protected function userModel(): void
     {
-        $model = config('sunrice.auth.user_model');
-        if (! is_string($model) || ! class_exists($model)) {
-            $this->components->warn('No user model configured (sunrice.auth.user_model).');
-
-            return;
-        }
+        $model = Staff::userModel();
         match (UserModelTraits::ensure($model, HasOneTimePasswords::class)) {
             true => $this->components->twoColumnDetail('User model', "HasOneTimePasswords trait added to {$model}"),
             null => null,

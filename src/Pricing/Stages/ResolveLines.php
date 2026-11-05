@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Pricing\Stages;
 
+use Sunrice\Cms\Models\EntryTranslation;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Catalog\Catalog;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Pricing\CalculationState;
 use Sunrice\Commerce\Pricing\Contracts\CalculationStage;
-use Sunrice\Models\EntryTranslation;
-use Sunrice\Support\Locales;
 
 /**
  * Drops lines that can't be bought (unpublished, out of stock, hidden
@@ -66,7 +66,7 @@ class ResolveLines implements CalculationStage
     protected function title(Variant $variant): string
     {
         $entry = EntryTranslation::query()->where('entry_id', $variant->product->entry_id)
-            ->whereIn('locale', [app()->getLocale(), Locales::main()])->pluck('title', 'locale');
+            ->whereIn('locale', [app()->getLocale(), Locales::default()])->pluck('title', 'locale');
         $title = (string) ($entry[app()->getLocale()] ?? $entry->first() ?? '');
 
         return $variant->title !== '' ? "{$title} ({$variant->title})" : $title;

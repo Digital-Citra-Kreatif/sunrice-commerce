@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Contracts\HandlesReturn;
 use Sunrice\Commerce\Payments\Contracts\HandlesWebhooks;
@@ -19,7 +20,6 @@ use Sunrice\Commerce\Payments\PaymentMethodBase;
 use Sunrice\Commerce\Payments\PaymentResult;
 use Sunrice\Commerce\Payments\PaymentStart;
 use Sunrice\Commerce\Support\MoneyFormatter;
-use Sunrice\Support\Locales;
 use Throwable;
 
 /**
@@ -166,7 +166,7 @@ abstract class GatewayMethod extends PaymentMethodBase implements HandlesReturn,
     {
         $status = fn (array $names) => implode(', ', array_map(fn (string $config, string $env) => $env.' ('.(filled(config($config)) ? 'set' : 'missing').')', array_keys($names), $names));
         $fields = [];
-        foreach (Locales::available() as $locale) {
+        foreach (Locales::all() as $locale) {
             $fields[] = ['handle' => $locale, 'type' => 'textarea', 'label' => Locales::name($locale), 'translatable' => false, 'config' => ['max' => 3000]];
         }
 

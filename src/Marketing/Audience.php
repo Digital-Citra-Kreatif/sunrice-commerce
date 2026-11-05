@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Marketing;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Marketing\Models\Campaign;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Support\Locales;
+use Sunrice\Commerce\Support\Staff;
 
 /**
  * Who a marketing email goes to: customers who accept marketing (never
@@ -53,7 +53,7 @@ class Audience
             ]],
             'role' => ['label' => 'Has the role', 'group' => 'Customer', 'input' => 'select', 'options' => array_map(fn (string $r) => ['value' => $r, 'label' => $r],
                 Role::query()->whereIn('name', (array) app(StoreSettings::class)->get('accounts.customer_roles', ['Customer']))->pluck('name')->all() ?: ['Customer'])],
-            'language' => ['label' => 'Language', 'group' => 'Customer', 'input' => 'select', 'options' => array_map(fn (string $l) => ['value' => $l, 'label' => Locales::name($l)], Locales::available())],
+            'language' => ['label' => 'Language', 'group' => 'Customer', 'input' => 'select', 'options' => array_map(fn (string $l) => ['value' => $l, 'label' => Locales::name($l)], Locales::all())],
             'province' => ['label' => 'Province (address)', 'group' => 'Customer', 'input' => 'text'],
             'city' => ['label' => 'City (address)', 'group' => 'Customer', 'input' => 'text'],
 
@@ -164,7 +164,7 @@ class Audience
             'account' => $value === 'guest' ? $q->whereNull('user_id') : $q->whereNotNull('user_id'),
             'role' => $q->whereIn('user_id', DB::table('model_has_roles')->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
                 ->where('roles.name', (string) $value)->where('model_has_roles.model_type', self::userMorphClass())->select('model_has_roles.model_id')),
-            'language' => (string) $value === Locales::main()
+            'language' => (string) $value === Locales::default()
                 ? $q->where(fn (Builder $w) => $w->where('locale', $value)->orWhereNull('locale'))
                 : $q->where('locale', (string) $value),
             'province', 'city' => $q->whereIn('commerce_customers.id', DB::table('commerce_addresses')
@@ -201,8 +201,8 @@ class Audience
 
     protected static function userMorphClass(): string
     {
-        $class = (string) config('sunrice.auth.user_model');
+        $class = Staff::userModel();
 
-        return class_exists($class) && is_subclass_of($class, Model::class) ? (new $class)->getMorphClass() : $class;
+        return (new $class)->getMorphClass();
     }
 }

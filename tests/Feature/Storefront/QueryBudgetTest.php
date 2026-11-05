@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\DB;
+use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
-use Sunrice\Models\Entry;
 
 /*
  * Query budgets (ARCHITECTURE.md §26): page queries must not grow with

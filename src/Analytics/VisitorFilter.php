@@ -28,6 +28,6 @@ class VisitorFilter
         }
         $user = $request->user();
 
-        return ! ($user !== null && $user->can('sunrice.access-admin'));
+        return ! ($user !== null && $user->can('sunrice.access'));
     }
 }

@@ -8,13 +8,14 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\View\Component;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\Models\CartItem;
 use Sunrice\Commerce\Catalog\ProductView;
 use Sunrice\Commerce\Pricing\CalcLine;
 use Sunrice\Commerce\Storefront\Layout;
-use Sunrice\Models\Entry;
 
 /**
  * <x-commerce::cart /> — the cart lines, voucher field and totals (the cart
@@ -25,7 +26,7 @@ class Cart extends Component
 {
     public CartView $cart;
 
-    /** @var LengthAwarePaginator<int, array{item: CartItem, line: CalcLine, product: ?ProductView, entry: ?Entry}> */
+    /** @var LengthAwarePaginator<int, array{item: CartItem, line: CalcLine, product: ?ProductView, entry: ?EntryTranslation}> */
     public LengthAwarePaginator $lines;
 
     public function __construct(?CartView $cart = null)

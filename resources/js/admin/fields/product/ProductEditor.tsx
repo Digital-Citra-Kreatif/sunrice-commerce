@@ -1,4 +1,4 @@
-import { adminUrl, fetchJson, inertia, React } from '../../lib/sunrice';
+import { React, adminUrl, fetchJson, inertia } from '../../lib/sunrice';
 import { api } from '../../lib/api';
 import { cn } from '../../lib/cn';
 import { useCommerceShared } from '../../lib/store';
@@ -25,8 +25,8 @@ function withDefaults(value: Partial<ProductValue> | null | undefined): ProductV
     };
 }
 
-/** commerce_product: the product data editor in Sunrice's entry editor. */
-export default function ProductEditor({ field, value: raw, onChange, errors, pathPrefix = 'data.product' }: FieldProps<Partial<ProductValue> | null>) {
+/** commerce_product: the product data editor in the CMS's entry editor (registerFieldInput()). */
+export default function ProductEditor({ field, value: raw, onChange, errors, id = 'data-product' }: FieldProps<Partial<ProductValue> | null>) {
     useCommerceShared();
     const config = (field.config ?? {}) as unknown as EditorConfig;
     const value = withDefaults(raw);
@@ -63,8 +63,8 @@ export default function ProductEditor({ field, value: raw, onChange, errors, pat
 
     const [current, setCurrent] = React.useState('general');
     const active = tabs.find((t) => t.key === current) ?? tabs[0];
-    const error = errors?.[pathPrefix];
-    const tabProps: TabProps = { value, update, updateVariant, config, live, entryId, path: pathPrefix.replace(/\W+/g, '-') };
+    const error = errors?.[''];
+    const tabProps: TabProps = { value, update, updateVariant, config, live, entryId, path: id };
 
     return (
         <div className="cm:grid cm:gap-4 cm:rounded-lg cm:border cm:p-4">

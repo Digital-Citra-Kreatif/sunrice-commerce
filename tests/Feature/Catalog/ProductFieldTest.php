@@ -3,12 +3,13 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Validator;
+use Sunrice\Cms\Fields\Field;
+use Sunrice\Cms\Fields\HydrationContext;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Catalog\ProductData;
 use Sunrice\Commerce\Catalog\ProductField;
 use Sunrice\Commerce\Catalog\ProductValue;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
-use Sunrice\Fields\HydrationContext;
 
 function productErrors(array $value): array
 {
@@ -78,7 +79,7 @@ it('normalizes: defaults, stable ids, unknown keys, the simple invariant', funct
         'hack' => 'x',
         'options' => [['id' => 'size', 'name' => 'Size', 'values' => [['label' => 'S']]]],
         'variants' => [['id' => 'keep', 'price' => '150000', 'options' => ['size' => 's'], 'evil' => 1], ['price' => 1]],
-    ], []);
+    ], Field::make('product', 'commerce_product'));
 
     expect($value)->not->toHaveKey('hack')
         ->and($value['options'])->toBe([])
@@ -87,17 +88,17 @@ it('normalizes: defaults, stable ids, unknown keys, the simple invariant', funct
         ->and($value['variants'][0]['price'])->toBe(150000)
         ->and($value['variants'][0])->not->toHaveKey('evil');
 
-    $variable = $field->normalize(variableValue(['options' => [['name' => 'Size', 'values' => [['label' => 'S']]]]]), []);
+    $variable = $field->normalize(variableValue(['options' => [['name' => 'Size', 'values' => [['label' => 'S']]]]]), Field::make('product', 'commerce_product'));
     expect($variable['options'][0]['id'])->toHaveLength(26)
         ->and($variable['options'][0]['values'][0]['id'])->toHaveLength(26);
 });
 
 it('validates through Laravel rules and hydrates to ProductData', function () {
     $field = new ProductField;
-    $validator = Validator::make(['product' => ['variants' => [['price' => -5]]]], ['product' => $field->rules([])]);
+    $validator = Validator::make(['product' => ['variants' => [['price' => -5]]]], ['product' => $field->rules(Field::make('product', 'commerce_product'))]);
     expect($validator->fails())->toBeTrue();
 
-    $data = $field->hydrate(variableValue(), [], new HydrationContext('id'));
+    $data = $field->hydrate(variableValue(), Field::make('product', 'commerce_product'), new HydrationContext('id'));
     expect($data)->toBeInstanceOf(ProductData::class)
         ->and($data->priceRange())->toBe([150000, 160000])
         ->and($data->valueLabel('size', 'm'))->toBe('M')

@@ -58,9 +58,8 @@
                     @include($L::view('partials.field-error'), ['name' => 'proof'])</label>
                 <label class="commerce-field"><span>{{ __('commerce::payments.confirm.note') }}</span>
                     <textarea name="note" rows="2" maxlength="500">{{ old('note') }}</textarea></label>
-                @if ($captcha)
-                    <script src="{{ $captcha['script'] }}" async defer></script>
-                    <div class="{{ $captcha['class'] }}" data-sitekey="{{ $captcha['site_key'] }}"></div>
+                @if (filled((string) ($captcha ?? '')))
+                    {{ $captcha }}
                     @include($L::view('partials.field-error'), ['name' => 'captcha'])
                 @endif
                 <button type="submit" class="commerce-button commerce-button--primary">{{ __('commerce::payments.confirm.submit') }}</button>

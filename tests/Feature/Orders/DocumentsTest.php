@@ -63,13 +63,13 @@ it('assigns the invoice number once and regenerates after an edit', function () 
 
 it('serves documents to staff with the permission and invoices to customers by key', function () {
     actingAsUserWith(['commerce.orders.view']);
-    $this->get("/cms/commerce/orders/{$this->order->id}/documents/invoice")->assertForbidden();
+    $this->get("/admin/commerce/orders/{$this->order->id}/documents/invoice")->assertForbidden();
     actingAsUserWith(['commerce.orders.view', 'commerce.documents.view'], 'docs@example.com');
-    $this->get("/cms/commerce/orders/{$this->order->id}/documents/invoice")->assertOk()->assertHeader('Content-Type', 'application/pdf');
+    $this->get("/admin/commerce/orders/{$this->order->id}/documents/invoice")->assertOk()->assertHeader('Content-Type', 'application/pdf');
     $other = makeOrder();
-    $response = $this->get("/cms/commerce/orders/packing-slips?ids={$this->order->id},{$other->id}")->assertOk();
+    $response = $this->get("/admin/commerce/orders/packing-slips?ids={$this->order->id},{$other->id}")->assertOk();
     expect(substr((string) $response->getContent(), 0, 5))->toBe('%PDF-');
-    $this->post('/cms/commerce/orders/bulk', ['action' => 'packing_slips', 'ids' => [$this->order->id]])->assertRedirect();
+    $this->post('/admin/commerce/orders/bulk', ['action' => 'packing_slips', 'ids' => [$this->order->id]])->assertRedirect();
 
     $this->get("/order/{$this->order->order_key}/invoice")->assertNotFound(); // unpaid
     $this->order->forceFill(['payment_status' => 'paid', 'status' => 'processing'])->save();

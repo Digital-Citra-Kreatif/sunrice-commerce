@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Catalog\Bundles;
 use Sunrice\Commerce\Catalog\Catalog;
 use Sunrice\Commerce\Catalog\Models\Product;
@@ -12,7 +13,6 @@ use Sunrice\Commerce\Pricing\Calculator;
 use Sunrice\Commerce\Pricing\PricingContext;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
-use Sunrice\Models\Entry;
 
 beforeEach(function () {
     $this->mugEntry = publishProduct(['variants' => [['id' => 'mug', 'sku' => 'MUG', 'price' => 40000, 'weight' => 300, 'track_stock' => true, 'initial_stock' => 10]]], title: 'Mug');
@@ -57,7 +57,7 @@ it('follows its components\' stock and weight', function () {
 
 it('is unavailable when a component is unpublished', function () {
     $bundle = giftSet('fixed', 0);
-    Entry::query()->whereKey($this->teaEntry->id)->update(['status' => 'draft']);
+    unpublishEntry($this->teaEntry->id);
     app()->forgetScopedInstances();
 
     expect(app(Bundles::class)->available($bundle->fresh()))->toBe(0)

@@ -80,9 +80,9 @@ it('refunds partly, then fully, with restock movements, and refuses more than wa
 
 it('records refunds from the admin with the refund permission', function () {
     actingAsUserWith(['commerce.orders.view']);
-    $this->post("/cms/commerce/orders/{$this->order->id}/refunds", ['amount' => 1000])->assertForbidden();
+    $this->post("/admin/commerce/orders/{$this->order->id}/refunds", ['amount' => 1000])->assertForbidden();
     actingAsUserWith(['commerce.orders.view', 'commerce.orders.refund'], 'refunder@example.com');
-    $this->post("/cms/commerce/orders/{$this->order->id}/refunds", ['amount' => 200000])->assertSessionHasErrors('amount');
-    $this->post("/cms/commerce/orders/{$this->order->id}/refunds", ['amount' => 10000, 'reason' => 'Goodwill'])->assertSessionHas('success');
+    $this->post("/admin/commerce/orders/{$this->order->id}/refunds", ['amount' => 200000])->assertSessionHasErrors('amount');
+    $this->post("/admin/commerce/orders/{$this->order->id}/refunds", ['amount' => 10000, 'reason' => 'Goodwill'])->assertSessionHas('success');
     expect($this->order->fresh()->refunded_total)->toBe(10000);
 });

@@ -25,25 +25,25 @@ const MODULE_SURFACES = [
     'bundles' => [[], []],
     'digital' => [[], []],
     'brands' => [['/brands'], []],
-    'inventory' => [['/cms/commerce/inventory'], ['Inventory']],
+    'inventory' => [['/admin/commerce/inventory'], ['Inventory']],
     'cart' => [['/cart', '/checkout'], []],
-    'orders' => [['/cms/commerce/orders', '/track-order'], ['Orders']],
+    'orders' => [['/admin/commerce/orders', '/track-order'], ['Orders']],
     'checkout' => [['/checkout'], []],
     'documents' => [[], []],
-    'taxes' => [['/cms/commerce/settings/tax-rates'], []],
-    'payments' => [['/cms/commerce/settings/payments'], []],
-    'manual_payments' => [['/confirm-payment', '/cms/commerce/confirmations'], ['Payments to verify']],
-    'shipping' => [['/cms/commerce/settings/shipping'], []],
-    'pricing_rules' => [['/cms/commerce/pricing-rules'], ['Pricing rules']],
-    'flash_sales' => [['/flash-sale', '/cms/commerce/flash-sales'], ['Flash sales']],
-    'vouchers' => [['/cms/commerce/vouchers'], ['Vouchers']],
+    'taxes' => [['/admin/commerce/settings/tax-rates'], []],
+    'payments' => [['/admin/commerce/settings/payments'], []],
+    'manual_payments' => [['/confirm-payment', '/admin/commerce/confirmations'], ['Payments to verify']],
+    'shipping' => [['/admin/commerce/settings/shipping'], []],
+    'pricing_rules' => [['/admin/commerce/pricing-rules'], ['Pricing rules']],
+    'flash_sales' => [['/flash-sale', '/admin/commerce/flash-sales'], ['Flash sales']],
+    'vouchers' => [['/admin/commerce/vouchers'], ['Vouchers']],
     'accounts' => [['/account/login'], []],
     'passwordless_login' => [[], []],
     'google_login' => [['/account/login/google'], []],
     'wishlist' => [['/wishlist'], []],
     'compare' => [['/compare'], []],
-    'marketing' => [['/cms/commerce/marketing/campaigns', '/cms/commerce/marketing/automations'], ['Campaigns', 'Automations']],
-    'analytics' => [['/cms/commerce/reports/sales'], ['Reports']],
+    'marketing' => [['/admin/commerce/marketing/campaigns', '/admin/commerce/marketing/automations'], ['Campaigns', 'Automations']],
+    'analytics' => [['/admin/commerce/reports/sales'], ['Reports']],
     'ai_tools' => [[], []],
 ];
 
@@ -64,12 +64,12 @@ function switchOff(string $feature): void
 function shopMenu(): array
 {
     $items = [];
-    test()->get('/cms/commerce')->assertInertia(function (AssertableInertia $page) use (&$items) {
+    test()->get('/admin/commerce')->assertInertia(function (AssertableInertia $page) use (&$items) {
         foreach ($page->toArray()['props']['navigation'] as $group) {
-            if ($group['label'] === 'Shop') {
+            if ($group['group'] === 'Shop') {
                 // Submenus' links too.
                 foreach ($group['items'] as $item) {
-                    $items = [...$items, $item['label'], ...array_column($item['items'] ?? [], 'label')];
+                    $items = [...$items, $item['label'], ...array_column($item['children'] ?? [], 'label')];
                 }
             }
         }

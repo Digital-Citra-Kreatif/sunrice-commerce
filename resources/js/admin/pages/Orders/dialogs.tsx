@@ -1,4 +1,4 @@
-import { adminUrl, inertia, React, ui } from '../../lib/sunrice';
+import { React, adminUrl, inertia, ui } from '../../lib/sunrice';
 import { MoneyInput } from '../../components/MoneyInput';
 import type { OrderData } from './types';
 

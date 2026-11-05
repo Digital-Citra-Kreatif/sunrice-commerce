@@ -13,10 +13,10 @@ use Sunrice\Commerce\Mcp\CommerceTool;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 
 #[IsReadOnly]
-#[Description('List flash sales with their dates, state (upcoming, running, ended or off), item count and units sold. Change one with save_flash_sale (id).')]
+#[Description('List flash sales with their dates, state (upcoming, running, ended or off), item count and units sold. Change one with commerce_save_flash_sale (id).')]
 class ListFlashSalesTool extends CommerceTool
 {
-    protected string $name = 'list_flash_sales';
+    protected string $name = 'commerce_list_flash_sales';
 
     protected ?string $feature = 'flash_sales';
 

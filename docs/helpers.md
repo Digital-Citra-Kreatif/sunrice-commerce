@@ -13,6 +13,8 @@ Global functions for templates, defined in `src/helpers.php`. Each is wrapped in
 - [`commerce_customer`](#commerce_customer)
 - [`commerce_product`](#commerce_product)
 - [`commerce_store_name`](#commerce_store_name)
+- [`commerce_values`](#commerce_values)
+- [`commerce_body_classes`](#commerce_body_classes)
 - [ProductView](#productview)
 - [The Commerce facade](#the-commerce-facade)
 
@@ -24,8 +26,10 @@ Global functions for templates, defined in `src/helpers.php`. Each is wrapped in
 | `commerce_feature(string $feature)` | `bool`: whether a store module is on |
 | `commerce_url(string $name, array $parameters = [], ?string $locale = null)` | `string`: a store page URL in the visitor's language |
 | `commerce_customer()` | `?Authenticatable`: the user signed in to the storefront |
-| `commerce_product(Entry\|int $entry)` | `?ProductView`: what templates show for a product |
+| `commerce_product(EntryTranslation\|Entry\|int $entry)` | `?ProductView`: what templates show for a product |
 | `commerce_store_name()` | `string`: the store's name |
+| `commerce_values(EntryTranslation\|Term\|TermTranslation $item)` | `array`: an entry's or term's fields as templates get them |
+| `commerce_body_classes()` | `list<string>`: the store's `<body>` classes on its own pages |
 
 ## commerce_money
 
@@ -103,10 +107,11 @@ which returns a `Customers\Models\Customer` or null. See [accounts.md](accounts.
 ## commerce_product
 
 ```php
-commerce_product(Sunrice\Models\Entry|int $entry): ?Sunrice\Commerce\Catalog\ProductView
+commerce_product(Sunrice\Cms\Models\EntryTranslation|Sunrice\Cms\Models\Entry|int $entry): ?Sunrice\Commerce\Catalog\ProductView
 ```
 
-The [ProductView](#productview) of a product entry, by model or id: price display, badges, stock,
+The [ProductView](#productview) of a product entry: the `$entry` a template gets (an
+`EntryTranslation`), or an `Entry` or its id (shown as visitors see it in the page's language): price display, badges, stock,
 call to action, bulk prices and variant data, for the current visitor (their prices, their price
 visibility). Null when the entry isn't a product or the id doesn't exist.
 
@@ -135,6 +140,36 @@ The store's name from Settings → Store → General, or `config('app.name')` wh
 <p>© {{ date('Y') }} {{ commerce_store_name() }}</p>
 ```
 
+## commerce_values
+
+```php
+commerce_values(Sunrice\Cms\Models\EntryTranslation|Sunrice\Cms\Models\Term|Sunrice\Cms\Models\TermTranslation $item): array
+```
+
+An entry's or term's fields as templates get them (the CMS's `values()`: media files, linked
+entries and terms hydrated), by handle, worked out once per request for each item, so a partial
+that reads several fields of a product card hydrates it once. A field never filled in may be
+missing: read it with `?? null`.
+
+```blade
+@php($values = commerce_values($entry))
+@if (filled($values['excerpt'] ?? null))<p>{{ $values['excerpt'] }}</p>@endif
+```
+
+## commerce_body_classes
+
+```php
+commerce_body_classes(): array
+```
+
+On the store's own pages (cart, checkout, account…), `page-commerce` and the page's class
+(`commerce-cart`, `commerce-account-orders`); elsewhere none. Layouts pass them to the CMS's
+`@bodyClass`, which adds the page's own classes:
+
+```blade
+<body @bodyClass(commerce_body_classes())>
+```
+
 ## ProductView
 
 `Sunrice\Commerce\Catalog\ProductView` is what templates show for a product. It's read only. Get
@@ -145,7 +180,7 @@ partials receive it as `$product`.
 
 | Property | Type | |
 | --- | --- | --- |
-| `entry` | `Sunrice\Models\Entry` | The product entry |
+| `entry` | `Sunrice\Cms\Models\EntryTranslation` | The product entry, as shown |
 | `product` | `Catalog\Models\Product` | The product, with its variants |
 | `type` | string | `simple`, `variable` or `bundle` |
 | `price` | array | The price display (below) |

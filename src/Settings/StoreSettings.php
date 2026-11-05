@@ -6,13 +6,12 @@ namespace Sunrice\Commerce\Settings;
 
 use Illuminate\Support\Arr;
 use Sunrice\Commerce\Support\Defaults;
-use Sunrice\Models\Setting;
 use Throwable;
 
 /**
- * The settings edited in Settings → Store: one `commerce` row in Sunrice's
+ * The settings edited in Settings → Store: one `commerce` row in the panel's
  * settings table, laid over the defaults in config('commerce.defaults').
- * Read once per request (Sunrice's Setting::get()).
+ * Read once per request (the panel's settings store, StoredValues).
  *
  *     app(StoreSettings::class)->get('checkout.guest_checkout');
  *     app(StoreSettings::class)->section('general');
@@ -33,7 +32,7 @@ class StoreSettings
     public function stored(): array
     {
         try {
-            return (array) Setting::get(self::KEY, []);
+            return (new StoredValues)->values;
         } catch (Throwable) {
             return [];
         }
@@ -66,7 +65,9 @@ class StoreSettings
     {
         $stored = $this->stored();
         $stored[$section] = array_replace((array) ($stored[$section] ?? []), $values);
-        Setting::set(self::KEY, $stored);
+        $settings = new StoredValues;
+        $settings->values = $stored;
+        $settings->save();
         $this->flush();
     }
 

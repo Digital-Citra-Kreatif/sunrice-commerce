@@ -7,12 +7,12 @@ namespace Sunrice\Commerce\Http\Controllers\Storefront;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Sunrice\Admin\Security\Captcha;
 use Sunrice\Commerce\Customers\Auth\Throttle;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Actions\SubmitPaymentConfirmation;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
-use Sunrice\Support\Captcha;
 
 /**
  * /confirm-payment: "I have paid" for an order, reached from the order
@@ -31,7 +31,7 @@ class ConfirmPaymentController
             'payment' => $payment,
             'accounts' => (array) ($payment->instructions['accounts'] ?? []),
             'proofRequired' => ($payment->instructions['confirmation'] ?? null) === 'required',
-            'captcha' => Captcha::widget(app()->getLocale()),
+            'captcha' => app(Captcha::class)->widget(app()->getLocale()),
             'seoTitle' => __('commerce::payments.confirm.title'),
         ]);
     }
@@ -55,7 +55,7 @@ class ConfirmPaymentController
         $key = (string) $request->input('order');
         $order = strlen($key) === 40 ? Order::query()->where('order_key', $key)->first() : null;
         abort_if($order === null, 404);
-        if (($field = Captcha::field()) !== null && ! Captcha::verify((string) $request->input($field), $request->ip())) {
+        if (! app(Captcha::class)->passes($request)) {
             return back()->withInput()->withErrors(['captcha' => __('commerce::payments.confirm.captcha')]);
         }
         $submit->handle($order, $request->except(['order', 'proof']), $request->file('proof'), $request->ip());

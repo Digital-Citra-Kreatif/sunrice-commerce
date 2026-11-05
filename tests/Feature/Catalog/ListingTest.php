@@ -5,6 +5,9 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
+use Sunrice\Cms\Models\Term;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\ProductQuery;
@@ -12,8 +15,6 @@ use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\View\Components\Products;
-use Sunrice\Models\Entry;
-use Sunrice\Models\Term;
 
 /** @param array<int, Term> $terms */
 function listed(string $title, int $price, array $terms = [], array $extra = []): Entry
@@ -26,7 +27,7 @@ function listed(string $title, int $price, array $terms = [], array $extra = [])
 
 function titles(ProductQuery $query): array
 {
-    return $query->paginate()->getCollection()->map(fn (Entry $e) => $e->title)->all();
+    return $query->paginate()->getCollection()->map(fn (EntryTranslation $e) => $e->title)->all();
 }
 
 beforeEach(function () {
@@ -69,7 +70,7 @@ it('searches titles and SKUs', function () {
 });
 
 it('leaves out unpublished entries', function () {
-    $this->a->update(['status' => 'draft']);
+    unpublishEntry($this->a);
     expect(titles(ProductQuery::make()->sort('name')))->toBe(['Kaos Merah', 'Tas Kanvas']);
 });
 
@@ -113,7 +114,7 @@ it('lists a page of products in a fixed number of queries', function () {
     }
     DB::enableQueryLog();
     $page = ProductQuery::make()->sort('price')->paginate(24);
-    $page->getCollection()->each(fn (Entry $e) => commerce_product($e));
+    $page->getCollection()->each(fn (EntryTranslation $e) => commerce_product($e));
     $queries = count(DB::getQueryLog());
 
     expect($page->count())->toBe(23)->and($queries)->toBeLessThanOrEqual(15);

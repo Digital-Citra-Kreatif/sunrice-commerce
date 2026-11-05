@@ -30,7 +30,7 @@ it('publishes templates that the store then uses, and falls back without them', 
     try {
         $this->artisan('vendor:publish', ['--tag' => 'commerce-templates', '--force' => true])->assertSuccessful();
         expect(File::exists(resource_path('views/commerce/cart.blade.php')))->toBeTrue()
-            ->and(File::exists(resource_path('views/sunrice/products/show.blade.php')))->toBeTrue()
+            ->and(File::exists(resource_path('views/cms/collections/products/show.blade.php')))->toBeTrue()
             ->and(File::exists(public_path('commerce-theme/commerce.css')))->toBeTrue();
 
         File::put(resource_path('views/commerce/cart.blade.php'), File::get(resource_path('views/commerce/cart.blade.php')).'{{-- marker --}}<p>APP CART COPY</p>');
@@ -52,8 +52,8 @@ it('publishes the starter theme with the templates', function () {
     expect(count($published))->toBeGreaterThan(count(Templates::publishable()));
     try {
         $this->artisan('vendor:publish', ['--tag' => 'commerce-starter', '--force' => true])->assertSuccessful();
-        foreach (['views/sunrice/layouts/app.blade.php', 'views/sunrice/partials/store-header.blade.php', 'views/sunrice/home.blade.php',
-            'views/errors/404.blade.php', 'views/commerce/cart.blade.php', 'views/sunrice/products/show.blade.php'] as $path) {
+        foreach (['views/cms/layout.blade.php', 'views/cms/partials/store-header.blade.php', 'views/cms/home.blade.php',
+            'views/errors/404.blade.php', 'views/commerce/cart.blade.php', 'views/cms/collections/products/show.blade.php'] as $path) {
             expect(File::exists(resource_path($path)))->toBeTrue($path);
         }
         expect(File::exists(public_path('commerce-theme/commerce.css')))->toBeTrue();
@@ -61,7 +61,7 @@ it('publishes the starter theme with the templates', function () {
         foreach ($published as $path) {
             File::isDirectory($path) ? File::deleteDirectory($path) : File::delete($path);
         }
-        foreach (['views/commerce', 'views/sunrice', 'views/errors'] as $dir) {
+        foreach (['views/commerce', 'views/cms', 'views/errors'] as $dir) {
             File::deleteDirectory(resource_path($dir));
         }
         app('view')->getFinder()->flush();

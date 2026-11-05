@@ -10,13 +10,13 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Sunrice\Cms\Models\EntryTranslation;
+use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\Term;
+use Sunrice\Cms\Query\EntryQuery;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Models\Entry;
-use Sunrice\Models\Taxonomy;
-use Sunrice\Models\Term;
-use Sunrice\Query\EntryQuery;
-use Sunrice\Support\Locales;
 
 /**
  * Product listings (ARCHITECTURE.md §7.5): Sunrice decides which entries
@@ -232,20 +232,19 @@ class ProductQuery
 
     /**
      * @param  int|null  $page  null: from the request's ?{$pageName}
-     * @return LengthAwarePaginator<int, Entry> entries, in listing order, with views preloaded
+     * @return LengthAwarePaginator<int, EntryTranslation> entries as shown, in listing order, with views preloaded
      */
     public function paginate(int $perPage = 24, string $pageName = 'page', ?int $page = null): LengthAwarePaginator
     {
         $products = $this->products()->select('commerce_products.entry_id')->paginate($perPage, ['commerce_products.entry_id'], $pageName, $page);
         $ids = $products->getCollection()->pluck('entry_id')->map(fn ($id) => (int) $id)->all();
-        $entries = $ids === [] ? collect() : EntryQuery::collection($this->collection)->where('id', 'in', $ids)->get()->keyBy('id');
-        $ordered = collect($ids)->map(fn (int $id) => $entries->get($id))->filter()->values();
+        $ordered = LiveEntries::shown($this->collection, $ids)->values();
         app(ProductViewFactory::class)->forEntries($ordered);
 
         return $products->setCollection($ordered);
     }
 
-    /** @return Collection<int, Entry> */
+    /** @return Collection<int, EntryTranslation> */
     public function get(int $limit = 24): Collection
     {
         // Always the first products, whatever ?page the host page has.
@@ -296,7 +295,7 @@ class ProductQuery
                 }
                 $terms[$handle] = Term::query()->with('translations')->whereIn('id', $counts->keys())->get()
                     ->map(fn (Term $term) => [
-                        'id' => $term->id, 'name' => (string) $term->resolveFor(app()->getLocale())->name, 'slug' => (string) $term->slug,
+                        'id' => $term->id, 'name' => (string) $term->title(), 'slug' => (string) $term->translation(app()->getLocale())?->slug,
                         'count' => (int) $counts[$term->id], 'selected' => in_array($term->id, $this->terms[$handle] ?? [], true),
                     ])->sortBy('name')->values()->all();
             }
@@ -337,17 +336,19 @@ class ProductQuery
     /** The live entries matching the content filters (Sunrice's own query). */
     protected function liveEntries(?string $exclude = null): QueryBuilder
     {
-        $entries = EntryQuery::collection($this->collection);
-        foreach ($this->terms as $taxonomy => $ids) {
-            if ($taxonomy !== $exclude && ! in_array($taxonomy, (array) app(StoreSettings::class)->get('catalog.attribute_taxonomies', []), true)) {
-                $entries->whereTerm($taxonomy, $ids);
+        $attributes = (array) app(StoreSettings::class)->get('catalog.attribute_taxonomies', []);
+        $entries = LiveEntries::ids($this->collection, function (EntryQuery $entries) use ($exclude, $attributes): void {
+            foreach ($this->terms as $taxonomy => $ids) {
+                if ($taxonomy !== $exclude && ! in_array($taxonomy, $attributes, true)) {
+                    $entries->whereTerm($taxonomy, $ids);
+                }
             }
-        }
+        });
         if ($this->entryIds !== null) {
-            $entries->where('id', 'in', $this->entryIds ?: [0]);
+            $entries->whereIn('sunrice_entry_translations.entry_id', $this->entryIds ?: [0]);
         }
 
-        return $entries->toBase()->reorder()->select('sunrice_entries.id')->toBase();
+        return $entries;
     }
 
     /** @return Builder<Product> */
@@ -366,7 +367,8 @@ class ProductQuery
 
         if ($this->search !== null) {
             $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $this->search).'%';
-            $matching = EntryQuery::collection($this->collection)->search($this->search, ['title', 'excerpt'])->toBase()->reorder()->select('sunrice_entries.id')->toBase();
+            $search = $this->search;
+            $matching = LiveEntries::ids($this->collection, fn (EntryQuery $entries) => $entries->search($search));
             $query->where(fn (Builder $q) => $q->whereIn('commerce_products.entry_id', $matching)
                 ->orWhereHas('variants', fn (Builder $v) => $v->whereLike('sku', $like)));
         }
@@ -397,16 +399,18 @@ class ProductQuery
     protected function applySort(Builder $query): Builder
     {
         $sort = in_array($this->sort, ['price', '-price'], true) && ! $this->pricesVisible() ? 'featured' : $this->sort;
-        $entries = fn () => $query->join('sunrice_entries as e', 'e.id', '=', 'commerce_products.entry_id');
+        // The entry (its manual order) and its main language (its publication date).
+        $entries = fn () => $query->join('sunrice_entries as e', 'e.id', '=', 'commerce_products.entry_id')
+            ->join('sunrice_entry_translations as pt', fn ($j) => $j->on('pt.entry_id', '=', 'commerce_products.entry_id')->where('pt.locale', Locales::default()));
 
         match ($sort) {
             'price' => $query->orderBy('commerce_products.min_price'),
             '-price' => $query->orderByDesc('commerce_products.max_price'),
             'best_selling' => $query->orderByDesc('commerce_products.sales_count'),
-            'newest' => $entries()->orderByDesc('e.published_at'),
-            'name' => $query->join('sunrice_entry_translations as nt', fn ($j) => $j->on('nt.entry_id', '=', 'commerce_products.entry_id')->where('nt.locale', Locales::main()))
+            'newest' => $entries()->orderByDesc('pt.published_at'),
+            'name' => $query->join('sunrice_entry_translations as nt', fn ($j) => $j->on('nt.entry_id', '=', 'commerce_products.entry_id')->where('nt.locale', Locales::default()))
                 ->orderBy('nt.title'),
-            default => $entries()->orderByDesc('commerce_products.featured')->orderBy('e.sort_order')->orderByDesc('e.published_at'),
+            default => $entries()->orderByDesc('commerce_products.featured')->orderBy('e.sort_order')->orderByDesc('pt.published_at'),
         };
 
         return $query->orderBy('commerce_products.id')->select('commerce_products.*');

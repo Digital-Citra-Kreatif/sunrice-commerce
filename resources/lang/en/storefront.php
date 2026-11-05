@@ -27,6 +27,7 @@ return [
         'size_guide' => 'Size guide',
         'related' => 'You may also like',
         'inquiry' => 'Ask about this product',
+        'send_inquiry' => 'Send',
     ],
     'listing' => [
         'shop' => 'Shop',
@@ -218,5 +219,12 @@ return [
         'benefit_wishlist' => 'Keep your wishlist on every device',
         'choose_options' => 'Choose options',
         'wishlist_empty_text' => 'Tap the heart on a product to save it for later.',
+        'footer_menu' => 'Footer menu',
+        'languages' => 'Languages',
+        'search_hint' => 'Type what you are looking for: a product, a colour, a page.',
+        'search_nothing' => 'Nothing found for “:query”',
+        'not_found_title' => 'Page not found',
+        'not_found_text' => 'The page you are looking for may have moved or no longer exists.',
+        'back_home' => 'Back to the home page',
     ],
 ];

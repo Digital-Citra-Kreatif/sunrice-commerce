@@ -7,11 +7,11 @@ namespace Sunrice\Commerce\Http\Controllers\Admin;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
-use Sunrice\Models\Entry;
-use Sunrice\Models\EntryTranslation;
-use Sunrice\Support\Locales;
 
 /** JSON for the product editor control. */
 class ProductApiController extends Controller
@@ -32,7 +32,7 @@ class ProductApiController extends Controller
         if ($taken === null) {
             return response()->json(['available' => true]);
         }
-        $title = EntryTranslation::query()->where('entry_id', $taken->product->entry_id)->where('locale', Locales::main())->value('title');
+        $title = EntryTranslation::query()->where('entry_id', $taken->product->entry_id)->where('locale', Locales::default())->value('title');
 
         return response()->json(['available' => false, 'product' => $title]);
     }
@@ -74,7 +74,7 @@ class ProductApiController extends Controller
         $ids = array_filter(array_map('intval', (array) $request->query('ids', [])));
         $variants = Variant::query()
             ->join('commerce_products', 'commerce_products.id', '=', 'commerce_variants.product_id')
-            ->join('sunrice_entry_translations as t', fn ($join) => $join->on('t.entry_id', '=', 'commerce_products.entry_id')->where('t.locale', Locales::main()))
+            ->join('sunrice_entry_translations as t', fn ($join) => $join->on('t.entry_id', '=', 'commerce_products.entry_id')->where('t.locale', Locales::default()))
             ->when(! $request->boolean('bundles'), fn ($query) => $query->where('commerce_products.type', '!=', 'bundle'))
             ->where('commerce_variants.active', true)->whereNull('commerce_variants.deleted_at')
             ->whereNull('commerce_products.removed_at')

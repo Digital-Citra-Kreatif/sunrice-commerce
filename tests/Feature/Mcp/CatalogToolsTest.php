@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-use Sunrice\Activity\ActivityLogger;
+use Sunrice\Admin\Activity\Activity;
+use Sunrice\Admin\Panel;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Features\Features;
@@ -14,18 +15,16 @@ use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
 use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Shipping\Models\ShippingMethod;
-use Sunrice\Models\ActivityLog;
 
 beforeEach(function () {
     $this->mug = checkoutStore(['track_stock' => true, 'initial_stock' => 5]);
     $this->admin = actingAsSuperAdmin();
-    app(ActivityLogger::class)->actingVia('ai', 'Claude');
 });
 
 /** A user with only these permissions, acting from now on. */
 function staffWith(array $permissions): mixed
 {
-    return actingAsUserWith(['sunrice.access-admin', ...$permissions], 'staff-'.md5(implode(',', $permissions)).'@example.com');
+    return actingAsUserWith(['sunrice.access', ...$permissions], 'staff-'.md5(implode(',', $permissions)).'@example.com');
 }
 
 it('lists and reads products, and documents the product field', function () {
@@ -36,7 +35,7 @@ it('lists and reads products, and documents the product field', function () {
     $product = mcpTool(Tools\GetProductTool::class, ['product' => (string) $list['products'][0]['id']]);
     expect($product['variants'][0])->toMatchArray(['variant_id' => $this->mug->id, 'stock' => 5])
         ->and($product['product']['type'])->toBe('simple')
-        ->and($product['editing'])->toContain('update_entry')
+        ->and($product['editing'])->toContain('cms_save_entry')
         ->and(mcpTool(Tools\GetProductTool::class, ['product' => $this->mug->sku])['id'])->toBe($product['id']);
 
     staffWith(['commerce.orders.view']);   // no product collection access
@@ -70,7 +69,7 @@ it('saves vouchers through the admin form, describing it first', function () {
     $saved = mcpTool(Tools\SaveVoucherTool::class, ['values' => ['name' => 'Hemat 10%', 'code' => 'hemat10', 'active' => true, 'type' => 'percent', 'percent' => 10]]);
     expect($saved)->toMatchArray(['saved' => true, 'code' => 'HEMAT10', 'type' => 'percent'])
         ->and(Voucher::query()->where('code', 'HEMAT10')->value('value'))->toBe(1000)
-        ->and(ActivityLog::query()->where('subject_label', 'like', 'Voucher:%')->value('source'))->toBe('ai');
+        ->and(Activity::query()->where('subject_label', 'like', 'Voucher:%')->value('source'))->toBe('ai');
 
     // Only the changed keys are needed.
     mcpTool(Tools\SaveVoucherTool::class, ['id' => $saved['id'], 'values' => ['percent' => 15]]);
@@ -150,11 +149,6 @@ it('quotes shipping to a destination', function () {
     expect((new Tools\QuoteShippingTool)->shouldRegister())->toBeFalse();
 });
 
-it('adds the store guidance to the MCP server instructions', function () {
-    $sunrice = app(Sunrice\Sunrice::class);
-    if (! method_exists($sunrice, 'mcpInstructions')) {
-        $this->markTestSkipped('Needs Sunrice with MCP instructions (U6).');
-    }
-
-    expect($sunrice->mcpInstructions())->toContain(StoreTools::INSTRUCTIONS);
+it('adds the store guidance to the AI agents\' instructions', function () {
+    expect(app(Panel::class)->getAiInstructions())->toContain(StoreTools::INSTRUCTIONS);
 });

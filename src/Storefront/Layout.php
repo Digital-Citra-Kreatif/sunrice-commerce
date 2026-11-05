@@ -6,14 +6,15 @@ namespace Sunrice\Commerce\Storefront;
 
 /**
  * The layout store pages extend: the site's (commerce.storefront.layout,
- * Sunrice's starter layout by default) when it exists, else commerce's
- * minimal one. Both take @section('content') and a `seoTitle`.
+ * by default `cms.layout`, the CMS's site layout that its starter
+ * templates and commerce's starter theme publish) when it exists, else
+ * commerce's minimal one. Both take @section('content') and a `seoTitle`.
  */
 final class Layout
 {
     public static function name(): string
     {
-        $layout = (string) config('commerce.storefront.layout', 'sunrice.layouts.app');
+        $layout = (string) config('commerce.storefront.layout', 'cms.layout');
 
         return $layout !== '' && view()->exists($layout) ? $layout : 'commerce::layouts.store';
     }

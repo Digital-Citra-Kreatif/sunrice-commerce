@@ -14,10 +14,10 @@ use Sunrice\Commerce\Mcp\OrderData;
 use Sunrice\Commerce\Payments\Models\PaymentConfirmation;
 
 #[IsReadOnly]
-#[Description('Payment confirmations customers sent for bank transfers (status submitted = waiting for review): the order, the amount sent against the amount expected, sender, bank, date and whether a proof was uploaded. The proof image itself is only in the admin (Shop → Payments to verify); check the bank account before approving with review_payment_confirmation.')]
+#[Description('Payment confirmations customers sent for bank transfers (status submitted = waiting for review): the order, the amount sent against the amount expected, sender, bank, date and whether a proof was uploaded. The proof image itself is only in the admin (Shop → Payments to verify); check the bank account before approving with commerce_review_payment_confirmation.')]
 class ListPaymentConfirmationsTool extends CommerceTool
 {
-    protected string $name = 'list_payment_confirmations';
+    protected string $name = 'commerce_list_payment_confirmations';
 
     protected ?string $feature = 'manual_payments';
 

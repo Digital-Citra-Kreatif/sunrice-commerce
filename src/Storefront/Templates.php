@@ -7,11 +7,11 @@ namespace Sunrice\Commerce\Storefront;
 /**
  * What `vendor:publish --tag=commerce-templates` copies into the app
  * (ARCHITECTURE.md §22.3): the product, shop and product term pages as
- * Sunrice templates, every other store page and partial under
+ * the CMS's templates (resources/views/cms/…), every other store page and partial under
  * resources/views/commerce (found first by Layout::view()), and the theme.
  * The starter theme (`commerce-starter`, commerce:install --starter) adds
- * the site around them: Sunrice's layout, the store header and footer,
- * the home, content, search and 404 pages.
+ * the site around them: the CMS's site layout (cms/layout), the store
+ * header and footer, the home, content, search and 404 pages.
  */
 final class Templates
 {
@@ -22,11 +22,11 @@ final class Templates
         $collections = (array) config('commerce.catalog.collections', ['products']);
         $map = [
             __DIR__.'/../../stubs/theme' => public_path('commerce-theme'),
-            "{$views}/product.blade.php" => resource_path('views/sunrice/'.($collections[0] ?? 'products').'/show.blade.php'),
-            "{$views}/shop.blade.php" => resource_path('views/sunrice/'.($collections[0] ?? 'products').'/index.blade.php'),
-            "{$views}/category.blade.php" => resource_path('views/sunrice/taxonomies/'.config('commerce.catalog.category_taxonomy', 'product_categories').'/show.blade.php'),
-            "{$views}/brand.blade.php" => resource_path('views/sunrice/taxonomies/'.config('commerce.catalog.brand_taxonomy', 'brands').'/show.blade.php'),
-            "{$views}/tag.blade.php" => resource_path('views/sunrice/taxonomies/'.config('commerce.catalog.tag_taxonomy', 'product_tags').'/show.blade.php'),
+            "{$views}/product.blade.php" => resource_path('views/cms/collections/'.($collections[0] ?? 'products').'/show.blade.php'),
+            "{$views}/shop.blade.php" => resource_path('views/cms/collections/'.($collections[0] ?? 'products').'/index.blade.php'),
+            "{$views}/category.blade.php" => resource_path('views/cms/taxonomies/'.config('commerce.catalog.category_taxonomy', 'product_categories').'/show.blade.php'),
+            "{$views}/brand.blade.php" => resource_path('views/cms/taxonomies/'.config('commerce.catalog.brand_taxonomy', 'brands').'/show.blade.php'),
+            "{$views}/tag.blade.php" => resource_path('views/cms/taxonomies/'.config('commerce.catalog.tag_taxonomy', 'product_tags').'/show.blade.php'),
         ];
         foreach (self::files($views) as $relative) {
             if (! in_array($relative, ['product.blade.php', 'shop.blade.php', 'category.blade.php', 'brand.blade.php', 'tag.blade.php'], true)) {
@@ -40,8 +40,8 @@ final class Templates
     /**
      * The starter theme: everything publishable() copies, plus
      * resources/views/starter/** to the same paths under resources/views
-     * (sunrice/layouts/app, sunrice/partials/store-*, sunrice/home,
-     * sunrice/pages/show, sunrice/search, errors/404).
+     * (cms/layout, cms/partials/store-*, cms/home, cms/collections/pages/show,
+     * cms/search, errors/404).
      *
      * @return array<string, string> source => destination
      */

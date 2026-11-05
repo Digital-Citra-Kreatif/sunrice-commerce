@@ -1,4 +1,4 @@
-import { inertia, React, ui } from '../../lib/sunrice';
+import { React, inertia, ui } from '../../lib/sunrice';
 import { SettingsLayout } from '../../components/SettingsLayout';
 import { StatusBadge } from '../../components/StatusBadge';
 import type { MenuItem } from '../../lib/store';

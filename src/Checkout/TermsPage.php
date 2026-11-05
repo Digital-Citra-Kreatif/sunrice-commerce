@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Checkout;
 
+use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Models\Entry;
 
 /**
  * The terms page customers agree to at checkout and when creating an
@@ -21,8 +21,7 @@ final class TermsPage
             return null;
         }
         $entry = Entry::query()->with('translations', 'collection')->find(is_array($page) ? ($page[0] ?? null) : $page);
-        $entry?->resolveFor(app()->getLocale());
 
-        return $entry?->url;
+        return $entry?->shownIn()?->url();
     }
 }

@@ -1,4 +1,4 @@
-import { adminUrl, inertia, React, Sunrice, ui } from '../../lib/sunrice';
+import { React, adminUrl, inertia, ui, useBreadcrumbs } from '../../lib/sunrice';
 import { PageHeader } from '../../components/PageHeader';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useCommerceShared } from '../../lib/store';
@@ -22,7 +22,7 @@ export default function CustomerShow({ customer, account, roleOptions, orders, c
     const { Card, CardContent, CardHeader, CardTitle, Button, Input, Label, Textarea, Switch, Checkbox } = ui;
     const { Link, router } = inertia;
     useCommerceShared();
-    Sunrice.useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Customers', href: adminUrl('commerce/customers') }, { label: customer.name ?? customer.email }]);
+    useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Customers', href: adminUrl('commerce/customers') }, { label: customer.name ?? customer.email }]);
     const form = inertia.useForm({ name: customer.name ?? '', phone: customer.phone ?? '', note: customer.note ?? '', accepts_marketing: customer.accepts_marketing, roles: account?.roles ?? [] });
     const [confirming, setConfirming] = React.useState(false);
     const post = (path: string) => router.post(adminUrl(`commerce/customers/${customer.id}/${path}`), {}, { preserveScroll: true });

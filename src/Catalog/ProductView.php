@@ -6,16 +6,20 @@ namespace Sunrice\Commerce\Catalog;
 
 use Closure;
 use JsonSerializable;
+use LogicException;
+use Sunrice\Admin\Media\Media;
+use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Models\Entry;
 
 /**
  * What templates show for a product (ARCHITECTURE.md §7.4): its price
  * display, badges, stock, call-to-action, tiers and the variant picker
  * data. Built by ProductViewFactory; read in templates with
  * commerce_product($entry).
+ *
+ * @property-read array<int, array<string, mixed>> $variants
  */
 final class ProductView implements JsonSerializable
 {
@@ -27,19 +31,25 @@ final class ProductView implements JsonSerializable
     private array|Closure $variantRows;
 
     /**
-     * Picker variants, one row per active variant. Built when first read,
-     * so listing cards and cart lines that show one price don't pay for them.
-     *
-     * @var array<int, array<string, mixed>>
+     * Picker variants (`$view->variants`), one row per active variant. Built
+     * when first read, so listing cards and cart lines that show one price
+     * don't pay for them.
      */
-    public array $variants {
-        get {
-            if ($this->variantRows instanceof Closure) {
-                $this->variantRows = ($this->variantRows)();
-            }
-
-            return $this->variantRows;
+    public function __get(string $name): mixed
+    {
+        if ($name !== 'variants') {
+            throw new LogicException('Undefined property: '.self::class.'::$'.$name);
         }
+        if ($this->variantRows instanceof Closure) {
+            $this->variantRows = ($this->variantRows)();
+        }
+
+        return $this->variantRows;
+    }
+
+    public function __isset(string $name): bool
+    {
+        return $name === 'variants';
     }
 
     /**
@@ -53,7 +63,7 @@ final class ProductView implements JsonSerializable
      * @param  array<string, mixed>|null  $flashSale
      */
     public function __construct(
-        public readonly Entry $entry,
+        public readonly EntryTranslation $entry,
         public readonly Product $product,
         public readonly string $type,
         public readonly array $price,
@@ -88,7 +98,6 @@ final class ProductView implements JsonSerializable
     public function __serialize(): array
     {
         $data = get_object_vars($this);
-        unset($data['variants']); // the hooked property; its rows are stored as variantRows
 
         return [...$data, 'variantRows' => $this->variants];
     }
@@ -113,7 +122,13 @@ final class ProductView implements JsonSerializable
 
     public function url(): ?string
     {
-        return $this->entry->url;
+        return $this->entry->url();
+    }
+
+    /** The entry's fields as templates get them (`values()`), by handle. */
+    public function value(string $handle): mixed
+    {
+        return $this->entry->values()[$handle] ?? null;
     }
 
     public function isVariable(): bool
@@ -152,9 +167,10 @@ final class ProductView implements JsonSerializable
     {
         $default = $this->defaultVariant();
         $images = [];
-        foreach ((array) ($this->entry->get('gallery') ?? []) as $asset) {
-            if (is_object($asset) && method_exists($asset, 'url')) {
-                $images[] = url($asset->url());
+        $gallery = $this->value('gallery');
+        foreach ($gallery instanceof Media ? [$gallery] : (is_iterable($gallery) ? $gallery : []) as $media) {
+            if ($media instanceof Media) {
+                $images[] = url($media->url());
             }
         }
         $data = array_filter([
@@ -164,7 +180,7 @@ final class ProductView implements JsonSerializable
             'url' => $this->url() !== null ? url($this->url()) : null,
             'sku' => $this->isVariable() ? null : $default?->sku,
             'image' => $images ?: null,
-            'description' => is_string($excerpt = $this->entry->get('excerpt')) ? $excerpt : null,
+            'description' => is_string($excerpt = $this->value('excerpt')) ? $excerpt : null,
         ], fn ($v) => $v !== null);
         if (! $this->price['hidden'] && ($this->price['amount'] ?? $this->price['from']) !== null) {
             $currency = (string) app(StoreSettings::class)->get('general.currency.code', 'IDR');
@@ -187,7 +203,7 @@ final class ProductView implements JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-            'id' => $this->product->id, 'entry_id' => $this->entry->id, 'title' => $this->title(), 'url' => $this->url(),
+            'id' => $this->product->id, 'entry_id' => $this->entry->entry_id, 'title' => $this->title(), 'url' => $this->url(),
             'type' => $this->type, 'price' => $this->price, 'badges' => $this->badges, 'stock' => $this->stock,
             'cta' => $this->cta, 'tiers' => $this->tiers, 'options' => $this->options, 'variants' => $this->variants,
             'flash_sale' => $this->flashSale,

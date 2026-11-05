@@ -6,10 +6,12 @@ namespace Sunrice\Commerce\View\Components;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
+use Sunrice\Commerce\Catalog\LiveEntries;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Wishlist\WishlistManager;
-use Sunrice\Models\Entry;
 
 /** <x-commerce::wishlist-button :entry="$entry" /> — add to / remove from the wishlist. */
 class WishlistButton extends Component
@@ -18,9 +20,9 @@ class WishlistButton extends Component
 
     public bool $saved;
 
-    public function __construct(Entry $entry)
+    public function __construct(Entry|EntryTranslation $entry)
     {
-        $this->productId = Product::query()->where('entry_id', $entry->id)->value('id');
+        $this->productId = Product::query()->where('entry_id', LiveEntries::id($entry))->value('id');
         $this->saved = $this->productId !== null && app(WishlistManager::class)->has($this->productId);
     }
 

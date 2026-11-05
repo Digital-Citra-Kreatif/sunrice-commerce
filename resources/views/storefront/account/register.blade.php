@@ -38,9 +38,8 @@
                     {!! __('commerce::checkout.terms', ['link' => '<a href="'.e($termsUrl).'" target="_blank" rel="noopener">'.e(__('commerce::checkout.terms_link')).'</a>']) !!}</label>
                 @include(\Sunrice\Commerce\Storefront\Layout::view('partials.field-error'), ['name' => 'terms'])
             @endif
-            @if ($captcha ?? null)
-                <script src="{{ $captcha['script'] }}" async defer></script>
-                <div class="{{ $captcha['class'] }}" data-sitekey="{{ $captcha['site_key'] }}"></div>
+            @if (filled((string) ($captcha ?? '')))
+                {{ $captcha }}
                 @include(\Sunrice\Commerce\Storefront\Layout::view('partials.field-error'), ['name' => 'captcha'])
             @endif
             <button type="submit" class="commerce-button commerce-button--primary commerce-button--block">{{ __('commerce::account.register.submit') }}</button>

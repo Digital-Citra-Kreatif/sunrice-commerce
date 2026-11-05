@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Sunrice\Commerce\Admin\ShopNavigation;
 use Sunrice\Commerce\Http\Controllers\Admin;
 
 /*
@@ -12,6 +13,7 @@ use Sunrice\Commerce\Http\Controllers\Admin;
 
 Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::get('/', Admin\DashboardController::class)->name('dashboard');
+    Route::get('promotions', [ShopNavigation::class, 'promotions'])->name('promotions');
 
     Route::get('api/sku-check', [Admin\ProductApiController::class, 'skuCheck'])->name('api.sku-check');
     Route::get('api/products/{entry}', [Admin\ProductApiController::class, 'show'])->whereNumber('entry')->name('api.products.show');

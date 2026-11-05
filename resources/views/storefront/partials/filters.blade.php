@@ -8,7 +8,7 @@
 --}}
 @php
     $termIds = collect($facets['terms'])->flatten(1)->pluck('id')->all();
-    $termData = $termIds === [] ? collect() : \Sunrice\Models\Term::query()->with('translations')->whereIn('id', $termIds)->get()->keyBy('id');
+    $termData = $termIds === [] ? collect() : \Sunrice\Cms\Models\Term::query()->with('translations')->whereIn('id', $termIds)->get()->keyBy('id');
     $swatchOf = fn (int $id) => ($hex = $termData->get($id)?->translations->first()?->data['swatch'] ?? null) && preg_match('/^#[0-9a-fA-F]{3,8}$/', (string) $hex) ? $hex : null;
     $selectedCount = collect($facets['terms'])->reject(fn ($terms, $taxonomy) => $without !== '' && $param($taxonomy) === $without)->sum(fn ($terms) => collect($terms)->filter(fn ($t) => $t['selected'] === true)->count())
         + (request()->filled('min_price') || request()->filled('max_price') ? 1 : 0) + (request()->boolean('in_stock') ? 1 : 0) + (request()->boolean('on_sale') ? 1 : 0);

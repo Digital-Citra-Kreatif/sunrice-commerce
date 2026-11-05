@@ -27,6 +27,7 @@ return [
         'size_guide' => 'Panduan ukuran',
         'related' => 'Produk terkait',
         'inquiry' => 'Tanya produk ini',
+        'send_inquiry' => 'Kirim',
     ],
     'listing' => [
         'shop' => 'Belanja',
@@ -218,5 +219,12 @@ return [
         'benefit_wishlist' => 'Wishlist tersimpan di semua perangkat',
         'choose_options' => 'Pilih varian',
         'wishlist_empty_text' => 'Ketuk ikon hati pada produk untuk menyimpannya.',
+        'footer_menu' => 'Menu footer',
+        'languages' => 'Bahasa',
+        'search_hint' => 'Ketik yang Anda cari: produk, warna, atau halaman.',
+        'search_nothing' => 'Tidak ada hasil untuk “:query”',
+        'not_found_title' => 'Halaman tidak ditemukan',
+        'not_found_text' => 'Halaman yang Anda cari mungkin sudah dipindahkan atau tidak ada lagi.',
+        'back_home' => 'Kembali ke beranda',
     ],
 ];

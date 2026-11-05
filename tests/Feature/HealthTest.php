@@ -73,18 +73,11 @@ it('runs registered tick and prune steps and schedules them', function () {
     expect($commands)->toContain('commerce:tick')->toContain('commerce:prune');
 });
 
-it('warns while the full-page cache is on', function () {
-    $status = fn () => app(HealthRegistry::class)->run()['full_page_cache']['result']->status;
+it('says how store pages stay out of the full-page cache', function () {
+    $message = fn () => app(HealthRegistry::class)->run()['full_page_cache']['result']->message;
 
-    expect($status())->toBe(HealthResult::OK);
-    config(['sunrice.cache.full_page' => true, 'responsecache.cache_profile' => null]);
-    expect($status())->toBe(HealthResult::WARNING);
-
-    // With Sunrice's cache profile, commerce leaves store pages out.
-    if (PageCache::supported() && class_exists('Spatie\\ResponseCache\\CacheProfiles\\CacheAllSuccessfulGetRequests')) {
-        config(['responsecache.cache_profile' => 'Sunrice\\Cache\\FullPageCacheProfile']);
-        expect($status())->toBe(HealthResult::OK);
-    }
+    expect(app(HealthRegistry::class)->run()['full_page_cache']['result']->status)->toBe(HealthResult::OK)
+        ->and($message())->toContain('off');
 });
 
 it('keeps store pages and visitors with a cart or account out of the full-page cache', function () {
@@ -96,10 +89,10 @@ it('keeps store pages and visitors with a cart or account out of the full-page c
     $cart->cookies->set('commerce_cart', 'token');
     expect(PageCache::cacheable($cart, null))->toBeFalse();
 
-    // Pages showing products are kept for anonymous visitors when Sunrice can send the others past the cache.
+    // Pages showing products are kept for anonymous visitors (the others never get kept pages).
     $product = $request();
     $product->attributes->set(PageCache::DYNAMIC, true);
-    expect(PageCache::cacheable($product, null))->toBe(PageCache::bypassSupported());
+    expect(PageCache::cacheable($product, null))->toBeTrue();
 
     $store = $request('/cart');
     $store->setRouteResolver(fn () => (new Route('GET', 'cart', []))->name('commerce.cart.show'));

@@ -12,6 +12,7 @@ use Illuminate\Validation\ValidationException;
 use Sunrice\Commerce\Customers\Auth\LoginCodes;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
+use Sunrice\Commerce\Support\Staff;
 
 /** Sign in with an emailed code: request it, then enter it. */
 class LoginCodeController
@@ -30,7 +31,7 @@ class LoginCodeController
             RateLimiter::hit($key, $decay);
         }
 
-        $model = config('sunrice.auth.user_model');
+        $model = Staff::userModel();
         $user = $model::query()->where('email', $email)->first();
         if ($user !== null && ! LoginCodes::isRefusedStaff($user)) {
             $codes->request($user);
@@ -57,7 +58,7 @@ class LoginCodeController
         abort_unless(commerce_feature('passwordless_login') && $codes->supported(), 404);
         $data = $request->validate(['code' => ['required', 'string', 'max:20']]);
         $email = (string) $request->session()->get('commerce.code_email', '');
-        $model = config('sunrice.auth.user_model');
+        $model = Staff::userModel();
         $user = $email === '' ? null : $model::query()->where('email', $email)->first();
         if ($user === null || LoginCodes::isRefusedStaff($user)) {
             throw ValidationException::withMessages(['code' => __('commerce::account.code.incorrect')]);

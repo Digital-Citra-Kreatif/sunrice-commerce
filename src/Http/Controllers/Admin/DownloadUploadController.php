@@ -19,7 +19,7 @@ class DownloadUploadController extends Controller
     public function __invoke(Request $request): JsonResponse
     {
         $this->authorizeFeature('digital');
-        abort_unless($request->user()->can('sunrice.assets.upload') || $request->user()->can('commerce.inventory.adjust'), 403);
+        abort_unless($request->user()->can('sunrice.media.upload') || $request->user()->can('commerce.inventory.adjust'), 403);
         $request->validate(['file' => ['required', 'file', 'max:'.((int) config('commerce.downloads.max_upload_mb', 512) * 1024)]]);
 
         $file = $request->file('file');

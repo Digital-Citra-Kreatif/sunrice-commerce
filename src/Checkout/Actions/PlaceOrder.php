@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Catalog\Bundles;
@@ -54,8 +56,7 @@ use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Promotions\Vouchers\VoucherRedemptions;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\Phone;
-use Sunrice\Models\Entry;
-use Sunrice\Support\Locales;
+use Sunrice\Commerce\Support\Staff;
 
 /**
  * Turns a cart into an order or quote (ARCHITECTURE.md §11.3), in one
@@ -197,7 +198,7 @@ class PlaceOrder
      */
     protected function createAccount(CheckoutData $data, string $password): ?Authenticatable
     {
-        $model = (string) config('sunrice.auth.user_model');
+        $model = Staff::userModel();
         $email = (string) $data->email();
         if ($model::query()->where('email', $email)->exists()) {
             return null;
@@ -310,7 +311,7 @@ class PlaceOrder
     /** Lines as snapshots; bundle components as child lines. */
     public function insertLines(Order $order, CalculationState $state): void
     {
-        $locale = (string) ($order->locale ?? Locales::main());
+        $locale = (string) ($order->locale ?? Locales::default());
         $this->loadSnapshots($state);
         foreach ($state->lines as $line) {
             $item = OrderItem::query()->create($this->lineAttributes($order, $line, $locale));
@@ -498,7 +499,7 @@ class PlaceOrder
             return (string) ($variant->sku ?? 'Product');
         }
         $entry->loadMissing('translations');
-        $translation = $entry->translations->firstWhere('locale', $locale) ?? $entry->translations->firstWhere('locale', Locales::main()) ?? $entry->translations->first();
+        $translation = $entry->translations->firstWhere('locale', $locale) ?? $entry->translations->firstWhere('locale', Locales::default()) ?? $entry->translations->first();
 
         return (string) ($translation->title ?? $variant->sku ?? 'Product');
     }
@@ -509,7 +510,7 @@ class PlaceOrder
         $variant->loadMissing('optionValues.option', 'optionValues.term.translations');
         $options = [];
         foreach ($variant->optionValues as $value) {
-            $options[(string) $value->option->name] = (string) ($value->label ?? $value->term->name ?? '');
+            $options[(string) $value->option->name] = (string) ($value->label ?? $value->term?->title() ?? '');
         }
 
         return $options ?: null;

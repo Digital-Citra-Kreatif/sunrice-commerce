@@ -5,8 +5,20 @@ declare(strict_types=1);
 use Illuminate\Support\Str;
 use Laravel\Mcp\Server\Testing\TestResponse;
 use Spatie\Permission\Models\Role;
-use Sunrice\Actions\Entries\PublishTranslation;
-use Sunrice\Actions\Entries\SaveDraft;
+use Sunrice\Admin\Actions\Permissions\SyncPermissions;
+use Sunrice\Admin\Activity\ActivityLog;
+use Sunrice\Admin\Ai\PanelServer;
+use Sunrice\Admin\Panel;
+use Sunrice\Cms\Actions\Entries\CreateEntry;
+use Sunrice\Cms\Actions\Entries\PublishEntry;
+use Sunrice\Cms\Actions\Entries\SaveDraft;
+use Sunrice\Cms\Models\Blueprint;
+use Sunrice\Cms\Models\Collection;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
+use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\Term;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
@@ -19,13 +31,6 @@ use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Shipping\Models\ShippingMethod;
 use Sunrice\Commerce\Shipping\Models\ShippingZone;
 use Sunrice\Commerce\Tests\TestCase;
-use Sunrice\Mcp\SunriceServer;
-use Sunrice\Models\Blueprint;
-use Sunrice\Models\Collection;
-use Sunrice\Models\Entry;
-use Sunrice\Models\Taxonomy;
-use Sunrice\Models\Term;
-use Sunrice\Support\Locales;
 use Workbench\App\Commerce\TestTransfer;
 use Workbench\App\Models\User;
 
@@ -41,42 +46,42 @@ uses(TestCase::class)->in('Feature', 'Unit');
 function actingAsSuperAdmin(): User
 {
     $user = User::query()->create(['name' => 'Admin', 'email' => 'admin@example.com', 'password' => bcrypt('password')]);
-    $user->assignRole(Role::findOrCreate(config('sunrice.super_admin_role'), config('sunrice.auth.guard', 'web')));
-    test()->actingAs($user, config('sunrice.auth.guard', 'web'));
+    $user->assignRole(Role::findOrCreate((string) config('sunrice-admin.super_admin_role', 'super-admin'), 'web'));
+    test()->actingAs($user, 'web');
 
     return $user;
 }
 
 /**
  * Sign in to the admin as a user whose role has these permissions (plus
- * sunrice.access-admin).
+ * sunrice.access, to open the panel).
  *
  * @param  array<int, string>  $permissions
  */
 function actingAsUserWith(array $permissions, string $email = 'staff@example.com'): User
 {
-    test()->artisan('sunrice:sync-permissions');
-    $role = Role::findOrCreate('Role '.md5($email), config('sunrice.auth.guard', 'web'));
-    $role->givePermissionTo(['sunrice.access-admin', ...$permissions]);
+    app(SyncPermissions::class)->handle();
+    $role = Role::findOrCreate('Role '.md5($email), 'web');
+    $role->givePermissionTo([Panel::ACCESS, ...$permissions]);
     $user = User::query()->create(['name' => 'Staff', 'email' => $email, 'password' => bcrypt('password')]);
     $user->assignRole($role);
-    test()->actingAs($user, config('sunrice.auth.guard', 'web'));
+    test()->actingAs($user, 'web');
 
     return $user;
 }
 
-/** The products collection with a blueprint holding the product field. */
+/** The products collection with the store's product blueprint. */
 function productCollection(): Collection
 {
     $existing = Collection::query()->where('handle', 'products')->first();
     if ($existing !== null) {
         return $existing;
     }
-    $blueprint = Blueprint::query()->create(['handle' => 'product', 'title' => 'Product', 'fields' => [
-        ['handle' => 'product', 'type' => 'commerce_product', 'label' => 'Product'],
-    ]]);
+    // The store's own product blueprint (resources/structure/commerce.php): product data, excerpt, gallery, specifications…
+    $definition = collect((require __DIR__.'/../resources/structure/commerce.php')['blueprints'])->firstWhere('handle', 'product');
+    Blueprint::query()->firstOrCreate(['handle' => 'product'], ['title' => 'Product', 'fields' => $definition['fields']]);
 
-    return Collection::query()->create(['handle' => 'products', 'title' => 'Products', 'blueprint_id' => $blueprint->id, 'settings' => ['route' => 'products/{slug}']]);
+    return Collection::query()->create(['handle' => 'products', 'title' => 'Products', 'blueprint' => 'product', 'route' => '/products/{slug}']);
 }
 
 /**
@@ -88,14 +93,15 @@ function productCollection(): Collection
 function publishProduct(array $value, ?Entry $entry = null, string $title = 'T-shirt', bool $publish = true): Entry
 {
     $collection = productCollection();
-    $entry ??= Entry::query()->create(['collection_id' => $collection->id, 'status' => 'draft', 'sort_order' => 0]);
-    $translation = $entry->translations()->firstOrCreate(['locale' => Locales::main()], [
-        'collection_id' => $collection->id, 'title' => $title, 'slug' => Str::slug($title), 'data' => [], 'seo' => [],
-    ]);
-    app(SaveDraft::class)->handle($translation, ['title' => $title, 'slug' => Str::slug($title), 'data' => ['product' => $value]]);
+    $input = ['title' => $title, 'slug' => Str::slug($title), 'data' => ['product' => $value]];
+    $translation = $entry?->translations()->where('locale', Locales::default())->first();
+    $translation = $translation === null
+        ? app(CreateEntry::class)->handle($collection, $input)
+        : app(SaveDraft::class)->handle($translation, $input);
     if ($publish) {
-        app(PublishTranslation::class)->handle($translation->fresh());
+        app(PublishEntry::class)->handle($translation->fresh());
     }
+    $entry = $translation->entry;
 
     return $entry->fresh();
 }
@@ -184,9 +190,9 @@ function seenHash(Cart $cart, array $input): string
 
 function term(string $taxonomy, string $name, ?Term $parent = null): Term
 {
-    $taxonomyId = Taxonomy::query()->where('handle', $taxonomy)->value('id') ?? Taxonomy::query()->create(['handle' => $taxonomy, 'title' => ucfirst($taxonomy), 'settings' => []])->id;
+    $taxonomyId = Taxonomy::query()->where('handle', $taxonomy)->value('id') ?? Taxonomy::query()->create(['handle' => $taxonomy, 'title' => ucfirst($taxonomy)])->id;
     $term = Term::query()->create(['taxonomy_id' => $taxonomyId, 'parent_id' => $parent?->id, 'sort_order' => 0]);
-    $term->translations()->create(['taxonomy_id' => $taxonomyId, 'locale' => 'id', 'name' => $name, 'slug' => Str::slug($name), 'data' => [], 'is_ready' => true]);
+    $term->translations()->create(['taxonomy_id' => $taxonomyId, 'locale' => 'id', 'title' => $name, 'slug' => Str::slug($name), 'data' => []]);
 
     return $term->fresh();
 }
@@ -194,7 +200,8 @@ function term(string $taxonomy, string $name, ?Term $parent = null): Term
 /** A store MCP tool's result: its JSON, or ['error' => message]. */
 function mcpTool(string $tool, array $arguments = [], mixed $user = null): array
 {
-    $response = SunriceServer::actingAs($user ?? auth()->user())->tool($tool, $arguments);
+    // As the token middleware does: what the tool changes is the agent's.
+    $response = app(ActivityLog::class)->withSource('ai', 'Claude', fn () => PanelServer::actingAs($user ?? auth()->user())->tool($tool, $arguments));
     $result = (new ReflectionProperty(TestResponse::class, 'response'))->getValue($response)->toArray();
     if (isset($result['error'])) {
         return ['error' => (string) ($result['error']['message'] ?? 'error')];
@@ -203,4 +210,16 @@ function mcpTool(string $tool, array $arguments = [], mixed $user = null): array
     $text = (string) ($result['content'][0]['text'] ?? '');
 
     return ($result['isError'] ?? false) ? ['error' => $text] : (json_decode($text, true) ?? ['text' => $text]);
+}
+
+/** Take an entry off the site in every language, as if it had never been published (no events). */
+function unpublishEntry(Entry|int $entry): void
+{
+    EntryTranslation::query()->where('entry_id', $entry instanceof Entry ? $entry->id : $entry)->update(['status' => 'draft']);
+}
+
+/** Move an entry's publication date (every language), without events. */
+function publishEntryAt(Entry|int $entry, DateTimeInterface $at): void
+{
+    EntryTranslation::query()->where('entry_id', $entry instanceof Entry ? $entry->id : $entry)->update(['published_at' => $at]);
 }

@@ -10,6 +10,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
+use Sunrice\Admin\Media\Media;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Digital\Models\DownloadGrant;
@@ -17,7 +18,6 @@ use Sunrice\Commerce\Documents\Documents;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Models\Asset;
 use Throwable;
 
 /**
@@ -98,7 +98,7 @@ class StoreEmail extends Notification implements ShouldQueue
     {
         $logo = app(StoreSettings::class)->get('general.logo');
         $id = is_array($logo) ? ($logo[0] ?? null) : $logo;
-        $asset = $id !== null ? Asset::query()->find($id) : null;
+        $asset = $id !== null ? Media::query()->find($id) : null;
         if ($asset === null) {
             return null;
         }
@@ -125,8 +125,8 @@ class StoreEmail extends Notification implements ShouldQueue
     {
         $label = $settings->text($this->key, 'action', $this->lang, $replace);
         $url = $this->context['url'] ?? match (true) {
-            str_starts_with($this->key, 'staff_') && $this->order !== null => url(config('sunrice.admin.path', 'cms').'/commerce/orders/'.$this->order->id),
-            $this->key === 'staff_payment_confirmation' => url(config('sunrice.admin.path', 'cms').'/commerce/confirmations'),
+            str_starts_with($this->key, 'staff_') && $this->order !== null => route('sunrice.admin.commerce.orders.show', $this->order),
+            $this->key === 'staff_payment_confirmation' => route('sunrice.admin.commerce.confirmations'),
             in_array($this->key, ['payment_link', 'payment_failed'], true) && $this->order !== null => commerce_url('commerce.order.pay', ['key' => $this->order->order_key], $this->lang),
             $this->key === 'payment_rejected' && $this->order !== null => commerce_url('commerce.confirm-payment', [], $this->lang).'?order='.$this->order->order_key,
             $this->order !== null => $this->order->url(),

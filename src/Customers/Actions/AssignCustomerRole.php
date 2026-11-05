@@ -7,6 +7,7 @@ namespace Sunrice\Commerce\Customers\Actions;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Spatie\Permission\Models\Role;
 use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Commerce\Support\Staff;
 
 /** Gives a new customer the customer roles (Settings → Store → Accounts), on Sunrice's guard. */
 class AssignCustomerRole
@@ -16,7 +17,7 @@ class AssignCustomerRole
         if (! method_exists($user, 'assignRole')) {
             return;
         }
-        $guard = (string) config('sunrice.auth.guard', 'web');
+        $guard = Staff::guard();
         foreach ((array) app(StoreSettings::class)->get('accounts.customer_roles', ['Customer']) as $role) {
             $user->assignRole(Role::findOrCreate((string) $role, $guard));
         }

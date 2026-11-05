@@ -1,6 +1,6 @@
 {{--
     Minimal layout for store pages, used when the site has no
-    sunrice.layouts.app (publish Sunrice's starter templates, or set
+    the app's own layout (set
     commerce.storefront.layout to your own layout).
 --}}
 <!DOCTYPE html>
@@ -8,17 +8,17 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <x-sunrice::seo :default-title="$seoTitle ?? null" :noindex="(bool) request()->attributes->get('commerce.noindex')" />
+    <x-sunrice-cms::seo :default-title="$seoTitle ?? null" :noindex="(bool) request()->attributes->get('commerce.noindex')" />
     @stack('head')
     <x-commerce::slot name="head" />
-    <x-sunrice::code position="head" />
+    <x-sunrice-cms::code place="head" />
 </head>
-<body @bodyClass>
-    <x-sunrice::code position="body_start" />
+<body @bodyClass(commerce_body_classes())>
+    <x-sunrice-cms::code place="body-start" />
     <main class="container commerce-main commerce">
         @yield('content')
     </main>
     @stack('scripts')
-    <x-sunrice::code position="body_end" />
+    <x-sunrice-cms::code place="body-end" />
 </body>
 </html>

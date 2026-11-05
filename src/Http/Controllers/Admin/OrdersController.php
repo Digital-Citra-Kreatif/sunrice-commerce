@@ -14,10 +14,10 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\SimpleExcel\SimpleExcelWriter;
-use Sunrice\Admin\Table\Column;
-use Sunrice\Admin\Table\TableQuery;
+use Sunrice\Admin\Preferences\Preferences;
 use Sunrice\Commerce\Admin\SchemaForm;
+use Sunrice\Commerce\Admin\Tables\Column;
+use Sunrice\Commerce\Admin\Tables\TableQuery;
 use Sunrice\Commerce\Analytics\Day;
 use Sunrice\Commerce\Digital\Models\DownloadGrant;
 use Sunrice\Commerce\Documents\Documents;
@@ -48,10 +48,9 @@ use Sunrice\Commerce\Payments\PaymentManager;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Shipping\Couriers;
 use Sunrice\Commerce\Support\Address;
+use Sunrice\Commerce\Support\CsvExport;
 use Sunrice\Commerce\Support\DomainException;
 use Sunrice\Commerce\Support\MoneyFormatter;
-use Sunrice\Http\Controllers\Admin\TablePreferencesController;
-use Sunrice\Support\CsvCell;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Shop → Orders: the list (search, filters, columns, bulk actions, export) and the order page. */
@@ -65,7 +64,9 @@ class OrdersController extends Controller
         $table = $this->table($request);
         // The items column: summed in the page query rather than once per row.
         $table->builder()->withSum(['items as items_quantity' => fn (Builder $q) => $q->whereNull('parent_id')], 'quantity');
-        $rows = $table->defaultPerPage(TablePreferencesController::perPageFor($request, self::TABLE, 25))->paginate($request);
+        // The page size and columns this user chose for the list (the panel's table preferences).
+        $saved = app(Preferences::class)->table($request->user(), self::TABLE);
+        $rows = $table->defaultPerPage($saved['perPage'] ?? 25)->paginate($request);
         $columns = $this->columns();
 
         return Inertia::render('Commerce/Shared/ResourceIndex', [
@@ -75,8 +76,7 @@ class OrdersController extends Controller
             'createLabel' => 'New order',
             ...$this->tableProps(self::TABLE, $table, $columns, $rows->through(fn (Model $o) => $o instanceof Order ? $this->row($o, $money) : []),
                 $this->filters(), $this->bulkActions($request)),
-            'visibleColumns' => TablePreferencesController::columnsFor((int) $request->user()->getAuthIdentifier(), self::TABLE,
-                ['number', 'date', 'customer', 'status', 'payment', 'fulfillment', 'total']),
+            'visibleColumns' => $saved['columns'] ?? ['number', 'date', 'customer', 'status', 'payment', 'fulfillment', 'total'],
             'bulkUrl' => route('sunrice.admin.commerce.orders.bulk', [], false),
             'exportUrl' => $request->user()->can('commerce.orders.export') ? route('sunrice.admin.commerce.orders.export', [], false) : null,
             'searchPlaceholder' => 'Number, name, email, phone or SKU…',
@@ -91,12 +91,12 @@ class OrdersController extends Controller
         $query = $this->table($request)->builder();
 
         return response()->streamDownload(function () use ($query): void {
-            $writer = SimpleExcelWriter::streamDownload('orders.csv');
+            $writer = CsvExport::toOutput();
             $query->with('items')->chunk(500, function ($orders) use ($writer): void {
                 foreach ($orders as $order) {
                     if ($order instanceof Order) {
                         // Customer-typed text (names, addresses) must not run as a spreadsheet formula.
-                        $writer->addRow(array_map(CsvCell::safe(...), $this->exportRow($order)));
+                        $writer->addRow(($this->exportRow($order)));
                     }
                 }
             });
@@ -384,7 +384,7 @@ class OrdersController extends Controller
                     'regular_unit_price' => $i->regular_unit_price > $i->unit_price ? $f($i->regular_unit_price) : null,
                     'price_source' => $this->priceSource($i), 'subtotal' => $f($i->subtotal),
                     'discount' => $i->discount_total > 0 ? $f($i->discount_total) : null, 'total' => $f($i->total),
-                    'product_href' => $i->entry_id !== null ? "collections/products/entries/{$i->entry_id}" : null,
+                    'product_href' => $i->entry_id !== null ? "cms/collections/products/entries/{$i->entry_id}" : null,
                     'components' => $i->children->map(fn (OrderItem $c) => ['name' => $c->title(), 'sku' => $c->sku, 'quantity' => $c->quantity])->values()->all(),
                 ])->all(),
                 'totals' => [
@@ -690,7 +690,7 @@ class OrdersController extends Controller
                 'month' => $q->where('placed_at', '>=', now()->startOfMonth()),
                 'last_month' => $q->whereBetween('placed_at', [now()->subMonthNoOverflow()->startOfMonth(), now()->subMonthNoOverflow()->endOfMonth()]),
                 // "2026-03-01..2026-03-31": local dates, from report drill-downs.
-                default => is_string($v) && preg_match('/^(\d{4}-\d{2}-\d{2})\.\.(\d{4}-\d{2}-\d{2})$/', $v, $m) === 1
+                default => preg_match('/^(\d{4}-\d{2}-\d{2})\.\.(\d{4}-\d{2}-\d{2})$/', $v, $m) === 1
                     ? $q->where('placed_at', '>=', Day::bounds($m[1])[0])->where('placed_at', '<', Day::bounds($m[2])[1])
                     : $q,
             })

@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Database\Factories\ProductFactory;
-use Sunrice\Models\Entry;
 
 /**
  * The commerce projection of a product entry (ProductProjector): the

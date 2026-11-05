@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\Term;
 use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
-use Sunrice\Models\Entry;
-use Sunrice\Models\Taxonomy;
-use Sunrice\Models\Term;
 
 $rule = function (array $attributes, array $targets = []): PriceRule {
     $rule = PriceRule::query()->create([...['name' => 'Rule', 'tiers' => [], 'scope' => 'all'], ...$attributes]);
@@ -62,7 +62,7 @@ return [
     'category targets include subcategories' => [
         'products' => ['MUG' => 50000, 'TEA' => 20000],
         'setup' => function (array $v) use ($rule) {
-            $taxonomy = Taxonomy::query()->create(['handle' => 'product_categories', 'title' => 'Categories', 'settings' => []]);
+            $taxonomy = Taxonomy::query()->create(['handle' => 'product_categories', 'title' => 'Categories']);
             $parent = Term::query()->create(['taxonomy_id' => $taxonomy->id, 'sort_order' => 0]);
             $child = Term::query()->create(['taxonomy_id' => $taxonomy->id, 'parent_id' => $parent->id, 'sort_order' => 0]);
             Entry::query()->find($v['MUG']->product->entry_id)->terms()->attach($child->id);

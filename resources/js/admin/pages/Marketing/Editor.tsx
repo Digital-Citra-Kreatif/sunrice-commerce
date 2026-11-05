@@ -1,4 +1,6 @@
-import { adminUrl, components, fetchJson, inertia, React, Sunrice, toast, ui } from '../../lib/sunrice';
+import { React, adminUrl, fetchJson, inertia, toast, ui, useBreadcrumbs } from '../../lib/sunrice';
+import { InputError } from '../../components/InputError';
+import { FieldRenderer } from '../../components/FieldRenderer';
 import { PageHeader } from '../../components/PageHeader';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useCommerceShared } from '../../lib/store';
@@ -47,12 +49,11 @@ const statusTone: Record<string, string> = { active: 'ok', paused: 'warning', sc
 export default function Editor({ campaign, locales, mainLocale, rules, tags, triggers, templates, reachable, bodyFields, currency }: Props) {
     const { Card, CardContent, CardHeader, CardTitle, CardDescription, Button, Input, Label, Switch, Tabs, TabsList, TabsTrigger, TabsContent,
         Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } = ui;
-    const { FieldRenderer, InputError } = components;
     const { router } = inertia;
     const automation = campaign.type === 'automation';
     const listPath = automation ? 'commerce/marketing/automations' : 'commerce/marketing/campaigns';
     useCommerceShared();
-    Sunrice.useBreadcrumbs([
+    useBreadcrumbs([
         { label: 'Shop', href: adminUrl('commerce') },
         { label: 'Marketing', href: adminUrl('commerce/marketing') },
         { label: automation ? 'Automations' : 'Campaigns', href: adminUrl(listPath) },
@@ -448,7 +449,7 @@ function RuleValue({ def, value, currency, path, onChange }: { def: RuleDef | un
         const field = { handle: path, type: 'commerce_targets', config: { api: adminUrl('commerce/api/targets'), types: def.input === 'products' ? ['product'] : ['term'] } };
         const targets = (Array.isArray(value) ? value : []).map((v: { id: number; label: string }) => ({ ...v, type: def.input === 'products' ? 'product' as const : 'term' as const }));
 
-        return <TargetsField field={field} value={targets} pathPrefix={path} onChange={(list) => onChange((list ?? []).map((t) => ({ id: t.id, label: t.label })))} />;
+        return <TargetsField field={field} value={targets} id={path.replace(/\W+/g, '-')} onChange={(list) => onChange((list ?? []).map((t) => ({ id: t.id, label: t.label })))} />;
     }
     const numeric = def.input === 'days' || def.input === 'number' || def.input === 'money';
 

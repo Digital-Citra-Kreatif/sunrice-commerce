@@ -46,7 +46,7 @@ export interface EditorConfig {
     max_options: number;
     max_variants: number;
     link_presets: Record<string, string>;
-    attribute_taxonomies: Array<{ handle: string; title: string }>;
+    attribute_taxonomies: Array<{ handle: string; title: string; terms: Array<{ id: number; title: string }> }>;
     tax_classes: string[];
     features: Record<string, boolean>;
 }

@@ -13,6 +13,7 @@ use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Http\Controllers\Admin\TargetLabels;
 use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Support\ActivityRecorder;
+use Sunrice\Commerce\Support\Staff;
 
 /**
  * Creates or updates a voucher or automatic discount.
@@ -175,7 +176,7 @@ class SaveVoucher
             }
             $voucher->customers()->delete();
             if ($voucher->audience === 'customers') {
-                $users = config('sunrice.auth.user_model');
+                $users = Staff::userModel();
                 $ids = $users::query()->whereIn('email', $emails)->pluck('id', 'email');
                 foreach ($emails as $email) {
                     $voucher->customers()->create(['email' => $email, 'customer_id' => $ids[$email] ?? null]);

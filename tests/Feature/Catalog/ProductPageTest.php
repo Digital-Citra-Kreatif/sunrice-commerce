@@ -5,10 +5,11 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
+use Sunrice\Cms\Content;
+use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Models\Entry;
 
 beforeEach(fn () => app(ScaffoldStore::class)->handle());
 
@@ -81,7 +82,7 @@ it('previews draft prices without writing', function () {
     $draft['variants'][0]['price'] = 59000;
     publishProduct($draft, $entry, title: 'Kaos Polos', publish: false);
 
-    $url = URL::temporarySignedRoute('sunrice.frontend.preview', now()->addMinutes(5), ['entry' => $entry->id, 'locale' => 'id']);
+    $url = URL::temporarySignedRoute('sunrice.cms.preview', now()->addMinutes(5), ['translation' => $entry->translations()->where('locale', 'id')->value('id')]);
     $this->get($url)->assertOk()->assertSee('Rp59.000');
     expect(commerce_product(Entry::query()->find($entry->id))->price['from'])->toBe(99000);
 });
@@ -93,7 +94,7 @@ it('builds views for a page of products in a fixed number of queries', function 
             ['id' => "m{$i}", 'options' => ['size' => 'm'], 'sku' => "K{$i}-M", 'price' => 109000],
         ]]), title: "Kaos {$i}");
     }
-    $entries = sunrice_entries('products')->get();
+    $entries = Content::entries('products')->get();
     app(ProductViewFactory::class)->flush();
 
     DB::enableQueryLog();

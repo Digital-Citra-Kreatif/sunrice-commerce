@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Marketing;
 
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Support\Locales;
 
 /**
  * Ready-made campaigns (an audience and texts to start from) and the
@@ -39,7 +39,7 @@ final class StartingPoints
     public static function content(string $template): array
     {
         $out = [];
-        foreach (Locales::available() as $locale) {
+        foreach (Locales::all() as $locale) {
             $texts = __("commerce::marketing.templates.{$template}", [], $locale);
             $out[$locale] = is_array($texts) ? array_map('strval', $texts) : [];
         }

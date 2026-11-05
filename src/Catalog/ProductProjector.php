@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Catalog;
 
 use Illuminate\Support\Facades\DB;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\Term;
 use Sunrice\Commerce\Catalog\Events\ProductSynced;
 use Sunrice\Commerce\Catalog\Events\ProductSyncFailed;
 use Sunrice\Commerce\Catalog\Models\BundleItem;
@@ -16,10 +19,7 @@ use Sunrice\Commerce\Catalog\Models\ProductOptionValue;
 use Sunrice\Commerce\Catalog\Models\StockMovement;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Storefront\PageCache;
-use Sunrice\Models\Entry;
-use Sunrice\Models\Scopes\HiddenWithParent;
-use Sunrice\Models\Taxonomy;
-use Sunrice\Models\Term;
+use Sunrice\Commerce\Support\Staff;
 use Throwable;
 
 /**
@@ -32,7 +32,7 @@ class ProductProjector
     /** Whether the entry belongs to a product collection. */
     public static function isProduct(Entry $entry): bool
     {
-        $handle = $entry->relationLoaded('collection') ? $entry->collection?->handle : $entry->collection()->value('handle');
+        $handle = $entry->relationLoaded('collection') ? $entry->collection->handle : $entry->collection()->value('handle');
 
         return in_array($handle, (array) config('commerce.catalog.collections', ['products']), true);
     }
@@ -130,7 +130,7 @@ class ProductProjector
 
         // Labels of attribute values (main language) for variant titles.
         $termIds = collect($valueRows)->flatten()->pluck('term_id')->filter()->all();
-        $termNames = $termIds === [] ? collect() : Term::query()->with('translations')->whereIn('id', $termIds)->get()->mapWithKeys(fn (Term $t) => [$t->id => (string) $t->name]);
+        $termNames = $termIds === [] ? collect() : Term::query()->with('translations')->whereIn('id', $termIds)->get()->mapWithKeys(fn (Term $t) => [$t->id => $t->title()]);
 
         // Variants, by uid: restored when they come back, soft-deleted when removed.
         $existing = Variant::withTrashed()->where('product_id', $product->id)->get()->keyBy('uid');
@@ -182,7 +182,7 @@ class ProductProjector
             }
             $variant->save();
             if ($initial !== null && ($initial !== 0 || $isNew)) {
-                StockMovement::query()->create(['variant_id' => $variant->id, 'delta' => $initial, 'quantity_after' => $initial, 'reason' => 'initial', 'user_id' => auth(config('sunrice.auth.guard', 'web'))->id()]);
+                StockMovement::query()->create(['variant_id' => $variant->id, 'delta' => $initial, 'quantity_after' => $initial, 'reason' => 'initial', 'user_id' => auth(Staff::guard())->id()]);
             }
             $variant->optionValues()->sync($valueIds);
             $kept[$v['id']] = $variant;
@@ -313,6 +313,6 @@ class ProductProjector
     /** Whether an entry still exists (in the trash included). */
     public static function entryExists(int $entryId): bool
     {
-        return Entry::query()->withTrashed()->withoutGlobalScope(HiddenWithParent::class)->whereKey($entryId)->exists();
+        return Entry::query()->withTrashed()->whereKey($entryId)->exists();
     }
 }

@@ -13,7 +13,7 @@ use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
 #[Description('Create or change a pricing rule, like Shop → Pricing rules: quantity tiers (min_qty with percent_off, amount_off or fixed_price) for an audience (everyone, signed-in customers or roles) on all products or chosen products, variants, categories or brands. Call without values to see the fields and current values. Saving an active rule needs confirm: true — ask the user first.')]
 class SavePricingRuleTool extends SaveWithFormTool
 {
-    protected string $name = 'save_pricing_rule';
+    protected string $name = 'commerce_save_pricing_rule';
 
     protected ?string $feature = 'pricing_rules';
 

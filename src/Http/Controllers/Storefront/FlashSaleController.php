@@ -6,11 +6,11 @@ namespace Sunrice\Commerce\Http\Controllers\Storefront;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
+use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\ProductQuery;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 use Sunrice\Commerce\Storefront\Layout;
-use Sunrice\Models\Entry;
 
 /** GET /flash-sale (running and upcoming sales) and /flash-sale/{slug}. */
 class FlashSaleController
@@ -35,7 +35,7 @@ class FlashSaleController
         return view(Layout::view('flash-sale'), ['sale' => $model, 'products' => static::products($model), 'seoTitle' => $model->name]);
     }
 
-    /** @return Collection<int, Entry> */
+    /** @return Collection<int, EntryTranslation> */
     public static function products(FlashSale $sale): Collection
     {
         $entryIds = Product::query()->whereIn('id', $sale->items()->pluck('product_id'))->pluck('entry_id')->all();

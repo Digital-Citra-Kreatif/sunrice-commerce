@@ -1,4 +1,4 @@
-import { adminUrl, inertia, React, Sunrice, ui } from '../../lib/sunrice';
+import { React, adminUrl, inertia, ui, useBreadcrumbs } from '../../lib/sunrice';
 import { KpiCard } from '../../components/KpiCard';
 import { PageHeader } from '../../components/PageHeader';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -25,7 +25,7 @@ export default function Report({ campaign, stats, links, recipients }: Props) {
     const { router, Link } = inertia;
     const automation = campaign.type === 'automation';
     useCommerceShared();
-    Sunrice.useBreadcrumbs([
+    useBreadcrumbs([
         { label: 'Shop', href: adminUrl('commerce') },
         { label: 'Marketing', href: adminUrl('commerce/marketing') },
         { label: automation ? 'Automations' : 'Campaigns', href: adminUrl(automation ? 'commerce/marketing/automations' : 'commerce/marketing/campaigns') },

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Marketing\Automations;
 
 use Carbon\CarbonInterface;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Marketing\Consent;
 use Sunrice\Commerce\Marketing\Recipient;
-use Sunrice\Support\Locales;
 
 /**
  * A cart with products left alone for N hours, by a customer who accepts
@@ -62,7 +62,7 @@ class AbandonedCart implements Trigger
             if (! Consent::allows($customer, $ticked)) {
                 continue;
             }
-            yield new Recipient($customer, $email, (string) ($cart->locale ?? $customer->locale ?? Locales::main()), 'cart:'.$cart->id, ['cart_id' => $cart->id, 'ticked' => $ticked]);
+            yield new Recipient($customer, $email, (string) ($cart->locale ?? $customer->locale ?? Locales::default()), 'cart:'.$cart->id, ['cart_id' => $cart->id, 'ticked' => $ticked]);
         }
     }
 }

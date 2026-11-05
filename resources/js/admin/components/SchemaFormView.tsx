@@ -1,4 +1,5 @@
-import { components, inertia, ui } from '../lib/sunrice';
+import { inertia, ui } from '../lib/sunrice';
+import { FieldRenderer } from '../components/FieldRenderer';
 
 export interface SchemaFormProps {
     fields: Array<Record<string, unknown>>;
@@ -10,7 +11,6 @@ export interface SchemaFormProps {
 
 /** A SchemaForm (src/Admin/SchemaForm.php) rendered with Sunrice's field controls. */
 export function SchemaFormView({ form, footer }: { form: SchemaFormProps; footer?: React.ReactNode }) {
-    const { FieldRenderer } = components;
     const { Button } = ui;
     const { data, setData, errors, processing, isDirty, ...submit } = inertia.useForm({ values: form.values });
 

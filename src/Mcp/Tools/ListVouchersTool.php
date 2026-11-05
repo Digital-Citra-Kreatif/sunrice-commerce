@@ -15,10 +15,10 @@ use Sunrice\Commerce\Mcp\OrderData;
 use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 
 #[IsReadOnly]
-#[Description('List vouchers and automatic discounts: code, name, type and value, dates, uses and whether active. Search by code or name. Change one with save_voucher (id).')]
+#[Description('List vouchers and automatic discounts: code, name, type and value, dates, uses and whether active. Search by code or name. Change one with commerce_save_voucher (id).')]
 class ListVouchersTool extends CommerceTool
 {
-    protected string $name = 'list_vouchers';
+    protected string $name = 'commerce_list_vouchers';
 
     protected ?string $feature = 'vouchers';
 

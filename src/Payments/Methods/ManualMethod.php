@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Payments\Methods;
 
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Models\Payment;
 use Sunrice\Commerce\Payments\PaymentMethodBase;
-use Sunrice\Support\Locales;
 
 /** Shared parts of the manual methods: per-language instructions and the confirmation setting. */
 abstract class ManualMethod extends PaymentMethodBase
@@ -43,7 +43,7 @@ abstract class ManualMethod extends PaymentMethodBase
     protected static function instructionFields(): array
     {
         $fields = [];
-        foreach (Locales::available() as $locale) {
+        foreach (Locales::all() as $locale) {
             $fields[] = ['handle' => $locale, 'type' => 'textarea', 'label' => Locales::name($locale), 'translatable' => false, 'config' => ['max' => 3000]];
         }
 

@@ -9,18 +9,19 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
-use Sunrice\Actions\Entries\PublishTranslation;
-use Sunrice\Actions\Entries\SaveDraft;
+use Sunrice\Cms\Actions\Entries\PublishEntry;
+use Sunrice\Cms\Actions\Entries\SaveDraft;
+use Sunrice\Cms\Models\Collection;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\Term;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Promotions\Actions\SaveFlashSale;
 use Sunrice\Commerce\Promotions\Actions\SavePricingRule;
 use Sunrice\Commerce\Promotions\Actions\SaveVoucher;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Models\Collection;
-use Sunrice\Models\Entry;
-use Sunrice\Models\Taxonomy;
-use Sunrice\Models\Term;
-use Sunrice\Support\Locales;
+use Sunrice\Commerce\Support\Staff;
 use Workbench\App\Models\User;
 
 /**
@@ -123,7 +124,7 @@ class LoadTestSeeder extends Seeder
     {
         $taxonomyId = (int) Taxonomy::query()->where('handle', $taxonomy)->value('id');
         $term = Term::query()->create(['taxonomy_id' => $taxonomyId, 'parent_id' => $parent, 'sort_order' => 0]);
-        $term->translations()->create(['taxonomy_id' => $taxonomyId, 'locale' => Locales::main(), 'name' => $name, 'slug' => Str::slug($name), 'data' => [], 'is_ready' => true]);
+        $term->translations()->create(['taxonomy_id' => $taxonomyId, 'locale' => Locales::default(), 'name' => $name, 'slug' => Str::slug($name), 'data' => [], 'is_ready' => true]);
 
         return (int) $term->id;
     }
@@ -166,7 +167,7 @@ class LoadTestSeeder extends Seeder
 
             $entry = Entry::query()->create(['collection_id' => $collection->id, 'status' => 'draft', 'sort_order' => 0]);
             $slug = Str::slug(Str::limit($title, 80, ''))."-{$n}";
-            $translation = $entry->translations()->create(['locale' => Locales::main(), 'collection_id' => $collection->id, 'title' => $title,
+            $translation = $entry->translations()->create(['locale' => Locales::default(), 'collection_id' => $collection->id, 'title' => $title,
                 'slug' => $slug, 'data' => [], 'seo' => []]);
             $entry->terms()->sync(array_values(array_unique([
                 $this->pick('leaf'), $this->pick('brands'), ...array_map(fn () => $this->pick('product_tags'), range(0, mt_rand(0, 3))),
@@ -174,7 +175,7 @@ class LoadTestSeeder extends Seeder
             app(SaveDraft::class)->handle($translation, ['title' => $title, 'slug' => $slug, 'data' => [
                 'excerpt' => "Produk uji {$n}: {$kind}.", 'product' => $value,
             ]]);
-            app(PublishTranslation::class)->handle($translation->fresh());
+            app(PublishEntry::class)->handle($translation->fresh());
             if ($kind === 'simple') {
                 $simple[] = (int) Variant::query()->where('sku', $sku)->value('id');
             }
@@ -184,7 +185,7 @@ class LoadTestSeeder extends Seeder
         }
         // Order lines need each variant's product and price.
         $this->variants = DB::table('commerce_variants as v')->join('commerce_products as p', 'p.id', '=', 'v.product_id')
-            ->join('sunrice_entry_translations as t', fn ($j) => $j->on('t.entry_id', '=', 'p.entry_id')->where('t.locale', Locales::main()))
+            ->join('sunrice_entry_translations as t', fn ($j) => $j->on('t.entry_id', '=', 'p.entry_id')->where('t.locale', Locales::default()))
             ->where('v.active', true)->whereNull('v.deleted_at')
             ->get(['v.id', 'v.product_id', 'p.entry_id', 't.title as name', 'v.title', 'v.sku', 'v.price', 'v.weight', 'p.requires_shipping as shipping', 'p.downloadable as digital', 'p.type'])
             ->filter(fn ($v) => $v->type !== 'bundle')
@@ -297,7 +298,7 @@ class LoadTestSeeder extends Seeder
         $cities = [];
         $now = now();
         $customerUser = User::query()->firstOrCreate(['email' => 'customer@example.com'], ['name' => 'Pelanggan Uji', 'password' => bcrypt('password')]);
-        $customerUser->assignRole(Role::findOrCreate('Customer', (string) config('sunrice.auth.guard', 'web')));
+        $customerUser->assignRole(Role::findOrCreate('Customer', Staff::guard()));
         $rows = [];
         for ($i = 1; $i <= $this->customers; $i++) {
             $rows[] = ['user_id' => $i === 1 ? $customerUser->id : null, 'email' => $i === 1 ? 'customer@example.com' : "pelanggan{$i}@example.com",
@@ -413,7 +414,7 @@ class LoadTestSeeder extends Seeder
                 'channel' => 'storefront', 'customer_id' => $guest ? null : $customer['id'], 'email' => $customer['email'], 'phone' => $customer['phone'],
                 'customer_name' => $customer['name'], 'billing_address' => json_encode($customer['address']), 'shipping_address' => $shippable ? json_encode($customer['address']) : null,
                 'shipping_method' => $shippable ? json_encode(['id' => 'weight:1:default', 'method' => 'weight', 'method_id' => 1, 'service' => 'default', 'label' => 'Reguler', 'cost' => $shipping, 'eta' => null, 'meta' => []]) : null,
-                'payment_method' => $method[0], 'payment_method_title' => $method[1], 'currency' => 'IDR', 'locale' => Locales::main(),
+                'payment_method' => $method[0], 'payment_method_title' => $method[1], 'currency' => 'IDR', 'locale' => Locales::default(),
                 'subtotal' => $subtotal, 'discount_total' => $discount, 'shipping_total' => $shipping, 'total' => $total, 'paid_total' => $paid ? $total : 0,
                 'refunded_total' => $refunded, 'weight' => $weight, 'placed_at' => $at, 'paid_at' => $paid ? $at->copy()->addHours(2) : null,
                 'completed_at' => $status === 'completed' ? $at->copy()->addDays(4) : null, 'cancelled_at' => $status === 'cancelled' ? $at->copy()->addDay() : null,

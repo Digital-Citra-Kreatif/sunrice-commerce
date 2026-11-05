@@ -12,6 +12,7 @@ use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Customers\Notifications\CustomerLoginCode;
 use Sunrice\Commerce\Customers\Notifications\WelcomeCustomer;
 use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Commerce\Support\Staff;
 
 /**
  * One-time sign-in codes (ARCHITECTURE.md §16.2), with
@@ -25,9 +26,9 @@ class LoginCodes
 
     public function supported(): bool
     {
-        $model = config('sunrice.auth.user_model');
+        $model = Staff::userModel();
 
-        return is_string($model) && method_exists($model, 'createOneTimePassword');
+        return method_exists($model, 'createOneTimePassword');
     }
 
     /** Creates and emails a code (replacing an earlier one). */
@@ -66,6 +67,6 @@ class LoginCodes
     /** In shared-guard mode, staff can't sign in by code or Google (their admin must stay password-protected). */
     public static function isRefusedStaff(Authenticatable $user): bool
     {
-        return CurrentCustomer::sharesAdminGuard() && method_exists($user, 'can') && $user->can('sunrice.access-admin');
+        return CurrentCustomer::sharesAdminGuard() && method_exists($user, 'can') && $user->can('sunrice.access');
     }
 }

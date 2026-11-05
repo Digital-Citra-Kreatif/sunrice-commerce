@@ -13,7 +13,7 @@
     <section class="commerce-shop">
         <header class="commerce-listing__header">
             @include($L::view('partials.breadcrumbs'), ['items' => [
-                ['label' => __('commerce::storefront.theme.home'), 'url' => url(\Sunrice\Support\Locales::prefix(app()->getLocale()) ?: '/')],
+                ['label' => __('commerce::storefront.theme.home'), 'url' => url(\Sunrice\Cms\Support\Locales::prefix(app()->getLocale()) ?: '/')],
                 ['label' => $collection->title ?? __('commerce::storefront.listing.shop'), 'url' => $search !== '' ? url()->current() : null],
                 ...($search !== '' ? [['label' => $title, 'url' => null]] : []),
             ]])

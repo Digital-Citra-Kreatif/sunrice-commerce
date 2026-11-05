@@ -6,10 +6,10 @@ namespace Sunrice\Commerce\View\Components;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
+use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\Commerce\Catalog\PriceVisibility;
 use Sunrice\Commerce\Catalog\ProductQuery;
 use Sunrice\Commerce\Storefront\Layout;
-use Sunrice\Models\Taxonomy;
 
 /**
  * <x-commerce::product-filter /> — the filter form (a GET form on the

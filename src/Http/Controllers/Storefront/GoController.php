@@ -6,11 +6,13 @@ namespace Sunrice\Commerce\Http\Controllers\Storefront;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\Catalog;
+use Sunrice\Commerce\Catalog\LiveEntries;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Contracts\Tracking;
 use Sunrice\Commerce\Storefront\WhatsApp;
-use Sunrice\Models\Entry;
 
 /**
  * GET /go/{type}/{entry}: counts a call-to-action click and redirects to
@@ -23,13 +25,13 @@ class GoController
     {
         $product = Product::query()->where('entry_id', $entry)->whereNull('removed_at')->first();
         abort_if($product === null || ! $catalog->isPublished($product), 404);
-        $model = Entry::query()->findOrFail($entry);
-        $model->resolveFor(app()->getLocale());
+        $model = LiveEntries::translation(Entry::query()->findOrFail($entry));
+        abort_if($model === null, 404);
 
         $target = match ($type) {
             'whatsapp' => $this->whatsapp($product, $model, $request, $whatsapp),
             'external' => $this->external($product, $request),
-            'inquiry' => ($model->url ?? '/').'#inquiry',
+            'inquiry' => ($model->url() ?? '/').'#inquiry',
             default => null,
         };
         abort_if($target === null, 404);
@@ -38,7 +40,7 @@ class GoController
         return redirect()->away($target);
     }
 
-    protected function whatsapp(Product $product, Entry $entry, Request $request, WhatsApp $whatsapp): ?string
+    protected function whatsapp(Product $product, EntryTranslation $entry, Request $request, WhatsApp $whatsapp): ?string
     {
         $number = $whatsapp->next();
         if ($number === null) {
@@ -50,7 +52,7 @@ class GoController
             'variant' => $variant?->title ? "({$variant->title})" : '',
             'quantity' => max(1, (int) $request->query('qty', 1)),
             'price' => '',
-            'url' => $entry->url !== null ? url($entry->url) : '',
+            'url' => ($url = $entry->url()) !== null ? url($url) : '',
         ]);
 
         return $whatsapp->url($number, $text);

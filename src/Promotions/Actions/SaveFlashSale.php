@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Http\Controllers\Admin\TargetLabels;
@@ -17,7 +18,6 @@ use Sunrice\Commerce\Promotions\FlashSales\FlashSaleBoundaries;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSaleItem;
 use Sunrice\Commerce\Promotions\FlashSales\OverlapCheck;
 use Sunrice\Commerce\Support\ActivityRecorder;
-use Sunrice\Support\Locales;
 
 /**
  * Creates or updates a flash sale and its items (sold counts kept).
@@ -36,7 +36,7 @@ class SaveFlashSale
     /** @return array<int, array<string, mixed>> */
     public function fields(): array
     {
-        $descriptions = array_map(fn (string $l) => ['handle' => $l, 'type' => 'textarea', 'label' => Locales::name($l), 'translatable' => false, 'config' => ['max' => 2000]], Locales::available());
+        $descriptions = array_map(fn (string $l) => ['handle' => $l, 'type' => 'textarea', 'label' => Locales::name($l), 'translatable' => false, 'config' => ['max' => 2000]], Locales::all());
 
         return [
             ['handle' => 'name', 'type' => 'text', 'label' => 'Name', 'required' => true, 'translatable' => false, 'config' => ['max' => 120]],

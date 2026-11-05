@@ -8,12 +8,12 @@
 --}}
 @php
     $card = commerce_product($entry);
-    $images = collect($entry->get('gallery') ?? [])->filter(fn ($image) => is_object($image))->values();
+    $images = collect((commerce_values($entry)['gallery'] ?? null) ?? [])->filter(fn ($image) => is_object($image))->values();
     $swatches = [];
     $sizes = [];
     foreach ($card?->product->options ?? [] as $option) {
         $values = $option->values->map(fn ($value) => [
-            'label' => $value->label ?? (string) ($value->term?->resolveFor(app()->getLocale())->name ?? ''),
+            'label' => $value->label ?? (string) ($value->term?->title() ?? ''),
             'swatch' => $value->term?->translations->first()?->data['swatch'] ?? null,
         ]);
         if ($values->contains(fn ($value) => filled($value['swatch']))) {
@@ -24,7 +24,7 @@
     }
 @endphp
 <article class="commerce-card">
-    <a href="{{ $entry->url }}" class="commerce-card__link">
+    <a href="{{ $entry->url() }}" class="commerce-card__link">
         <span class="commerce-card__media">
             @if ($images->isNotEmpty())
                 <img class="commerce-card__image" src="{{ $images[0]->url() }}" alt="{{ $images[0]->alt ?? $entry->title }}" loading="lazy" width="600" height="750">

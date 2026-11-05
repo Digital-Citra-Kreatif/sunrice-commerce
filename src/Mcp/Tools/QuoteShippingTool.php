@@ -17,10 +17,10 @@ use Sunrice\Commerce\Shipping\ShippingRate;
 use Sunrice\Commerce\Shipping\ShippingRequest;
 
 #[IsReadOnly]
-#[Description('Shipping options and costs for products to a destination, as checkout would offer them (e.g. to answer "how much is shipping to Bandung?"). lines are variant ids and quantities (get_product); destination is {country, province_code, city_code, district_code, postal_code} with region codes from the store\'s region list.')]
+#[Description('Shipping options and costs for products to a destination, as checkout would offer them (e.g. to answer "how much is shipping to Bandung?"). lines are variant ids and quantities (commerce_get_product); destination is {country, province_code, city_code, district_code, postal_code} with region codes from the store\'s region list.')]
 class QuoteShippingTool extends CommerceTool
 {
-    protected string $name = 'quote_shipping';
+    protected string $name = 'commerce_quote_shipping';
 
     protected ?string $feature = 'shipping';
 

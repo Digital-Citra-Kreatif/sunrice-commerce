@@ -5,6 +5,11 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
+use Sunrice\Admin\Media\Media;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\Menu;
+use Sunrice\Cms\Models\Term;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Customers\Models\Customer;
@@ -16,11 +21,6 @@ use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Regions\RegionImporter;
 use Sunrice\Commerce\Storefront\Templates;
-use Sunrice\Models\Asset;
-use Sunrice\Models\Entry;
-use Sunrice\Models\Menu;
-use Sunrice\Models\Term;
-use Sunrice\Support\Locales;
 use Workbench\App\Models\User;
 
 /*
@@ -34,7 +34,7 @@ function starterStore(): void
 {
     // Seeding fifty products with their artwork takes more than a parallel worker's default 128 MB.
     ini_set('memory_limit', '512M');
-    Storage::fake((string) config('sunrice.assets.disk', 'public'));
+    Storage::fake((string) config('sunrice-admin.media.disk', 'public'));
     Storage::fake((string) config('commerce.downloads.disk', 'local'));
     (new RegionImporter(__DIR__.'/../../Fixtures/regions'))->import(4);
     app(StarterStoreSeeder::class)->run();
@@ -46,7 +46,7 @@ function starterStore(): void
 it('ships starter templates that compile to valid PHP', function () {
     $dir = __DIR__.'/../../../resources/views/starter';
     $files = Templates::files($dir);
-    expect($files)->toContain('sunrice/layouts/app.blade.php', 'sunrice/home.blade.php', 'sunrice/pages/show.blade.php', 'sunrice/search.blade.php', 'errors/404.blade.php');
+    expect($files)->toContain('cms/layout.blade.php', 'cms/home.blade.php', 'cms/collections/pages/show.blade.php', 'cms/search.blade.php', 'errors/404.blade.php');
     foreach ($files as $file) {
         token_get_all(Blade::compileString((string) file_get_contents("{$dir}/{$file}")), TOKEN_PARSE);
     }
@@ -54,7 +54,7 @@ it('ships starter templates that compile to valid PHP', function () {
 
 it('seeds the starter store once, however often it runs', function () {
     starterStore();
-    $counts = fn () => [Product::query()->count(), Variant::query()->count(), Asset::query()->count(), Term::query()->count(), Entry::query()->count(),
+    $counts = fn () => [Product::query()->count(), Variant::query()->count(), Media::query()->count(), Term::query()->count(), Entry::query()->count(),
         Order::query()->count(), Voucher::query()->count(), FlashSale::query()->count(), Menu::query()->count(), Customer::query()->count()];
     $first = $counts();
     app(StarterStoreSeeder::class)->run();
@@ -105,7 +105,7 @@ it('still renders the documents of starter orders as PDFs', function () {
 it('seeds in the store language, with one shot per colour', function () {
     app()->setLocale('en');
     starterStore();
-    $locale = Locales::main();
+    $locale = Locales::default();
     $customer = Customer::query()->firstOrFail();
 
     expect(app()->getLocale())->toBe('en')

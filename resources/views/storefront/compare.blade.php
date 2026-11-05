@@ -10,9 +10,9 @@
         @include(\Sunrice\Commerce\Storefront\Layout::view('partials.messages'))
         @if ($entries->isEmpty())
             @include(\Sunrice\Commerce\Storefront\Layout::view('partials.empty'), ['title' => __('commerce::storefront.compare.empty'), 'icon' => 'compare',
-                'action' => ['url' => url(\Sunrice\Support\Locales::prefix(app()->getLocale()) ?: '/'), 'label' => __('commerce::storefront.cart.continue')]])
+                'action' => ['url' => url(\Sunrice\Cms\Support\Locales::prefix(app()->getLocale()) ?: '/'), 'label' => __('commerce::storefront.cart.continue')]])
         @else
-            @php($views = $entries->mapWithKeys(fn ($e) => [$e->id => commerce_product($e)]))
+            @php($views = $entries->mapWithKeys(fn ($e) => [$e->entry_id => commerce_product($e)]))
             <div class="commerce-compare__scroll">
                 <table class="commerce-compare__table">
                     <thead>
@@ -20,8 +20,8 @@
                             <td></td>
                             @foreach ($entries as $entry)
                                 <th scope="col">
-                                    @php($image = collect($entry->get('gallery') ?? [])->first())
-                                    <a class="commerce-compare__product" href="{{ $entry->url }}">
+                                    @php($image = collect((commerce_values($entry)['gallery'] ?? null) ?? [])->first())
+                                    <a class="commerce-compare__product" href="{{ $entry->url() }}">
                                         @if (is_object($image))<img src="{{ $image->url() }}" alt="" width="200" height="250" loading="lazy">@endif
                                         <span>{{ $entry->title }}</span>
                                     </a>
@@ -34,23 +34,23 @@
                         <tr>
                             <th scope="row">{{ __('commerce::storefront.listing.price') }}</th>
                             @foreach ($entries as $entry)
-                                <td>@if ($views[$entry->id])@include(\Sunrice\Commerce\Storefront\Layout::view('partials.price'), ['product' => $views[$entry->id]])@endif</td>
+                                <td>@if ($views[$entry->entry_id])@include(\Sunrice\Commerce\Storefront\Layout::view('partials.price'), ['product' => $views[$entry->entry_id]])@endif</td>
                             @endforeach
                         </tr>
                         @foreach ($fields as $field)
                             <tr>
                                 <th scope="row">{{ __('commerce::storefront.compare.fields.'.$field) }}</th>
                                 @foreach ($entries as $entry)
-                                    @php($view = $views[$entry->id])
+                                    @php($view = $views[$entry->entry_id])
                                     @php($variant = $view?->defaultVariant())
                                     <td>{{ match ($field) {
                                         'sku' => $view?->isVariable() ? '—' : ($variant?->sku ?? '—'),
                                         'stock' => $view?->stock['message'] ?? '—',
                                         'weight' => $variant?->weight ? number_format($variant->weight / 1000, 2, ',', '.').' kg' : '—',
                                         'dimensions' => $variant?->length ? ($variant->length / 10).' × '.($variant->width / 10).' × '.($variant->height / 10).' cm' : '—',
-                                        'excerpt' => (string) ($entry->get('excerpt') ?? '—'),
+                                        'excerpt' => (string) ((commerce_values($entry)['excerpt'] ?? null) ?? '—'),
                                         'brand', 'categories' => $entry->terms->filter(fn ($t) => $t->taxonomy?->handle === config($field === 'brand' ? 'commerce.catalog.brand_taxonomy' : 'commerce.catalog.category_taxonomy'))
-                                            ->map(fn ($t) => $t->resolveFor(app()->getLocale())->name)->implode(', ') ?: '—',
+                                            ->map(fn ($t) => $t->title())->implode(', ') ?: '—',
                                         'attributes' => collect($view?->options ?? [])->map(fn ($o) => $o['name'].': '.collect($o['values'])->pluck('label')->implode(', '))->implode('; ') ?: '—',
                                         default => '—',
                                     } }}</td>
@@ -61,7 +61,7 @@
                             <tr>
                                 <th scope="row">{{ $label }}</th>
                                 @foreach ($entries as $entry)
-                                    <td>{{ data_get(collect($entry->get('specifications') ?? [])->first(fn ($row) => mb_strtolower(trim((string) data_get($row, 'label', ''))) === mb_strtolower($label)), 'value') ?? '—' }}</td>
+                                    <td>{{ data_get(collect((commerce_values($entry)['specifications'] ?? null) ?? [])->first(fn ($row) => mb_strtolower(trim((string) data_get($row, 'label', ''))) === mb_strtolower($label)), 'value') ?? '—' }}</td>
                                 @endforeach
                             </tr>
                         @endforeach

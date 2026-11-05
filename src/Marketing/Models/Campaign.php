@@ -7,7 +7,7 @@ namespace Sunrice\Commerce\Marketing\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Support\Locales;
 
 /**
  * A marketing email: a campaign (type campaign, sent once to an audience,
@@ -90,7 +90,7 @@ class Campaign extends Model
     public function contentFor(string $locale): array
     {
         $content = (array) $this->content;
-        $main = (array) ($content[Locales::main()] ?? []);
+        $main = (array) ($content[Locales::default()] ?? []);
         $own = (array) ($content[$locale] ?? []);
         $out = [];
         foreach (['subject', 'preheader', 'body', 'button_label', 'button_url'] as $part) {

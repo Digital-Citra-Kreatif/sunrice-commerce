@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Permissions;
 
-use Sunrice\Facades\Sunrice;
+use Sunrice\Admin\Panel;
 
 /**
- * Every commerce permission (SPEC.md § Permission matrix), registered with
- * Sunrice so roles can be given them in Users → Roles. They are registered
+ * Every commerce permission (SPEC.md § Permission matrix), registered on the
+ * panel so roles can be given them in Users → Roles. They are registered
  * whatever the modules' switches, so role grants survive a switch-off.
  */
 final class CommercePermissions
@@ -62,11 +62,27 @@ final class CommercePermissions
         ];
     }
 
-    public static function register(): void
+    /**
+     * The Shop Manager role (sunrice:roles): the panel, media, the store's
+     * collections, taxonomies and inquiry form, and every commerce permission.
+     *
+     * @return list<string> permission names and patterns
+     */
+    public static function shopManager(): array
     {
-        foreach (self::all() as $name => [$label, $group]) {
-            Sunrice::registerPermission($name, $label, $group);
-        }
+        $taxonomies = array_values(array_filter([
+            config('commerce.catalog.category_taxonomy'), config('commerce.catalog.tag_taxonomy'), config('commerce.catalog.brand_taxonomy'),
+            ...(array) config('commerce.catalog.attribute_taxonomies', []),
+        ], fn (mixed $handle): bool => is_string($handle) && $handle !== ''));
+        $form = config('commerce.catalog.inquiry_form');
+
+        return [
+            Panel::ACCESS, 'sunrice.guide.view', 'sunrice.media.view', 'sunrice.media.upload', 'sunrice.media.update', 'cms.entries.view-drafts',
+            ...array_map(fn (string $handle): string => "cms.entries.{$handle}.*", array_values(array_filter((array) config('commerce.catalog.collections', ['products']), 'is_string'))),
+            ...array_map(fn (string $handle): string => "cms.terms.{$handle}.*", $taxonomies),
+            ...(is_string($form) && $form !== '' ? ["cms.submissions.{$form}.*"] : []),
+            'commerce.*',
+        ];
     }
 
     /**

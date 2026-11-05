@@ -18,7 +18,7 @@ use Sunrice\Commerce\Mcp\CommerceTool;
 #[Description('Run a store report, like Shop → Reports: sales (default: gross, discounts, refunds, net, shipping, taxes, total per day, week or month), products, categories, brands, vouchers, customers, stock or ctas (calls to action). Give period (today, 7d, 30d, 90d, month, last_month, year) or from and to (Y-m-d), and compare (previous, year, none). Money columns are integers in the smallest currency unit.')]
 class SalesReportTool extends CommerceTool
 {
-    protected string $name = 'sales_report';
+    protected string $name = 'commerce_sales_report';
 
     protected ?string $feature = 'analytics';
 

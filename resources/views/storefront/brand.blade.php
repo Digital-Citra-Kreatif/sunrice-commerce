@@ -7,22 +7,22 @@
     <section class="commerce-term commerce-brand">
         <header class="commerce-listing__header commerce-brand__header">
             @include($L::view('partials.breadcrumbs'), ['items' => [
-                ['label' => __('commerce::storefront.theme.home'), 'url' => url(\Sunrice\Support\Locales::prefix(app()->getLocale()) ?: '/')],
+                ['label' => __('commerce::storefront.theme.home'), 'url' => url(\Sunrice\Cms\Support\Locales::prefix(app()->getLocale()) ?: '/')],
                 ['label' => __('commerce::storefront.listing.brands'), 'url' => \Illuminate\Support\Facades\Route::has('commerce.brands') ? commerce_url('commerce.brands') : null],
-                ['label' => $term->name, 'url' => null],
+                ['label' => $term->title, 'url' => null],
             ]])
-            @php($logo = $term->get('logo'))
+            @php($logo = (commerce_values($term)['logo'] ?? null))
             @if (is_object($logo))
-                <img class="commerce-brand__logo" src="{{ $logo->url() }}" alt="{{ $term->name }}" width="200" height="100">
+                <img class="commerce-brand__logo" src="{{ $logo->url() }}" alt="{{ $term->title }}" width="200" height="100">
             @endif
-            <h1 class="commerce-listing__title">{{ $term->name }}</h1>
-            @if (filled($description = $term->get('description')))
+            <h1 class="commerce-listing__title">{{ $term->title }}</h1>
+            @if (filled($description = (commerce_values($term)['description'] ?? null)))
                 <div class="commerce-term__description">{!! $description !!}</div>
             @endif
-            @if (filled($website = $term->get('website')))
+            @if (filled($website = (commerce_values($term)['website'] ?? null)))
                 <p><a href="{{ $website }}" rel="noopener nofollow" target="_blank">{{ parse_url($website, PHP_URL_HOST) ?: $website }}</a></p>
             @endif
         </header>
-        @include($L::view('partials.listing'), ['query' => \Sunrice\Commerce\Catalog\ProductQuery::fromRequest(request())->brand($term->id), 'without' => 'brand'])
+        @include($L::view('partials.listing'), ['query' => \Sunrice\Commerce\Catalog\ProductQuery::fromRequest(request())->brand($term->term_id), 'without' => 'brand'])
     </section>
 @endsection

@@ -14,7 +14,7 @@ use Sunrice\Commerce\Payments\Models\Payment;
 function orderRows($test, string $query = ''): array
 {
     $rows = [];
-    $test->get('/cms/commerce/orders'.$query)->assertOk()->assertInertia(function ($page) use (&$rows) {
+    $test->get('/admin/commerce/orders'.$query)->assertOk()->assertInertia(function ($page) use (&$rows) {
         $rows = $page->toArray()['props']['rows']['data'];
     });
 
@@ -36,15 +36,15 @@ it('lists, searches and filters orders for staff who may view them', function ()
         ->and(array_column(orderRows($this, '?filters[shipping_method]=flat'), 'number'))->toBe(['ORD-A'])
         ->and(array_column(orderRows($this, '?filters[date]=30d'), 'number'))->toBe(['Q-1 (quote)', 'ORD-A']);
 
-    $this->get("/cms/commerce/orders/{$a->id}")->assertOk()->assertInertia(fn ($page) => $page->component('Commerce/Orders/Show')
+    $this->get("/admin/commerce/orders/{$a->id}")->assertOk()->assertInertia(fn ($page) => $page->component('Commerce/Orders/Show')
         ->where('order.number', 'ORD-A')->where('can.edit', false)->where('can.cancel', false));
-    $this->post("/cms/commerce/orders/{$a->id}/transition", ['to' => 'completed'])->assertForbidden();
-    $this->get('/cms/commerce/orders/export')->assertForbidden();
+    $this->post("/admin/commerce/orders/{$a->id}/transition", ['to' => 'completed'])->assertForbidden();
+    $this->get('/admin/commerce/orders/export')->assertForbidden();
 });
 
 it('refuses staff without the orders permission', function () {
     actingAsUserWith(['commerce.customers.view']);
-    $this->get('/cms/commerce/orders')->assertForbidden();
+    $this->get('/admin/commerce/orders')->assertForbidden();
 });
 
 it('changes status, adds notes and edits addresses with the permissions', function () {
@@ -52,15 +52,15 @@ it('changes status, adds notes and edits addresses with the permissions', functi
     actingAsUserWith(['commerce.orders.view', 'commerce.orders.edit', 'commerce.orders.cancel']);
     $order = makeOrder(['status' => 'processing', 'payment_status' => 'paid', 'paid_total' => 100000]);
 
-    $this->post("/cms/commerce/orders/{$order->id}/transition", ['to' => 'cancelled'])->assertSessionHas('error', 'This order is paid: refund it before cancelling.');
-    $this->post("/cms/commerce/orders/{$order->id}/transition", ['to' => 'completed'])->assertSessionHas('success');
+    $this->post("/admin/commerce/orders/{$order->id}/transition", ['to' => 'cancelled'])->assertSessionHas('error', 'This order is paid: refund it before cancelling.');
+    $this->post("/admin/commerce/orders/{$order->id}/transition", ['to' => 'completed'])->assertSessionHas('success');
     expect($order->fresh()->status)->toBe('completed')->and($order->events()->latest('id')->first()->source)->toBe('admin');
 
-    $this->post("/cms/commerce/orders/{$order->id}/notes", ['message' => 'Your parcel is packed', 'customer' => true])->assertSessionHas('success');
+    $this->post("/admin/commerce/orders/{$order->id}/notes", ['message' => 'Your parcel is packed', 'customer' => true])->assertSessionHas('success');
     Event::assertDispatched(OrderNoteAdded::class, fn ($e) => $e->note->visibility === 'customer' && $e->note->message === 'Your parcel is packed');
 
-    $this->put("/cms/commerce/orders/{$order->id}/addresses", ['values' => ['shipping_address' => ['name' => 'Ani', 'region' => ['country' => 'SG'], 'city' => 'Singapore', 'line1' => '1 Orchard Rd']]])
-        ->assertRedirect("/cms/commerce/orders/{$order->id}");
+    $this->put("/admin/commerce/orders/{$order->id}/addresses", ['values' => ['shipping_address' => ['name' => 'Ani', 'region' => ['country' => 'SG'], 'city' => 'Singapore', 'line1' => '1 Orchard Rd']]])
+        ->assertRedirect("/admin/commerce/orders/{$order->id}");
     expect($order->fresh()->shipping_address['line1'])->toBe('1 Orchard Rd')->and($order->fresh()->shipping_address['country'])->toBe('SG');
 });
 
@@ -68,7 +68,7 @@ it('bulk-marks orders and skips those that can\'t move', function () {
     actingAsUserWith(['commerce.orders.view', 'commerce.orders.edit']);
     $paid = makeOrder(['status' => 'processing', 'payment_status' => 'paid']);
     $unpaid = makeOrder(['status' => 'processing', 'payment_status' => 'unpaid']);
-    $this->post('/cms/commerce/orders/bulk', ['action' => 'completed', 'ids' => [$paid->id, $unpaid->id]])
+    $this->post('/admin/commerce/orders/bulk', ['action' => 'completed', 'ids' => [$paid->id, $unpaid->id]])
         ->assertSessionHas('success', '1 order updated. 1 skipped (not allowed from their status).');
     expect($paid->fresh()->status)->toBe('completed')->and($unpaid->fresh()->status)->toBe('processing');
 });
@@ -78,7 +78,7 @@ it('exports the filtered orders as CSV', function () {
     $order = makeOrder(['number' => 'ORD-X', 'customer_name' => 'Ani', 'total' => 125000]);
     $order->items()->create(['name' => 'Mug', 'sku' => 'MUG', 'quantity' => 2]);
 
-    $csv = $this->get('/cms/commerce/orders/export')->assertOk()->streamedContent();
+    $csv = $this->get('/admin/commerce/orders/export')->assertOk()->streamedContent();
     // A byte order mark first, so Excel reads UTF-8.
     expect(str_starts_with($csv, "\u{FEFF}"))->toBeTrue();
     $lines = array_map('str_getcsv', array_filter(explode("\n", substr($csv, 3))));
@@ -92,8 +92,8 @@ it('exports what customers typed as text, never as a spreadsheet formula', funct
     makeOrder(['number' => 'ORD-F', 'customer_name' => '=HYPERLINK("https://evil.example","Click")', 'phone' => '+62 812', 'total' => 1000]);
     Customer::query()->create(['email' => 'f@example.com', 'name' => '@SUM(1+1)']);
 
-    $orders = array_map('str_getcsv', array_filter(explode("\n", substr($this->get('/cms/commerce/orders/export')->streamedContent(), 3))));
-    $customers = array_map('str_getcsv', array_filter(explode("\n", substr($this->get('/cms/commerce/customers/export')->streamedContent(), 3))));
+    $orders = array_map('str_getcsv', array_filter(explode("\n", substr($this->get('/admin/commerce/orders/export')->streamedContent(), 3))));
+    $customers = array_map('str_getcsv', array_filter(explode("\n", substr($this->get('/admin/commerce/customers/export')->streamedContent(), 3))));
 
     expect($orders[1][6])->toBe('\'=HYPERLINK("https://evil.example","Click")')
         ->and($orders[1][15])->toBe('1000')                 // numbers stay numbers
@@ -106,23 +106,23 @@ it('trashes orders and refuses to delete paid ones for good', function () {
     Payment::query()->create(['order_id' => $paid->id, 'method' => 'x', 'amount' => 100000, 'status' => 'paid']);
     $unpaid = makeOrder();
 
-    $this->delete("/cms/commerce/orders/{$paid->id}")->assertRedirect('/cms/commerce/orders');
+    $this->delete("/admin/commerce/orders/{$paid->id}")->assertRedirect('/admin/commerce/orders');
     expect(Order::query()->find($paid->id))->toBeNull()->and(Order::withTrashed()->find($paid->id))->not->toBeNull();
-    $this->delete("/cms/commerce/orders/{$paid->id}/force")->assertSessionHasErrors('order');
+    $this->delete("/admin/commerce/orders/{$paid->id}/force")->assertSessionHasErrors('order');
     expect(Order::withTrashed()->find($paid->id))->not->toBeNull();
 
-    $this->delete("/cms/commerce/orders/{$unpaid->id}");
-    $this->delete("/cms/commerce/orders/{$unpaid->id}/force")->assertRedirect('/cms/commerce/orders');
+    $this->delete("/admin/commerce/orders/{$unpaid->id}");
+    $this->delete("/admin/commerce/orders/{$unpaid->id}/force")->assertRedirect('/admin/commerce/orders');
     expect(Order::withTrashed()->find($unpaid->id))->toBeNull();
 
-    $this->post("/cms/commerce/orders/{$paid->id}/restore");
+    $this->post("/admin/commerce/orders/{$paid->id}/restore");
     expect(Order::query()->find($paid->id))->not->toBeNull();
 });
 
 it('marks orders paid with the payments permission', function () {
     actingAsUserWith(['commerce.orders.view', 'commerce.payments.verify']);
     $order = makeOrder(['payment_method' => 'whatsapp', 'payment_method_title' => 'WhatsApp']);
-    $this->post("/cms/commerce/orders/{$order->id}/mark-paid", ['reference' => 'BCA 17/10'])->assertSessionHas('success');
+    $this->post("/admin/commerce/orders/{$order->id}/mark-paid", ['reference' => 'BCA 17/10'])->assertSessionHas('success');
     $order->refresh();
     expect($order->payment_status)->toBe('paid')->and($order->status)->toBe('processing')->and($order->paid_total)->toBe(100000)
         ->and($order->payments->sole()->reference)->toBe('BCA 17/10');

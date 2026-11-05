@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Admin\Fields;
 
-use Sunrice\Fields\FieldType;
+use Sunrice\Cms\Fields\Field;
+use Sunrice\Cms\Fields\FieldType;
+use Sunrice\Cms\Fields\Schema;
 
 /**
  * Products, variants and/or terms a promotion targets:
@@ -15,17 +17,18 @@ class TargetsField extends FieldType
 {
     public const TYPES = ['product', 'variant', 'term'];
 
-    public static function type(): string
+    public function type(): string
     {
         return 'commerce_targets';
     }
 
-    public function rules(array $field): array
+    /** @return list<mixed> */
+    public function rules(Field $field): array
     {
         return ['array', 'max:500'];
     }
 
-    public function normalize(mixed $value, array $field): mixed
+    public function normalize(mixed $value, Field $field): mixed
     {
         $out = [];
         foreach (is_array($value) ? $value : [] as $item) {
@@ -38,15 +41,13 @@ class TargetsField extends FieldType
         return array_values($out);
     }
 
-    public function toAdminSchema(array $field): array
+    public function toAdmin(Field $field, Schema $schema): array
     {
-        $field['config'] = [
+        return ['config' => [
             'types' => self::TYPES,
             'taxonomies' => array_values(array_filter([config('commerce.catalog.category_taxonomy'), config('commerce.catalog.brand_taxonomy')])),
             'api' => route('sunrice.admin.commerce.api.targets', [], false),
-            ...($field['config'] ?? []),
-        ];
-
-        return $field;
+            ...(array) $field->config,
+        ]] + parent::toAdmin($field, $schema);
     }
 }

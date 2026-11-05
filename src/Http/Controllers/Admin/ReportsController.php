@@ -8,13 +8,12 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\SimpleExcel\SimpleExcelWriter;
 use Sunrice\Commerce\Analytics\Period;
 use Sunrice\Commerce\Analytics\Reports\Report;
 use Sunrice\Commerce\Analytics\Reports\Reports;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Support\CsvCell;
+use Sunrice\Commerce\Support\CsvExport;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Shop → Reports: one page for every report, with a date range, comparison and CSV export. */
@@ -56,15 +55,15 @@ class ReportsController extends Controller
         $decimals = (int) app(StoreSettings::class)->get('general.currency.decimals', 0);
         $name = $definition->key().($definition->usesDates() ? "-{$period->from}-{$period->to}" : '-'.now()->toDateString()).'.csv';
 
-        return response()->streamDownload(function () use ($result, $decimals, $name): void {
-            $writer = SimpleExcelWriter::streamDownload($name);
+        return response()->streamDownload(function () use ($result, $decimals): void {
+            $writer = CsvExport::toOutput();
             foreach ([...$result->rows, ...($result->totals !== null ? [$result->totals] : [])] as $row) {
                 $line = [];
                 foreach ($result->columns as $column) {
                     $value = $row[$column['key']] ?? null;
                     $line[$column['label']] = $column['kind'] === 'money' && is_numeric($value) ? round((float) $value / (10 ** $decimals), $decimals) : $value;
                 }
-                $writer->addRow(array_map(CsvCell::safe(...), $line));
+                $writer->addRow(($line));
             }
             $writer->close();
         }, $name, ['Content-Type' => 'text/csv']);

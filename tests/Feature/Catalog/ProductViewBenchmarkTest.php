@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\DB;
+use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
-use Sunrice\Models\Entry;
 
 /*
  * Product view build times for a page of large variable products and a

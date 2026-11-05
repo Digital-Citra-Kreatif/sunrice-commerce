@@ -18,7 +18,7 @@ use Sunrice\Commerce\Orders\Models\Order;
 #[Description('One customer by id or email: contact details, saved addresses, marketing consent, the staff note and their latest orders.')]
 class GetCustomerTool extends CommerceTool
 {
-    protected string $name = 'get_customer';
+    protected string $name = 'commerce_get_customer';
 
     protected ?string $permission = 'commerce.customers.view';
 

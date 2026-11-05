@@ -60,6 +60,7 @@ it('reports sales per day and week with totals, comparison and drill-down', func
 
 it('reports products, categories, brands, vouchers, customers, stock and calls to action', function () {
     expect(run('products')['rows'][0])->toMatchArray(['product' => 'Tas', 'units' => 1, 'revenue' => 200000])
+        ->and(run('products')['rows'][0]['href'])->toMatch('#^cms/collections/products/entries/\d+/edit$#')
         ->and(collect(run('products')['rows'])->firstWhere('product', 'Kaos'))->toMatchArray(['units' => 2, 'views' => 40, 'add_to_carts' => 4, 'conversion' => 5.0]);
 
     expect(run('brands')['rows'])->toBe([['term' => 'Acme', 'products' => 2, 'units' => 3, 'revenue' => 360000, 'views' => 40, 'conversion' => 7.5]])
@@ -81,28 +82,28 @@ it('reports products, categories, brands, vouchers, customers, stock and calls t
 it('shows a report page and streams its CSV', function () {
     actingAsUserWith(['commerce.reports.view', 'commerce.reports.export']);
 
-    $this->get('/cms/commerce/reports')->assertRedirect('/cms/commerce/reports/sales');
-    $this->get('/cms/commerce/reports/sales?from=2026-03-01&to=2026-03-10')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+    $this->get('/admin/commerce/reports')->assertRedirect('/admin/commerce/reports/sales');
+    $this->get('/admin/commerce/reports/sales?from=2026-03-01&to=2026-03-10')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
         ->component('Commerce/Reports/Show', false)
         ->where('report.key', 'sales')
         ->where('period.from', '2026-03-01')
         ->where('result.totals.orders', 2)
         ->where('reports', fn ($reports) => collect($reports)->pluck('key')->contains('ctas'))
-        ->where('exportUrl', '/cms/commerce/reports/sales/export?from=2026-03-01&to=2026-03-10'));
+        ->where('exportUrl', '/admin/commerce/reports/sales/export?from=2026-03-01&to=2026-03-10'));
 
-    $csv = $this->get('/cms/commerce/reports/sales/export?from=2026-03-01&to=2026-03-10')->assertOk()->streamedContent();
+    $csv = $this->get('/admin/commerce/reports/sales/export?from=2026-03-01&to=2026-03-10')->assertOk()->streamedContent();
     $lines = array_values(array_filter(explode("\n", trim(ltrim($csv, "\u{FEFF}")))));  // a BOM first, for Excel
     expect($lines[0])->toBe('Day,Orders,Items,"Gross sales",Discounts,Refunds,"Net sales",Shipping,Taxes,Fees,Total')
         ->and($lines)->toHaveCount(12)
         ->and($lines[11])->toStartWith('Total,2,3,360000');
-    $this->get('/cms/commerce/reports/nope')->assertNotFound();
+    $this->get('/admin/commerce/reports/nope')->assertNotFound();
 });
 
 it('needs the report permissions', function () {
     actingAsUserWith(['commerce.reports.view']);
-    $this->get('/cms/commerce/reports/sales')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page->where('exportUrl', null));
-    $this->get('/cms/commerce/reports/sales/export')->assertForbidden();
+    $this->get('/admin/commerce/reports/sales')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page->where('exportUrl', null));
+    $this->get('/admin/commerce/reports/sales/export')->assertForbidden();
 
     actingAsUserWith(['commerce.dashboard.view'], 'editor@example.com');
-    $this->get('/cms/commerce/reports/sales')->assertForbidden();
+    $this->get('/admin/commerce/reports/sales')->assertForbidden();
 });

@@ -1,4 +1,4 @@
-import { adminUrl, fetchJson, React, ui } from '../../lib/sunrice';
+import { React, adminUrl, fetchJson, ui } from '../../lib/sunrice';
 import { formatMoney } from '../../lib/money';
 import { Money, NativeSelect, NumberInput, Row, Section } from './controls';
 import type { TabProps } from './types';

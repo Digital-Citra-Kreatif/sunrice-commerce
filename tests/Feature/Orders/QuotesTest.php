@@ -28,8 +28,8 @@ it('reserves nothing and has no order number until accepted', function () {
 
     actingAsUserWith(['commerce.orders.view', 'commerce.quotes.respond']);
     $item = $this->quote->items->sole();
-    $this->get("/cms/commerce/orders/{$this->quote->id}/quote")->assertOk()->assertInertia(fn ($p) => $p->component('Commerce/Orders/Editor')->where('mode', 'quote'));
-    $this->put("/cms/commerce/orders/{$this->quote->id}/quote", [
+    $this->get("/admin/commerce/orders/{$this->quote->id}/quote")->assertOk()->assertInertia(fn ($p) => $p->component('Commerce/Orders/Editor')->where('mode', 'quote'));
+    $this->put("/admin/commerce/orders/{$this->quote->id}/quote", [
         'lines' => [['item_id' => $item->id, 'variant_id' => $this->mug->id, 'quantity' => 2, 'unit_price' => 45000]],
         'shipping' => ['label' => 'Truk', 'cost' => 25000], 'valid_until' => now()->addDays(7)->toDateString(),
     ])->assertRedirect();
@@ -54,7 +54,7 @@ it('reserves nothing and has no order number until accepted', function () {
 it('refuses accepting an expired quote and expires it from the tick', function () {
     actingAsUserWith(['commerce.orders.view', 'commerce.quotes.respond']);
     $item = $this->quote->items->sole();
-    $this->put("/cms/commerce/orders/{$this->quote->id}/quote", ['lines' => [['item_id' => $item->id, 'variant_id' => $this->mug->id, 'quantity' => 2]], 'valid_until' => now()->toDateString()]);
+    $this->put("/admin/commerce/orders/{$this->quote->id}/quote", ['lines' => [['item_id' => $item->id, 'variant_id' => $this->mug->id, 'quantity' => 2]], 'valid_until' => now()->toDateString()]);
 
     $this->travel(2)->days();
     $this->post("/quote/{$this->quote->order_key}/accept")->assertSessionHas('commerce.error');

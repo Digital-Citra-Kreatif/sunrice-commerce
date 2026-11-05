@@ -14,10 +14,10 @@ use Sunrice\Commerce\Mcp\OrderData;
 use Sunrice\Commerce\Orders\Models\Order;
 
 #[IsReadOnly]
-#[Description('One order or quote by id or number: items, totals, addresses, payment, shipments, refunds, the latest timeline entries and next_statuses (what update_order can change its status to).')]
+#[Description('One order or quote by id or number: items, totals, addresses, payment, shipments, refunds, the latest timeline entries and next_statuses (what commerce_update_order can change its status to).')]
 class GetOrderTool extends CommerceTool
 {
-    protected string $name = 'get_order';
+    protected string $name = 'commerce_get_order';
 
     protected ?string $feature = 'orders';
 

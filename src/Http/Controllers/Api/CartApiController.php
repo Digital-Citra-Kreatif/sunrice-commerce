@@ -15,6 +15,7 @@ use Sunrice\Commerce\Cart\CartException;
 use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\VariantFromOptions;
+use Sunrice\Commerce\Catalog\LiveEntries;
 
 /**
  * {api}/cart — the cart as JSON for themes (mini cart, AJAX add to cart):
@@ -25,15 +26,16 @@ use Sunrice\Commerce\Cart\VariantFromOptions;
 class CartApiController
 {
     // Per request (the router keeps controller instances).
-    protected CartManager $carts {
-        get => app(CartManager::class);
+    protected function carts(): CartManager
+    {
+        return app(CartManager::class);
     }
 
     public function show(Request $request): JsonResponse
     {
         $lines = $request->filled('lines') ? max(0, $request->integer('lines')) : null;
 
-        return response()->json(['cart' => CartView::for($this->carts->current())->toArray($lines)])->header('Cache-Control', 'no-store');
+        return response()->json(['cart' => CartView::for($this->carts()->current())->toArray($lines)])->header('Cache-Control', 'no-store');
     }
 
     public function add(Request $request, AddToCart $add): JsonResponse
@@ -45,7 +47,7 @@ class CartApiController
             $variant = VariantFromOptions::fromRequest($data) ?? throw new CartException(__('commerce::storefront.product.unavailable'));
             $item = $add->handle($variant, (int) ($data['quantity'] ?? 1));
 
-            return __('commerce::storefront.cart.added', ['product' => (string) ($item->variant->product->entry()?->resolveFor(app()->getLocale())->title ?? '')]);
+            return __('commerce::storefront.cart.added', ['product' => (string) ((($e = $item->variant->product->entry()) !== null ? LiveEntries::translation($e)?->title : null) ?? '')]);
         });
     }
 
@@ -81,7 +83,7 @@ class CartApiController
         try {
             $message = $action();
         } catch (CartException $e) {
-            return response()->json(['message' => $e->getMessage(), 'reason' => $e->reason, 'cart' => CartView::for($this->carts->current())], 422);
+            return response()->json(['message' => $e->getMessage(), 'reason' => $e->reason, 'cart' => CartView::for($this->carts()->current())], 422);
         }
 
         return $this->cart($message);
@@ -89,6 +91,6 @@ class CartApiController
 
     protected function cart(?string $message = null): JsonResponse
     {
-        return response()->json(array_filter(['message' => $message, 'cart' => CartView::for($this->carts->current())]))->header('Cache-Control', 'no-store');
+        return response()->json(array_filter(['message' => $message, 'cart' => CartView::for($this->carts()->current())]))->header('Cache-Control', 'no-store');
     }
 }

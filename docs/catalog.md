@@ -319,7 +319,7 @@ quantity. Bundles can't contain bundles.
 ```
 
 `variant_id` is the component's variant id in `commerce_variants` (from the product picker or the
-`get_product` MCP tool).
+`commerce_get_product` MCP tool).
 
 | `pricing` | Price |
 | --- | --- |

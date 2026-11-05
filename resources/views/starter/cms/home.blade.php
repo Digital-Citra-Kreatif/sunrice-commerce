@@ -1,6 +1,7 @@
 {{--
-    The starter home page. The seeded "Home" page uses it (entry template
-    `sunrice.home`; Settings → Site → Homepage points / at it). Sections:
+    The starter home page. The seeded "Home" page uses it (its template is
+    `cms.home`; Settings → Site → Homepage points / at it). $entry is the
+    page (an EntryTranslation), its fields read with commerce_values(). Sections:
       - the hero: fields hero_title, hero_text, hero_image, hero_button,
         hero_link (blueprint `home`), full width;
       - departments and their categories as tiles (the category taxonomy's
@@ -10,20 +11,20 @@
       - the brands, and the page's `body` text.
     Each section is skipped when it has nothing to show.
 --}}
-@extends('sunrice.layouts.app')
+@extends('cms.layout')
 
 @php
     $L = \Sunrice\Commerce\Storefront\Layout::class;
-    $page = $sunricePage->entry ?? $entry;
-    $heroImage = $page->get('hero_image');
-    $categoryTaxonomy = \Sunrice\Models\Taxonomy::query()->where('handle', config('commerce.catalog.category_taxonomy', 'product_categories'))->first();
-    $departments = $categoryTaxonomy === null ? collect() : \Sunrice\Models\Term::query()->where('taxonomy_id', $categoryTaxonomy->id)->whereNull('parent_id')
+    $values = commerce_values($entry);
+    $heroImage = $values['hero_image'] ?? null;
+    $categoryTaxonomy = \Sunrice\Cms\Models\Taxonomy::query()->where('handle', config('commerce.catalog.category_taxonomy', 'product_categories'))->first();
+    $departments = $categoryTaxonomy === null ? collect() : \Sunrice\Cms\Models\Term::query()->where('taxonomy_id', $categoryTaxonomy->id)->whereNull('parent_id')
         ->with(['translations', 'children.translations'])->orderBy('sort_order')->orderBy('id')->get();
     $categories = $departments->flatMap(fn ($department) => $department->children->sortBy('sort_order'))->take(12);
-    $brandTaxonomy = commerce_feature('brands') ? \Sunrice\Models\Taxonomy::query()->where('handle', config('commerce.catalog.brand_taxonomy', 'brands'))->first() : null;
-    $brands = $brandTaxonomy === null ? collect() : \Sunrice\Models\Term::query()->where('taxonomy_id', $brandTaxonomy->id)->with('translations')->orderBy('sort_order')->orderBy('id')->limit(12)->get();
-    $shop = \Sunrice\Models\Collection::query()->where('handle', (string) (config('commerce.catalog.collections', ['products'])[0] ?? 'products'))->first();
-    $shopUrl = url($shop !== null ? app(\Sunrice\Frontend\UrlGenerator::class)->archive($shop) : '/products');
+    $brandTaxonomy = commerce_feature('brands') ? \Sunrice\Cms\Models\Taxonomy::query()->where('handle', config('commerce.catalog.brand_taxonomy', 'brands'))->first() : null;
+    $brands = $brandTaxonomy === null ? collect() : \Sunrice\Cms\Models\Term::query()->where('taxonomy_id', $brandTaxonomy->id)->with('translations')->orderBy('sort_order')->orderBy('id')->limit(12)->get();
+    $shop = \Sunrice\Cms\Models\Collection::query()->where('handle', (string) (config('commerce.catalog.collections', ['products'])[0] ?? 'products'))->first();
+    $shopUrl = $shop?->listingUrl() ?? url('/products');
 @endphp
 
 @section('content')
@@ -31,15 +32,15 @@
 
     <section class="commerce-hero commerce-bleed" aria-labelledby="commerce-hero-title">
         @if (is_object($heroImage))
-            <img class="commerce-hero__image" src="{{ $heroImage->url() }}" alt="{{ $heroImage->alt ?? '' }}" width="1600" height="700" fetchpriority="high">
+            <img class="commerce-hero__image" src="{{ $heroImage->url() }}" alt="{{ $heroImage->altIn() ?? '' }}" width="1600" height="700" fetchpriority="high">
         @endif
         <div class="commerce-hero__content">
             <p class="commerce-eyebrow">{{ commerce_store_name() }}</p>
-            <h1 class="commerce-hero__title" id="commerce-hero-title">{{ $page->get('hero_title') ?: $page->title }}</h1>
-            @if (filled($page->get('hero_text')))
-                <p class="commerce-hero__text">{{ $page->get('hero_text') }}</p>
+            <h1 class="commerce-hero__title" id="commerce-hero-title">{{ filled($values['hero_title'] ?? null) ? $values['hero_title'] : $entry->title }}</h1>
+            @if (filled($values['hero_text'] ?? null))
+                <p class="commerce-hero__text">{{ $values['hero_text'] }}</p>
             @endif
-            <a class="commerce-button commerce-button--accent" href="{{ $page->get('hero_link') ?: $shopUrl }}">{{ $page->get('hero_button') ?: __('commerce::storefront.theme.shop_now') }}</a>
+            <a class="commerce-button commerce-button--accent" href="{{ filled($values['hero_link'] ?? null) ? $values['hero_link'] : $shopUrl }}">{{ filled($values['hero_button'] ?? null) ? $values['hero_button'] : __('commerce::storefront.theme.shop_now') }}</a>
         </div>
     </section>
 
@@ -48,11 +49,11 @@
             <h2 class="commerce-section__title" id="commerce-departments">{{ __('commerce::storefront.theme.departments') }}</h2>
             <ul class="commerce-tiles commerce-tiles--large">
                 @foreach ($departments->take(4) as $department)
-                    @php($image = $department->get('image'))
+                    @php($image = (commerce_values($department)['image'] ?? null))
                     <li class="commerce-tile">
-                        <a href="{{ $department->url }}">
+                        <a href="{{ $department->url() }}">
                             @if (is_object($image))<img src="{{ $image->url() }}" alt="" loading="lazy" width="600" height="600">@endif
-                            <span class="commerce-tile__label">{{ $department->resolveFor(app()->getLocale())->name }}</span>
+                            <span class="commerce-tile__label">{{ $department->title() }}</span>
                         </a>
                     </li>
                 @endforeach
@@ -67,11 +68,11 @@
             </div>
             <ul class="commerce-tiles commerce-tiles--small">
                 @foreach ($categories as $category)
-                    @php($image = $category->get('image'))
+                    @php($image = (commerce_values($category)['image'] ?? null))
                     <li class="commerce-tile">
-                        <a href="{{ $category->url }}">
+                        <a href="{{ $category->url() }}">
                             @if (is_object($image))<img src="{{ $image->url() }}" alt="" loading="lazy" width="600" height="600">@endif
-                            <span class="commerce-tile__label">{{ $category->parent?->resolveFor(app()->getLocale())->name }} · {{ $category->resolveFor(app()->getLocale())->name }}</span>
+                            <span class="commerce-tile__label">{{ $category->parent?->title() }} · {{ $category->title() }}</span>
                         </a>
                     </li>
                 @endforeach
@@ -111,11 +112,11 @@
             </div>
             <ul class="commerce-logos">
                 @foreach ($brands as $brand)
-                    @php($logo = $brand->get('logo'))
+                    @php($logo = (commerce_values($brand)['logo'] ?? null))
                     <li>
-                        <a href="{{ $brand->url }}">
+                        <a href="{{ $brand->url() }}">
                             @if (is_object($logo))<img src="{{ $logo->url() }}" alt="" loading="lazy" width="200" height="100">@endif
-                            <span>{{ $brand->resolveFor(app()->getLocale())->name }}</span>
+                            <span>{{ $brand->title() }}</span>
                         </a>
                     </li>
                 @endforeach
@@ -123,7 +124,7 @@
         </section>
     @endif
 
-    @if (filled($body = $page->get('body')))
+    @if (filled($body = $values['body'] ?? null))
         <section class="commerce-section commerce-prose">{!! $body !!}</section>
     @endif
 

@@ -12,10 +12,10 @@ use Sunrice\Commerce\Mcp\CommerceTool;
 use Sunrice\Commerce\Settings\Actions\SaveStoreSettings;
 use Sunrice\Commerce\Settings\StoreSettings;
 
-#[Description('Change store settings in one section (see get_store_settings): send only the values that change; they are merged over the current ones and validated like the admin form. Some settings are locked once orders exist (the currency).')]
+#[Description('Change store settings in one section (see commerce_get_store_settings): send only the values that change; they are merged over the current ones and validated like the admin form. Some settings are locked once orders exist (the currency).')]
 class UpdateStoreSettingsTool extends CommerceTool
 {
-    protected string $name = 'update_store_settings';
+    protected string $name = 'commerce_update_store_settings';
 
     public function shouldRegister(): bool
     {

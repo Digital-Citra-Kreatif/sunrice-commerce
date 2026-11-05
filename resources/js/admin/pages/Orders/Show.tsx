@@ -1,4 +1,4 @@
-import { adminUrl, inertia, React, Sunrice, ui } from '../../lib/sunrice';
+import { React, adminUrl, inertia, ui, useBreadcrumbs } from '../../lib/sunrice';
 import { api } from '../../lib/api';
 import { PageHeader } from '../../components/PageHeader';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -19,7 +19,7 @@ export default function OrderShow(props: OrderPageProps) {
     const { Card, CardContent, CardHeader, CardTitle, Button, Textarea, Label, Checkbox, Input, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } = ui;
     const { Link, router } = inertia;
     useCommerceShared();
-    Sunrice.useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Orders', href: adminUrl('commerce/orders') }, { label: order.number }]);
+    useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Orders', href: adminUrl('commerce/orders') }, { label: order.number }]);
     const base = `commerce/orders/${order.id}`;
     const [transition, setTransition] = React.useState<{ to: string; label: string } | null>(null);
     const [reason, setReason] = React.useState('');

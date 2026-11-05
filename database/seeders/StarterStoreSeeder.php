@@ -14,12 +14,28 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Sunrice\Actions\Assets\UploadAsset;
-use Sunrice\Actions\Entries\PublishTranslation;
-use Sunrice\Actions\Entries\SaveDraft;
-use Sunrice\Actions\Entries\SyncEntryTerms;
-use Sunrice\Actions\Globals\SaveGlobalValues;
-use Sunrice\Actions\Taxonomies\SaveTerm;
+use Sunrice\Admin\Actions\Media\SaveMediaFolder;
+use Sunrice\Admin\Actions\Media\UploadMedia;
+use Sunrice\Admin\Media\Media;
+use Sunrice\Admin\Media\MediaFolder;
+use Sunrice\Cms\Actions\Entries\ChangeBlueprint;
+use Sunrice\Cms\Actions\Entries\CreateEntry;
+use Sunrice\Cms\Actions\Entries\PublishEntry;
+use Sunrice\Cms\Actions\Entries\SaveDraft;
+use Sunrice\Cms\Actions\Entries\SaveEntrySettings;
+use Sunrice\Cms\Actions\Entries\SetHomepage;
+use Sunrice\Cms\Actions\Globals\SaveGlobals;
+use Sunrice\Cms\Actions\Terms\CreateTerm;
+use Sunrice\Cms\Models\Collection;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
+use Sunrice\Cms\Models\GlobalSet;
+use Sunrice\Cms\Models\Menu;
+use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\TermTranslation;
+use Sunrice\Cms\Settings\SiteSettings;
+use Sunrice\Cms\Structure\StructureImporter;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\DownloadFile;
@@ -47,20 +63,8 @@ use Sunrice\Commerce\Settings\Actions\SaveStoreSettings;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Shipping\Models\ShippingMethod;
 use Sunrice\Commerce\Shipping\Models\ShippingZone;
+use Sunrice\Commerce\Support\Staff;
 use Sunrice\Commerce\Wishlist\Wishlist;
-use Sunrice\Facades\Sunrice;
-use Sunrice\Models\Asset;
-use Sunrice\Models\AssetFolder;
-use Sunrice\Models\Blueprint;
-use Sunrice\Models\Collection;
-use Sunrice\Models\Entry;
-use Sunrice\Models\GlobalSet;
-use Sunrice\Models\Menu;
-use Sunrice\Models\Setting;
-use Sunrice\Models\Taxonomy;
-use Sunrice\Models\Term;
-use Sunrice\Models\TermTranslation;
-use Sunrice\Support\Locales;
 
 /**
  * The starter store (commerce:install --starter --demo): an apparel shop
@@ -101,7 +105,7 @@ class StarterStoreSeeder extends Seeder
 
     public function run(): void
     {
-        $this->locale = Locales::main() === 'id' ? 'id' : 'en';
+        $this->locale = Locales::default() === 'id' ? 'id' : 'en';
         // Labels the core stores (adjustments, order notes, emails) follow the store's language.
         $previous = app()->getLocale();
         app()->setLocale($this->locale);
@@ -126,13 +130,26 @@ class StarterStoreSeeder extends Seeder
         $this->pages();
         $this->menus();
         $this->customer();
+        // PostgreSQL plans tables it hasn't analysed yet as nearly empty: the shop's filtered
+        // listings would take minutes until autovacuum gets to them. Analyse after the bulk load.
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::statement('analyze');
+        }
     }
 
-    /** Pages, the home page blueprint, the colour and size taxonomies and the site globals. */
+    /**
+     * Pages, the home page blueprint, the colour and size taxonomies and the
+     * site globals, in the CMS's structure import format (sunrice/cms
+     * docs/structure.md). Importing it again changes nothing.
+     */
     protected function structure(): void
     {
-        $image = fn (string $handle, string $label) => ['handle' => $handle, 'type' => 'asset', 'label' => $label, 'config' => ['image_only' => true]];
-        Sunrice::importStructure([
+        $image = fn (string $handle, string $label) => ['handle' => $handle, 'type' => 'media', 'label' => $label, 'config' => ['types' => ['image']]];
+        // The other language's titles, when the site has it (the importer refuses texts in others).
+        $other = $this->t('en', 'id');
+        $titles = fn (string $title): array => Locales::has($other) && $other !== Locales::default() ? ['translations' => [$other => ['title' => $title]]] : [];
+        app(StructureImporter::class)->import([
+            'sunrice' => 1,
             'blueprints' => [
                 ['handle' => 'page', 'title' => 'Page', 'fields' => [
                     ['handle' => 'intro', 'type' => 'textarea', 'label' => 'Intro'],
@@ -157,25 +174,23 @@ class StarterStoreSeeder extends Seeder
                 ]],
                 ['handle' => 'footer', 'title' => 'Footer', 'fields' => [
                     ['handle' => 'text', 'type' => 'rich_text', 'label' => 'Text'],
-                    ['handle' => 'social', 'type' => 'repeater', 'label' => 'Social links', 'config' => ['fields' => [
+                    ['handle' => 'social', 'type' => 'repeater', 'label' => 'Social links', 'fields' => [
                         ['handle' => 'label', 'type' => 'text', 'label' => 'Label'],
                         ['handle' => 'url', 'type' => 'text', 'label' => 'URL', 'translatable' => false],
-                    ]]],
+                    ]],
                 ]],
             ],
+            // Variant attributes: no pages of their own (no route).
             'taxonomies' => [
-                ['handle' => 'colors', 'title' => $this->t('Warna', 'Colours'), 'hierarchical' => false, 'blueprint' => 'color',
-                    'settings' => ['has_archive' => false, 'titles' => [$this->t('en', 'id') => $this->t('Colours', 'Warna')]]],
-                ['handle' => 'sizes', 'title' => $this->t('Ukuran', 'Sizes'), 'hierarchical' => false,
-                    'settings' => ['has_archive' => false, 'titles' => [$this->t('en', 'id') => $this->t('Sizes', 'Ukuran')]]],
+                ['handle' => 'colors', 'title' => $this->t('Warna', 'Colours'), 'hierarchical' => false, 'blueprint' => 'color', ...$titles($this->t('Colours', 'Warna'))],
+                ['handle' => 'sizes', 'title' => $this->t('Ukuran', 'Sizes'), 'hierarchical' => false, ...$titles($this->t('Sizes', 'Ukuran'))],
             ],
             'collections' => [
-                ['handle' => 'pages', 'title' => 'Pages', 'blueprint' => 'page',
-                    'settings' => ['route' => '/{slug}', 'has_archive' => false, 'translatable' => true, 'icon' => 'file-text']],
+                ['handle' => 'pages', 'title' => 'Pages', 'blueprint' => 'page', 'blueprints' => ['home'], 'route' => '/{slug}', 'translatable' => true],
             ],
             'globals' => [
-                ['handle' => 'site', 'title' => 'Site', 'blueprint' => 'site', 'group' => 'global'],
-                ['handle' => 'footer', 'title' => 'Footer', 'blueprint' => 'footer', 'group' => 'template_part'],
+                ['handle' => 'site', 'title' => 'Site', 'blueprint' => 'site'],
+                ['handle' => 'footer', 'title' => 'Footer', 'blueprint' => 'footer'],
             ],
         ]);
     }
@@ -201,16 +216,21 @@ class StarterStoreSeeder extends Seeder
             )]);
         }
 
-        GlobalSet::query()->where('handle', 'site')->first()?->values()->doesntExist()
-            && app(SaveGlobalValues::class)->handle(GlobalSet::query()->where('handle', 'site')->firstOrFail(), ['locale' => Locales::main(), 'values' => [
+        $globals = app(SaveGlobals::class);
+        $site = GlobalSet::query()->where('handle', 'site')->firstOrFail();
+        if ($site->values()->doesntExist()) {
+            $globals->handle($site, [
                 'name' => 'KAIN', 'logo' => $logo,
                 'announcement' => $this->t('Gratis ongkir untuk belanja di atas Rp500.000 · Tukar ukuran gratis 30 hari', 'Free shipping over Rp500,000 · Free size exchanges for 30 days'),
-            ]]);
-        GlobalSet::query()->where('handle', 'footer')->first()?->values()->doesntExist()
-            && app(SaveGlobalValues::class)->handle(GlobalSet::query()->where('handle', 'footer')->firstOrFail(), ['locale' => Locales::main(), 'values' => [
+            ], Locales::default());
+        }
+        $footer = GlobalSet::query()->where('handle', 'footer')->firstOrFail();
+        if ($footer->values()->doesntExist()) {
+            $globals->handle($footer, [
                 'text' => '<p>'.$this->t('Pakaian sehari-hari yang sederhana, dibuat untuk dipakai lama.', 'Simple everyday clothing, made to be worn for years.').'</p>',
                 'social' => [['label' => 'Instagram', 'url' => 'https://instagram.com/'], ['label' => 'TikTok', 'url' => 'https://tiktok.com/'], ['label' => 'YouTube', 'url' => 'https://youtube.com/']],
-            ]]);
+            ], Locales::default());
+        }
     }
 
     /** Categories (two levels), brands, tags, colours and sizes. */
@@ -241,9 +261,9 @@ class StarterStoreSeeder extends Seeder
         foreach (Catalog::colors() as $slug => $color) {
             $this->term('colors', $slug, $color[$this->locale], ['swatch' => $color['hex']]);
         }
-        $order = 0;
+        // Created in order, so they're in size order.
         foreach (array_unique(array_merge(...array_values(Catalog::sizes()))) as $size) {
-            $this->term('sizes', 'size-'.Str::slug($size), $size, [], null, $order++);
+            $this->term('sizes', 'size-'.Str::slug($size), $size);
         }
     }
 
@@ -317,16 +337,13 @@ class StarterStoreSeeder extends Seeder
         if ($sizes !== []) {
             $data['size_guide'] = $this->sizeGuide($sizes, $p['sizes'] === 'kids');
         }
-        $entry = $this->productEntry($p['title'], $value, $data);
-        $this->assignTerms($entry, [
-            $this->terms[config('commerce.catalog.category_taxonomy', 'product_categories').'/'.$p['category']],
-            $this->terms[config('commerce.catalog.brand_taxonomy', 'brands').'/'.$p['brand']],
-            ...array_map(fn (string $tag) => $this->terms[config('commerce.catalog.tag_taxonomy', 'product_tags').'/'.$tag], $p['tags'] ?? []),
-        ]);
-        // Older products: only the newest few get the "new" badge, and "newest" sorting has an order.
-        Entry::query()->whereKey($entry->id)->update(['published_at' => now()->subDays((int) ($p['days'] ?? 30))->subMinutes($index), 'sort_order' => $index]);
 
-        return $entry;
+        // Older products: only the newest few get the "new" badge, and "newest" sorting has an order.
+        return $this->productEntry($p['title'], $value, $data, [
+            config('commerce.catalog.category_taxonomy', 'product_categories').'/'.$p['category'],
+            config('commerce.catalog.brand_taxonomy', 'brands').'/'.$p['brand'],
+            ...array_map(fn (string $tag) => config('commerce.catalog.tag_taxonomy', 'product_tags').'/'.$tag, $p['tags'] ?? []),
+        ], now()->subDays((int) ($p['days'] ?? 30))->subMinutes($index));
     }
 
     /** @return array<string, Entry> */
@@ -349,9 +366,7 @@ class StarterStoreSeeder extends Seeder
                     'excerpt' => $this->t('Hemat '.($b['percent'] / 100).'% dibanding membeli satu per satu.', 'Save '.($b['percent'] / 100).'% compared with buying them one by one.'),
                     'description' => '<p>'.$this->t('Paket hemat berisi favorit kami. Isi paket tercantum di bawah harga.', 'A value set of our favourites. What\'s inside is listed under the price.').'</p>',
                     'gallery' => [$image],
-                ]);
-            $this->assignTerms($entry, [$this->terms[config('commerce.catalog.category_taxonomy', 'product_categories').'/'.$b['category']], $this->terms[config('commerce.catalog.brand_taxonomy', 'brands').'/kain']]);
-            Entry::query()->whereKey($entry->id)->update(['published_at' => now()->subDays(20), 'sort_order' => 60]);
+                ], [config('commerce.catalog.category_taxonomy', 'product_categories').'/'.$b['category'], config('commerce.catalog.brand_taxonomy', 'brands').'/kain'], now()->subDays(20));
             $out[$code] = $entry;
         }
 
@@ -383,7 +398,7 @@ class StarterStoreSeeder extends Seeder
                 'description' => '<p>'.$this->t('Produk digital: tautan unduhan dikirim lewat email setelah pembayaran dan tersedia di Akun Saya → Unduhan.', 'A digital product: the download link is emailed once paid and stays in My Account → Downloads.').'</p>',
                 'gallery' => [$this->asset('product-D01', Artwork::product('book', '#26324a'), 'KAIN Lookbook')],
                 'specifications' => [['label' => $this->t('Format', 'Format'), 'value' => 'PDF, 12 MB'], ['label' => $this->t('Halaman', 'Pages'), 'value' => '40']],
-            ]);
+            ], [$gifts = config('commerce.catalog.category_taxonomy', 'product_categories').'/gifts'], now()->subDays(35));
         $amounts = [100000, 250000, 500000];
         $card = $this->productEntry($this->t('Kartu Hadiah Digital', 'Digital Gift Card'), ['type' => 'variable', 'requires_shipping' => false,
             'options' => [['id' => 'amount', 'name' => $this->t('Nilai', 'Amount'), 'values' => array_map(fn (int $a) => ['id' => (string) $a, 'label' => 'Rp'.number_format($a, 0, ',', '.')], $amounts)]],
@@ -391,11 +406,7 @@ class StarterStoreSeeder extends Seeder
                 'excerpt' => $this->t('Dikirim lewat email, langsung siap diberikan.', 'Sent by email, ready to give straight away.'),
                 'description' => '<p>'.$this->t('Kartu hadiah tanpa pengiriman: kami kirim kodenya ke email penerima.', 'A gift card with no shipping: we email the code to the recipient.').'</p>',
                 'gallery' => [$this->asset('product-G01', Artwork::product('card', '#cdb79a'), 'Gift card')],
-            ]);
-        foreach ([$book, $card] as $entry) {
-            $this->assignTerms($entry, [$this->terms[config('commerce.catalog.category_taxonomy', 'product_categories').'/gifts']]);
-            Entry::query()->whereKey($entry->id)->update(['published_at' => now()->subDays(35), 'sort_order' => 70]);
-        }
+            ], [$gifts], now()->subDays(35));
 
         return ['D01' => $book, 'G01' => $card];
     }
@@ -425,11 +436,10 @@ class StarterStoreSeeder extends Seeder
             if ($translation === null) {
                 continue;
             }
-            app(SaveDraft::class)->handle($translation, ['title' => (string) $translation->title, 'slug' => (string) $translation->slug, 'data' => [...(array) $translation->data,
+            // Fields left out keep their values; publishing keeps the date it was first published.
+            $draft = app(SaveDraft::class)->handle($translation, ['title' => (string) $translation->title, 'slug' => (string) $translation->slug, 'data' => [
                 'related_products' => $ids($related), 'upsells' => $ids($upsells), 'cross_sells' => $ids([...$cross->all(), 'B01'])]]);
-            $published = Entry::query()->whereKey($entry->id)->value('published_at');
-            app(PublishTranslation::class)->handle($translation->fresh());
-            Entry::query()->whereKey($entry->id)->update(['published_at' => $published]);
+            app(PublishEntry::class)->handle($draft);
         }
     }
 
@@ -532,9 +542,9 @@ class StarterStoreSeeder extends Seeder
             'hero_title' => $this->t('Pakaian sederhana untuk setiap hari', 'Simple clothes for every day'),
             'hero_text' => $this->t('Koleksi esensial baru: rajut merino, jaket ringan dan kaus Supima. Gratis ongkir di atas Rp500.000.', 'New essentials: merino knits, light jackets and Supima tees. Free shipping over Rp500,000.'),
             'hero_image' => $hero, 'hero_button' => $this->t('Belanja koleksi baru', 'Shop new arrivals'), 'hero_link' => '/products?sort=newest',
-        ], 'home', 'sunrice.home');
-        if ((int) Setting::get('homepage_entry_id') !== $home->id) {
-            Setting::set('homepage_entry_id', $home->id);
+        ], 'home', 'cms.home');
+        if (app(SiteSettings::class)->homepage !== $home->id) {
+            app(SetHomepage::class)->handle($home);
         }
         $this->page($pages, $this->t('tentang-kami', 'about'), $this->t('Tentang Kami', 'About us'), [
             'intro' => $this->t('KAIN membuat pakaian sehari-hari yang sederhana, nyaman dan tahan lama.', 'KAIN makes simple, comfortable everyday clothes that last.'),
@@ -552,72 +562,75 @@ class StarterStoreSeeder extends Seeder
             ),
         ]);
         // The legal pages commerce:scaffold made as drafts: publish them, and ask for the terms at checkout.
-        foreach (Entry::query()->where('collection_id', $pages->id)->where('status', 'draft')->with('translations')->get() as $draft) {
-            $translation = $draft->mainTranslation();
-            if ($translation !== null && $translation->draft !== null) {
-                app(PublishTranslation::class)->handle($translation);
-            }
+        $drafts = EntryTranslation::query()->where('collection_id', $pages->id)->where('locale', Locales::default())->where('status', 'draft')
+            ->whereHas('entry')->get();
+        foreach ($drafts as $translation) {
+            app(PublishEntry::class)->handle($translation);
         }
-        $terms = Entry::query()->where('collection_id', $pages->id)->whereHas('translations', fn ($q) => $q->whereIn('slug', ['syarat-dan-ketentuan', 'terms-and-conditions']))->value('id');
+        $terms = EntryTranslation::query()->where('collection_id', $pages->id)->whereIn('slug', ['syarat-dan-ketentuan', 'terms-and-conditions'])->value('entry_id');
         $settings = app(StoreSettings::class);
         if ($terms !== null && blank($settings->get('checkout.terms_page'))) {
-            app(SaveStoreSettings::class)->handle('checkout', [...$settings->section('checkout'), 'terms_page' => [(int) $terms]]);
+            // The demo's own terms page (staff choose another in Settings → Store → Checkout).
+            $settings->saveSection('checkout', ['terms_page' => (int) $terms]);
         }
     }
 
     /** The header menu (departments with their categories) and the footer menu. */
     protected function menus(): void
     {
+        // Only the site's languages: the importer refuses texts in others.
+        $labels = fn (string $id, string $en): array => array_intersect_key(['id' => $id, 'en' => $en], array_flip(Locales::all()));
         $categories = (string) config('commerce.catalog.category_taxonomy', 'product_categories');
         $main = [];
         foreach (Catalog::categories() as $slug => $department) {
             if ($department['children'] === []) {
                 continue;
             }
-            $main[] = ['type' => 'term', 'target' => "{$categories}/{$slug}", 'labels' => ['id' => $department['id'], 'en' => $department['en']], 'children' => array_map(
-                fn (string $child, array $c) => ['type' => 'term', 'target' => "{$categories}/{$child}", 'labels' => ['id' => $c['id'], 'en' => $c['en']]],
+            $main[] = ['term' => "{$categories}/{$slug}", 'labels' => $labels($department['id'], $department['en']), 'children' => array_map(
+                fn (string $child, array $c) => ['term' => "{$categories}/{$child}", 'labels' => $labels($c['id'], $c['en'])],
                 array_keys($department['children']), $department['children'],
             )];
         }
         $path = fn (string $key) => '/'.ltrim((string) config("commerce.storefront.paths.{$key}", str_replace('_', '-', $key)), '/');
-        $main[] = ['type' => 'url', 'url' => $path('flash_sale'), 'labels' => ['id' => 'Sale', 'en' => 'Sale']];
-        $main[] = ['type' => 'url', 'url' => $path('brands'), 'labels' => ['id' => 'Merek', 'en' => 'Brands']];
+        $main[] = ['url' => $path('flash_sale'), 'labels' => $labels('Sale', 'Sale')];
+        $main[] = ['url' => $path('brands'), 'labels' => $labels('Merek', 'Brands')];
 
         $page = fn (string $id, string $en) => 'pages/'.$this->t($id, $en);
         $footer = [
-            ['type' => 'url', 'url' => '#', 'labels' => ['id' => 'Bantuan', 'en' => 'Help'], 'children' => [
-                ['type' => 'entry', 'target' => $page('bantuan', 'help'), 'labels' => ['id' => 'Pusat bantuan', 'en' => 'Help centre']],
-                ['type' => 'url', 'url' => $path('track_order'), 'labels' => ['id' => 'Lacak pesanan', 'en' => 'Track order']],
-                ['type' => 'url', 'url' => $path('confirm_payment'), 'labels' => ['id' => 'Konfirmasi pembayaran', 'en' => 'Confirm payment']],
-                ['type' => 'entry', 'target' => $page('kebijakan-pengiriman', 'shipping-policy'), 'labels' => ['id' => 'Pengiriman', 'en' => 'Shipping']],
-                ['type' => 'entry', 'target' => $page('pengembalian-dan-refund', 'returns-and-refunds'), 'labels' => ['id' => 'Pengembalian', 'en' => 'Returns']],
+            ['url' => '#', 'labels' => $labels('Bantuan', 'Help'), 'children' => [
+                ['entry' => $page('bantuan', 'help'), 'labels' => $labels('Pusat bantuan', 'Help centre')],
+                ['url' => $path('track_order'), 'labels' => $labels('Lacak pesanan', 'Track order')],
+                ['url' => $path('confirm_payment'), 'labels' => $labels('Konfirmasi pembayaran', 'Confirm payment')],
+                ['entry' => $page('kebijakan-pengiriman', 'shipping-policy'), 'labels' => $labels('Pengiriman', 'Shipping')],
+                ['entry' => $page('pengembalian-dan-refund', 'returns-and-refunds'), 'labels' => $labels('Pengembalian', 'Returns')],
             ]],
-            ['type' => 'url', 'url' => '#', 'labels' => ['id' => 'Belanja', 'en' => 'Shop'], 'children' => [
-                ['type' => 'collection', 'target' => 'products', 'labels' => ['id' => 'Semua produk', 'en' => 'All products']],
-                ['type' => 'url', 'url' => $path('flash_sale'), 'labels' => ['id' => 'Flash sale', 'en' => 'Flash sale']],
-                ['type' => 'url', 'url' => $path('brands'), 'labels' => ['id' => 'Merek', 'en' => 'Brands']],
-                ['type' => 'url', 'url' => $path('wishlist'), 'labels' => ['id' => 'Wishlist', 'en' => 'Wishlist']],
-                ['type' => 'url', 'url' => $path('compare'), 'labels' => ['id' => 'Bandingkan', 'en' => 'Compare']],
+            ['url' => '#', 'labels' => $labels('Belanja', 'Shop'), 'children' => [
+                ['collection' => (string) (config('commerce.catalog.collections', ['products'])[0] ?? 'products'), 'labels' => $labels('Semua produk', 'All products')],
+                ['url' => $path('flash_sale'), 'labels' => $labels('Flash sale', 'Flash sale')],
+                ['url' => $path('brands'), 'labels' => $labels('Merek', 'Brands')],
+                ['url' => $path('wishlist'), 'labels' => $labels('Wishlist', 'Wishlist')],
+                ['url' => $path('compare'), 'labels' => $labels('Bandingkan', 'Compare')],
             ]],
-            ['type' => 'url', 'url' => '#', 'labels' => ['id' => 'Tentang KAIN', 'en' => 'About KAIN'], 'children' => [
-                ['type' => 'entry', 'target' => $page('tentang-kami', 'about'), 'labels' => ['id' => 'Tentang kami', 'en' => 'About us']],
-                ['type' => 'entry', 'target' => $page('syarat-dan-ketentuan', 'terms-and-conditions'), 'labels' => ['id' => 'Syarat & ketentuan', 'en' => 'Terms & conditions']],
-                ['type' => 'entry', 'target' => $page('kebijakan-privasi', 'privacy-policy'), 'labels' => ['id' => 'Kebijakan privasi', 'en' => 'Privacy policy']],
+            ['url' => '#', 'labels' => $labels('Tentang KAIN', 'About KAIN'), 'children' => [
+                ['entry' => $page('tentang-kami', 'about'), 'labels' => $labels('Tentang kami', 'About us')],
+                ['entry' => $page('syarat-dan-ketentuan', 'terms-and-conditions'), 'labels' => $labels('Syarat & ketentuan', 'Terms & conditions')],
+                ['entry' => $page('kebijakan-privasi', 'privacy-policy'), 'labels' => $labels('Kebijakan privasi', 'Privacy policy')],
             ]],
         ];
+        // Menus the store's staff already have are left as they are.
         $menus = array_values(array_filter([
             Menu::query()->where('handle', 'main')->exists() ? null : ['handle' => 'main', 'title' => 'Main menu', 'items' => $main],
             Menu::query()->where('handle', 'footer')->exists() ? null : ['handle' => 'footer', 'title' => 'Footer menu', 'items' => $footer],
         ]));
         if ($menus !== []) {
-            Sunrice::importStructure(['menus' => $menus]);
+            app(StructureImporter::class)->import(['sunrice' => 1, 'menus' => $menus]);
         }
     }
 
     /** The demo customer: an account, two addresses, orders in several states and a wishlist. */
     protected function customer(): void
     {
-        $model = (string) config('sunrice.auth.user_model', config('auth.providers.users.model'));
+        $model = Staff::userModel();
         if (! class_exists($model) || $model::query()->where('email', self::CUSTOMER_EMAIL)->exists()) {
             return;
         }
@@ -741,45 +754,60 @@ class StarterStoreSeeder extends Seeder
     }
 
     /**
-     * A published product entry.
+     * A published product entry, with its terms ("taxonomy/slug"),
+     * published at a date in the past.
      *
      * @param  array<string, mixed>  $value
      * @param  array<string, mixed>  $data
+     * @param  array<int, string>  $terms
      */
-    protected function productEntry(string $title, array $value, array $data): Entry
+    protected function productEntry(string $title, array $value, array $data, array $terms, \DateTimeInterface $publishedAt): Entry
     {
         $collection = Collection::query()->where('handle', (string) (config('commerce.catalog.collections', ['products'])[0] ?? 'products'))->firstOrFail();
+        $byTaxonomy = [];
+        foreach ($terms as $key) {
+            $byTaxonomy[explode('/', $key, 2)[0]][] = $this->terms[$key];
+        }
 
-        return $this->publish($collection, $title, Str::slug($title), [...$data, (string) config('commerce.catalog.field', 'product') => $value]);
+        return $this->publish($collection, $title, Str::slug($title), [...$data, (string) config('commerce.catalog.field', 'product') => $value], terms: $byTaxonomy, publishedAt: $publishedAt);
     }
 
     /** @param  array<string, mixed>  $data */
     protected function page(Collection $pages, string $slug, string $title, array $data, ?string $blueprint = null, ?string $template = null): Entry
     {
-        $existing = Entry::query()->where('collection_id', $pages->id)->whereHas('translations', fn ($q) => $q->where('slug', $slug))->first();
+        $existing = EntryTranslation::query()->where('collection_id', $pages->id)->where(fn ($q) => $q->where('slug', $slug)->orWhere('draft_slug', $slug))->first();
         if ($existing !== null) {
-            return $existing;
+            return $existing->entry;
         }
-        $blueprintId = $blueprint !== null ? Blueprint::query()->where('handle', $blueprint)->value('id') : null;
 
-        return $this->publish($pages, $title, $slug, $data, $blueprintId, $template);
+        return $this->publish($pages, $title, $slug, $data, $blueprint, $template);
     }
 
-    /** @param  array<string, mixed>  $data */
-    protected function publish(Collection $collection, string $title, string $slug, array $data, ?int $blueprintId = null, ?string $template = null): Entry
+    /**
+     * An entry made and published as the admin does: created as a draft
+     * (with its terms, by taxonomy handle), given its own blueprint and
+     * template when it has them, then published.
+     *
+     * @param  array<string, mixed>  $data
+     * @param  array<string, list<int>>  $terms
+     */
+    protected function publish(Collection $collection, string $title, string $slug, array $data, ?string $blueprint = null, ?string $template = null,
+        array $terms = [], ?\DateTimeInterface $publishedAt = null): Entry
     {
-        $entry = Entry::query()->create(['collection_id' => $collection->id, 'blueprint_id' => $blueprintId, 'template' => $template, 'status' => 'draft', 'sort_order' => 0]);
-        $translation = $entry->translations()->create(['locale' => Locales::main(), 'collection_id' => $collection->id, 'title' => $title, 'slug' => $slug, 'data' => [], 'seo' => []]);
-        app(SaveDraft::class)->handle($translation, ['title' => $title, 'slug' => $slug, 'data' => $data]);
-        app(PublishTranslation::class)->handle($translation->fresh() ?? $translation);
+        $input = ['title' => $title, 'slug' => $slug, 'data' => $data];
+        // With a blueprint of its own its fields are only known once it has it.
+        $translation = app(CreateEntry::class)->handle($collection, [...$input, 'data' => $blueprint === null ? $data : [], 'terms' => $terms === [] ? null : $terms]);
+        $entry = $translation->entry;
+        if ($blueprint !== null) {
+            app(ChangeBlueprint::class)->handle($entry, $blueprint);
+            $translation = app(SaveDraft::class)->handle($translation->fresh() ?? $translation, $input);
+        }
+        if ($template !== null) {
+            app(SaveEntrySettings::class)->handle($entry, ['template' => $template]);
+        }
+        app(PublishEntry::class)->handle($translation->fresh() ?? $translation, $publishedAt);
 
         return $entry->fresh() ?? $entry;
-    }
-
-    /** @param  array<int, int>  $termIds */
-    protected function assignTerms(Entry $entry, array $termIds): void
-    {
-        app(SyncEntryTerms::class)->handle($entry, array_values(array_filter($termIds)));
     }
 
     /**
@@ -787,39 +815,35 @@ class StarterStoreSeeder extends Seeder
      *
      * @param  array<string, mixed>  $data
      */
-    protected function term(string $taxonomy, string $slug, string $name, array $data = [], ?int $parent = null, int $order = 0): int
+    protected function term(string $taxonomy, string $slug, string $name, array $data = [], ?int $parent = null): int
     {
         $model = Taxonomy::query()->where('handle', $taxonomy)->firstOrFail();
         $id = TermTranslation::query()->where('taxonomy_id', $model->id)->where('slug', $slug)->value('term_id');
         if ($id === null) {
-            $term = app(SaveTerm::class)->handle($model, ['parent_id' => $parent, 'translations' => [Locales::main() => ['title' => $name, 'slug' => $slug, 'data' => $data]]]);
-            $id = $term->id;
-            if ($order > 0) {
-                Term::query()->whereKey($id)->update(['sort_order' => $order]);
-            }
+            $id = app(CreateTerm::class)->handle($model, ['title' => $name, 'slug' => $slug, 'parent_id' => $parent, ...($data === [] ? [] : ['data' => $data])], Locales::default())->id;
         }
 
         return $this->terms["{$taxonomy}/{$slug}"] = (int) $id;
     }
 
-    /** An SVG in the asset library (folder "Starter store"), uploaded once. */
+    /** An SVG in the media library (folder "Starter store"), uploaded once. */
     protected function asset(string $name, string $svg, string $alt): int
     {
         if (isset($this->assets[$name])) {
             return $this->assets[$name];
         }
-        $existing = Asset::query()->where('filename', "{$name}.svg")->value('id');
+        $existing = Media::query()->where('filename', "{$name}.svg")->value('id');
         if ($existing !== null) {
             return $this->assets[$name] = (int) $existing;
         }
-        $this->folder ??= (int) (AssetFolder::query()->where('name', 'Starter store')->whereNull('parent_id')->value('id')
-            ?? AssetFolder::query()->create(['name' => 'Starter store'])->id);
+        $this->folder ??= (int) (MediaFolder::query()->where('name', 'Starter store')->whereNull('parent_id')->value('id')
+            ?? app(SaveMediaFolder::class)->handle('Starter store')->id);
         $path = tempnam(sys_get_temp_dir(), 'kain');
         file_put_contents((string) $path, $svg);
-        $asset = app(UploadAsset::class)->handle(new UploadedFile((string) $path, "{$name}.svg", 'image/svg+xml', null, true), ['folder_id' => $this->folder, 'alt' => $alt, 'title' => $alt]);
+        $media = app(UploadMedia::class)->handle(new UploadedFile((string) $path, "{$name}.svg", 'image/svg+xml', null, true), ['folder_id' => $this->folder, 'alt' => $alt, 'title' => $alt]);
         @unlink((string) $path);
 
-        return $this->assets[$name] = $asset->id;
+        return $this->assets[$name] = $media->id;
     }
 
     /** A QRIS-like placeholder: a grid of squares, clearly not a real code. */
@@ -857,8 +881,12 @@ class StarterStoreSeeder extends Seeder
     /** @param  array<string, mixed>  $p */
     protected function description(array $p, string $material): string
     {
-        return '<p>'.e($this->excerpt($p, $material)).' '.e($this->t('Dirancang di Jakarta untuk iklim tropis, dengan detail yang dibuat untuk dipakai bertahun-tahun.', 'Designed in Jakarta for the tropics, with details made to last for years.')).'</p>'
-            .'<ul><li>'.e($this->t('Jahitan ganda yang kuat', 'Strong double stitching')).'</li><li>'.e($this->t('Warna tahan lama setelah dicuci', 'Colour that lasts wash after wash')).'</li><li>'.e($material).'</li></ul>';
+        // In the rich text editor's own form (list items as paragraphs, a paragraph last), so it opens unchanged.
+        $item = fn (string $text): string => '<li><p>'.e($text).'</p></li>';
+
+        return '<p>'.e($this->excerpt($p, $material)).'</p>'
+            .'<ul>'.$item($this->t('Jahitan ganda yang kuat', 'Strong double stitching')).$item($this->t('Warna tahan lama setelah dicuci', 'Colour that lasts wash after wash')).$item($material).'</ul>'
+            .'<p>'.e($this->t('Dirancang di Jakarta untuk iklim tropis, dengan detail yang dibuat untuk dipakai bertahun-tahun.', 'Designed in Jakarta for the tropics, with details made to last for years.')).'</p>';
     }
 
     /** @param  array<int, string>  $sizes */

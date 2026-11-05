@@ -11,13 +11,13 @@ use Sunrice\Commerce\Taxes\TaxRate;
 it('saves tax settings and rates, and shows the tax note on prices', function () {
     actingAsSuperAdmin();
     (new RegionImporter(__DIR__.'/../../Fixtures/regions'))->import(1);
-    $this->get('/cms/commerce/settings/taxes')->assertNotFound(); // off by default
+    $this->get('/admin/commerce/settings/taxes')->assertNotFound(); // off by default
 
     app(ToggleFeature::class)->handle('taxes', true);
-    $this->put('/cms/commerce/settings/taxes', ['values' => ['prices_include_tax' => true, 'display_prices' => 'incl', 'based_on' => 'shipping', 'classes' => ['standard', 'exempt']]])
+    $this->put('/admin/commerce/settings/taxes', ['values' => ['prices_include_tax' => true, 'display_prices' => 'incl', 'based_on' => 'shipping', 'classes' => ['standard', 'exempt']]])
         ->assertSessionHasNoErrors();
-    $this->get('/cms/commerce/settings/tax-rates')->assertOk();
-    $this->put('/cms/commerce/settings/tax-rates', ['values' => ['rates' => [
+    $this->get('/admin/commerce/settings/tax-rates')->assertOk();
+    $this->put('/admin/commerce/settings/tax-rates', ['values' => ['rates' => [
         ['name' => 'PPN', 'tax_class' => 'standard', 'percent' => 11, 'region' => ['country' => 'ID'], 'shipping' => true],
         ['name' => 'PPN', 'tax_class' => 'standard', 'percent' => 12, 'region' => ['country' => 'ID', 'province_code' => '31'], 'shipping' => true],
     ]]])->assertSessionHasNoErrors()->assertRedirect();

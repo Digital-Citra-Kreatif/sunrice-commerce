@@ -138,7 +138,7 @@ Not counted:
 
 - requests whose user agent is empty or contains one of `analytics.bot_user_agents` (`bot`, `crawl`,
   `spider`, `slurp`, `facebookexternalhit`, `preview`, `curl`, `wget`, `python`, `headless`);
-- staff: visitors signed in to the admin with `sunrice.access-admin`;
+- staff: visitors signed in to the admin with `sunrice.access`;
 - Sunrice previews.
 
 Switch off product page views with `analytics.track_views`:
@@ -212,7 +212,7 @@ headers. Money is in currency units, not the smallest unit: 150000 stays `150000
 becomes `1500` in a currency with two decimals. The file is named after the report and range, for example
 `sales-2026-10-01-2026-10-31.csv`.
 
-AI agents run the same reports with `sales_report` ([ai-agents.md](ai-agents.md)). Extensions add
+AI agents run the same reports with `commerce_sales_report` ([ai-agents.md](ai-agents.md)). Extensions add
 their own with `Commerce::registerReport()` ([extending.md](extending.md#dashboard-widgets-reports-and-health-checks)).
 
 ## Permissions

@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Sunrice\Cms\Events\ContentChanged;
+use Sunrice\Cms\Site\Page;
+use Sunrice\Cms\Site\PageCache as SitePageCache;
 use Sunrice\Commerce\Catalog\CatalogVersion;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Contracts\Inventory;
 use Sunrice\Commerce\Storefront\PageCache;
-use Sunrice\Events\ContentChanged;
-use Sunrice\Facades\Sunrice;
 use Workbench\App\Models\User;
 
 use function Pest\Laravel\get;
-
-$unsupported = ! PageCache::bypassSupported();
 
 beforeEach(function () {
     $this->mug = checkoutStore();
@@ -39,27 +38,25 @@ it('treats visitors with a cart, wishlist, comparison or account as personal', f
 
 it('keeps product pages for anonymous visitors, briefly', function () {
     get('/products/mug')->assertOk();
-    expect(Sunrice::shouldCachePage(request()))->toBeTrue()
-        ->and(Sunrice::pageCacheLifetime(request()))->toBe(300);
+    $page = Page::current();
+    expect($page?->collection?->handle)->toBe('products')
+        ->and(PageCache::cacheable(request(), $page))->toBeTrue()
+        ->and(PageCache::showsProducts(request(), $page))->toBeTrue()
+        ->and(PageCache::productPagesTtl())->toBe(300);
 
-    // Commerce's own pages never.
-    get('/cart')->assertOk();
-    expect(Sunrice::shouldCachePage(request()))->toBeFalse();
-
-    // A shopper with a cart is never served the anonymous copy.
+    // A shopper with a cart is never kept a copy, nor served one.
     $this->withCookie('commerce_cart', 'token')->get('/products/mug')->assertOk();
-    expect(Sunrice::bypassesPageCache(request()))->toBeTrue();
-})->skip($unsupported, 'Needs Sunrice::bypassPageCacheUsing()');
+    expect(PageCache::cacheable(request(), Page::current()))->toBeFalse();
+});
 
 it('leaves product pages out with a zero lifetime', function () {
     config(['commerce.cache.product_pages_ttl' => 0]);
 
     get('/products/mug')->assertOk();
-    expect(Sunrice::shouldCachePage(request()))->toBeFalse();
-})->skip($unsupported, 'Needs Sunrice::bypassPageCacheUsing()');
+    expect(PageCache::cacheable(request(), Page::current()))->toBeFalse();
+});
 
 it('clears the page cache when availability or prices change', function () {
-    config(['sunrice.cache.full_page' => true]);
     Event::fake([ContentChanged::class]);
     $inventory = app(Inventory::class);
 
@@ -67,15 +64,10 @@ it('clears the page cache when availability or prices change', function () {
     Event::assertNotDispatched(ContentChanged::class);
 
     $inventory->adjust(Variant::query()->findOrFail($this->mug->id), 0, set: true); // sold out
-    Event::assertDispatched(ContentChanged::class, fn (ContentChanged $e) => $e->reason === 'commerce.stock_changed');
+    Event::assertDispatched(ContentChanged::class, fn (ContentChanged $e) => $e->what === 'commerce.stock_changed');
 
     Event::fake([ContentChanged::class]);
     CatalogVersion::bump(); // pricing rules and flash sales
-    Event::assertDispatched(ContentChanged::class, fn (ContentChanged $e) => $e->reason === 'commerce.catalog_changed');
+    Event::assertDispatched(ContentChanged::class, fn (ContentChanged $e) => $e->what === 'commerce.catalog_changed');
 
-    // Nothing to clear without the full-page cache.
-    config(['sunrice.cache.full_page' => false]);
-    Event::fake([ContentChanged::class]);
-    CatalogVersion::bump();
-    Event::assertNotDispatched(ContentChanged::class);
-})->skip($unsupported, 'Needs Sunrice::bypassPageCacheUsing()');
+})->skip(fn () => ! SitePageCache::enabled(), 'Needs the full-page cache (spatie/laravel-responsecache)');

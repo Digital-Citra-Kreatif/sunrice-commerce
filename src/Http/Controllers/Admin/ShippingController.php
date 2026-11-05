@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Regions\Countries;
 use Sunrice\Commerce\Regions\Region;
@@ -18,7 +19,6 @@ use Sunrice\Commerce\Shipping\Models\ShippingMethod;
 use Sunrice\Commerce\Shipping\Models\ShippingZone;
 use Sunrice\Commerce\Shipping\ShippingTypes;
 use Sunrice\Commerce\Support\ActivityRecorder;
-use Sunrice\Support\Locales;
 
 /** Settings → Store → Shipping: zones in order, their methods, courier presets. */
 class ShippingController extends Controller
@@ -288,9 +288,9 @@ class ShippingController extends Controller
     {
         $perLanguage = function (string $handle, string $label, bool $required): array {
             $fields = [];
-            foreach (Locales::available() as $i => $locale) {
+            foreach (Locales::all() as $i => $locale) {
                 $fields[] = ['handle' => $locale, 'type' => 'text', 'label' => Locales::name($locale), 'translatable' => false,
-                    'required' => $required && $locale === Locales::main(), 'config' => ['max' => 120]];
+                    'required' => $required && $locale === Locales::default(), 'config' => ['max' => 120]];
             }
 
             return ['handle' => $handle, 'type' => 'group', 'label' => $label, 'config' => ['fields' => $fields]];

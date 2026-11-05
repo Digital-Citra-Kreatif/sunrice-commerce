@@ -13,10 +13,10 @@ use Sunrice\Commerce\Mcp\OrderData;
 use Sunrice\Commerce\Payments\Actions\ReviewPaymentConfirmation;
 use Sunrice\Commerce\Payments\Models\PaymentConfirmation;
 
-#[Description('Approve (the money arrived: the order becomes paid) or reject (with a reason the customer sees) a payment confirmation from list_payment_confirmations. Approving less than expected needs anyway: true. Needs confirm: true — ask the user, who should check the bank account first.')]
+#[Description('Approve (the money arrived: the order becomes paid) or reject (with a reason the customer sees) a payment confirmation from commerce_list_payment_confirmations. Approving less than expected needs anyway: true. Needs confirm: true — ask the user, who should check the bank account first.')]
 class ReviewPaymentConfirmationTool extends CommerceTool
 {
-    protected string $name = 'review_payment_confirmation';
+    protected string $name = 'commerce_review_payment_confirmation';
 
     protected ?string $feature = 'manual_payments';
 

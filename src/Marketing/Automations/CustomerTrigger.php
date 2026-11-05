@@ -6,10 +6,10 @@ namespace Sunrice\Commerce\Marketing\Automations;
 
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Marketing\Audience;
 use Sunrice\Commerce\Marketing\Recipient;
-use Sunrice\Support\Locales;
 
 /** A trigger on a customer's own date (sign-up, last order), shifted by the delay. */
 abstract class CustomerTrigger implements Trigger
@@ -38,7 +38,7 @@ abstract class CustomerTrigger implements Trigger
             ->where('commerce_customers.'.$this->column(), '<=', $shift($to));
         $this->narrow($query);
         foreach ($query->lazyById(200, 'commerce_customers.id', 'id') as $customer) {
-            yield new Recipient($customer, $customer->email, (string) ($customer->locale ?? Locales::main()), $this->dedupe($customer));
+            yield new Recipient($customer, $customer->email, (string) ($customer->locale ?? Locales::default()), $this->dedupe($customer));
         }
     }
 }

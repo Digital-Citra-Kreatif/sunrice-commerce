@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Admin\Fields;
 
+use Sunrice\Cms\Fields\Field;
+use Sunrice\Cms\Fields\FieldType;
+use Sunrice\Cms\Fields\Schema;
 use Sunrice\Commerce\Regions\Countries;
 use Sunrice\Commerce\Regions\Region;
-use Sunrice\Fields\FieldType;
 
 /**
  * Country, then (in Indonesia) province → city → district → village:
@@ -18,12 +20,13 @@ class RegionField extends FieldType
 {
     public const KEYS = ['province_code', 'city_code', 'district_code', 'village_code'];
 
-    public static function type(): string
+    public function type(): string
     {
         return 'commerce_region';
     }
 
-    public function rules(array $field): array
+    /** @return list<mixed> */
+    public function rules(Field $field): array
     {
         return ['array', function (string $attribute, mixed $value, \Closure $fail): void {
             $value = (array) $value;
@@ -47,7 +50,7 @@ class RegionField extends FieldType
         }];
     }
 
-    public function normalize(mixed $value, array $field): mixed
+    public function normalize(mixed $value, Field $field): mixed
     {
         $value = is_array($value) ? $value : [];
         $country = strtoupper((string) ($value['country'] ?? 'ID')) ?: 'ID';
@@ -60,18 +63,18 @@ class RegionField extends FieldType
         return $normalized;
     }
 
-    public function toAdminSchema(array $field): array
+    public function toAdmin(Field $field, Schema $schema): array
     {
-        $field['config'] = [
+        $config = [
             'depth' => 'district',
             'countries' => true,
             'api' => route('commerce.api.regions', [], false),
-            ...($field['config'] ?? []),
+            ...(array) $field->config,
         ];
-        if ($field['config']['countries']) {
-            $field['config']['country_options'] = Countries::options();
+        if ($config['countries']) {
+            $config['country_options'] = Countries::options();
         }
 
-        return $field;
+        return ['config' => $config] + parent::toAdmin($field, $schema);
     }
 }

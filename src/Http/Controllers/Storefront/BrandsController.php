@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Http\Controllers\Storefront;
 
 use Illuminate\Contracts\View\View;
+use Sunrice\Admin\Media\Media;
+use Sunrice\Cms\Models\Term;
 use Sunrice\Commerce\Catalog\ProductQuery;
 use Sunrice\Commerce\Storefront\Layout;
-use Sunrice\Models\Term;
 
 /** GET /brands — every brand with live products. */
 class BrandsController
@@ -17,7 +18,7 @@ class BrandsController
         abort_unless(commerce_feature('brands'), 404);
         $handle = (string) config('commerce.catalog.brand_taxonomy', 'brands');
         $facet = ProductQuery::make()->facets()['terms'][$handle] ?? [];
-        $terms = Term::query()->with(['translations', 'taxonomy.blueprint'])->whereIn('id', array_column($facet, 'id'))->get()->keyBy('id');
+        $terms = Term::query()->with(['translations', 'taxonomy'])->whereIn('id', array_column($facet, 'id'))->get()->keyBy('id');
 
         $brands = [];
         foreach ($facet as $row) {
@@ -25,9 +26,8 @@ class BrandsController
             if ($term === null) {
                 continue;
             }
-            $term->resolveFor(app()->getLocale());
-            $logo = $term->get('logo');
-            $brands[] = ['name' => $row['name'], 'count' => $row['count'], 'url' => $term->url, 'logo' => is_object($logo) && method_exists($logo, 'url') ? $logo->url() : null];
+            $logo = commerce_values($term)['logo'] ?? null;
+            $brands[] = ['name' => $row['name'], 'count' => $row['count'], 'url' => $term->url(), 'logo' => $logo instanceof Media ? $logo->url() : null];
         }
 
         return view(Layout::view('brands'), ['brands' => $brands, 'seoTitle' => __('commerce::storefront.listing.brands')]);

@@ -41,7 +41,7 @@ Sunrice would fall back to a generic template (`sunrice.show`, `sunrice.index`,
 
 Anything more specific wins and is kept: an entry's or term's own template, the collection's or
 taxonomy's template setting, or a template in your app such as
-`resources/views/sunrice/products/show.blade.php`. Sunrice passes these templates its usual
+`resources/views/cms/collections/products/show.blade.php`. The CMS passes these templates its usual
 variables: `$entry` and `$collection` on product pages, `$entries` and `$collection` on the shop,
 `$term`, `$taxonomy`, `$collection` and `$entries` on term pages, plus `$locale`, `$pageType` and
 `$sunricePage`.
@@ -99,8 +99,9 @@ template includes its partials the same way, so a published partial is used ever
 
 Store pages extend `Storefront\Layout::name()`:
 
-- the view in `commerce.storefront.layout` when it exists (default `sunrice.layouts.app`, the
-  layout of Sunrice's starter templates);
+- the view in `commerce.storefront.layout` when it exists (default `cms.layout`, the site layout
+  of the CMS's starter templates and of [the starter theme](#the-starter-theme),
+  `resources/views/cms/layout.blade.php`);
 - else commerce's minimal layout, `commerce::layouts.store`.
 
 ```php
@@ -116,11 +117,12 @@ Your layout needs:
 - `@stack('head')` in `<head>`: the theme stylesheet, the CSRF meta tag and the product JSON-LD go
   there;
 - `@stack('scripts')` before `</body>`: `commerce.js`, the variant picker and the countdown go there;
-- `<x-sunrice::seo :default-title="$seoTitle ?? null" />`: store pages pass their title as
+- `<x-sunrice-cms::seo :default-title="$seoTitle ?? null" />`: store pages pass their title as
   `$seoTitle`.
 
 The minimal layout also renders the `head` slot (`<x-commerce::slot name="head" />`) and passes
-`noindex` to the SEO component on private pages. Sunrice's starter layout does neither: add them
+`noindex` to the SEO component on private pages (the starter theme's layout does too). The CMS's
+starter layout does neither: add them
 to your layout if you need them. Use `@bodyClass` on `<body>` to get the
 [page classes](#theming-without-publishing).
 
@@ -142,11 +144,11 @@ php artisan vendor:publish --tag=commerce-templates
 
 | From | To |
 | --- | --- |
-| `storefront/product.blade.php` | `resources/views/sunrice/{collection}/show.blade.php` |
-| `storefront/shop.blade.php` | `resources/views/sunrice/{collection}/index.blade.php` |
-| `storefront/category.blade.php` | `resources/views/sunrice/taxonomies/{category taxonomy}/show.blade.php` |
-| `storefront/brand.blade.php` | `resources/views/sunrice/taxonomies/{brand taxonomy}/show.blade.php` |
-| `storefront/tag.blade.php` | `resources/views/sunrice/taxonomies/{tag taxonomy}/show.blade.php` |
+| `storefront/product.blade.php` | `resources/views/cms/collections/{collection}/show.blade.php` |
+| `storefront/shop.blade.php` | `resources/views/cms/collections/{collection}/index.blade.php` |
+| `storefront/category.blade.php` | `resources/views/cms/taxonomies/{category taxonomy}/show.blade.php` |
+| `storefront/brand.blade.php` | `resources/views/cms/taxonomies/{brand taxonomy}/show.blade.php` |
+| `storefront/tag.blade.php` | `resources/views/cms/taxonomies/{tag taxonomy}/show.blade.php` |
 | every other `storefront/**/*.blade.php` | `resources/views/commerce/…` (same relative path) |
 | `stubs/theme/` | `public/commerce-theme/` (`commerce.css`, `commerce.js`) |
 
@@ -178,14 +180,20 @@ the table above and `resources/views/starter/**` to the same paths under `resour
 
 | File | What it is |
 | --- | --- |
-| `sunrice/layouts/app.blade.php` | The layout of every page, Sunrice's and the store's (`commerce.storefront.layout` finds it); loads the theme and the font |
-| `sunrice/partials/store-header.blade.php` | Announcement bar, sticky header: menu button, logo, department menu with mega panels (a drawer on phones), product search, account, wishlist and cart |
-| `sunrice/partials/store-footer.blade.php` | Footer menu columns, footer text and social links, payment methods, languages |
-| `sunrice/partials/store-languages.blade.php` | Language links (shown with more than one language) |
-| `sunrice/home.blade.php` | The home page: full-width hero, department and category tiles, the running flash sale with its countdown, new arrivals, best sellers, brands |
-| `sunrice/pages/show.blade.php` | Content pages of the `pages` collection (About, Help, legal pages) |
-| `sunrice/search.blade.php` | Sunrice's site search: products as cards, then other pages |
+| `cms/layout.blade.php` | The site layout of every page, the CMS's (`@extends('cms.layout')`) and the store's (`commerce.storefront.layout` finds it); loads the theme and the font. It reads the page shown from `cms_page()` |
+| `cms/partials/store-header.blade.php` | Announcement bar, sticky header: menu button, logo, department menu with mega panels (a drawer on phones), product search, account, wishlist and cart |
+| `cms/partials/store-footer.blade.php` | Footer menu columns, footer text and social links, payment methods, languages |
+| `cms/partials/store-languages.blade.php` | Language links (`<x-sunrice-cms::language-switcher>`, shown with more than one language) |
+| `cms/home.blade.php` | The home page: full-width hero, department and category tiles, the running flash sale with its countdown, new arrivals, best sellers, brands |
+| `cms/collections/pages/show.blade.php` | Content pages of the `pages` collection (About, Help, legal pages) |
+| `cms/search.blade.php` | The CMS's site search: products as cards, then other pages |
 | `errors/404.blade.php` | Not found, with a product search |
+
+The files follow the CMS's template conventions (Templates in `sunrice/cms`'s `docs/site.md`):
+`cms/layout` is the site layout the CMS's own starter templates use too, so
+publishing the starter theme gives those pages the store's header and footer (and replaces the
+CMS's starter `cms/layout.blade.php` if you published it before, with `--force`). The partials read
+the menus and globals with `cms_menu()` and `cms_global()`, the page shown with `cms_page()`.
 
 What the site shell reads, all optional:
 
@@ -193,7 +201,7 @@ What the site shell reads, all optional:
 - the menus `main` (departments; their children fill the mega panel) and `footer` (each top item
   is a column);
 - the home page entry's fields `hero_title`, `hero_text`, `hero_image`, `hero_button`,
-  `hero_link`, `body` (blueprint `home`; the entry's template is `sunrice.home`);
+  `hero_link`, `body` (blueprint `home`; the entry's template is `cms.home`);
 - category terms' `image` and `banner`, brand terms' `logo`;
 - colour terms' `swatch` field (a hex colour): with it, the attribute shows as swatches on cards,
   in the filters and in the variant picker. Other attribute taxonomies (sizes) show as boxes in
@@ -445,7 +453,7 @@ Rebuild the route cache (`php artisan route:cache`) after a change. Always build
   are added only when prices are visible: an `Offer`, or an `AggregateOffer` with low and high
   prices for a range, with availability (`InStock`, `OutOfStock`, `BackOrder`). See
   [`structuredData()`](helpers.md#productview).
-- **Canonical URLs** come from `<x-sunrice::seo>`. A product page points at the entry's URL in its
+- **Canonical URLs** come from `<x-sunrice-cms::seo>`. A product page points at the entry's URL in its
   language. A listing points at its own URL without the filter and sort parameters, keeping only
   the page number, so filtered views aren't indexed as copies.
 - **Sitemap.** Products, the shop and product terms are Sunrice entries and terms, so they are in

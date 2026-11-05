@@ -99,7 +99,7 @@ pin to that major version.
 | `laravel/mcp` `^1.0` | MCP tools (same as Sunrice) | C14.1 |
 | `spatie/laravel-honeypot` `^4.7` | Public forms (same as Sunrice) | C6.2 |
 | `spatie/simple-excel` `^3.10` | CSV exports (same as Sunrice) | C8.6 |
-| `intervention/image` `^4.0` | Re-encoding payment proof images (same as Sunrice) | C9.3 |
+| `intervention/image` `^3.0` | Re-encoding payment proof images (the version the panel requires) | C9.3 |
 | `spatie/laravel-one-time-passwords` `^1.1` | Emailed one-time sign-in codes (requires PHP 8.4) | C7.3 |
 | `laravel/socialite` `^5.31` | Google sign-in | C7.4 |
 | `barryvdh/laravel-dompdf` `^3.1` | PDF invoices, packing slips, quotations | C11.1 |
@@ -1597,7 +1597,7 @@ columns.
 
 **Files:**
 `{ListProducts,GetProduct,AdjustStock,ListCustomers,GetCustomer,ListVouchers,SaveVoucher,ListFlashSales,SaveFlashSale,SavePricingRule,SalesReport,GetStoreSettings,UpdateStoreSettings,SetStoreFeature,QuoteShipping}Tool.php`.
-`get_product` documents the `product` field's shape for `update_entry`.
+`commerce_get_product` documents the `product` field's shape for `update_entry`.
 
 **Done when:** each tool has a happy-path test and a permission or feature refusal test.
 

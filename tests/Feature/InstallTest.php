@@ -37,8 +37,8 @@ it('installs non-interactively, twice, with a demo store whose checkout works', 
     // A shop manager sees the Shop group.
     $manager = User::query()->create(['name' => 'Manager', 'email' => 'manager@example.com', 'password' => bcrypt('password')]);
     $manager->assignRole(CommerceRolesSeeder::SHOP_MANAGER);
-    $this->actingAs($manager)->get('/cms/commerce')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
-        ->where('navigation', fn ($groups) => collect($groups)->firstWhere('label', 'Shop') !== null));
+    $this->actingAs($manager)->get('/admin/commerce')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('navigation', fn ($groups) => collect($groups)->firstWhere('group', 'Shop') !== null));
     auth()->logout();
 
     // A customer buys the demo mug with a bank transfer.

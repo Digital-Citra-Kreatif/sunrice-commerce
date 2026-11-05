@@ -7,9 +7,9 @@ namespace Sunrice\Commerce\View\Components;
 use Illuminate\Contracts\View\View;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\Component;
+use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\ProductQuery;
 use Sunrice\Commerce\Storefront\Layout;
-use Sunrice\Models\Entry;
 
 /**
  * <x-commerce::products /> — a product grid with pagination, filtered by
@@ -20,7 +20,7 @@ use Sunrice\Models\Entry;
  */
 class Products extends Component
 {
-    /** @var LengthAwarePaginator<int, Entry> */
+    /** @var LengthAwarePaginator<int, EntryTranslation> */
     public LengthAwarePaginator $products;
 
     public ProductQuery $query;

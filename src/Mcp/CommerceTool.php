@@ -7,11 +7,12 @@ namespace Sunrice\Commerce\Mcp;
 use Illuminate\Auth\Access\AuthorizationException;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Sunrice\Admin\Ai\Tool;
+use Sunrice\Admin\Panel;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Inventory\OutOfStock;
 use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\InvalidTransition;
-use Sunrice\Mcp\Tools\SunriceTool;
 use Throwable;
 
 /**
@@ -21,7 +22,7 @@ use Throwable;
  * `ai` actor, and answer domain refusals (a transition that isn't allowed,
  * nothing left to refund…) as tool errors the agent can read.
  */
-abstract class CommerceTool extends SunriceTool
+abstract class CommerceTool extends Tool
 {
     /** The module the tool needs, besides ai_tools. */
     protected ?string $feature = null;
@@ -33,10 +34,10 @@ abstract class CommerceTool extends SunriceTool
 
     public function shouldRegister(): bool
     {
-        $user = auth()->user();
+        $user = auth(app(Panel::class)->getGuard())->user();
         $features = app(Features::class);
 
-        return $user !== null && $features->active('ai_tools')
+        return parent::shouldRegister() && $user !== null && $features->active('ai_tools')
             && ($this->feature === null || $features->active($this->feature))
             && ($this->permission === null || $user->can($this->permission));
     }
@@ -57,18 +58,36 @@ abstract class CommerceTool extends SunriceTool
         }
     }
 
+    /**
+     * Refuses unless the token's user has this permission (each change an
+     * agent asks for needs its own, as in the admin).
+     *
+     * @throws AuthorizationException
+     */
+    protected function authorize(string $permission): void
+    {
+        if (! $this->can($permission)) {
+            throw new AuthorizationException("You don't have permission for this ({$permission}).");
+        }
+    }
+
+    /** The agent asked for something that isn't there ("Order not found."). */
+    protected function notFound(string $what): Response
+    {
+        return Response::error("{$what} not found.");
+    }
+
     /** Exceptions whose message is meant for the person (or agent) asking. */
     protected function refusal(Throwable $e): bool
     {
-        return $e instanceof \DomainException || $e instanceof \InvalidArgumentException
+        return $e instanceof \DomainException || $e instanceof \InvalidArgumentException || $e instanceof AuthorizationException
             || $e instanceof InvalidTransition || $e instanceof OutOfStock;
     }
 
     protected function actor(): Actor
     {
-        $token = request()->attributes->get('sunrice.api_token_name');
-
-        return Actor::ai(auth()->user(), is_string($token) ? $token : null);
+        // The token's name goes with every change in the activity log (the panel records it).
+        return Actor::ai(auth(app(Panel::class)->getGuard())->user(), null);
     }
 
     /** Refuses unless the agent passed confirm: true (after asking the user). */

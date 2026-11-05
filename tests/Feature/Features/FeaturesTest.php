@@ -105,12 +105,12 @@ it('gates routes and Blade by module', function () {
 });
 
 it('refuses sign-in codes while the user model lacks the HasOneTimePasswords trait', function () {
-    config(['sunrice.auth.user_model' => User::class]);
+    config(['auth.providers.users.model' => User::class]);
 
     expect(fn () => app(ToggleFeature::class)->handle('passwordless_login', true))->toThrow(ValidationException::class);
     expect(app(Features::class)->active('passwordless_login'))->toBeFalse();
 
-    config(['sunrice.auth.user_model' => Workbench\App\Models\User::class]);
+    config(['auth.providers.users.model' => Workbench\App\Models\User::class]);
     app(ToggleFeature::class)->handle('passwordless_login', true);
     expect(app(Features::class)->active('passwordless_login'))->toBeTrue();
 });

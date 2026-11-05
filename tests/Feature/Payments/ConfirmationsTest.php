@@ -53,8 +53,8 @@ it('submits, pauses the deadline, and approving pays the order', function () {
     expect($this->order->fresh()->status)->toBe('pending');
 
     actingAsUserWith(['commerce.payments.verify']);
-    $this->get('/cms/commerce/confirmations')->assertOk()->assertInertia(fn ($p) => $p->where('confirmations.0.id', $confirmation->id));
-    $this->post("/cms/commerce/confirmations/{$confirmation->id}/approve")->assertSessionHas('success');
+    $this->get('/admin/commerce/confirmations')->assertOk()->assertInertia(fn ($p) => $p->where('confirmations.0.id', $confirmation->id));
+    $this->post("/admin/commerce/confirmations/{$confirmation->id}/approve")->assertSessionHas('success');
     $order = $this->order->fresh();
     expect([$order->status, $order->payment_status, $order->paid_total])->toBe(['processing', 'paid', $order->total])
         ->and($confirmation->fresh()->status)->toBe('approved');
@@ -67,11 +67,11 @@ it('needs "approve anyway" for less than expected, and rejecting resumes the dea
     $deadline = $this->order->payments->sole()->expires_at;
     actingAsUserWith(['commerce.payments.verify']);
 
-    $this->post("/cms/commerce/confirmations/{$confirmation->id}/approve")->assertSessionHas('error');
+    $this->post("/admin/commerce/confirmations/{$confirmation->id}/approve")->assertSessionHas('error');
     expect($this->order->fresh()->payment_status)->toBe('awaiting_confirmation');
 
     $this->travel(2)->hours();
-    $this->post("/cms/commerce/confirmations/{$confirmation->id}/reject", ['reason' => 'Belum masuk'])->assertSessionHas('success');
+    $this->post("/admin/commerce/confirmations/{$confirmation->id}/reject", ['reason' => 'Belum masuk'])->assertSessionHas('success');
     $payment = $this->order->payments()->sole();
     expect($this->order->fresh()->payment_status)->toBe('unpaid')
         ->and($payment->status)->toBe('pending')
@@ -81,7 +81,7 @@ it('needs "approve anyway" for less than expected, and rejecting resumes the dea
     // A new confirmation, approved anyway.
     confirmPayment($this->order, ['amount' => 10000]);
     $again = PaymentConfirmation::query()->latest('id')->first();
-    $this->post("/cms/commerce/confirmations/{$again->id}/approve", ['anyway' => true])->assertSessionHas('success');
+    $this->post("/admin/commerce/confirmations/{$again->id}/approve", ['anyway' => true])->assertSessionHas('success');
     expect($this->order->fresh()->payment_status)->toBe('paid');
 });
 
@@ -91,10 +91,10 @@ it('keeps proofs private and lets only verifiers see them', function () {
     $this->get('/storage/'.$confirmation->proof_path)->assertNotFound();
 
     actingAsUserWith(['commerce.orders.view']);
-    $this->get("/cms/commerce/confirmations/{$confirmation->id}/proof")->assertForbidden();
-    $this->post("/cms/commerce/confirmations/{$confirmation->id}/approve")->assertForbidden();
+    $this->get("/admin/commerce/confirmations/{$confirmation->id}/proof")->assertForbidden();
+    $this->post("/admin/commerce/confirmations/{$confirmation->id}/approve")->assertForbidden();
     actingAsUserWith(['commerce.payments.verify'], 'verifier@example.com');
-    $this->get("/cms/commerce/confirmations/{$confirmation->id}/proof")->assertOk()->assertHeader('X-Content-Type-Options', 'nosniff');
+    $this->get("/admin/commerce/confirmations/{$confirmation->id}/proof")->assertOk()->assertHeader('X-Content-Type-Options', 'nosniff');
 });
 
 it('validates the confirmation and refuses orders not waiting for one', function () {

@@ -15,7 +15,7 @@ use Sunrice\Commerce\Mcp\CommerceTool;
 #[Description('Change a variant\'s stock, like Shop → Inventory: add or remove units (quantity +5 / -2) or set the count (set: true). The variant is a SKU or variant id; reason is manual, correction or import, and the change is kept in the stock history with a note.')]
 class AdjustStockTool extends CommerceTool
 {
-    protected string $name = 'adjust_stock';
+    protected string $name = 'commerce_adjust_stock';
 
     protected ?string $feature = 'inventory';
 

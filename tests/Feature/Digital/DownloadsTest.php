@@ -98,10 +98,10 @@ it('lists downloads in My Account and lets staff manage grants', function () {
 
     $grant = DownloadGrant::query()->sole();
     actingAsUserWith(['commerce.orders.view', 'commerce.orders.edit']);
-    $this->post("/cms/commerce/orders/{$order->id}/downloads/{$grant->id}", ['action' => 'revoke'])->assertSessionHas('success');
+    $this->post("/admin/commerce/orders/{$order->id}/downloads/{$grant->id}", ['action' => 'revoke'])->assertSessionHas('success');
     expect($grant->fresh()->revoked_at)->not->toBeNull();
-    $this->post("/cms/commerce/orders/{$order->id}/downloads/{$grant->id}", ['action' => 'reset', 'limit' => 5]);
+    $this->post("/admin/commerce/orders/{$order->id}/downloads/{$grant->id}", ['action' => 'reset', 'limit' => 5]);
     expect($grant->fresh()->downloads_remaining)->toBe(5)->and($grant->fresh()->revoked_at)->toBeNull();
-    $this->post("/cms/commerce/orders/{$order->id}/downloads/{$grant->id}", ['action' => 'extend', 'days' => 30]);
+    $this->post("/admin/commerce/orders/{$order->id}/downloads/{$grant->id}", ['action' => 'extend', 'days' => 30]);
     expect((int) round(now()->diffInDays($grant->fresh()->expires_at)))->toBe(37);
 });

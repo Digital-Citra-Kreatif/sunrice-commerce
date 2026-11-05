@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Catalog\Actions;
 
 use Closure;
+use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Catalog\ProductProjector;
 use Sunrice\Commerce\Catalog\ProductValue;
-use Sunrice\Models\Entry;
 
 /**
  * Changes the product field of entries outside the editor (bulk actions,
@@ -29,21 +29,18 @@ class UpdateProductValues
         }
         $field = (string) config('commerce.catalog.field', 'product');
 
-        $data = (array) ($translation->data ?? []);
-        if (array_key_exists($field, $data) || $translation->draft === null) {
+        // The live value (when published) and the draft's, so the next publish keeps the change.
+        if ($translation->data !== null) {
+            $data = (array) $translation->data;
             $data[$field] = $change(ProductValue::withIds(ProductValue::normalize($data[$field] ?? null)));
             $translation->data = $data;
         }
-        if (is_array($translation->draft)) {
-            $draft = $translation->draft;
-            $draftData = (array) ($draft['data'] ?? []);
-            $draftData[$field] = $change(ProductValue::withIds(ProductValue::normalize($draftData[$field] ?? null)));
-            $draft['data'] = $draftData;
-            $translation->draft = $draft;
-        }
+        $draft = (array) ($translation->draft_data ?? []);
+        $draft[$field] = $change(ProductValue::withIds(ProductValue::normalize($draft[$field] ?? null)));
+        $translation->draft_data = $draft;
         $translation->save();
 
-        if ($entry->published_at !== null) {
+        if ($translation->isPublished()) {
             $this->projector->sync($entry->fresh() ?? $entry);
         }
     }

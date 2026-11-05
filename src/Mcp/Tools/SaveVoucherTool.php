@@ -13,7 +13,7 @@ use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 #[Description('Create or change a voucher (a code) or an automatic discount, like Shop → Vouchers. Call without values to see the fields and current values, then send only what changes. Types: percent, fixed_cart, fixed_item, free_shipping, buy_x_get_y.')]
 class SaveVoucherTool extends SaveWithFormTool
 {
-    protected string $name = 'save_voucher';
+    protected string $name = 'commerce_save_voucher';
 
     protected ?string $feature = 'vouchers';
 

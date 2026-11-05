@@ -7,11 +7,11 @@
     <section class="commerce-term commerce-tag">
         <header class="commerce-listing__header">
             @include($L::view('partials.breadcrumbs'), ['items' => [
-                ['label' => __('commerce::storefront.theme.home'), 'url' => url(\Sunrice\Support\Locales::prefix(app()->getLocale()) ?: '/')],
-                ['label' => $term->name, 'url' => null],
+                ['label' => __('commerce::storefront.theme.home'), 'url' => url(\Sunrice\Cms\Support\Locales::prefix(app()->getLocale()) ?: '/')],
+                ['label' => $term->title, 'url' => null],
             ]])
-            <h1 class="commerce-listing__title">{{ $term->name }}</h1>
+            <h1 class="commerce-listing__title">{{ $term->title }}</h1>
         </header>
-        @include($L::view('partials.listing'), ['query' => \Sunrice\Commerce\Catalog\ProductQuery::fromRequest(request())->tag($term->id), 'without' => 'tag'])
+        @include($L::view('partials.listing'), ['query' => \Sunrice\Commerce\Catalog\ProductQuery::fromRequest(request())->tag($term->term_id), 'without' => 'tag'])
     </section>
 @endsection

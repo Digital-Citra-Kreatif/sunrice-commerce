@@ -996,17 +996,17 @@ Sunrice) and helpers, all documented:
 - The tools:
   | Area | Tools |
   | --- | --- |
-  | Start | `get_store_info` |
-  | Orders | `list_orders`, `get_order`, `update_order` (status, notes, shipment), `create_order`, `refund_order` |
-  | Payments | `list_payment_confirmations`, `review_payment_confirmation` |
-  | Catalog | `list_products`, `get_product`, `adjust_stock` |
-  | Customers | `list_customers`, `get_customer` |
-  | Promotions | `list_vouchers`, `save_voucher`, `list_flash_sales`, `save_flash_sale`, `save_pricing_rule` |
-  | Reports | `sales_report` |
-  | Settings | `get_store_settings`, `update_store_settings`, `set_store_feature` |
-  | Shipping | `quote_shipping` |
-- Product content and product data are edited with Sunrice's entry tools (`update_entry` with the
-  `product` field); `get_product` explains the field's shape.
+  | Start | `commerce_get_store_info` |
+  | Orders | `commerce_list_orders`, `commerce_get_order`, `commerce_update_order` (status, notes, shipment), `commerce_create_order`, `commerce_refund_order` |
+  | Payments | `commerce_list_payment_confirmations`, `commerce_review_payment_confirmation` |
+  | Catalog | `commerce_list_products`, `commerce_get_product`, `commerce_adjust_stock` |
+  | Customers | `commerce_list_customers`, `commerce_get_customer` |
+  | Promotions | `commerce_list_vouchers`, `commerce_save_voucher`, `commerce_list_flash_sales`, `commerce_save_flash_sale`, `commerce_save_pricing_rule` |
+  | Reports | `commerce_sales_report` |
+  | Settings | `commerce_get_store_settings`, `commerce_update_store_settings`, `commerce_set_store_feature` |
+  | Shipping | `commerce_quote_shipping` |
+- Product content and product data are edited with Sunrice's entry tools (`cms_save_entry` with the
+  `product` field); `commerce_get_product` explains the field's shape.
 - The server instructions tell agents to ask before approving payments, refunding, cancelling,
   changing prices in bulk or switching features.
 
@@ -1116,7 +1116,7 @@ Product content uses Sunrice's own permissions: the entry permissions of the pro
 
 | Role | Gets |
 | --- | --- |
-| Shop Manager | `sunrice.access-admin`, `sunrice.view-drafts`, every entry permission of the products collection, the term permissions of the product categories, tags, brands and attribute taxonomies, `sunrice.assets.view`/`upload`/`edit`, the inquiry form's submission permissions, and every `commerce.*` permission |
+| Shop Manager | `sunrice.access`, `cms.entries.view-drafts`, every entry permission of the products collection, the term permissions of the product categories, tags, brands and attribute taxonomies, `sunrice.assets.view`/`upload`/`edit`, the inquiry form's submission permissions, and every `commerce.*` permission |
 | Customer | No admin permissions. It is the storefront role, used by price visibility and pricing rules |
 | Administrator (Sunrice's) | Every `commerce.*` permission as well |
 
