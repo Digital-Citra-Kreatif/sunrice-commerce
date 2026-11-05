@@ -44,7 +44,7 @@ class ProofFiles
         try {
             $manager = new ImageManager(extension_loaded('imagick') ? new ImagickDriver : new GdDriver);
 
-            return (string) $manager->decode($original)->encodeUsingFileExtension($extension);
+            return (string) $manager->read($original)->encodeByExtension($extension);
         } catch (Throwable $e) {
             report($e);
 
