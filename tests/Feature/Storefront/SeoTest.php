@@ -16,8 +16,9 @@ use Sunrice\Commerce\Settings\StoreSettings;
 /** @return array<string, mixed> */
 function productJsonLd(string $html): array
 {
-    preg_match('#<script type="application/ld\+json">(.*?)</script>#s', $html, $m);
-    expect($m)->not->toBeEmpty();
+    // The page's own structured data comes first (the CMS's); the store's Product node is its own script.
+    preg_match_all('#<script type="application/ld\+json"[^>]*>(.*?)</script>#s', $html, $all);
+    $m = [1 => collect($all[1])->first(fn (string $json) => str_contains($json, '"@type":"Product"')) ?? '{}'];
 
     return json_decode($m[1], true, flags: JSON_THROW_ON_ERROR);
 }
@@ -80,7 +81,8 @@ it('points filtered and sorted listings at the unfiltered listing', function () 
     $entry->terms()->attach($acme->id);
 
     expect(canonicalOf($this->get('/products?brand[]='.$acme->id.'&sort=price&min_price=1')->assertOk()->getContent()))->toBe(url('/products'))
-        ->and(canonicalOf($this->get('/products?page=2&sort=price')->getContent()))->toBe(url('/products').'?page=2')
+        // A page past the last is not found (the CMS's rule for every paginated page), so it's never indexed.
+        ->and($this->get('/products?page=2&sort=price')->status())->toBe(404)
         ->and(canonicalOf($this->get('/brands/acme?sort=price')->assertOk()->getContent()))->toBe(url('/brands/acme'));
 
     $brands = $this->get('/brands')->assertOk()->getContent();

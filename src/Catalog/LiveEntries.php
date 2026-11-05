@@ -95,6 +95,7 @@ final class LiveEntries
     {
         $page = Page::current();
 
-        return $page !== null && $page->preview && $page->entry !== null && $page->entry->is($translation);
+        // The page's own entry (the one its template shows), not another copy of it.
+        return $page !== null && $page->preview && $page->entry === $translation;
     }
 }
