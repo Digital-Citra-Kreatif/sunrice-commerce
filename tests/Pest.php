@@ -27,6 +27,7 @@ use Sunrice\Cms\Actions\Entries\CreateEntry;
 use Sunrice\Cms\Models\Blueprint;
 use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\Cms\Models\Term;
 use Sunrice\Cms\Support\Locales;
@@ -209,4 +210,16 @@ function mcpTool(string $tool, array $arguments = [], mixed $user = null): array
     $text = (string) ($result['content'][0]['text'] ?? '');
 
     return ($result['isError'] ?? false) ? ['error' => $text] : (json_decode($text, true) ?? ['text' => $text]);
+}
+
+/** Take an entry off the site in every language, as if it had never been published (no events). */
+function unpublishEntry(Entry|int $entry): void
+{
+    EntryTranslation::query()->where('entry_id', $entry instanceof Entry ? $entry->id : $entry)->update(['status' => 'draft']);
+}
+
+/** Move an entry's publication date (every language), without events. */
+function publishEntryAt(Entry|int $entry, DateTimeInterface $at): void
+{
+    EntryTranslation::query()->where('entry_id', $entry instanceof Entry ? $entry->id : $entry)->update(['published_at' => $at]);
 }

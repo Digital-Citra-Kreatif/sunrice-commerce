@@ -75,8 +75,8 @@ it('refuses entries that are not live', function (Closure $hide) {
 
     expect(app(Catalog::class)->check($variant->fresh(), 1)->reason)->toBe('not_published');
 })->with([
-    'unpublished' => [fn ($entry) => $entry->update(['status' => 'draft'])],
-    'scheduled' => [fn ($entry) => $entry->update(['published_at' => now()->addDay()])],
+    'unpublished' => [fn ($entry) => unpublishEntry($entry)],
+    'scheduled' => [fn ($entry) => publishEntryAt($entry, now()->addDay())],
     'trashed' => [fn ($entry) => app(TrashEntry::class)->handle($entry)],
 ]);
 
@@ -104,7 +104,7 @@ it('redirects calls to action to the product\'s own targets only', function () {
     $this->get("/go/inquiry/{$entry->id}")->assertRedirectContains('#inquiry');
     $this->get('/go/whatsapp/999999')->assertNotFound();
 
-    $entry->update(['status' => 'draft']);
+    unpublishEntry($entry);
     app()->forgetScopedInstances(); // a new request
     $this->get("/go/external/{$entry->id}")->assertNotFound();
 });

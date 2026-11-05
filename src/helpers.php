@@ -12,6 +12,7 @@ use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Cms\Models\Entry;
 use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Cms\Models\Term;
+use Sunrice\Cms\Models\TermTranslation;
 
 /*
  * Global helpers for templates. Each is wrapped in function_exists().
@@ -84,12 +85,17 @@ if (! function_exists('commerce_values')) {
      *
      * @return array<mixed>
      */
-    function commerce_values(EntryTranslation|Term $item): array
+    function commerce_values(EntryTranslation|Term|TermTranslation $item): array
     {
         /** @var WeakMap<object, array<mixed>> $memo */
         static $memo = new WeakMap;
 
-        return $memo[$item] ??= $item instanceof Term ? ($item->translation()?->values() ?? []) : $item->values();
+        if (! isset($memo[$item]) && $item instanceof Term) {
+            // Its translation knows its term (and so its taxonomy): no queries to find them again.
+            $memo[$item] = $item->translation()?->setRelation('term', $item)->values() ?? [];
+        }
+
+        return $memo[$item] ??= $item->values();
     }
 }
 

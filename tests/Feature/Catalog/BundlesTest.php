@@ -57,7 +57,7 @@ it('follows its components\' stock and weight', function () {
 
 it('is unavailable when a component is unpublished', function () {
     $bundle = giftSet('fixed', 0);
-    Entry::query()->whereKey($this->teaEntry->id)->update(['status' => 'draft']);
+    unpublishEntry($this->teaEntry->id);
     app()->forgetScopedInstances();
 
     expect(app(Bundles::class)->available($bundle->fresh()))->toBe(0)
