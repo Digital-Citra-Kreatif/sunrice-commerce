@@ -1,13 +1,11 @@
-import { c as e, i as te, u as Ue, a as ze, b as o, R as u, g as he, j as c, P as He, F as U, S as Je, d as pe, h as We, t as z, T as qe } from "./main-Bwk0AAzX.js";
+import { i as te, u as Ue, a as ze, b as o, R as u, g as he, j as c, c as e, P as He, F as U, S as Je, d as pe, h as We, t as z, T as qe } from "./main-BtYEwHjd.js";
+import { I as O } from "./InputError-5eVrXBM9.js";
 import { a as ce, u as Ke, g as Ye, d as ge, i as Ge } from "./marketing-Bya9hWH-.js";
-function O({ message: n, id: h }) {
-  return n ? /* @__PURE__ */ e("p", { id: h, className: "cm:text-sm cm:text-destructive", children: n }) : null;
-}
 const Qe = { active: "ok", paused: "warning", scheduled: "info", draft: "neutral" };
-function tt({ campaign: n, locales: h, mainLocale: C, rules: g, tags: _, triggers: D, templates: R, reachable: H, bodyFields: J, currency: W }) {
+function ct({ campaign: n, locales: p, mainLocale: C, rules: h, tags: _, triggers: D, templates: R, reachable: H, bodyFields: J, currency: W }) {
   const {
     Card: x,
-    CardContent: p,
+    CardContent: g,
     CardHeader: i,
     CardTitle: y,
     CardDescription: v,
@@ -50,7 +48,7 @@ function tt({ campaign: n, locales: h, mainLocale: C, rules: g, tags: _, trigger
   }, [L]);
   const [De, V] = u.useState(!1), [I, Re] = u.useState(""), se = u.useRef(null), X = D.find((t) => t.key === a.trigger), oe = n.id !== null && !E, Fe = JSON.stringify(a.audience);
   u.useEffect(() => {
-    if (!ce(a.audience, g)) return;
+    if (!ce(a.audience, h)) return;
     ae(!0);
     const t = setTimeout(() => {
       he(o("commerce/marketing/audience"), {
@@ -63,7 +61,7 @@ function tt({ campaign: n, locales: h, mainLocale: C, rules: g, tags: _, trigger
   }, [Fe]);
   const M = (t) => k("audience", t), de = (t, r) => M({
     ...a.audience,
-    rules: a.audience.rules.map((m, l) => l === t ? r.rule !== void 0 ? { rule: r.rule, value: ge(g[r.rule]) } : { ...m, ...r } : m)
+    rules: a.audience.rules.map((m, l) => l === t ? r.rule !== void 0 ? { rule: r.rule, value: ge(h[r.rule]) } : { ...m, ...r } : m)
   }), Z = (t, r) => k("content", { ...a.content, [S]: { ...a.content[S], [t]: r } }), Pe = (t) => {
     const r = se.current;
     if (r && document.body.contains(r.el)) {
@@ -155,7 +153,7 @@ function tt({ campaign: n, locales: h, mainLocale: C, rules: g, tags: _, trigger
             /* @__PURE__ */ e(y, { children: "Start from" }),
             /* @__PURE__ */ e(v, { children: "A template fills in the audience and the texts. You can change everything." })
           ] }),
-          /* @__PURE__ */ e(p, { className: "cm:grid cm:gap-2 cm:sm:grid-cols-2", children: R.map((t) => /* @__PURE__ */ c(
+          /* @__PURE__ */ e(g, { className: "cm:grid cm:gap-2 cm:sm:grid-cols-2", children: R.map((t) => /* @__PURE__ */ c(
             "button",
             {
               type: "button",
@@ -171,7 +169,7 @@ function tt({ campaign: n, locales: h, mainLocale: C, rules: g, tags: _, trigger
         ] }),
         /* @__PURE__ */ c(x, { children: [
           /* @__PURE__ */ e(i, { children: /* @__PURE__ */ e(y, { children: "Details" }) }),
-          /* @__PURE__ */ c(p, { className: "cm:grid cm:gap-4", children: [
+          /* @__PURE__ */ c(g, { className: "cm:grid cm:gap-4", children: [
             /* @__PURE__ */ c("div", { className: "cm:grid cm:gap-1.5", children: [
               /* @__PURE__ */ e(T, { htmlFor: "name", children: "Name" }),
               /* @__PURE__ */ e(
@@ -237,7 +235,7 @@ function tt({ campaign: n, locales: h, mainLocale: C, rules: g, tags: _, trigger
             /* @__PURE__ */ e(y, { children: "Audience" }),
             /* @__PURE__ */ e(v, { children: d ? "Optional: only customers who also match these rules get it." : `Customers who accept marketing (${H.toLocaleString()}), narrowed by these rules.` })
           ] }),
-          /* @__PURE__ */ c(p, { className: "cm:grid cm:gap-3", children: [
+          /* @__PURE__ */ c(g, { className: "cm:grid cm:gap-3", children: [
             a.audience.rules.length > 1 && /* @__PURE__ */ c("div", { className: "cm:flex cm:items-center cm:gap-2 cm:text-sm", children: [
               "Match",
               /* @__PURE__ */ c(q, { value: a.audience.match, onValueChange: (t) => M({ ...a.audience, match: t }), children: [
@@ -250,11 +248,11 @@ function tt({ campaign: n, locales: h, mainLocale: C, rules: g, tags: _, trigger
             ] }),
             a.audience.rules.length === 0 && /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-muted-foreground", children: d ? "No extra rules: everyone the trigger finds." : "No rules: everyone who accepts marketing." }),
             a.audience.rules.map((t, r) => {
-              const m = g[t.rule];
+              const m = h[t.rule];
               return /* @__PURE__ */ c("div", { className: "cm:grid cm:gap-2 cm:rounded-md cm:border cm:p-3 cm:sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] cm:sm:items-start", children: [
                 /* @__PURE__ */ c(q, { value: t.rule, onValueChange: (l) => de(r, { rule: l }), children: [
                   /* @__PURE__ */ e(Y, { "aria-label": "Rule", children: /* @__PURE__ */ e(G, { placeholder: "Choose a rule" }) }),
-                  /* @__PURE__ */ e(K, { children: Ye(g).map(([l, N]) => /* @__PURE__ */ c(u.Fragment, { children: [
+                  /* @__PURE__ */ e(K, { children: Ye(h).map(([l, N]) => /* @__PURE__ */ c(u.Fragment, { children: [
                     /* @__PURE__ */ e("div", { className: "cm:px-2 cm:pt-2 cm:pb-1 cm:text-xs cm:font-medium cm:text-muted-foreground", children: l }),
                     N.map(([j, Be]) => /* @__PURE__ */ e(P, { value: j, children: Be.label }, j))
                   ] }, l)) })
@@ -283,18 +281,18 @@ function tt({ campaign: n, locales: h, mainLocale: C, rules: g, tags: _, trigger
                   type: "button",
                   variant: "outline",
                   size: "sm",
-                  onClick: () => M({ ...a.audience, rules: [...a.audience.rules, { rule: "no_order_for_days", value: ge(g.no_order_for_days) }] }),
+                  onClick: () => M({ ...a.audience, rules: [...a.audience.rules, { rule: "no_order_for_days", value: ge(h.no_order_for_days) }] }),
                   children: "Add rule"
                 }
               ),
-              /* @__PURE__ */ e("p", { className: "cm:text-sm", "aria-live": "polite", children: d && a.audience.rules.length === 0 ? null : ce(a.audience, g) ? je || f === null ? /* @__PURE__ */ e("span", { className: "cm:text-muted-foreground", children: "Counting…" }) : /* @__PURE__ */ c(U, { children: [
+              /* @__PURE__ */ e("p", { className: "cm:text-sm", "aria-live": "polite", children: d && a.audience.rules.length === 0 ? null : ce(a.audience, h) ? je || f === null ? /* @__PURE__ */ e("span", { className: "cm:text-muted-foreground", children: "Counting…" }) : /* @__PURE__ */ c(U, { children: [
                 /* @__PURE__ */ e("strong", { children: f.count.toLocaleString() }),
                 " ",
                 f.count === 1 ? "customer matches" : "customers match",
                 d ? " these rules now" : ""
               ] }) : /* @__PURE__ */ e("span", { className: "cm:text-muted-foreground", children: "Fill in the rules to see who matches." }) })
             ] }),
-            f && f.sample.length > 0 && ce(a.audience, g) && !(d && a.audience.rules.length === 0) && /* @__PURE__ */ c("p", { className: "cm:text-xs cm:text-muted-foreground", children: [
+            f && f.sample.length > 0 && ce(a.audience, h) && !(d && a.audience.rules.length === 0) && /* @__PURE__ */ c("p", { className: "cm:text-xs cm:text-muted-foreground", children: [
               "For example: ",
               f.sample.map((t) => t.name || t.email).join(", ")
             ] })
@@ -305,17 +303,17 @@ function tt({ campaign: n, locales: h, mainLocale: C, rules: g, tags: _, trigger
             /* @__PURE__ */ e(y, { children: "Email" }),
             /* @__PURE__ */ c(v, { children: [
               "Each customer gets it in their language; empty parts use ",
-              h.find((t) => t.code === C)?.name ?? C,
+              p.find((t) => t.code === C)?.name ?? C,
               "."
             ] })
           ] }),
-          /* @__PURE__ */ c(p, { className: "cm:grid cm:gap-4", children: [
+          /* @__PURE__ */ c(g, { className: "cm:grid cm:gap-4", children: [
             /* @__PURE__ */ c(fe, { value: S, onValueChange: $e, children: [
-              h.length > 1 && /* @__PURE__ */ e(be, { children: h.map((t) => /* @__PURE__ */ c(xe, { value: t.code, children: [
+              p.length > 1 && /* @__PURE__ */ e(be, { children: p.map((t) => /* @__PURE__ */ c(xe, { value: t.code, children: [
                 t.name,
                 t.code === C ? " (main)" : ""
               ] }, t.code)) }),
-              h.map((t) => /* @__PURE__ */ e(ye, { value: t.code, className: "cm:grid cm:gap-4 cm:pt-2", children: t.code === S && /* @__PURE__ */ c(U, { children: [
+              p.map((t) => /* @__PURE__ */ e(ye, { value: t.code, className: "cm:grid cm:gap-4 cm:pt-2", children: t.code === S && /* @__PURE__ */ c(U, { children: [
                 B("subject", "Subject", "Hi {first_name|there}, something new for you"),
                 B("preheader", "Preview text", "Shown after the subject in the inbox", "Optional. Most inboxes show it next to the subject."),
                 /* @__PURE__ */ e("div", { className: "cm:grid cm:gap-1.5", children: /* @__PURE__ */ e(
@@ -354,7 +352,7 @@ function tt({ campaign: n, locales: h, mainLocale: C, rules: g, tags: _, trigger
               "."
             ] })
           ] }),
-          /* @__PURE__ */ e(p, { children: /* @__PURE__ */ e("ul", { className: "cm:grid cm:gap-1", children: Object.entries(_).map(([t, r]) => /* @__PURE__ */ e("li", { children: /* @__PURE__ */ c(
+          /* @__PURE__ */ e(g, { children: /* @__PURE__ */ e("ul", { className: "cm:grid cm:gap-1", children: Object.entries(_).map(([t, r]) => /* @__PURE__ */ e("li", { children: /* @__PURE__ */ c(
             "button",
             {
               type: "button",
@@ -377,7 +375,7 @@ function tt({ campaign: n, locales: h, mainLocale: C, rules: g, tags: _, trigger
               ", in the language you are editing."
             ] })
           ] }),
-          /* @__PURE__ */ c(p, { className: "cm:grid cm:gap-3", children: [
+          /* @__PURE__ */ c(g, { className: "cm:grid cm:gap-3", children: [
             /* @__PURE__ */ e(s, { type: "button", variant: "outline", onClick: Ee, disabled: le, children: le ? "Rendering…" : b ? "Refresh preview" : "Show preview" }),
             b && /* @__PURE__ */ c(U, { children: [
               /* @__PURE__ */ c("p", { className: "cm:text-sm", children: [
@@ -443,34 +441,34 @@ function tt({ campaign: n, locales: h, mainLocale: C, rules: g, tags: _, trigger
     ] }) })
   ] });
 }
-function Xe({ def: n, value: h, currency: C, path: g, onChange: _ }) {
+function Xe({ def: n, value: p, currency: C, path: h, onChange: _ }) {
   const { Input: D, Select: R, SelectContent: H, SelectItem: J, SelectTrigger: W, SelectValue: x } = pe;
   if (!n || n.input === "none") return /* @__PURE__ */ e("span", { className: "cm:self-center cm:text-sm cm:text-muted-foreground", children: "—" });
   if (n.input === "select")
-    return /* @__PURE__ */ c(R, { value: String(h ?? ""), onValueChange: _, children: [
+    return /* @__PURE__ */ c(R, { value: String(p ?? ""), onValueChange: _, children: [
       /* @__PURE__ */ e(W, { "aria-label": n.label, children: /* @__PURE__ */ e(x, { placeholder: "Choose" }) }),
       /* @__PURE__ */ e(H, { children: (n.options ?? []).map((i) => /* @__PURE__ */ e(J, { value: i.value, children: i.label }, i.value)) })
     ] });
   if (n.input === "products" || n.input === "categories") {
-    const i = { handle: g, type: "commerce_targets", config: { api: o("commerce/api/targets"), types: n.input === "products" ? ["product"] : ["term"] } }, y = (Array.isArray(h) ? h : []).map((v) => ({ ...v, type: n.input === "products" ? "product" : "term" }));
-    return /* @__PURE__ */ e(qe, { field: i, value: y, id: g.replace(/\W+/g, "-"), onChange: (v) => _((v ?? []).map((s) => ({ id: s.id, label: s.label }))) });
+    const i = { handle: h, type: "commerce_targets", config: { api: o("commerce/api/targets"), types: n.input === "products" ? ["product"] : ["term"] } }, y = (Array.isArray(p) ? p : []).map((v) => ({ ...v, type: n.input === "products" ? "product" : "term" }));
+    return /* @__PURE__ */ e(qe, { field: i, value: y, id: h.replace(/\W+/g, "-"), onChange: (v) => _((v ?? []).map((s) => ({ id: s.id, label: s.label }))) });
   }
-  const p = n.input === "days" || n.input === "number" || n.input === "money";
+  const g = n.input === "days" || n.input === "number" || n.input === "money";
   return /* @__PURE__ */ c("div", { className: "cm:flex cm:items-center cm:gap-2", children: [
     n.input === "money" && /* @__PURE__ */ e("span", { className: "cm:text-sm cm:text-muted-foreground", children: C }),
     /* @__PURE__ */ e(
       D,
       {
         "aria-label": n.label,
-        type: p ? "number" : "text",
-        min: p ? 0 : void 0,
-        value: String(h ?? ""),
-        onChange: (i) => _(p && i.target.value !== "" ? Number(i.target.value) : i.target.value)
+        type: g ? "number" : "text",
+        min: g ? 0 : void 0,
+        value: String(p ?? ""),
+        onChange: (i) => _(g && i.target.value !== "" ? Number(i.target.value) : i.target.value)
       }
     ),
     n.input === "days" && /* @__PURE__ */ e("span", { className: "cm:text-sm cm:text-muted-foreground", children: "days" })
   ] });
 }
 export {
-  tt as default
+  ct as default
 };

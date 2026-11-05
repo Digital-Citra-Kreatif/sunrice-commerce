@@ -1,4 +1,4 @@
-import { i as b, c as r, m as x, j as a, d as k, b as s, F as C, S as y } from "./main-Bwk0AAzX.js";
+import { i as b, c as r, m as x, j as a, d as k, b as s, F as C, S as y } from "./main-BtYEwHjd.js";
 function w({ sections: d, emails: i }) {
   const { Card: m, CardContent: o, CardHeader: h, CardTitle: u, Switch: p, Button: c } = k, { Link: f, router: n } = b, g = [["To customers", i.filter((t) => t.audience === "customer")], ["To staff", i.filter((t) => t.audience === "staff")]];
   return /* @__PURE__ */ r(x, { sections: d, current: "emails", title: "Emails", description: "What the store sends, and to whom. Open an email to change its texts, recipients and attachments.", children: g.map(([t, l]) => l.length > 0 && /* @__PURE__ */ a(m, { children: [

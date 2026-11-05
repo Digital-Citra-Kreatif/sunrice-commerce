@@ -17,7 +17,13 @@ export default function ProductsIndex(props: DataTableProps & { createUrl: strin
     return (
         <div className="cm:grid cm:gap-6 cm:p-4 cm:md:p-6">
             <PageHeader title="Products" description="Products are entries: opening one goes to the editor."
-                actions={<Button asChild><Link href={adminUrl(props.createUrl)}>New product</Link></Button>} />
+                actions={(
+                    <div className="cm:flex cm:flex-wrap cm:gap-2">
+                        <Button asChild variant="outline"><a href={adminUrl('commerce/products/export')}>Export CSV</a></Button>
+                        <Button asChild variant="outline"><Link href={adminUrl('commerce/products/import')}>Import CSV</Link></Button>
+                        <Button asChild><Link href={adminUrl(props.createUrl)}>New product</Link></Button>
+                    </div>
+                )} />
             <DataTable
                 {...props}
                 searchPlaceholder="Search titles or SKUs…"

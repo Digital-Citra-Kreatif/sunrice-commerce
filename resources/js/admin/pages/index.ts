@@ -13,6 +13,7 @@ const pages: Record<string, () => Promise<unknown>> = {
     'Commerce/Orders/Editor': () => import('./Orders/Editor'),
     'Commerce/Orders/Show': () => import('./Orders/Show'),
     'Commerce/Products/Index': () => import('./Products/Index'),
+    'Commerce/Products/Import': () => import('./Products/Import'),
     'Commerce/Reports/Show': () => import('./Reports/Show'),
     'Commerce/Settings/Section': () => import('./Settings/Section'),
     'Commerce/Settings/Emails': () => import('./Settings/Emails'),
