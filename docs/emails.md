@@ -37,6 +37,7 @@ table) is on and the email is switched on.
 | `order_refunded` | Order refunded | `orders` | A refund is recorded |
 | `order_updated` | Order changed | `orders` | Staff edit an unpaid order and choose to tell the customer |
 | `customer_note` | Note to the customer | `orders` | Staff add a note "to the customer" on the order page |
+| `back_in_stock` | Back in stock | `stock_alerts` | A sold-out variant someone asked about can be ordered again |
 | `downloads_ready` | Downloads ready | `digital` | Digital access is granted: links or files |
 | `quote_received` | Quote request received | `orders` | A quote request is placed (Quotation mode) |
 | `quote_ready` | Quote ready | `orders` | Staff send the priced quote, with the accept link |

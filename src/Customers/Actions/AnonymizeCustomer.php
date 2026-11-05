@@ -60,6 +60,7 @@ class AnonymizeCustomer
                 ->when($user !== null, fn ($q) => $q->orWhere('user_id', $user->getAuthIdentifier()))
                 ->update([...$scrubbed, 'updated_at' => now()]);
             DB::table('commerce_payment_confirmations')->where('customer_id', $customer->id)->update(['sender_name' => 'Deleted customer', 'note' => null, 'ip_address' => null]);
+            DB::table('commerce_stock_alerts')->where(fn ($q) => $q->where('customer_id', $customer->id)->when($customer->email, fn ($q, $email) => $q->orWhere('email', mb_strtolower($email))))->delete();
             // Reviews stay (they're about the product), without who wrote them.
             $reviews = DB::table('commerce_reviews')->where(fn ($q) => $q->where('customer_id', $customer->id)->when($customer->email, fn ($q, $email) => $q->orWhereRaw('lower(email) = ?', [mb_strtolower($email)])))->update(['name' => 'Deleted customer', 'email' => null, 'ip_address' => null, 'customer_id' => null]);
             if ($reviews > 0) {

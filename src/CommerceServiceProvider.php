@@ -229,6 +229,10 @@ class CommerceServiceProvider extends PackageServiceProvider
 
             return $count + DB::table('commerce_payment_confirmations')->whereNotNull('ip_address')->where('created_at', '<', $before)->update(['ip_address' => null]);
         });
+        // Stock alerts: a month after they were sent, half a year when the product never came back.
+        $commerce->onPrune('stock alerts', fn (): int => StockAlerts\Models\StockAlert::query()
+            ->where(fn ($q) => $q->where('notified_at', '<', now()->subDays(30))->orWhere(fn ($q) => $q->whereNull('notified_at')->where('created_at', '<', now()->subDays(180))))
+            ->delete());
         $commerce->onPrune('payment proofs', function (): int {
             $count = 0;
             Payments\Models\PaymentConfirmation::query()->whereNotNull('proof_path')
@@ -251,6 +255,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         Event::listen(Orders\Events\OrderPaid::class, Documents\AssignInvoiceNumber::class);
         $this->publishes([__DIR__.'/../resources/views/documents' => resource_path('views/vendor/commerce/documents')], 'commerce-documents');
         Event::listen(Orders\Events\OrderCompleted::class, Digital\Listeners\GrantDownloads::class);
+        RateLimiter::for('commerce-stock-alerts', fn (Request $request) => Limit::perHour(20)->by($request->ip()));
         RateLimiter::for('commerce-reviews', fn (Request $request) => Limit::perHour(5)->by($request->ip()));
         RateLimiter::for('commerce-downloads', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
         RateLimiter::for('commerce-webhooks', fn (Request $request) => Limit::perMinute(300)->by($request->ip()));
@@ -329,6 +334,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         RateLimiter::for('commerce-voucher', fn (Request $request) => Limit::perMinute(10)
             ->by((string) $request->cookie((string) config('commerce.cart.cookie', 'commerce_cart')).'|'.$request->ip()));
         $commerce->onTick('flash sales', fn () => (new Promotions\FlashSales\FlashSaleBoundaries)());
+        $commerce->onTick('stock alerts', fn (): int => commerce_feature('stock_alerts') ? $this->app->make(StockAlerts\Actions\SendStockAlerts::class)->handle() : 0);
     }
 
     /** Product projection on publish. */

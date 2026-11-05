@@ -56,6 +56,7 @@
     @endif
 
     @include(\Sunrice\Commerce\Storefront\Layout::view('partials.stock'))
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.stock-alert'))
     @if (! $product->isVariable() && $default?->sku)
         <p class="commerce-sku">{{ __('commerce::storefront.product.sku') }}: <span data-commerce-sku>{{ $default->sku }}</span></p>
     @endif

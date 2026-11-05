@@ -76,6 +76,12 @@ return [
         'intro' => '',
         'action' => 'Lihat pesanan',
     ],
+    'back_in_stock' => [
+        'subject' => 'Tersedia lagi: :product',
+        'heading' => ':product tersedia lagi',
+        'intro' => 'Anda meminta kami mengabari saat produk ini bisa dipesan lagi. Sekarang sudah bisa, selama stok masih ada.',
+        'action' => 'Pesan sekarang',
+    ],
     'downloads_ready' => [
         'subject' => 'Unduhan pesanan :number',
         'heading' => 'Unduhan Anda sudah siap',

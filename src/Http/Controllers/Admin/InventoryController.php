@@ -19,6 +19,7 @@ use Sunrice\Commerce\Catalog\Models\StockMovement;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Inventory\Actions\AdjustStock;
 use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Commerce\StockAlerts\Models\StockAlert;
 use Sunrice\Commerce\Support\Staff;
 
 /** Shop → Inventory: stock of every variant, adjustments and their history. */
@@ -46,12 +47,17 @@ class InventoryController extends Controller
                 'untracked' => $q->where('commerce_variants.track_stock', false),
                 default => $q,
             })
+            ->filter('waiting', fn (Builder $q) => $q->whereExists(fn ($e) => $e->from('commerce_stock_alerts')->whereColumn('commerce_stock_alerts.variant_id', 'commerce_variants.id')->whereNull('notified_at')))
             ->sortable(['stock_quantity', 'sku', 'product_title'])
             ->apply($request);
         if ($table->meta()['sort'] === null) {
             $table->builder()->orderBy('t.title')->orderBy('commerce_variants.position');
         }
         $rows = $table->defaultPerPage(50)->paginate($request);
+        // Customers waiting for each variant on the page (back-in-stock alerts): one query.
+        $alerts = commerce_feature('stock_alerts');
+        $waiting = $alerts ? StockAlert::query()->whereNull('notified_at')->whereIn('variant_id', $rows->getCollection()->modelKeys())
+            ->groupBy('variant_id')->selectRaw('variant_id, count(*) as total')->pluck('total', 'variant_id') : collect();
 
         return Inertia::render('Commerce/Inventory/Index', [
             ...$this->tableProps('commerce-inventory', $table, [
@@ -59,6 +65,7 @@ class InventoryController extends Controller
                 new Column('sku', 'SKU', sortable: true),
                 new Column('stock_quantity', 'Stock', sortable: true, type: 'number'),
                 new Column('status', 'Status', type: 'badge'),
+                ...($alerts ? [new Column('waiting', 'Waiting', type: 'number')] : []),
             ], $rows->through(fn (Model $v) => $v instanceof Variant ? [
                 'id' => $v->id,
                 'product_title' => trim($v->getAttribute('product_title').($v->title !== '' ? ' — '.$v->title : '')),
@@ -69,11 +76,12 @@ class InventoryController extends Controller
                 'backorders' => $v->backorders,
                 'status' => $v->computedStockStatus(),
                 'low' => $v->track_stock && (int) $v->stock_quantity > 0 && (int) $v->stock_quantity <= ($v->low_stock_threshold ?? $threshold),
+                'waiting' => (int) ($waiting[$v->id] ?? 0),
             ] : throw new \LogicException('Expected a variant.')), [[
                 'key' => 'stock', 'label' => 'Stock', 'type' => 'select', 'options' => [
                     ['value' => 'low', 'label' => 'Low stock'], ['value' => 'out', 'label' => 'Out of stock'], ['value' => 'untracked', 'label' => 'Not tracked'],
                 ],
-            ]]),
+            ], ...($alerts ? [['key' => 'waiting', 'label' => 'Alerts', 'type' => 'select', 'options' => [['value' => 'yes', 'label' => 'Customers waiting']]]] : [])]),
             'can' => ['adjust' => $request->user()->can('commerce.inventory.adjust')],
             'reasons' => AdjustStock::REASONS,
         ]);

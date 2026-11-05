@@ -306,6 +306,15 @@ threshold dispatches `StockLow`, reaching zero `StockOut`, and going back above 
 | Low stock at | `catalog.low_stock_threshold` | `5` |
 | Hide out-of-stock products from listings | `catalog.hide_out_of_stock` | off |
 
+**Back-in-stock alerts** (`stock_alerts` module, needs Stock tracking): under the stock line of a
+sold-out product, a form asks for an email (none for signed-in customers) and, for a variable
+product, which of the sold-out variants (`partials.stock-alert`). Within a minute of the variant
+becoming available again (in stock or on backorder, by any route: a stock adjustment, an order
+cancelled, the product editor), `commerce:tick` sends the "Back in stock" email
+([emails.md](emails.md)) once to everyone waiting, 200 a minute. Shop → Inventory shows how many
+wait for each variant (the **Waiting** column and the **Alerts** filter). `commerce:prune` deletes
+alerts 30 days after they were sent, and unsent ones after 180 days.
+
 With Stock tracking off, quantities are ignored and kept: only `stock_status` counts and orders
 don't take stock. To use stock from another system, bind your own `Contracts\Inventory` (see
 [extending.md](extending.md#swappable-services)).

@@ -749,3 +749,7 @@ section.commerce-flash-sale { padding: 24px 0 0; border-top: 4px solid var(--com
 .commerce-reviews__form { display: grid; gap: 12px; }
 .commerce-reviews__stars { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 12px; }
 .commerce-reviews__stars legend { margin-bottom: 4px; font-weight: 600; }
+
+/* Back-in-stock alerts (partials.stock-alert) */
+.commerce-stock-alert { margin: 12px 0; padding: 12px; display: grid; gap: 8px; background: var(--commerce-surface, #f4f4f4); }
+.commerce-stock-alert__title { margin: 0; font-weight: 600; font-size: 14px; }
