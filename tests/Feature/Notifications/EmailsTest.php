@@ -302,3 +302,12 @@ it('lets developers replace an email body, the frame, account emails and documen
     Commerce::documentTemplate('invoice', 'custom.invoice');
     expect(app(Documents::class)->html(collect([$order]), 'invoice'))->toContain('Custom invoice');
 });
+
+it('links staff emails to the order in the admin', function () {
+    $order = placeOrderFor($this->mug);
+    $mail = (new StoreEmail('staff_new_order', $order))->data();
+
+    expect($mail['action']['url'] ?? null)->toBe(url("/admin/commerce/orders/{$order->id}"))
+        ->and((new StoreEmail('staff_payment_confirmation', $order))->data()['action']['url'] ?? null)->toBe(url("/admin/commerce/orders/{$order->id}"))
+        ->and((new StoreEmail('staff_payment_confirmation'))->data()['action']['url'] ?? null)->toBe(url('/admin/commerce/confirmations'));
+});
