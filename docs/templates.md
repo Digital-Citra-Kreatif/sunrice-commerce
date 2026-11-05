@@ -41,7 +41,7 @@ Sunrice would fall back to a generic template (`sunrice.show`, `sunrice.index`,
 
 Anything more specific wins and is kept: an entry's or term's own template, the collection's or
 taxonomy's template setting, or a template in your app such as
-`resources/views/sunrice/products/show.blade.php`. Sunrice passes these templates its usual
+`resources/views/cms/collections/products/show.blade.php`. The CMS passes these templates its usual
 variables: `$entry` and `$collection` on product pages, `$entries` and `$collection` on the shop,
 `$term`, `$taxonomy`, `$collection` and `$entries` on term pages, plus `$locale`, `$pageType` and
 `$sunricePage`.
@@ -142,11 +142,11 @@ php artisan vendor:publish --tag=commerce-templates
 
 | From | To |
 | --- | --- |
-| `storefront/product.blade.php` | `resources/views/sunrice/{collection}/show.blade.php` |
-| `storefront/shop.blade.php` | `resources/views/sunrice/{collection}/index.blade.php` |
-| `storefront/category.blade.php` | `resources/views/sunrice/taxonomies/{category taxonomy}/show.blade.php` |
-| `storefront/brand.blade.php` | `resources/views/sunrice/taxonomies/{brand taxonomy}/show.blade.php` |
-| `storefront/tag.blade.php` | `resources/views/sunrice/taxonomies/{tag taxonomy}/show.blade.php` |
+| `storefront/product.blade.php` | `resources/views/cms/collections/{collection}/show.blade.php` |
+| `storefront/shop.blade.php` | `resources/views/cms/collections/{collection}/index.blade.php` |
+| `storefront/category.blade.php` | `resources/views/cms/taxonomies/{category taxonomy}/show.blade.php` |
+| `storefront/brand.blade.php` | `resources/views/cms/taxonomies/{brand taxonomy}/show.blade.php` |
+| `storefront/tag.blade.php` | `resources/views/cms/taxonomies/{tag taxonomy}/show.blade.php` |
 | every other `storefront/**/*.blade.php` | `resources/views/commerce/…` (same relative path) |
 | `stubs/theme/` | `public/commerce-theme/` (`commerce.css`, `commerce.js`) |
 

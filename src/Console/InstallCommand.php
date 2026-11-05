@@ -20,7 +20,7 @@ use Sunrice\Commerce\Support\UserModelTraits;
 class InstallCommand extends Command
 {
     protected $signature = 'commerce:install
-        {--templates : Publish the storefront templates (resources/views/sunrice and resources/views/commerce) and theme (public/commerce-theme)}
+        {--templates : Publish the storefront templates (resources/views/cms and resources/views/commerce) and theme (public/commerce-theme)}
         {--starter : Publish the starter theme: the storefront templates plus the site layout, header, footer, home, content, search and 404 pages}
         {--demo : Add a demo store (products, payments, shipping, a voucher, a flash sale and an order); with --starter, the apparel store the starter theme shows}
         {--no-regions : Skip importing Indonesian regions}

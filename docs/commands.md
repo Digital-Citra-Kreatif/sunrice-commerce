@@ -28,7 +28,7 @@ imports regions and prints the next steps. Safe to run again.
 
 | Option | |
 | --- | --- |
-| `--templates` | Also publish the storefront templates (to `resources/views/sunrice` and `resources/views/commerce`) and the theme (to `public/commerce-theme`) |
+| `--templates` | Also publish the storefront templates (to `resources/views/cms` and `resources/views/commerce`) and the theme (to `public/commerce-theme`) |
 | `--starter` | Publish the starter theme instead: the templates plus the site layout, header, footer, home, content, search and 404 pages ([templates.md](templates.md#the-starter-theme)) |
 | `--demo` | Add the demo store (once); with `--starter`, the starter clothing store with a demo customer ([installation.md](installation.md#the-starter-store)) |
 | `--no-regions` | Don't import regions (it asks otherwise; non-interactive runs import) |
