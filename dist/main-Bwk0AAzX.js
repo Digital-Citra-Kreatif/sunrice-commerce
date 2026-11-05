@@ -1,7 +1,7 @@
-const Q = { symbol: "Rp", position: "left", space: !1, thousands: ".", decimal: ",", decimals: 0 };
-let H = Q;
+const K = { symbol: "Rp", position: "left", space: !1, thousands: ".", decimal: ",", decimals: 0 };
+let H = K;
 function ue(e) {
-  H = { ...Q, ...e ?? {} };
+  H = { ...K, ...e ?? {} };
 }
 function X(e, t = H) {
   const n = e < 0, r = Math.abs(Math.round(e)), a = 10 ** t.decimals, d = Math.floor(r / a).toString().replace(/\B(?=(\d{3})+(?!\d))/g, t.thousands), l = t.decimals > 0 ? t.decimal + String(r % a).padStart(t.decimals, "0") : "", g = d + l, f = t.space ? " " : "", p = t.position === "left" ? `${t.symbol}${f}${g}` : `${g}${f}${t.symbol}`;
@@ -61,7 +61,7 @@ function pe() {
 const i = globalThis.Sunrice?.modules?.react;
 if (!i)
   throw new Error("[commerce] This script needs the Sunrice admin panel (window.Sunrice.modules is missing).");
-const ge = i.Activity, he = i.Children, be = i.Component, fe = i.Fragment, ye = i.Profiler, ve = i.PureComponent, Se = i.StrictMode, xe = i.Suspense, Ce = i.ViewTransition, we = i.act, Te = i.addTransitionType, Ne = i.cache, ke = i.cacheSignal, $e = i.captureOwnerStack, Ee = i.cloneElement, Pe = i.createContext, De = i.createElement, _e = i.createRef, Ie = i.forwardRef, Le = i.isValidElement, Fe = i.lazy, Me = i.memo, Re = i.startTransition, Ae = i.unstable_useCacheRefresh, je = i.use, Oe = i.useActionState, He = i.useCallback, Ve = i.useContext, Be = i.useDebugValue, ze = i.useDeferredValue, Ue = i.useEffect, We = i.useEffectEvent, qe = i.useId, Ke = i.useImperativeHandle, Qe = i.useInsertionEffect, Xe = i.useLayoutEffect, Ge = i.useMemo, Je = i.useOptimistic, Ye = i.useReducer, Ze = i.useRef, et = i.useState, tt = i.useSyncExternalStore, nt = i.useTransition, ct = i.version, rt = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const ge = i.Activity, he = i.Children, be = i.Component, fe = i.Fragment, ye = i.Profiler, ve = i.PureComponent, Se = i.StrictMode, xe = i.Suspense, Ce = i.ViewTransition, we = i.act, Te = i.addTransitionType, Ne = i.cache, ke = i.cacheSignal, $e = i.captureOwnerStack, Ee = i.cloneElement, Pe = i.createContext, De = i.createElement, _e = i.createRef, Ie = i.forwardRef, Le = i.isValidElement, Fe = i.lazy, Me = i.memo, Re = i.startTransition, Ae = i.unstable_useCacheRefresh, je = i.use, Oe = i.useActionState, He = i.useCallback, Ve = i.useContext, Be = i.useDebugValue, ze = i.useDeferredValue, Ue = i.useEffect, We = i.useEffectEvent, qe = i.useId, Qe = i.useImperativeHandle, Ke = i.useInsertionEffect, Xe = i.useLayoutEffect, Ge = i.useMemo, Je = i.useOptimistic, Ye = i.useReducer, Ze = i.useRef, et = i.useState, tt = i.useSyncExternalStore, nt = i.useTransition, ct = i.version, rt = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   Activity: ge,
   Children: he,
@@ -97,8 +97,8 @@ const ge = i.Activity, he = i.Children, be = i.Component, fe = i.Fragment, ye = 
   useEffect: Ue,
   useEffectEvent: We,
   useId: qe,
-  useImperativeHandle: Ke,
-  useInsertionEffect: Qe,
+  useImperativeHandle: Qe,
+  useInsertionEffect: Ke,
   useLayoutEffect: Xe,
   useMemo: Ge,
   useOptimistic: Je,
@@ -191,7 +191,7 @@ c.TrashHint;
 c.TrashTitle;
 const J = c.useBreadcrumbs;
 c.useEditLock;
-c.useTablePreferences;
+const Qt = c.useTablePreferences;
 c.useUnsavedChanges;
 c.ViewingNotice;
 const Y = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
@@ -233,14 +233,15 @@ const Y = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   TabsTrigger: Ut,
   Textarea: Wt,
   toast: qt,
-  useBreadcrumbs: J
+  useBreadcrumbs: J,
+  useTablePreferences: Qt
 }, Symbol.toStringTag, { value: "Module" })), B = 3, Z = () => window.Sunrice, x = rt, _ = Y, I = {
   router: ot,
   Link: at,
   Head: st,
   usePage: lt,
   useForm: it
-}, Sn = _.toast, Kt = J;
+}, xn = _.toast, Kt = J;
 function j(e = "") {
   return e.startsWith("/") ? e : Z().adminUrl(e);
 }
@@ -254,39 +255,39 @@ async function ee(e, t = {}) {
     throw new Error(`${r.status} ${r.statusText}`);
   return await r.json();
 }
-function Qt(e) {
+function Xt(e) {
   const t = Z();
   if (t.version !== B)
     throw new Error(`[commerce] This bundle was built for admin runtime ${B}, but the panel runs ${t.version}. Update sunrice/commerce.`);
   for (const [n, r] of Object.entries(e))
     t.registerPageLoader(n, r);
 }
-const Xt = {
-  "Commerce/Confirmations/Index": () => import("./Index-C1qMIupz.js"),
-  "Commerce/Customers/Show": () => import("./Show-CqJRH9px.js"),
-  "Commerce/Dashboard": () => import("./Dashboard-BzIS1xXQ.js"),
-  "Commerce/Inventory/Index": () => import("./Index-C1ALMWkS.js"),
-  "Commerce/Marketing/Editor": () => import("./Editor-l3jBgWwM.js"),
-  "Commerce/Marketing/Report": () => import("./Report-BR9oF6vV.js"),
-  "Commerce/Orders/Editor": () => import("./Editor-Bmqm5WSr.js"),
-  "Commerce/Orders/Show": () => import("./Show-Cb1d4QG5.js"),
-  "Commerce/Products/Index": () => import("./Index-DnPmHvbc.js"),
-  "Commerce/Reports/Show": () => import("./Show-2XeyuhO0.js"),
-  "Commerce/Settings/Section": () => import("./Section-CsWmq0o9.js"),
-  "Commerce/Settings/Emails": () => import("./Emails-BXM8olUg.js"),
-  "Commerce/Settings/Features": () => import("./Features-Bo1ZSyii.js"),
-  "Commerce/Settings/Payments": () => import("./Payments-XdmpH7NI.js"),
-  "Commerce/Settings/Shipping": () => import("./Shipping-BI5RugaP.js"),
-  "Commerce/Shared/SchemaForm": () => import("./SchemaForm-Bke6XlVa.js"),
-  "Commerce/Shared/ResourceIndex": () => import("./ResourceIndex-Cfbe_Wkw.js")
+const Gt = {
+  "Commerce/Confirmations/Index": () => import("./Index-Bipf2rT2.js"),
+  "Commerce/Customers/Show": () => import("./Show-DEBKYwpB.js"),
+  "Commerce/Dashboard": () => import("./Dashboard-mo93OJyp.js"),
+  "Commerce/Inventory/Index": () => import("./Index-Dx7RlWtT.js"),
+  "Commerce/Marketing/Editor": () => import("./Editor-T7Jabugs.js"),
+  "Commerce/Marketing/Report": () => import("./Report-BuQpmofz.js"),
+  "Commerce/Orders/Editor": () => import("./Editor-C62u8XrC.js"),
+  "Commerce/Orders/Show": () => import("./Show-D298NVJ-.js"),
+  "Commerce/Products/Index": () => import("./Index-CU2ApIc9.js"),
+  "Commerce/Reports/Show": () => import("./Show-By6IIqGp.js"),
+  "Commerce/Settings/Section": () => import("./Section-t0YMvwaY.js"),
+  "Commerce/Settings/Emails": () => import("./Emails-CYhJnMow.js"),
+  "Commerce/Settings/Features": () => import("./Features-R5uUqKQJ.js"),
+  "Commerce/Settings/Payments": () => import("./Payments-MK7ikErw.js"),
+  "Commerce/Settings/Shipping": () => import("./Shipping-CkXL_SKG.js"),
+  "Commerce/Shared/SchemaForm": () => import("./SchemaForm-BV2lCtux.js"),
+  "Commerce/Shared/ResourceIndex": () => import("./ResourceIndex-DBDWXMzl.js")
 };
-function Gt() {
-  Qt(Xt);
+function Jt() {
+  Xt(Gt);
 }
 const F = globalThis.Sunrice?.modules?.["react/jsx-runtime"];
 if (!F)
   throw new Error("[commerce] This script needs the Sunrice admin panel (window.Sunrice.modules is missing).");
-const xn = F.Fragment, s = F.jsx, u = F.jsxs;
+const Cn = F.Fragment, s = F.jsx, u = F.jsxs;
 F.jsx;
 function z(e) {
   if (!e) return "";
@@ -379,18 +380,18 @@ const W = [
   { key: "city_code", label: "City / regency" },
   { key: "district_code", label: "District" },
   { key: "village_code", label: "Village" }
-], Jt = { province: 1, city: 2, district: 3, village: 4 }, R = /* @__PURE__ */ new Map();
-function Yt(e, t) {
+], Yt = { province: 1, city: 2, district: 3, village: 4 }, R = /* @__PURE__ */ new Map();
+function Zt(e, t) {
   const n = t ? `${e}?parent=${encodeURIComponent(t)}` : e;
   return R.has(n) || R.set(n, ee(n).then((r) => r.data).catch(() => (R.delete(n), []))), R.get(n);
 }
 const q = "cm:h-9 cm:w-full cm:rounded-md cm:border cm:border-border cm:bg-background cm:px-3 cm:text-sm cm:disabled:opacity-50";
 function se({ field: e, value: t, onChange: n, id: r }) {
-  const { Label: a } = _, d = e.config ?? {}, l = String(d.api ?? ""), g = Jt[d.depth ?? "district"] ?? 3, f = d.country_options ?? [], p = { country: "ID", province_code: null, city_code: null, district_code: null, village_code: null, ...t ?? {} }, C = W.slice(0, g), [T, v] = x.useState({}), k = [null, p.province_code, p.city_code, p.district_code];
+  const { Label: a } = _, d = e.config ?? {}, l = String(d.api ?? ""), g = Yt[d.depth ?? "district"] ?? 3, f = d.country_options ?? [], p = { country: "ID", province_code: null, city_code: null, district_code: null, village_code: null, ...t ?? {} }, C = W.slice(0, g), [T, v] = x.useState({}), k = [null, p.province_code, p.city_code, p.district_code];
   x.useEffect(() => {
     p.country !== "ID" || !l || C.forEach((h, o) => {
       const b = k[o];
-      o > 0 && !b || Yt(l, b).then((m) => v((E) => ({ ...E, [h.key]: m })));
+      o > 0 && !b || Zt(l, b).then((m) => v((E) => ({ ...E, [h.key]: m })));
     });
   }, [l, p.country, p.province_code, p.city_code, p.district_code]);
   const L = (h, o) => {
@@ -483,22 +484,22 @@ function ae({ field: e, value: t, onChange: n, id: r }) {
     ] })
   ] });
 }
-const Zt = x.lazy(() => import("./ProductEditor-BZmy401f.js")), en = (e) => x.createElement(x.Suspense, { fallback: null }, x.createElement(Zt, e)), tn = {
+const en = x.lazy(() => import("./ProductEditor-Dr5vDaUW.js")), tn = (e) => x.createElement(x.Suspense, { fallback: null }, x.createElement(en, e)), nn = {
   commerce_money: re,
   commerce_datetime_range: te,
   commerce_region: se,
   commerce_targets: ae,
-  commerce_product: en
+  commerce_product: tn
 };
-function nn() {
-  (window.SunriceCmsQueue ??= []).push((e) => Object.entries(tn).forEach(([t, n]) => e.registerFieldInput(t, n)));
+function cn() {
+  (window.SunriceCmsQueue ??= []).push((e) => Object.entries(nn).forEach(([t, n]) => e.registerFieldInput(t, n)));
 }
-const cn = x.lazy(() => import("./ChartImpl-CvHXrpNT.js"));
-function rn(e) {
+const rn = x.lazy(() => import("./ChartImpl-ByFdU6If.js"));
+function sn(e) {
   const t = /* @__PURE__ */ s("div", { className: "cm:animate-pulse cm:rounded-md cm:bg-muted", style: { height: e.height ?? 260 } });
-  return /* @__PURE__ */ s(x.Suspense, { fallback: t, children: /* @__PURE__ */ s(cn, { ...e }) });
+  return /* @__PURE__ */ s(x.Suspense, { fallback: t, children: /* @__PURE__ */ s(rn, { ...e }) });
 }
-function sn({ title: e, description: t, action: n }) {
+function an({ title: e, description: t, action: n }) {
   return /* @__PURE__ */ u("div", { className: "cm:flex cm:flex-col cm:items-center cm:gap-2 cm:rounded-lg cm:border cm:border-dashed cm:px-6 cm:py-10 cm:text-center", children: [
     /* @__PURE__ */ s("p", { className: "cm:font-medium", children: e }),
     t && /* @__PURE__ */ s("p", { className: "cm:max-w-md cm:text-sm cm:text-muted-foreground", children: t }),
@@ -514,14 +515,14 @@ function oe(e) {
   } else for (n in e) e[n] && (r && (r += " "), r += n);
   return r;
 }
-function an() {
+function on() {
   for (var e, t, n = 0, r = "", a = arguments.length; n < a; n++) (e = arguments[n]) && (t = oe(e)) && (r && (r += " "), r += t);
   return r;
 }
 function V(...e) {
-  return an(e);
+  return on(e);
 }
-function on({ kpi: e }) {
+function ln({ kpi: e }) {
   const { Card: t, CardContent: n } = _, { Link: r } = I, a = e.change ?? null, d = /* @__PURE__ */ u(n, { className: "cm:grid cm:gap-1 cm:pt-6", children: [
     /* @__PURE__ */ s("span", { className: "cm:text-sm cm:text-muted-foreground", children: e.label }),
     /* @__PURE__ */ s("span", { className: "cm:text-2xl cm:font-semibold cm:tabular-nums", children: e.value }),
@@ -557,32 +558,32 @@ function ie({ title: e, description: t, actions: n }) {
     n && /* @__PURE__ */ s("div", { className: "cm:flex cm:flex-wrap cm:items-center cm:gap-2", children: n })
   ] });
 }
-function ln(e) {
+function mn(e) {
   const t = e.config?.options;
   return Array.isArray(t) ? t.map((n) => typeof n == "object" && n !== null ? { value: String(n.value), label: String(n.label ?? n.value) } : { value: String(n), label: String(n) }) : [];
 }
-function mn(e, t) {
+function dn(e, t) {
   const n = {};
   for (const [r, a] of Object.entries(e))
     r === t ? n[""] = a : r.startsWith(`${t}.`) && (n[r.slice(t.length + 1)] = a);
   return n;
 }
-function dn(e) {
+function un(e) {
   if (e.trim() === "") return null;
   const t = Number(e);
   return Number.isFinite(t) ? t : null;
 }
-const le = Y, un = {
+const le = Y, pn = {
   // eslint-disable-line @typescript-eslint/no-explicit-any
   commerce_money: re,
   commerce_datetime_range: te,
   commerce_region: se,
   commerce_targets: ae
-}, pn = "cm:h-9 cm:w-full cm:rounded-md cm:border cm:border-input cm:bg-background cm:px-3 cm:text-sm";
+}, gn = "cm:h-9 cm:w-full cm:rounded-md cm:border cm:border-input cm:bg-background cm:px-3 cm:text-sm";
 function O({ fields: e, values: t, onChange: n, errors: r = {}, pathPrefix: a = "values" }) {
   const d = e, l = r;
   return /* @__PURE__ */ s("div", { className: "cm:grid cm:gap-5", children: d.map((g) => /* @__PURE__ */ s(
-    gn,
+    hn,
     {
       field: g,
       value: t?.[g.handle],
@@ -593,22 +594,22 @@ function O({ fields: e, values: t, onChange: n, errors: r = {}, pathPrefix: a = 
     g.handle
   )) });
 }
-function gn({ field: e, value: t, onChange: n, path: r, errors: a }) {
+function hn({ field: e, value: t, onChange: n, path: r, errors: a }) {
   const { Label: d } = le, l = r.replace(/[^A-Za-z0-9_-]+/g, "-"), g = a[r], f = e.instructions ? `${l}-help` : void 0, p = [f, g ? `${l}-error` : void 0].filter(Boolean).join(" ") || void 0, C = e.label ?? e.handle, T = e.type === "toggle";
   return /* @__PURE__ */ u("div", { className: "cm:grid cm:gap-1.5", "data-field": e.handle, children: [
     !T && /* @__PURE__ */ u(d, { htmlFor: e.type === "group" || e.type === "repeater" ? void 0 : l, id: `${l}-label`, children: [
       C,
       e.required && /* @__PURE__ */ s("span", { className: "cm:text-destructive", children: " *" })
     ] }),
-    /* @__PURE__ */ s(hn, { field: e, value: t, onChange: n, id: l, path: r, errors: a, describedBy: p, label: C }),
+    /* @__PURE__ */ s(bn, { field: e, value: t, onChange: n, id: l, path: r, errors: a, describedBy: p, label: C }),
     f && /* @__PURE__ */ s("p", { id: f, className: "cm:text-sm cm:text-muted-foreground", children: e.instructions }),
     g && /* @__PURE__ */ s("p", { id: `${l}-error`, className: "cm:text-sm cm:text-destructive", children: g })
   ] });
 }
-function hn({ field: e, value: t, onChange: n, id: r, path: a, errors: d, describedBy: l, label: g }) {
-  const { Input: f, Textarea: p, Switch: C, Label: T, Button: v, MediaPickerInput: k, RichTextEditor: L } = le, h = d[a] !== void 0, o = e.config ?? {}, b = un[e.type];
+function bn({ field: e, value: t, onChange: n, id: r, path: a, errors: d, describedBy: l, label: g }) {
+  const { Input: f, Textarea: p, Switch: C, Label: T, Button: v, MediaPickerInput: k, RichTextEditor: L } = le, h = d[a] !== void 0, o = e.config ?? {}, b = pn[e.type];
   if (b)
-    return /* @__PURE__ */ s(b, { field: e, value: t, onChange: n, errors: mn(d, a), id: r, describedBy: l });
+    return /* @__PURE__ */ s(b, { field: e, value: t, onChange: n, errors: dn(d, a), id: r, describedBy: l });
   switch (e.type) {
     case "textarea":
       return /* @__PURE__ */ s(
@@ -635,7 +636,7 @@ function hn({ field: e, value: t, onChange: n, id: r, path: a, errors: d, descri
           min: o.min,
           max: o.max,
           step: o.step ?? "any",
-          onChange: (m) => n(dn(m.target.value))
+          onChange: (m) => n(un(m.target.value))
         }
       );
     case "date":
@@ -658,7 +659,7 @@ function hn({ field: e, value: t, onChange: n, id: r, path: a, errors: d, descri
     case "select":
     case "entries":
     case "terms": {
-      const m = ln(e), E = e.type !== "select";
+      const m = mn(e), E = e.type !== "select";
       if (o.multiple === !0) {
         const S = (Array.isArray(t) ? t : []).map(String), N = (w, $) => {
           const M = $ ? [...S, w] : S.filter((de) => de !== w);
@@ -674,7 +675,7 @@ function hn({ field: e, value: t, onChange: n, id: r, path: a, errors: d, descri
         "select",
         {
           id: r,
-          className: pn,
+          className: gn,
           value: P == null ? "" : String(P),
           "aria-invalid": h,
           "aria-describedby": l,
@@ -753,7 +754,7 @@ function hn({ field: e, value: t, onChange: n, id: r, path: a, errors: d, descri
       );
   }
 }
-function bn({ form: e, footer: t }) {
+function fn({ form: e, footer: t }) {
   const { Button: n } = _, { data: r, setData: a, errors: d, processing: l, isDirty: g, ...f } = I.useForm({ values: e.values });
   return /* @__PURE__ */ u(
     "form",
@@ -799,7 +800,7 @@ function me({ items: e, current: t, label: n = "Sections" }) {
     a.key
   )) });
 }
-function fn({ sections: e, current: t, title: n, description: r, children: a }) {
+function yn({ sections: e, current: t, title: n, description: r, children: a }) {
   const { SettingsLayout: d } = _;
   ce();
   const l = I.usePage().props.commerce?.settingsNav ?? [];
@@ -811,7 +812,7 @@ function fn({ sections: e, current: t, title: n, description: r, children: a }) 
     ] })
   ] }) }) });
 }
-const K = {
+const Q = {
   ok: "cm:bg-emerald-500/10 cm:text-emerald-700 cm:dark:text-emerald-400",
   success: "cm:bg-emerald-500/10 cm:text-emerald-700 cm:dark:text-emerald-400",
   warning: "cm:bg-amber-500/10 cm:text-amber-700 cm:dark:text-amber-400",
@@ -819,35 +820,36 @@ const K = {
   info: "cm:bg-sky-500/10 cm:text-sky-700 cm:dark:text-sky-400",
   neutral: "cm:bg-muted cm:text-muted-foreground"
 };
-function yn({ tone: e = "neutral", children: t }) {
-  return /* @__PURE__ */ s("span", { className: V("cm:inline-flex cm:items-center cm:rounded-full cm:px-2 cm:py-0.5 cm:text-xs cm:font-medium", K[e] ?? K.neutral), children: t });
+function vn({ tone: e = "neutral", children: t }) {
+  return /* @__PURE__ */ s("span", { className: V("cm:inline-flex cm:items-center cm:rounded-full cm:px-2 cm:py-0.5 cm:text-xs cm:font-medium", Q[e] ?? Q.neutral), children: t });
 }
-function vn() {
-  Object.assign(A.components, { Chart: rn, EmptyState: sn, KpiCard: on, MoneyInput: ne, PageHeader: ie, SchemaFormView: bn, SectionNav: me, SettingsLayout: fn, StatusBadge: yn });
+function Sn() {
+  Object.assign(A.components, { Chart: sn, EmptyState: an, KpiCard: ln, MoneyInput: ne, PageHeader: ie, SchemaFormView: fn, SectionNav: me, SettingsLayout: yn, StatusBadge: vn });
 }
 pe();
-vn();
-nn();
-Gt();
+Sn();
+cn();
+Jt();
 export {
-  Ze as A,
-  He as B,
-  rn as C,
-  Ue as D,
-  sn as E,
-  xn as F,
-  Ke as G,
-  Xe as H,
-  Me as I,
-  fe as J,
-  on as K,
-  he as L,
+  Ge as A,
+  Ze as B,
+  sn as C,
+  He as D,
+  an as E,
+  Cn as F,
+  Ue as G,
+  Qe as H,
+  Xe as I,
+  Me as J,
+  ln as K,
+  fe as L,
   ne as M,
-  be as N,
-  ve as O,
+  he as N,
+  be as O,
   ie as P,
+  ve as Q,
   x as R,
-  yn as S,
+  vn as S,
   ae as T,
   Y as U,
   Kt as a,
@@ -862,18 +864,18 @@ export {
   u as j,
   se as k,
   V as l,
-  fn as m,
-  bn as n,
+  yn as m,
+  fn as n,
   et as o,
-  Le as p,
-  Ie as q,
-  an as r,
-  De as s,
-  Sn as t,
+  Qt as p,
+  Le as q,
+  Ie as r,
+  on as s,
+  xn as t,
   ce as u,
-  Ve as v,
-  Pe as w,
-  Ee as x,
-  rt as y,
-  Ge as z
+  De as v,
+  Ve as w,
+  Pe as x,
+  Ee as y,
+  rt as z
 };

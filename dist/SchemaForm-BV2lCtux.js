@@ -1,4 +1,4 @@
-import { u, a as l, b as s, j as d, c as a, P as h, n as f, d as p, i as x } from "./main-p2UnqZyH.js";
+import { u, a as l, b as s, j as d, c as a, P as h, n as f, d as p, i as x } from "./main-Bwk0AAzX.js";
 function g({ title: m, description: c, form: t, breadcrumbs: o = [], deleteUrl: r, deleteConfirm: i }) {
   const { Button: n } = p;
   return u(), l([...o.map((e) => ({ ...e, href: e.href ? s(e.href) : void 0 })), { label: m }]), /* @__PURE__ */ d("div", { className: "cm:mx-auto cm:grid cm:w-full cm:max-w-3xl cm:gap-6 cm:p-4 cm:md:p-6", children: [

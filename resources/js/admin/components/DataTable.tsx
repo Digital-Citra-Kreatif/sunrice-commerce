@@ -7,6 +7,8 @@ import * as Ui from '../shims/ui';
 
 type AnyComponent = React.ComponentType<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 const ui = Ui as unknown as Record<string, AnyComponent>;
+/** The panel's saved table choices (GET/PUT admin/preferences/{key}). */
+const useTablePreferences = (Ui as unknown as { useTablePreferences: (key: string, initial?: { columns?: string[] | null } | null) => { setColumns: (columns: string[] | null) => Promise<unknown> } }).useTablePreferences;
 
 export interface Column { key: string; label: string; sortable?: boolean; type?: string }
 export interface Filter { key: string; label: string; type: 'select'; options: Array<{ value: string; label: string }> }
@@ -40,7 +42,17 @@ export function DataTable(props: DataTableProps) {
     const { meta, rows } = props;
     const [search, setSearch] = React.useState(meta.search ?? '');
     const [selected, setSelected] = React.useState<Array<number | string>>([]);
-    const columns = props.visibleColumns ? props.columns.filter((c) => props.visibleColumns!.includes(c.key)) : props.columns;
+    // With visibleColumns, the user picks the columns (Columns menu), kept per user under tableKey.
+    const choosable = props.visibleColumns !== undefined && props.tableKey !== undefined;
+    const [shown, setShown] = React.useState<string[] | undefined>(props.visibleColumns);
+    const preferences = useTablePreferences(props.tableKey ?? 'commerce-table', choosable ? { columns: props.visibleColumns } : null);
+    const toggleColumn = (key: string, on: boolean) => {
+        const next = props.columns.map((c) => c.key).filter((k) => (k === key ? on : (shown ?? []).includes(k)));
+        if (next.length === 0) return;
+        setShown(next);
+        void preferences.setColumns(next);
+    };
+    const columns = shown ? props.columns.filter((c) => shown.includes(c.key)) : props.columns;
     const bulk = (props.bulkActions ?? []).length > 0 && props.bulkUrl !== undefined;
     const ids = rows.data.map((r) => r.id).filter((id): id is number | string => id !== undefined);
 
@@ -61,6 +73,19 @@ export function DataTable(props: DataTableProps) {
                     <Input type="search" value={search} aria-label="Search" placeholder={props.searchPlaceholder ?? 'Search…'}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)} />
                 </form>
+                {choosable && (
+                    <details className="cm:relative cm:text-sm">
+                        <summary className="cm:cursor-pointer cm:rounded-md cm:border cm:border-input cm:px-3 cm:py-1.5">Columns</summary>
+                        <div className="cm:absolute cm:right-0 cm:z-10 cm:mt-1 cm:grid cm:min-w-48 cm:gap-1.5 cm:rounded-md cm:border cm:bg-background cm:p-3 cm:shadow-md" role="group" aria-label="Columns">
+                            {props.columns.map((c) => (
+                                <label key={c.key} className="cm:flex cm:items-center cm:gap-2">
+                                    <input type="checkbox" checked={(shown ?? []).includes(c.key)} onChange={(e) => toggleColumn(c.key, e.target.checked)} />
+                                    {c.label}
+                                </label>
+                            ))}
+                        </div>
+                    </details>
+                )}
                 {(props.filters ?? []).map((filter) => (
                     <label key={filter.key} className="cm:flex cm:items-center cm:gap-1.5 cm:text-sm">
                         <span className="cm:text-muted-foreground">{filter.label}</span>

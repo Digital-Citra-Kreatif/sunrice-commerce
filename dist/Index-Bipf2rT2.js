@@ -1,4 +1,4 @@
-import { i as w, u as k, a as S, b as a, R as p, j as t, c as r, P as R, d as $, E as D, F as f, S as P } from "./main-p2UnqZyH.js";
+import { i as w, u as k, a as S, b as a, R as p, j as t, c as r, P as R, d as $, E as D, F as f, S as P } from "./main-Bwk0AAzX.js";
 function B({ status: l, confirmations: d }) {
   const { Card: g, CardContent: x, Button: n, Input: v, Dialog: b, DialogContent: _, DialogFooter: N, DialogHeader: C, DialogTitle: j } = $, { Link: s, router: c } = w;
   k(), S([{ label: "Shop", href: a("commerce") }, { label: "Payments to verify" }]);

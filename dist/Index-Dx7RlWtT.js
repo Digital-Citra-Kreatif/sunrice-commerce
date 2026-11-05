@@ -1,5 +1,5 @@
-import { R as m, u as b, a as j, b as u, j as a, c as t, P as x, S as D, i as S, g as q, d as C } from "./main-p2UnqZyH.js";
-import { D as _ } from "./DataTable-D06aocqP.js";
+import { R as m, u as b, a as j, b as u, j as a, c as t, P as x, S as D, i as S, g as q, d as C } from "./main-Bwk0AAzX.js";
+import { D as _ } from "./DataTable-BP67JUx_.js";
 const $ = { in_stock: "ok", out_of_stock: "error", backorder: "warning" };
 function F({ row: n, reasons: d, onClose: s }) {
   const { Dialog: r, DialogContent: o, DialogHeader: v, DialogTitle: y, DialogDescription: f, DialogFooter: k, Button: h, Input: g, Label: i } = C, c = S.useForm({ mode: "add", quantity: 0, reason: "manual", note: "" }), [l, p] = m.useState(null);
