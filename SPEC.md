@@ -263,7 +263,10 @@ keys, for example a Midtrans package requiring `payments`.
 - A sold-out product (or a variable product's sold-out variants) offers "Email me when it's back":
   an email for guests, none asked from signed-in customers; once per address and variant.
 - When the variant can be ordered again (back in stock, or on backorder), everyone waiting gets the
-  store email "Back in stock" once, in the language they asked in, linking to the product.
+  store email "Back in stock" once, in the language they asked in, linking to the product. "Can be
+  ordered" is the checkout's own rule (`Catalog::check()` for the smallest quantity it is sold in):
+  an unpublished product, a failed sync, a switched-off purchase mode or too little stock for the
+  minimum order keep the alerts waiting.
 - Shop → Inventory shows how many wait for each variant and filters those with someone waiting.
 - Sent alerts are deleted after 30 days, unsent ones after 180; anonymising a customer deletes theirs.
 

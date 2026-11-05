@@ -228,3 +228,15 @@ it('keeps alerts waiting while the product sync has failed', function () {
     $this->mug->product->forceFill(['sync_status' => 'ok', 'sync_error' => null])->save();
     expect(app(SendStockAlerts::class)->handle())->toBe(1);
 });
+
+it('keeps alerts waiting while the product cannot be bought', function () {
+    Notification::fake();
+    StockAlert::query()->create(['product_id' => $this->mug->product_id, 'variant_id' => $this->mug->id, 'email' => 'rina@example.com']);
+    $this->mug->product->forceFill(['purchase_mode' => 'none'])->save();
+    app(AdjustStock::class)->handle($this->mug, 5, set: true);
+
+    expect(app(SendStockAlerts::class)->handle())->toBe(0);
+
+    $this->mug->product->forceFill(['purchase_mode' => 'default'])->save();
+    expect(app(SendStockAlerts::class)->handle())->toBe(1);
+});
