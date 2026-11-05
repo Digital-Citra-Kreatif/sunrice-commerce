@@ -22,15 +22,15 @@ class RecordProductView
 
     public function handle(RequestHandled $event): void
     {
-        $page = $event->request->attributes->get('sunrice.page');
-        if (! $page instanceof Page || $page->pageType !== 'entry' || $page->entry === null
+        $page = Page::current();
+        if (! $page instanceof Page || $page->type !== Page::ENTRY || $page->entry === null
             || ! $event->request->isMethod('GET') || $event->response->getStatusCode() !== 200
-            || $event->request->attributes->get('sunrice.preview') === true
+            || $page->preview || $page->draft
             || ! commerce_feature('analytics')
             || ! (bool) app(StoreSettings::class)->get('analytics.track_views', config('commerce.analytics.track_views', true))) {
             return;
         }
-        $this->pending = (int) $page->entry->id;
+        $this->pending = (int) $page->entry->entry_id;
     }
 
     public function flush(): void

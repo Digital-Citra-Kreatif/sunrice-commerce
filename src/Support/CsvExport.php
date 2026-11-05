@@ -8,7 +8,7 @@ use Sunrice\Admin\Support\Csv;
 
 /**
  * Rows written as CSV to a stream (php://output in a streamed download),
- * the first row's keys as the header. Cells go through the panel's Csv,
+ * UTF-8 with a byte order mark, the first row's keys as the header. Cells go through the panel's Csv,
  * so customer-typed text never runs as a spreadsheet formula.
  */
 final class CsvExport
@@ -24,6 +24,8 @@ final class CsvExport
         if ($stream === false) {
             throw new \RuntimeException('Could not open the output for the CSV.');
         }
+        // A byte order mark, so spreadsheet apps read the file as UTF-8.
+        fwrite($stream, "\u{FEFF}");
 
         return new self($stream);
     }

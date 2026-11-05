@@ -12,6 +12,7 @@ use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Contracts\Tracking;
 use Sunrice\Commerce\Storefront\WhatsApp;
 use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
 
 /**
  * GET /go/{type}/{entry}: counts a call-to-action click and redirects to
@@ -39,7 +40,7 @@ class GoController
         return redirect()->away($target);
     }
 
-    protected function whatsapp(Product $product, Entry $entry, Request $request, WhatsApp $whatsapp): ?string
+    protected function whatsapp(Product $product, EntryTranslation $entry, Request $request, WhatsApp $whatsapp): ?string
     {
         $number = $whatsapp->next();
         if ($number === null) {
