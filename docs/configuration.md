@@ -53,7 +53,7 @@ Publish the file with `php artisan vendor:publish --tag=commerce-config` (the in
 | Key | Default | |
 | --- | --- | --- |
 | `storefront.paths.*` | `cart`, `checkout`, `order`, `confirm-payment`, `track-order`, `quote`, `account`, `wishlist`, `compare`, `brands`, `flash-sale`, `downloads`, `go`, `commerce/api`, `commerce/webhooks` | URL segments of the store's pages (translated paths per language come from Sunrice) |
-| `storefront.layout` | `sunrice.layouts.app` | The layout store pages extend when your theme has no `commerce` layout |
+| `storefront.layout` | `cms.layout` | The layout store pages extend when your theme has no `commerce` layout |
 
 ### cart
 

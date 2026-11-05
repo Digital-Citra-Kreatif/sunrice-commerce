@@ -59,7 +59,9 @@ return [
     |
     | URL paths of the store pages (without a language prefix; other languages
     | get Sunrice's /{locale} prefix). `layout` is the site layout store pages
-    | extend; when it doesn't exist, commerce's minimal layout is used.
+    | extend: by default the CMS's site layout, resources/views/cms/layout
+    | (its starter templates' or the starter theme's); when it doesn't exist,
+    | commerce's minimal layout is used.
     |
     */
 
@@ -81,7 +83,7 @@ return [
             'api' => 'commerce/api',
             'webhooks' => 'commerce/webhooks',
         ],
-        'layout' => 'sunrice.layouts.app',
+        'layout' => 'cms.layout',
     ],
 
     /*

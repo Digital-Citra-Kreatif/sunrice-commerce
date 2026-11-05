@@ -7,6 +7,7 @@ namespace Sunrice\Commerce\Settings\Sections;
 use Closure;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
+use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
@@ -163,7 +164,9 @@ final class BuiltinSections
             ['handle' => 'order_notes', 'type' => 'toggle', 'label' => 'Order notes'],
             ['handle' => 'dropshipper', 'type' => 'toggle', 'label' => 'Dropshipper details (sender name and phone)'],
             ['handle' => 'minimum_order', 'type' => 'commerce_money', 'label' => 'Minimum order', 'instructions' => 'Compared with the subtotal after discounts (before shipping); 0 for none.', 'config' => ['allow_null' => false]],
-            ['handle' => 'terms_page', 'type' => 'entries', 'label' => 'Terms page', 'instructions' => 'Customers must accept it to check out.', 'config' => ['max' => 1]],
+            ['handle' => 'terms_page', 'type' => 'entries', 'label' => 'Terms page', 'instructions' => 'Customers must accept it to check out.',
+                // A page of the site's: any collection but the products.
+                'config' => ['collections' => Collection::query()->whereNotIn('handle', (array) config('commerce.catalog.collections', ['products']))->orderBy('title')->pluck('handle')->all()]],
             ['handle' => 'free_shipping_combines', 'type' => 'toggle', 'label' => 'A free-shipping code can be used with one other code', 'instructions' => 'Even when neither is marked combinable.'],
             ['handle' => 'customer_cancel', 'type' => 'toggle', 'label' => 'Customers can cancel unpaid orders'],
             ['handle' => 'order_number_format', 'type' => 'text', 'label' => 'Order number', 'required' => true, 'translatable' => false,

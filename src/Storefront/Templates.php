@@ -10,8 +10,8 @@ namespace Sunrice\Commerce\Storefront;
  * the CMS's templates (resources/views/cms/…), every other store page and partial under
  * resources/views/commerce (found first by Layout::view()), and the theme.
  * The starter theme (`commerce-starter`, commerce:install --starter) adds
- * the site around them: Sunrice's layout, the store header and footer,
- * the home, content, search and 404 pages.
+ * the site around them: the CMS's site layout (cms/layout), the store
+ * header and footer, the home, content, search and 404 pages.
  */
 final class Templates
 {
@@ -40,8 +40,8 @@ final class Templates
     /**
      * The starter theme: everything publishable() copies, plus
      * resources/views/starter/** to the same paths under resources/views
-     * (sunrice/layouts/app, sunrice/partials/store-*, sunrice/home,
-     * sunrice/pages/show, sunrice/search, errors/404).
+     * (cms/layout, cms/partials/store-*, cms/home, cms/collections/pages/show,
+     * cms/search, errors/404).
      *
      * @return array<string, string> source => destination
      */

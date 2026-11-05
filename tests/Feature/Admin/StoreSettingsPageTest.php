@@ -5,6 +5,10 @@ declare(strict_types=1);
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Role;
 use Sunrice\Admin\Activity\Activity;
+use Sunrice\Cms\Actions\Entries\CreateEntry;
+use Sunrice\Cms\Models\Blueprint;
+use Sunrice\Cms\Models\Collection;
+use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Settings\StoreSettings;
 
@@ -85,4 +89,18 @@ it('hides sections of inactive modules', function () {
     app(ToggleFeature::class)->handle('documents', false);
 
     $this->get('/admin/commerce/settings/documents')->assertNotFound();
+});
+
+it('lets staff choose any site page as the terms page, but no product', function () {
+    actingAsSuperAdmin();
+    app(ScaffoldStore::class)->handle();
+    Blueprint::query()->create(['handle' => 'page', 'title' => 'Page', 'fields' => []]);
+    $pages = Collection::query()->create(['handle' => 'pages', 'title' => 'Pages', 'blueprint' => 'page', 'route' => '/{slug}']);
+    $terms = app(CreateEntry::class)->handle($pages, ['title' => 'Syarat', 'slug' => 'syarat']);
+    $product = publishProduct(['variants' => [['id' => 'v', 'sku' => 'T', 'price' => 1000]]], title: 'Kaos');
+    $section = app(StoreSettings::class)->section('checkout');
+
+    $this->put('/admin/commerce/settings/checkout', ['values' => [...$section, 'terms_page' => $product->id]])->assertSessionHasErrors('values.terms_page');
+    $this->put('/admin/commerce/settings/checkout', ['values' => [...$section, 'terms_page' => $terms->entry_id]])->assertSessionHasNoErrors();
+    expect(app(StoreSettings::class)->get('checkout.terms_page'))->toBe($terms->entry_id);
 });

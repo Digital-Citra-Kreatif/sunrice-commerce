@@ -52,7 +52,7 @@ it('publishes the starter theme with the templates', function () {
     expect(count($published))->toBeGreaterThan(count(Templates::publishable()));
     try {
         $this->artisan('vendor:publish', ['--tag' => 'commerce-starter', '--force' => true])->assertSuccessful();
-        foreach (['views/sunrice/layouts/app.blade.php', 'views/sunrice/partials/store-header.blade.php', 'views/sunrice/home.blade.php',
+        foreach (['views/cms/layout.blade.php', 'views/cms/partials/store-header.blade.php', 'views/cms/home.blade.php',
             'views/errors/404.blade.php', 'views/commerce/cart.blade.php', 'views/cms/collections/products/show.blade.php'] as $path) {
             expect(File::exists(resource_path($path)))->toBeTrue($path);
         }
@@ -61,7 +61,7 @@ it('publishes the starter theme with the templates', function () {
         foreach ($published as $path) {
             File::isDirectory($path) ? File::deleteDirectory($path) : File::delete($path);
         }
-        foreach (['views/commerce', 'views/sunrice', 'views/errors'] as $dir) {
+        foreach (['views/commerce', 'views/cms', 'views/errors'] as $dir) {
             File::deleteDirectory(resource_path($dir));
         }
         app('view')->getFinder()->flush();
