@@ -15,7 +15,7 @@ it('lists staff only under Users', function () {
     $customer->assignRole(Role::findOrCreate('Customer', 'web'));
 
     $this->get('/admin/users')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
-        ->where('rows.data', fn ($rows) => collect($rows)->pluck('email')->all() === [$admin->email]));
+        ->where('rows.data', fn ($rows) => collect($rows)->pluck('cells.email')->all() === [$admin->email]));
 });
 
 it('lists, filters, edits and anonymizes customers', function () {

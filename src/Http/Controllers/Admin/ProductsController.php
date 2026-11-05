@@ -172,7 +172,7 @@ class ProductsController extends Controller
         $model = Taxonomy::query()->where('handle', $taxonomy)->first();
 
         return $model === null ? [] : Term::query()->where('taxonomy_id', $model->id)->with('translations')->get()
-            ->map(fn ($t) => ['value' => (string) $t->id, 'label' => (string) ($t->translations->firstWhere('locale', Locales::default())->name ?? $t->id)])
+            ->map(fn ($t) => ['value' => (string) $t->id, 'label' => (string) ($t->translations->firstWhere('locale', Locales::default())?->title ?? $t->id)])
             ->sortBy('label')->values()->all();
     }
 }

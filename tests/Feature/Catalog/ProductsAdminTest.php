@@ -35,7 +35,7 @@ it('lists product entries with their commerce data', function () {
         ->and($rows['Shirt']['sku'])->toBe('2 variants')
         ->and($rows['Mug']['sku'])->toBe('MUG-1')
         ->and($rows['Draft hat']['state'])->toBe('draft')
-        ->and($rows['Mug']['href'])->toBe("collections/products/entries/{$this->mug->id}/edit");
+        ->and($rows['Mug']['href'])->toBe("cms/collections/products/entries/{$this->mug->id}/edit");
 });
 
 it('filters and searches by SKU', function () {

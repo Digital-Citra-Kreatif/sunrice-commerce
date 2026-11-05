@@ -36,7 +36,7 @@ use Sunrice\Commerce\Payments\Actions\ReviewPaymentConfirmation;
 use Sunrice\Commerce\Payments\Actions\SubmitPaymentConfirmation;
 use Sunrice\Commerce\Payments\PaymentResult;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Models\Asset;
+use Sunrice\Admin\Media\Media;
 use Workbench\App\Models\User;
 
 beforeEach(function () {
@@ -131,7 +131,7 @@ it('writes the subject in the order\'s language and attaches the invoice when se
 
 it('brands emails with the store logo and color', function () {
     $order = placeOrderFor($this->mug);
-    $logo = Asset::query()->create(['disk' => 'public', 'path' => 'logo.png', 'filename' => 'logo.png', 'mime_type' => 'image/png', 'size' => 10, 'sizes' => []]);
+    $logo = Media::query()->create(['disk' => 'public', 'path' => 'logo.png', 'filename' => 'logo.png', 'mime_type' => 'image/png', 'size' => 10, 'sizes' => []]);
     $settings = app(StoreSettings::class);
     $settings->saveSection('general', [...$settings->section('general'), 'logo' => [$logo->id], 'brand_color' => '#b45309']);
 

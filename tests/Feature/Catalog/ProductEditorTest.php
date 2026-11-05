@@ -63,7 +63,7 @@ it('keeps the product and target lookups to users who manage them', function () 
     $this->getJson('/admin/commerce/api/targets?q=mug')->assertForbidden();
 
     $collection = productCollection();
-    actingAsUserWith(["sunrice.entries.{$collection->id}.edit"], 'catalog@example.com');
+    actingAsUserWith(["cms.entries.{$collection->handle}.update"], 'catalog@example.com');
     $this->getJson('/admin/commerce/api/sku-check?sku=mug-01&entry=0')->assertOk();
     $this->getJson('/admin/commerce/api/variants?q=mug')->assertOk();
 

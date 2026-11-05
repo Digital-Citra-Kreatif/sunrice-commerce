@@ -249,7 +249,7 @@ class CustomersController extends Controller
     protected static function givableRoles(mixed $staff): array
     {
         return Role::query()->with('permissions')->whereDoesntHave('permissions', fn ($q) => $q->where('name', 'sunrice.access'))->get()
-            ->filter(fn (Role $role) => ! class_exists(PermissionRank::class) || PermissionRank::roleBelow($role, $staff))
+            ->filter(fn (Role $role) => $staff instanceof Model && app(PermissionRank::class)->canManageRole($staff, $role))
             ->pluck('name')->values()->all();
     }
 
