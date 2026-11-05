@@ -84,11 +84,6 @@ class InstallCommand extends Command
     protected function userModel(): void
     {
         $model = Staff::userModel();
-        if (! is_string($model) || ! class_exists($model)) {
-            $this->components->warn('No user model configured (sunrice.auth.user_model).');
-
-            return;
-        }
         match (UserModelTraits::ensure($model, HasOneTimePasswords::class)) {
             true => $this->components->twoColumnDetail('User model', "HasOneTimePasswords trait added to {$model}"),
             null => null,

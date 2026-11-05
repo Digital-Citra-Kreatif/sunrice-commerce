@@ -1,14 +1,13 @@
 laravel: '@testbench'
 
 providers:
-  - Sunrice\SunriceServiceProvider
-  - Inertia\ServiceProvider
-  - Spatie\Permission\PermissionServiceProvider
+  - Sunrice\Admin\AdminServiceProvider
+  - Sunrice\Cms\CmsServiceProvider
   - Spatie\Honeypot\HoneypotServiceProvider
-  - Laravel\Mcp\Server\McpServiceProvider
   - Spatie\OneTimePasswords\OneTimePasswordsServiceProvider
   - Laravel\Socialite\SocialiteServiceProvider
   - Sunrice\Commerce\CommerceServiceProvider
+  - Workbench\App\Providers\AdminPanelProvider
   - Workbench\App\Providers\WorkbenchServiceProvider
 
 migrations:
@@ -18,7 +17,7 @@ seeders:
   - Workbench\Database\Seeders\DatabaseSeeder
 
 workbench:
-  start: '/cms'
+  start: '/admin'
   install: true
   health: false
   discovers:
@@ -38,13 +37,14 @@ workbench:
         --seed: true
         --seeder: Workbench\Database\Seeders\DatabaseSeeder
   assets:
-    - sunrice-assets
+    - sunrice-cms-assets
     - commerce-assets
 
 env:
   APP_NAME: KAIN
   SESSION_DRIVER: file
   AUTH_MODEL: Workbench\App\Models\User
-  SUNRICE_USER_MODEL: Workbench\App\Models\User
   DB_CONNECTION: sqlite
-  SUNRICE_ADMIN_PATH: cms
+  SUNRICE_LOCALES: id,en
+  # The demo's users sign in with simple passwords: don't ask Have I Been Pwned about them.
+  SUNRICE_PASSWORD_UNCOMPROMISED: 'false'

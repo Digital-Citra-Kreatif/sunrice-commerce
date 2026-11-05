@@ -6,6 +6,7 @@ namespace Sunrice\Commerce\Admin\Tables;
 
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -18,8 +19,6 @@ use Illuminate\Pagination\LengthAwarePaginator;
  *         ->filter('kind', fn (Builder $q, string $v) => $q->where('automatic', $v === 'automatic'))
  *         ->sortable(['code', 'ends_at'])->apply($request);
  *     $rows = $table->defaultPerPage(25)->paginate($request);
- *
- * @template TModel of \Illuminate\Database\Eloquent\Model
  */
 final class TableQuery
 {
@@ -28,7 +27,7 @@ final class TableQuery
     /** @var list<string> */
     private array $searchable = [];
 
-    /** @var array<string, Closure(Builder<TModel>, string): mixed> */
+    /** @var array<string, Closure(Builder<covariant Model>, string): mixed> */
     private array $filters = [];
 
     /** @var list<string> */
@@ -39,24 +38,19 @@ final class TableQuery
     /** @var array{search: string|null, sort: string|null, direction: string, filters: array<string, string>, perPage: int} */
     private array $meta = ['search' => null, 'sort' => null, 'direction' => 'asc', 'filters' => [], 'perPage' => 25];
 
-    /** @param Builder<TModel> $builder */
+    /** @param Builder<covariant Model> $builder */
     private function __construct(private Builder $builder) {}
 
-    /**
-     * @template T of \Illuminate\Database\Eloquent\Model
-     *
-     * @param  Builder<T>  $builder
-     * @return self<T>
-     */
+    /** @param  Builder<covariant Model>  $builder */
     public static function for(Builder $builder): self
     {
         return new self($builder);
     }
 
-    /** @var (Closure(Builder<TModel>, string): mixed)|null */
+    /** @var (Closure(Builder<covariant Model>, string): mixed)|null */
     private ?Closure $search = null;
 
-    /** Search with a closure of its own instead of searchable() columns. @param Closure(Builder<TModel>, string): mixed $search */
+    /** Search with a closure of its own instead of searchable() columns. @param Closure(Builder<covariant Model>, string): mixed $search */
     public function searchUsing(Closure $search): self
     {
         $this->search = $search;
@@ -72,7 +66,7 @@ final class TableQuery
         return $this;
     }
 
-    /** @param Closure(Builder<TModel>, string): mixed $apply */
+    /** @param Closure(Builder<covariant Model>, string): mixed $apply */
     public function filter(string $key, Closure $apply): self
     {
         $this->filters[$key] = $apply;
@@ -128,7 +122,7 @@ final class TableQuery
         return $this->meta;
     }
 
-    /** @return Builder<TModel> */
+    /** @return Builder<covariant Model> */
     public function builder(): Builder
     {
         return $this->builder;
@@ -141,7 +135,7 @@ final class TableQuery
         return $this;
     }
 
-    /** @return LengthAwarePaginator<int, TModel> */
+    /** @return LengthAwarePaginator<int, Model> */
     public function paginate(Request $request): LengthAwarePaginator
     {
         $asked = (int) $request->query('per_page', (string) $this->perPage);

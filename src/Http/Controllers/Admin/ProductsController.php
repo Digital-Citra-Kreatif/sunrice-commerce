@@ -110,7 +110,7 @@ class ProductsController extends Controller
                     },
                     'sync_failed' => $entry->getAttribute('sync_status') === 'failed',
                     'sync_error' => $entry->getAttribute('sync_error'),
-                    'categories' => $entry->terms->where('taxonomy_id', $categoryTaxonomy)->map(fn ($t) => $t->translations->firstWhere('locale', Locales::default())?->title ?? '')->values()->implode(', '),
+                    'categories' => $entry->terms->where('taxonomy_id', $categoryTaxonomy)->map(fn ($t) => $t->translations->firstWhere('locale', Locales::default())->title ?? '')->values()->implode(', '),
                     'can_edit' => Access::entries($user, 'update', $entry->collection, $entry),
                 ];
             }), [
@@ -172,7 +172,7 @@ class ProductsController extends Controller
         $model = Taxonomy::query()->where('handle', $taxonomy)->first();
 
         return $model === null ? [] : Term::query()->where('taxonomy_id', $model->id)->with('translations')->get()
-            ->map(fn ($t) => ['value' => (string) $t->id, 'label' => (string) ($t->translations->firstWhere('locale', Locales::default())?->title ?? $t->id)])
+            ->map(fn ($t) => ['value' => (string) $t->id, 'label' => (string) ($t->translations->firstWhere('locale', Locales::default())->title ?? $t->id)])
             ->sortBy('label')->values()->all();
     }
 }

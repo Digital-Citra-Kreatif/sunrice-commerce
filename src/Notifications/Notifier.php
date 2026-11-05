@@ -74,7 +74,7 @@ class Notifier
         $roles = Role::query()->whereIn('name', $this->settings->roles($key))->pluck('name')->all();
         if ($roles !== []) {
             $model = Staff::userModel();
-            foreach ($model::query()->role($roles)->get() as $user) {
+            foreach ($model::query()->whereHas('roles', fn ($q) => $q->whereIn('name', $roles))->get() as $user) {
                 $mail = mb_strtolower((string) $user->getAttribute('email'));
                 if ($mail !== '' && ! isset($out[$mail])) {
                     $out[$mail] = Locales::default();

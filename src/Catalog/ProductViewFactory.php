@@ -108,7 +108,7 @@ class ProductViewFactory
                 $product = $products->get($id);
                 if ($preview) {
                     // The product field is shared: the main language's draft holds it.
-                    $main = $entry->isMain() ? $entry : ($entry->entry?->mainTranslation() ?? $entry);
+                    $main = $entry->isMain() ? $entry : ($entry->entry->mainTranslation() ?? $entry);
                     $draft = (array) ($main->draft_data ?? []);
                     $field = (string) config('commerce.catalog.field', 'product');
                     $product = app(ProductProjector::class)->map($draft[$field] ?? null, $product);

@@ -690,7 +690,7 @@ class OrdersController extends Controller
                 'month' => $q->where('placed_at', '>=', now()->startOfMonth()),
                 'last_month' => $q->whereBetween('placed_at', [now()->subMonthNoOverflow()->startOfMonth(), now()->subMonthNoOverflow()->endOfMonth()]),
                 // "2026-03-01..2026-03-31": local dates, from report drill-downs.
-                default => is_string($v) && preg_match('/^(\d{4}-\d{2}-\d{2})\.\.(\d{4}-\d{2}-\d{2})$/', $v, $m) === 1
+                default => preg_match('/^(\d{4}-\d{2}-\d{2})\.\.(\d{4}-\d{2}-\d{2})$/', $v, $m) === 1
                     ? $q->where('placed_at', '>=', Day::bounds($m[1])[0])->where('placed_at', '<', Day::bounds($m[2])[1])
                     : $q,
             })

@@ -7,7 +7,7 @@ namespace Sunrice\Commerce\View\Components;
 use Illuminate\Contracts\View\View;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\Component;
-use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\ProductQuery;
 use Sunrice\Commerce\Storefront\Layout;
 
@@ -20,7 +20,7 @@ use Sunrice\Commerce\Storefront\Layout;
  */
 class Products extends Component
 {
-    /** @var LengthAwarePaginator<int, Entry> */
+    /** @var LengthAwarePaginator<int, EntryTranslation> */
     public LengthAwarePaginator $products;
 
     public ProductQuery $query;

@@ -71,6 +71,12 @@ abstract class CommerceTool extends Tool
         }
     }
 
+    /** The agent asked for something that isn't there ("Order not found."). */
+    protected function notFound(string $what): Response
+    {
+        return Response::error("{$what} not found.");
+    }
+
     /** Exceptions whose message is meant for the person (or agent) asking. */
     protected function refusal(Throwable $e): bool
     {

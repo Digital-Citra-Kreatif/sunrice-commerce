@@ -32,7 +32,7 @@ class ProductProjector
     /** Whether the entry belongs to a product collection. */
     public static function isProduct(Entry $entry): bool
     {
-        $handle = $entry->relationLoaded('collection') ? $entry->collection?->handle : $entry->collection()->value('handle');
+        $handle = $entry->relationLoaded('collection') ? $entry->collection->handle : $entry->collection()->value('handle');
 
         return in_array($handle, (array) config('commerce.catalog.collections', ['products']), true);
     }

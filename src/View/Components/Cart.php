@@ -9,6 +9,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\View\Component;
 use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\Models\CartItem;
@@ -25,7 +26,7 @@ class Cart extends Component
 {
     public CartView $cart;
 
-    /** @var LengthAwarePaginator<int, array{item: CartItem, line: CalcLine, product: ?ProductView, entry: ?Entry}> */
+    /** @var LengthAwarePaginator<int, array{item: CartItem, line: CalcLine, product: ?ProductView, entry: ?EntryTranslation}> */
     public LengthAwarePaginator $lines;
 
     public function __construct(?CartView $cart = null)

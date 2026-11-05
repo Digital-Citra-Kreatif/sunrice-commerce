@@ -6,6 +6,7 @@ namespace Sunrice\Commerce\Http\Controllers\Storefront;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
+use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\ProductQuery;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;

@@ -204,6 +204,6 @@ class Audience
     {
         $class = Staff::userModel();
 
-        return class_exists($class) && is_subclass_of($class, Model::class) ? (new $class)->getMorphClass() : $class;
+        return (new $class)->getMorphClass();
     }
 }

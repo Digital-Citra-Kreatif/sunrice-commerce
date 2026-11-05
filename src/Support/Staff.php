@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Support;
 
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Sunrice\Admin\Panel;
 
@@ -14,10 +15,20 @@ use Sunrice\Admin\Panel;
  */
 final class Staff
 {
-    /** @return class-string<Model> */
+    /**
+     * The panel's user model: an Eloquent model that signs in (and, with
+     * spatie/laravel-permission's HasRoles, has roles).
+     *
+     * @return class-string<Model&Authenticatable>
+     */
     public static function userModel(): string
     {
-        return app(Panel::class)->getUserModel();
+        $model = app(Panel::class)->getUserModel();
+        if (! is_a($model, Authenticatable::class, true)) {
+            throw new \LogicException("The panel's user model ({$model}) isn't Authenticatable.");
+        }
+
+        return $model;
     }
 
     public static function guard(): string

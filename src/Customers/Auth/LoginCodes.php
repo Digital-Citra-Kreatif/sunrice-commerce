@@ -28,7 +28,7 @@ class LoginCodes
     {
         $model = Staff::userModel();
 
-        return is_string($model) && method_exists($model, 'createOneTimePassword');
+        return method_exists($model, 'createOneTimePassword');
     }
 
     /** Creates and emails a code (replacing an earlier one). */
