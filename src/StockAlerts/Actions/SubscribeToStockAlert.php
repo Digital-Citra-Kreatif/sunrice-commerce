@@ -10,6 +10,7 @@ use Illuminate\Validation\ValidationException;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\StockAlerts\Models\StockAlert;
+use Sunrice\Commerce\StockAlerts\SoldOut;
 
 /** Ask to be emailed when a sold-out variant can be bought again (once per address and variant). */
 class SubscribeToStockAlert
@@ -17,7 +18,7 @@ class SubscribeToStockAlert
     /** @throws ValidationException */
     public function handle(Variant $variant, string $email, ?Customer $customer = null): StockAlert
     {
-        if (! $variant->active || $variant->stock_status !== 'out_of_stock' || $variant->product->removed_at !== null) {
+        if (! $variant->active || $variant->product->removed_at !== null || ! app(SoldOut::class)->variant($variant)) {
             throw ValidationException::withMessages(['variant' => __('commerce::storefront.stock_alert.available')]);
         }
 

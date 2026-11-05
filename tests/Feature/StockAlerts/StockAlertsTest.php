@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
+use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Customers\Actions\AnonymizeCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Inventory\Actions\AdjustStock;
+use Sunrice\Commerce\Notifications\Notifier;
 use Sunrice\Commerce\Notifications\StoreEmail;
+use Sunrice\Commerce\StockAlerts\Actions\SendStockAlerts;
 use Sunrice\Commerce\StockAlerts\Models\StockAlert;
 use Workbench\App\Models\User;
 
@@ -101,4 +104,37 @@ it('sends nothing for an alert another tick has claimed', function () {
 
     $this->artisan('commerce:tick')->assertSuccessful();
     Notification::assertNothingSent();
+});
+
+it('takes alerts for a bundle whose component is sold out, and sends them when it is back', function () {
+    Notification::fake();
+    $entry = publishProduct(['type' => 'bundle', 'variants' => [['id' => 'gift', 'sku' => 'GIFT', 'price' => 70000]],
+        'bundle' => ['pricing' => 'fixed', 'value' => 70000, 'items' => [['variant_id' => $this->mug->id, 'quantity' => 1]]]], title: 'Gift set');
+    $gift = Variant::query()->where('sku', 'GIFT')->sole();
+    expect($gift->stock_status)->toBe('in_stock');   // its own status: the mug is what's sold out
+
+    $this->get('/products/gift-set')->assertOk()->assertSee('name="variant" value="'.$gift->id.'"', false);
+    $this->post('/stock-alerts', ['variant' => $gift->id, 'email' => 'rina@example.com'])->assertSessionHasNoErrors();
+
+    $this->artisan('commerce:tick')->assertSuccessful();
+    Notification::assertNothingSent();
+    app(AdjustStock::class)->handle($this->mug->fresh(), 3, set: true);
+    $this->artisan('commerce:tick')->assertSuccessful();
+    Notification::assertSentOnDemandTimes(StoreEmail::class, 1);
+});
+
+it('keeps alerts for products that are no longer live, and gives a failed send back', function () {
+    StockAlert::query()->create(['product_id' => $this->mug->product_id, 'variant_id' => $this->mug->id, 'email' => 'rina@example.com']);
+    app(AdjustStock::class)->handle($this->mug, 5, set: true);
+
+    unpublishEntry($this->mug->product->entry_id);
+    Notification::fake();
+    $this->artisan('commerce:tick')->assertSuccessful();
+    Notification::assertNothingSent();
+    expect(StockAlert::query()->sole()->notified_at)->toBeNull();
+
+    EntryTranslation::query()->where('entry_id', $this->mug->product->entry_id)->update(['status' => 'published']);
+    $this->mock(Notifier::class)->shouldReceive('sendTo')->once()->andThrow(new RuntimeException('Queue down'));
+    expect(fn () => app(SendStockAlerts::class)->handle())->toThrow(RuntimeException::class);
+    expect(StockAlert::query()->sole()->notified_at)->toBeNull();
 });

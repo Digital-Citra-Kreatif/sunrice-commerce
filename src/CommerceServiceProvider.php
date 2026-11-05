@@ -334,7 +334,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         RateLimiter::for('commerce-voucher', fn (Request $request) => Limit::perMinute(10)
             ->by((string) $request->cookie((string) config('commerce.cart.cookie', 'commerce_cart')).'|'.$request->ip()));
         $commerce->onTick('flash sales', fn () => (new Promotions\FlashSales\FlashSaleBoundaries)());
-        $commerce->onTick('stock alerts', fn (): int => commerce_feature('stock_alerts') ? $this->app->make(StockAlerts\SendStockAlerts::class)() : 0);
+        $commerce->onTick('stock alerts', fn (): int => commerce_feature('stock_alerts') ? $this->app->make(StockAlerts\Actions\SendStockAlerts::class)->handle() : 0);
     }
 
     /** Product projection on publish. */
