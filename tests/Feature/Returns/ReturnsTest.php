@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
+use Sunrice\Commerce\Customers\Actions\AnonymizeCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Notifications\StoreEmail;
@@ -117,4 +118,23 @@ it('checks a move against the return as it is now, not as the page loaded it', f
 
     expect(fn () => app(UpdateReturn::class)->handle($stale, 'approved', null, Actor::system()))->toThrow(ValidationException::class);
     expect($return->fresh()->status)->toBe('rejected');
+});
+
+it('writes the emailed status in the customer\'s language, and forgets return text on anonymising', function () {
+    Notification::fake();
+    $this->order->update(['locale' => 'id']);
+    $return = ReturnRequest::query()->create(['order_id' => $this->order->id, 'customer_id' => $this->order->customer_id, 'reason' => 'other', 'details' => 'Call me on 0812…']);
+    $return->items()->create(['order_item_id' => $this->item->id, 'quantity' => 1]);
+
+    app()->setLocale('en');
+    app(UpdateReturn::class)->handle($return, 'approved', 'Send it to Jl. Setiabudi 1.', Actor::system());
+    // Rendered as a real send renders it: in the notification's locale (the order's).
+    Notification::assertSentOnDemand(StoreEmail::class, function (StoreEmail $n, array $c, AnonymousNotifiable $to): bool {
+        app()->setLocale((string) $n->locale);
+
+        return $n->key === 'return_updated' && $n->locale === 'id' && str_contains($n->toMail($to)->render()->toHtml(), 'Disetujui: kirim kembali barangnya');
+    });
+
+    app(AnonymizeCustomer::class)->handle(Customer::query()->findOrFail($this->order->customer_id));
+    expect($return->fresh())->details->toBeNull()->note->toBeNull();
 });

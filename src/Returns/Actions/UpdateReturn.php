@@ -38,6 +38,6 @@ class UpdateReturn
         }
         $label = __("commerce::account.returns.statuses.{$status}");
         $this->timeline->record($return->order, 'return', "Return {$return->number()}: {$label}".($note !== null ? " ({$note})" : ''), ['return' => $return->id, 'status' => $status], $actor, 'customer');
-        $this->notifier->send('return_updated', $return->order, ['return' => $return->number(), 'status' => $label, 'note' => $note]);
+        $this->notifier->send('return_updated', $return->order, ['return' => $return->number(), 'status' => $status, 'note' => $note]);
     }
 }

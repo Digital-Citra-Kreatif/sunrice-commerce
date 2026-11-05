@@ -343,6 +343,7 @@ AI agents can read customers too, with `commerce_list_customers` and `commerce_g
 - the customer's orders keep their items and amounts, but lose the name, email, phone, addresses,
   dropshipper, checkout fields, customer note, IP address and user agent;
 - payment confirmations lose the sender name, note and IP address.
+- returns keep their items and status, but lose the customer's details and the note to them;
 
 Emails are never sent to the placeholder address. Extensions that store personal data on orders can
 add their own clean-up with `AnonymizeCustomer::scrubOrdersUsing(fn (Customer $customer, string
