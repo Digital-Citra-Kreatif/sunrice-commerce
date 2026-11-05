@@ -21,13 +21,14 @@ beforeEach(function () {
     publishProduct(['variants' => [['id' => 'd', 'sku' => 'DRAFT-1', 'price' => 1000]]], title: 'Draft', publish: false);
 });
 
-/** @return array<string, array<string, string>> items by g:id */
+/** @return array<string, array<string, string>> items by the SKU of their variant (g:id is the variant's id) */
 function feedItems(string $xml): array
 {
+    $skus = Variant::query()->pluck('sku', 'id');
     $items = [];
     foreach (simplexml_load_string($xml)->channel->item as $item) {
-        $g = (array) $item->children('http://base.google.com/ns/1.0');
-        $items[(string) $g['id']] = array_map('strval', $g);
+        $g = array_map('strval', (array) $item->children('http://base.google.com/ns/1.0'));
+        $items[(string) $skus[(int) substr($g['id'], 1)]] = $g;
     }
 
     return $items;
@@ -44,6 +45,7 @@ it('lists every buyable variant for Google Merchant Center and Meta', function (
         ->and($items['MUG'])->toMatchArray(['title' => 'Mug', 'link' => url('/products/mug'), 'price' => '65000 IDR', 'sale_price' => '50000 IDR',
             'availability' => 'in_stock', 'condition' => 'new', 'shipping_weight' => '500 g'])
         ->and($items['MUG'])->not->toHaveKey('item_group_id')
+        ->and($items['MUG']['id'])->toBe('V'.Variant::query()->where('sku', 'MUG')->value('id'))
         ->and($items['TS-S'])->toMatchArray(['title' => 'Tee — S', 'availability' => 'out_of_stock', 'price' => '90000 IDR'])
         ->and($items['TS-M']['item_group_id'])->toBe($items['TS-S']['item_group_id'])
         ->and($items['TS-M'])->not->toHaveKey('sale_price');
@@ -104,4 +106,16 @@ it('is built again when store settings change, so newly hidden prices leave it',
 
     app(StoreSettings::class)->saveSection('catalog', ['price_visibility' => 'signed_in']);
     expect(feedItems($this->get('/feeds/products.xml')->getContent()))->toBe([]);
+});
+
+it('is built again when the components of a bundle run short', function () {
+    app(ToggleFeature::class)->handle('product_feeds', true);
+    $mug = Variant::query()->where('sku', 'MUG')->sole();
+    publishProduct(['type' => 'bundle', 'variants' => [['id' => 'gift', 'sku' => 'GIFT', 'price' => 90000]],
+        'bundle' => ['pricing' => 'fixed', 'value' => 0, 'items' => [['variant_id' => $mug->id, 'quantity' => 2]]]], title: 'Gift set');
+    expect(feedItems($this->get('/feeds/products.xml')->getContent()))->toHaveKey('GIFT');
+
+    // 1 left: no threshold crossed for the mug, but the bundle of two can't be bought.
+    app(AdjustStock::class)->handle($mug->fresh(), 1, set: true);
+    expect(feedItems($this->get('/feeds/products.xml')->getContent()))->not->toHaveKey('GIFT')->toHaveKey('MUG');
 });

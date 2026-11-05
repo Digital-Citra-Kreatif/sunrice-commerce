@@ -543,15 +543,17 @@ for Google Merchant Center and Meta (Facebook and Instagram) catalogs, in Google
 with `g:` fields. The Store health page shows its address.
 
 - One item per active variant of every live product that can be added to the cart with its price
-  shown; nothing when prices are hidden. `g:id` is the SKU (`V{id}` without one); a variable
-  product's variants share `g:item_group_id` and their titles name the variant.
-- `g:price` is the regular price (the compare-at price when higher) and `g:sale_price` the price
-  the product page shows, flash sales included; `g:availability` is `in_stock`, `out_of_stock` or
+  shown, as a guest sees the store; nothing when prices are hidden. `g:id` is `V` and the variant's
+  id (never the SKU, so two items can't share one); a variable product's variants share
+  `g:item_group_id` and their titles name the variant.
+- `g:price` is the regular price as the store shows it (before flash sales and pricing rules, the
+  compare-at price when higher) and `g:sale_price` the price the product page shows, when lower; `g:availability` is `in_stock`, `out_of_stock` or
   `backorder`; also `g:link`, `g:image_link` (the variant's image, else the first of the gallery),
   `g:description` (the excerpt), `g:brand`, `g:shipping_weight`, `g:condition` (`new`) and
   `g:identifier_exists` (`no`).
-- Built 100 products at a time and kept an hour, or until the catalog changes; 30 requests a minute
-  per address.
+- Built 100 products at a time and kept an hour, or until something it shows changes (a product
+  synced, published or removed, any stock change, prices, store settings, a flash sale's cap);
+  30 requests a minute per address. A bundle without its own weight gets its components' weight.
 
 ## The projection
 

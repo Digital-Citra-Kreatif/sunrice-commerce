@@ -374,6 +374,8 @@ class CommerceServiceProvider extends PackageServiceProvider
         Storefront\PageCache::register();
         // A product entry published, edited or taken off (and anything else the site shows): the feed is built again.
         Event::listen(ContentChanged::class, fn () => Feeds\ProductFeed::forget());
+        // Any stock change (a bundle's availability moves with its components' stock, past no threshold): the feed is built again.
+        Event::listen(Inventory\Events\StockChanged::class, fn () => Feeds\ProductFeed::forget());
         // Product pages show availability and "only a few left": clear them when it changes.
         foreach ([Inventory\Events\StockOut::class, Inventory\Events\StockLow::class, Inventory\Events\StockBackIn::class] as $event) {
             Event::listen($event, fn () => Storefront\PageCache::forget('stock_changed'));

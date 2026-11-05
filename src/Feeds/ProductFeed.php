@@ -94,7 +94,8 @@ class ProductFeed
             $weight = $view->product->isBundle() ? app(Bundles::class)->weight($view->product, $variant) : $variant->weight;
             $regular = max((int) $row['price'], (int) $row['regular']);
             $xml .= '<item>'
-                .$this->tag('g:id', $variant->sku ?: 'V'.$variant->id)
+                // The variant's id, never its SKU: a SKU can't then collide with another variant's id.
+                .$this->tag('g:id', 'V'.$variant->id)
                 .($view->isVariable() ? $this->tag('g:item_group_id', 'P'.$view->product->id) : '')
                 .$this->tag('g:title', trim($view->title().($view->isVariable() && $variant->title !== '' ? ' — '.$variant->title : '')))
                 .$this->tag('g:description', mb_substr(strip_tags($description), 0, 5000))
