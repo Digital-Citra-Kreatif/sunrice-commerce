@@ -97,3 +97,11 @@ it('weighs a bundle by its components', function () {
 
     expect(feedItems($this->get('/feeds/products.xml')->getContent())['GIFT']['shipping_weight'])->toBe('1000 g');
 });
+
+it('is built again when store settings change, so newly hidden prices leave it', function () {
+    app(ToggleFeature::class)->handle('product_feeds', true);
+    expect(feedItems($this->get('/feeds/products.xml')->getContent()))->toHaveKey('MUG');
+
+    app(StoreSettings::class)->saveSection('catalog', ['price_visibility' => 'signed_in']);
+    expect(feedItems($this->get('/feeds/products.xml')->getContent()))->toBe([]);
+});
