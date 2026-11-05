@@ -53,6 +53,26 @@ class Notifier
         return count($recipients);
     }
 
+    /**
+     * A customer email to an address of its own (a stock alert's), checked
+     * like send(): the module and the email's switch.
+     *
+     * @param  array<string, mixed>  $context
+     * @return int 1 when sent
+     */
+    public function sendTo(string $key, string $address, string $locale, ?Variant $variant = null, array $context = []): int
+    {
+        $email = $this->emails->get($key);
+        if ($email === null || ($email->feature !== null && ! $this->features->active($email->feature)) || ! $this->settings->enabled($key)
+            || ! filter_var($address, FILTER_VALIDATE_EMAIL)) {
+            return 0;
+        }
+        $locale = $locale !== '' ? $locale : Locales::default();
+        Notification::route('mail', $address)->notify((new StoreEmail($key, null, null, $variant, $context, $locale))->locale($locale));
+
+        return 1;
+    }
+
     /** @return array<string, string> email => locale */
     protected function customerRecipient(?Order $order, ?Customer $customer): array
     {

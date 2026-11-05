@@ -1,0 +1,104 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Notifications\AnonymousNotifiable;
+use Illuminate\Support\Facades\Notification;
+use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Customers\Actions\AnonymizeCustomer;
+use Sunrice\Commerce\Customers\Models\Customer;
+use Sunrice\Commerce\Features\Actions\ToggleFeature;
+use Sunrice\Commerce\Inventory\Actions\AdjustStock;
+use Sunrice\Commerce\Notifications\StoreEmail;
+use Sunrice\Commerce\StockAlerts\Models\StockAlert;
+use Workbench\App\Models\User;
+
+beforeEach(function () {
+    config(['honeypot.enabled' => false]);
+    $this->mug = checkoutStore();
+    app(AdjustStock::class)->handle($this->mug, 0, set: true);
+});
+
+it('asks to be emailed when a sold-out product is back, once per address', function () {
+    $this->get('/products/mug')->assertOk()->assertSee('Kabari saya saat tersedia')->assertSee('name="variant" value="'.$this->mug->id.'"', false);
+
+    $this->post('/stock-alerts', ['variant' => $this->mug->id, 'email' => 'Rina@Example.com'])->assertSessionHas('commerce.success');
+    $this->post('/stock-alerts', ['variant' => $this->mug->id, 'email' => 'rina@example.com']);
+    expect(StockAlert::query()->sole())->email->toBe('rina@example.com')->locale->toBe('id')->notified_at->toBeNull();
+
+    $this->post('/stock-alerts', ['variant' => $this->mug->id])->assertSessionHasErrors('email');
+    $this->post('/stock-alerts', ['variant' => 999, 'email' => 'x@example.com'])->assertNotFound();
+
+    app(AdjustStock::class)->handle($this->mug, 3, set: true);
+    $this->get('/products/mug')->assertDontSee('Kabari saya saat tersedia');
+    $this->post('/stock-alerts', ['variant' => $this->mug->id, 'email' => 'x@example.com'])->assertSessionHasErrors(['variant' => 'Produk ini sudah bisa dipesan.']);
+});
+
+it('emails everyone waiting once the variant can be ordered again, and only once', function () {
+    Notification::fake();
+    StockAlert::query()->create(['product_id' => $this->mug->product_id, 'variant_id' => $this->mug->id, 'email' => 'rina@example.com', 'locale' => 'en']);
+
+    $this->artisan('commerce:tick')->assertSuccessful();
+    Notification::assertNothingSent();
+
+    app(AdjustStock::class)->handle($this->mug, 5, set: true);
+    $this->artisan('commerce:tick')->assertSuccessful();
+    $this->artisan('commerce:tick')->assertSuccessful();
+
+    Notification::assertSentOnDemandTimes(StoreEmail::class, 1);
+    Notification::assertSentOnDemand(StoreEmail::class, function (StoreEmail $n, array $channels, AnonymousNotifiable $notifiable) {
+        $mail = $n->toMail($notifiable);
+
+        return $n->key === 'back_in_stock' && $notifiable->routes['mail'] === 'rina@example.com' && $n->locale === 'en'
+            && $mail->subject === 'Back in stock: Mug' && $mail->viewData['action']['url'] === url('/products/mug');
+    });
+    expect(StockAlert::query()->sole()->notified_at)->not->toBeNull();
+});
+
+it('takes alerts from signed-in customers without asking their email, and shows staff who waits', function () {
+    $user = User::query()->create(['name' => 'Ana', 'email' => 'ana@example.com', 'password' => 'secret-pass', 'email_verified_at' => now()]);
+    $this->actingAs($user, 'commerce');
+    $this->get('/products/mug')->assertDontSee('name="email"', false);
+    $this->post('/stock-alerts', ['variant' => $this->mug->id])->assertSessionHasNoErrors();
+    expect(StockAlert::query()->sole())->email->toBe('ana@example.com')->customer_id->toBe(Customer::forUser($user)->id);
+
+    actingAsUserWith(['commerce.inventory.view']);
+    $this->get('/admin/commerce/inventory?filters[waiting]=yes')->assertOk()->assertInertia(fn ($page) => $page
+        ->where('rows.total', 1)->where('rows.data.0.waiting', 1)->where('columns.4.key', 'waiting'));
+
+    app(AnonymizeCustomer::class)->handle(Customer::forUser($user));
+    expect(StockAlert::query()->count())->toBe(0);
+});
+
+it('lists only the sold-out variants of a variable product', function () {
+    publishProduct(['type' => 'variable', 'options' => [['id' => 'size', 'name' => 'Ukuran', 'values' => [['id' => 's', 'label' => 'S'], ['id' => 'm', 'label' => 'M']]]], 'variants' => [
+        ['id' => 'v-s', 'options' => ['size' => 's'], 'sku' => 'TS-S', 'price' => 90000, 'track_stock' => true, 'initial_stock' => 0],
+        ['id' => 'v-m', 'options' => ['size' => 'm'], 'sku' => 'TS-M', 'price' => 90000, 'track_stock' => true, 'initial_stock' => 4],
+    ]], title: 'Tee');
+    $small = Variant::query()->where('sku', 'TS-S')->sole();
+
+    $page = $this->get('/products/tee')->assertOk();
+    expect($page->getContent())->toContain('<option value="'.$small->id.'"')
+        ->not->toContain('<option value="'.Variant::query()->where('sku', 'TS-M')->value('id').'"');
+});
+
+it('prunes sent and stale alerts, and takes none while the module is off', function () {
+    StockAlert::query()->create(['product_id' => $this->mug->product_id, 'variant_id' => $this->mug->id, 'email' => 'old@example.com', 'notified_at' => now()->subDays(31)]);
+    StockAlert::query()->create(['product_id' => $this->mug->product_id, 'variant_id' => $this->mug->id, 'email' => 'stale@example.com'])->forceFill(['created_at' => now()->subDays(181)])->save();
+    StockAlert::query()->create(['product_id' => $this->mug->product_id, 'variant_id' => $this->mug->id, 'email' => 'new@example.com']);
+    $this->artisan('commerce:prune')->assertSuccessful();
+    expect(StockAlert::query()->pluck('email')->all())->toBe(['new@example.com']);
+
+    app(ToggleFeature::class)->handle('stock_alerts', false);
+    $this->get('/products/mug')->assertDontSee('Kabari saya saat tersedia');
+    $this->post('/stock-alerts', ['variant' => $this->mug->id, 'email' => 'x@example.com'])->assertNotFound();
+});
+
+it('sends nothing for an alert another tick has claimed', function () {
+    Notification::fake();
+    app(AdjustStock::class)->handle($this->mug, 5, set: true);
+    StockAlert::query()->create(['product_id' => $this->mug->product_id, 'variant_id' => $this->mug->id, 'email' => 'rina@example.com', 'notified_at' => now()]);
+
+    $this->artisan('commerce:tick')->assertSuccessful();
+    Notification::assertNothingSent();
+});

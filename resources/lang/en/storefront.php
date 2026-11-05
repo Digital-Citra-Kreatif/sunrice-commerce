@@ -112,6 +112,14 @@ return [
         'unshared' => 'Your wishlist is private again.',
         'share_link' => 'Share link:',
     ],
+    'stock_alert' => [
+        'title' => 'Sold out? We can email you when it\'s back.',
+        'variant' => 'Option',
+        'email' => 'Email',
+        'submit' => 'Email me when it\'s back',
+        'saved' => 'Done: we\'ll email you once when it can be ordered again.',
+        'available' => 'This one can be ordered now.',
+    ],
     'reviews' => [
         'count' => '{1} :count review|[2,*] :count reviews',
         'title' => 'Reviews',

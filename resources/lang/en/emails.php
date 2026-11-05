@@ -76,6 +76,12 @@ return [
         'intro' => '',
         'action' => 'View your order',
     ],
+    'back_in_stock' => [
+        'subject' => 'Back in stock: :product',
+        'heading' => ':product is back',
+        'intro' => 'You asked us to tell you when it could be ordered again. It can, while stock lasts.',
+        'action' => 'Order now',
+    ],
     'downloads_ready' => [
         'subject' => 'Your downloads for :number',
         'heading' => 'Your downloads are ready',

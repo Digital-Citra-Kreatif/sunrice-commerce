@@ -7,6 +7,13 @@ The first release. Commerce is a plugin for the Sunrice panel (`sunrice/admin`) 
 editor, the store's admin pages live in the panel under Shop, and the storefront renders through
 the CMS's templates and full-page cache.
 
+### Back-in-stock alerts
+- `stock_alerts` module (needs Stock tracking): "Email me when it's back" on sold-out products and
+  variants, the "Back in stock" store email sent once by `commerce:tick` when the variant can be
+  ordered again, customers waiting per variant in Shop → Inventory, pruning and anonymisation. New
+  table `commerce_stock_alerts`; `Notifications\Notifier::sendTo()` sends a store email to an
+  address of its own.
+
 ### Reviews
 - Product reviews and ratings (`reviews` module): a 1–5 star rating and text on the product page
   (`<x-commerce::reviews>`), verified purchases, who may review and whether reviews need approval

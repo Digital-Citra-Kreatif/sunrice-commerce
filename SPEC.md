@@ -258,6 +258,15 @@ keys, for example a Midtrans package requiring `payments`.
   - hide out-of-stock products from listings;
   - who is notified of low and out-of-stock items.
 
+**Back-in-stock alerts (`stock_alerts`, needs `inventory`)**
+
+- A sold-out product (or a variable product's sold-out variants) offers "Email me when it's back":
+  an email for guests, none asked from signed-in customers; once per address and variant.
+- When the variant can be ordered again (back in stock, or on backorder), everyone waiting gets the
+  store email "Back in stock" once, in the language they asked in, linking to the product.
+- Shop → Inventory shows how many wait for each variant and filters those with someone waiting.
+- Sent alerts are deleted after 30 days, unsent ones after 180; anonymising a customer deletes theirs.
+
 **Languages**
 
 - Product data is shared across languages. Translated text (title, description, names of global
@@ -1172,7 +1181,7 @@ Deliberately not used:
 - Product Q&A.
 - Subscriptions, memberships, gift cards, store credit and loyalty points (loyalty is a separate
   package).
-- Back-in-stock and price-drop alerts, product feeds (Google Merchant, Meta).
+- Price-drop alerts, product feeds (Google Merchant, Meta).
 - Configurable bundles (customer-picked components), product add-ons and personalization fields,
   deposits and installments.
 - A returns/RMA workflow and exchanges; refunds are recorded by hand.

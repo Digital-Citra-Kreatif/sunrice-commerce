@@ -112,6 +112,14 @@ return [
         'unshared' => 'Wishlist Anda kembali pribadi.',
         'share_link' => 'Tautan:',
     ],
+    'stock_alert' => [
+        'title' => 'Stok habis? Kami bisa mengabari Anda lewat email saat tersedia lagi.',
+        'variant' => 'Pilihan',
+        'email' => 'Email',
+        'submit' => 'Kabari saya saat tersedia',
+        'saved' => 'Siap: kami akan mengirim email sekali saat produk ini bisa dipesan lagi.',
+        'available' => 'Produk ini sudah bisa dipesan.',
+    ],
     'reviews' => [
         'count' => ':count ulasan',
         'title' => 'Ulasan',

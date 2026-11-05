@@ -75,6 +75,9 @@ Route::middleware(['commerce.feature:manual_payments', 'commerce.noindex'])->pre
 Route::post(StorefrontRoutes::path('reviews').'/{product}', [Storefront\ReviewsController::class, 'store'])->whereNumber('product')
     ->middleware(['commerce.feature:reviews', 'commerce.noindex', ProtectAgainstSpam::class, 'throttle:commerce-reviews'])->name('commerce.reviews.store'.$suffix);
 
+Route::post(StorefrontRoutes::path('stock_alerts'), [Storefront\StockAlertsController::class, 'store'])
+    ->middleware(['commerce.feature:stock_alerts', 'commerce.noindex', ProtectAgainstSpam::class, 'throttle:commerce-stock-alerts'])->name('commerce.stock-alerts.store'.$suffix);
+
 // Downloads keep working while the digital module is off: what was bought stays available.
 Route::get(StorefrontRoutes::path('downloads').'/{token}', Storefront\DownloadController::class)
     ->middleware(['commerce.noindex', 'throttle:commerce-downloads'])->name('commerce.download'.$suffix);

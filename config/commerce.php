@@ -77,6 +77,7 @@ return [
             'wishlist' => 'wishlist',
             'compare' => 'compare',
             'reviews' => 'reviews',
+            'stock_alerts' => 'stock-alerts',
             'brands' => 'brands',
             'flash_sale' => 'flash-sale',
             'downloads' => 'downloads',
