@@ -43,9 +43,15 @@ class TestCase extends Orchestra
         $app['config']->set('inertia.testing.ensure_pages_exist', false);
     }
 
+    /**
+     * The workbench's migrations (users, permissions, one-time passwords) run
+     * with the packages' once, by RefreshDatabase. Not loadMigrationsFrom():
+     * it rolls them back after every test, and on MySQL that DDL commits the
+     * test's transaction, so its rows leak into the next test.
+     */
     protected function defineDatabaseMigrations(): void
     {
-        $this->loadMigrationsFrom(__DIR__.'/../workbench/database/migrations');
+        $this->app->make('migrator')->path(__DIR__.'/../workbench/database/migrations');
     }
 
     protected function defineRoutes($router): void

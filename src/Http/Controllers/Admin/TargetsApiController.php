@@ -49,10 +49,10 @@ class TargetsApiController extends Controller
             $handles = (array) $request->query('taxonomies', [config('commerce.catalog.category_taxonomy'), config('commerce.catalog.brand_taxonomy')]);
             foreach (Taxonomy::query()->whereIn('handle', $handles)->get() as $taxonomy) {
                 Term::query()->where('taxonomy_id', $taxonomy->id)->with('translations')
-                    ->when($q !== '', fn ($query) => $query->whereHas('translations', fn ($t) => $t->whereLike('name', $like)))
+                    ->when($q !== '', fn ($query) => $query->whereHas('translations', fn ($t) => $t->whereLike('title', $like)))
                     ->limit(15)->get()
                     ->each(function (Term $term) use (&$results, $taxonomy) {
-                        $results[] = ['type' => 'term', 'id' => $term->id, 'label' => (string) ($term->translations->firstWhere('locale', Locales::default())->name ?? $term->id), 'group' => $taxonomy->title];
+                        $results[] = ['type' => 'term', 'id' => $term->id, 'label' => (string) ($term->translations->firstWhere('locale', Locales::default())->title ?? $term->id), 'group' => $taxonomy->title];
                     });
             }
         }

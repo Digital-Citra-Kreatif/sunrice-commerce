@@ -23,7 +23,7 @@ class SyncProductsCommand extends Command
         $failed = 0;
         $count = 0;
 
-        Entry::query()->whereIn('collection_id', $collections)->whereNotNull('published_at')
+        Entry::query()->whereIn('collection_id', $collections)->whereHas('translations', fn ($t) => $t->whereNotNull('published_at'))
             ->when($ids !== [], fn ($q) => $q->whereIn('id', $ids))
             ->with('translations')
             ->chunkById(100, function ($entries) use ($projector, &$failed, &$count): void {
