@@ -548,7 +548,8 @@ with `g:` fields. The Store health page shows its address.
   `g:item_group_id` and their titles name the variant.
 - `g:price` is the regular price as the store shows it (before flash sales and pricing rules, the
   compare-at price when higher) and `g:sale_price` the price the product page shows, when lower; `g:availability` is `in_stock`, `out_of_stock` or
-  `backorder`; also `g:link`, `g:image_link` (the variant's image, else the first of the gallery),
+  `backorder`; also `g:link` (a variable product's variant links with `?variant=<uid>`, and the
+  product page opens on that variant), `g:image_link` (the variant's image, else the first of the gallery),
   `g:description` (the excerpt), `g:brand`, `g:shipping_weight`, `g:condition` (`new`) and
   `g:identifier_exists` (`no`).
 - Built 100 products at a time and kept an hour, or until something it shows changes (a product

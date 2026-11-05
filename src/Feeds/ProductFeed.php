@@ -103,7 +103,8 @@ class ProductFeed
                 .($view->isVariable() ? $this->tag('g:item_group_id', 'P'.$view->product->id) : '')
                 .$this->tag('g:title', trim($view->title().($view->isVariable() && $variant->title !== '' ? ' — '.$variant->title : '')))
                 .$this->tag('g:description', mb_substr(strip_tags($description), 0, 5000))
-                .$this->tag('g:link', url($view->url()))
+                // A variant's own link: the product page opens on it.
+                .$this->tag('g:link', url($view->url()).($view->isVariable() ? '?variant='.rawurlencode($variant->uid) : ''))
                 .($image instanceof Media ? $this->tag('g:image_link', url($image->url())) : '')
                 .$this->tag('g:availability', match ($row['stock']) {
                     'out_of_stock' => 'out_of_stock', 'backorder' => 'backorder', default => 'in_stock'

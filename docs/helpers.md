@@ -219,7 +219,7 @@ While `hidden` is true, every amount is null and `formatted` is empty.
 | `isVariable()` | `bool` |
 | `hasBadge(string $badge)` | `bool` |
 | `canAddToCart()` | `bool`: sold by cart, purchasable and prices visible |
-| `defaultVariant()` | `?Variant`: the first active variant (or the first one) |
+| `defaultVariant()` | `?Variant`: the active variant a link names with `?variant=<uid>` (as the product feed links each variant), else the first active variant (or the first one) |
 | `variantsJson()` | `string`: `options` and `variants` as JSON, safe inside an HTML attribute |
 | `structuredData()` | `array`: schema.org `Product`, with `Offer` or `AggregateOffer` only while prices are visible |
 | `with(...$changes)` | `ProductView`: a copy with some properties changed |

@@ -130,3 +130,14 @@ it('moves to a new version only once the change commits', function () {
     });
     expect(ProductFeed::version())->toBe($version + 1);
 });
+
+it('links each variant to the product page opened on it', function () {
+    app(ToggleFeature::class)->handle('product_feeds', true);
+    $items = feedItems($this->get('/feeds/products.xml')->getContent());
+
+    expect($items['TS-M']['link'])->toBe(url('/products/tee').'?variant=v-m')
+        ->and($items['MUG']['link'])->toBe(url('/products/mug'));
+    // The page opens on M (in stock), not on S (sold out), the first variant.
+    expect($this->get('/products/tee?variant=v-m')->assertOk()->getContent())->toMatch('/value="m"[^>]*\\schecked/')
+        ->and($this->get('/products/tee')->getContent())->toMatch('/value="s"[^>]*\\schecked/');
+});
