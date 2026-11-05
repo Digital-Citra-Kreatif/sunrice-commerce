@@ -1597,7 +1597,7 @@ columns.
 
 **Files:**
 `{ListProducts,GetProduct,AdjustStock,ListCustomers,GetCustomer,ListVouchers,SaveVoucher,ListFlashSales,SaveFlashSale,SavePricingRule,SalesReport,GetStoreSettings,UpdateStoreSettings,SetStoreFeature,QuoteShipping}Tool.php`.
-`get_product` documents the `product` field's shape for `update_entry`.
+`commerce_get_product` documents the `product` field's shape for `update_entry`.
 
 **Done when:** each tool has a happy-path test and a permission or feature refusal test.
 

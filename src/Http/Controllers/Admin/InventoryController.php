@@ -18,7 +18,7 @@ use Sunrice\Commerce\Catalog\Models\StockMovement;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Inventory\Actions\AdjustStock;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Support\Locales;
 
 /** Shop → Inventory: stock of every variant, adjustments and their history. */
 class InventoryController extends Controller
@@ -32,7 +32,7 @@ class InventoryController extends Controller
         $query = Variant::query()
             ->select('commerce_variants.*', 't.title as product_title', 'commerce_products.entry_id', 'commerce_products.collection_id')
             ->join('commerce_products', 'commerce_products.id', '=', 'commerce_variants.product_id')
-            ->leftJoin('sunrice_entry_translations as t', fn ($j) => $j->on('t.entry_id', '=', 'commerce_products.entry_id')->where('t.locale', Locales::main()))
+            ->leftJoin('sunrice_entry_translations as t', fn ($j) => $j->on('t.entry_id', '=', 'commerce_products.entry_id')->where('t.locale', Locales::default()))
             ->whereNull('commerce_products.removed_at')
             ->where('commerce_products.type', '!=', 'bundle');
 

@@ -9,7 +9,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\Component;
 use Sunrice\Commerce\Catalog\ProductQuery;
 use Sunrice\Commerce\Storefront\Layout;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 /**
  * <x-commerce::products /> — a product grid with pagination, filtered by

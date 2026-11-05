@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 /*
  * Query budgets (ARCHITECTURE.md §26): page queries must not grow with

@@ -6,8 +6,8 @@ namespace Sunrice\Commerce\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
-use Sunrice\Actions\Entries\PublishTranslation;
-use Sunrice\Actions\Entries\SaveDraft;
+use Sunrice\Cms\Actions\Entries\PublishEntry;
+use Sunrice\Cms\Actions\Entries\SaveDraft;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Orders\Actions\CreateManualOrder;
@@ -17,9 +17,9 @@ use Sunrice\Commerce\Promotions\Actions\SaveVoucher;
 use Sunrice\Commerce\Settings\Actions\SaveStoreSettings;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Shipping\Models\ShippingZone;
-use Sunrice\Models\Collection;
-use Sunrice\Models\Entry;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Models\Collection;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Support\Locales;
 
 /**
  * A demo store (commerce:install --demo): store details, a simple, a
@@ -96,10 +96,10 @@ class DemoStoreSeeder extends Seeder
     {
         $collection = Collection::query()->where('handle', (string) (config('commerce.catalog.collections', ['products'])[0] ?? 'products'))->firstOrFail();
         $entry = Entry::query()->create(['collection_id' => $collection->id, 'status' => 'draft', 'sort_order' => 0]);
-        $translation = $entry->translations()->create(['locale' => Locales::main(), 'collection_id' => $collection->id, 'title' => $title,
+        $translation = $entry->translations()->create(['locale' => Locales::default(), 'collection_id' => $collection->id, 'title' => $title,
             'slug' => Str::slug($title), 'data' => [], 'seo' => []]);
         app(SaveDraft::class)->handle($translation, ['title' => $title, 'slug' => Str::slug($title), 'data' => ['excerpt' => $excerpt, 'product' => $value]]);
-        app(PublishTranslation::class)->handle($translation->fresh());
+        app(PublishEntry::class)->handle($translation->fresh());
 
         return Variant::query()->where('sku', $value['variants'][0]['sku'])->firstOrFail();
     }

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Sunrice\Commerce\Marketing\Jobs\SendMarketingEmails;
 use Sunrice\Commerce\Marketing\Models\Campaign;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Support\Locales;
 
 /**
  * Queues a marketing email for recipients: one row each (skipping anyone
@@ -35,7 +35,7 @@ class Dispatcher
                 'campaign_id' => $campaign->id,
                 'customer_id' => $recipient->customer?->id,
                 'email' => mb_strtolower($recipient->email),
-                'locale' => in_array($recipient->locale, Locales::available(), true) ? $recipient->locale : Locales::main(),
+                'locale' => in_array($recipient->locale, Locales::all(), true) ? $recipient->locale : Locales::default(),
                 'dedupe_key' => $recipient->dedupeKey,
                 'token' => Str::random(40),
                 'status' => 'queued',

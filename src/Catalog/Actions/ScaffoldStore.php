@@ -6,10 +6,10 @@ namespace Sunrice\Commerce\Catalog\Actions;
 
 use Illuminate\Support\Str;
 use Sunrice\Facades\Sunrice;
-use Sunrice\Models\Collection;
-use Sunrice\Models\Menu;
-use Sunrice\Structure\ImportReport;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Models\Collection;
+use Sunrice\Cms\Models\Menu;
+use Sunrice\Cms\Structure\ImportReport;
+use Sunrice\Cms\Support\Locales;
 
 /**
  * Creates the store structure in Sunrice (resources/structure/commerce.php):
@@ -54,7 +54,7 @@ class ScaffoldStore
         // The text goes into the page blueprint's first rich text (or textarea) field.
         $fields = (array) ($pages->blueprint->fields ?? []);
         $body = collect($fields)->firstWhere('type', 'rich_text') ?? collect($fields)->firstWhere('type', 'textarea');
-        $language = Locales::main() === 'id' ? 'id' : 'en';
+        $language = Locales::default() === 'id' ? 'id' : 'en';
 
         $entries = [];
         foreach (self::LEGAL_PAGES as $key => $titles) {

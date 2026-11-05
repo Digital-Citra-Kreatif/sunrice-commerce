@@ -6,7 +6,7 @@ namespace Sunrice\Commerce\Analytics\Reports;
 
 use Illuminate\Support\Facades\DB;
 use Sunrice\Commerce\Analytics\Period;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Support\Locales;
 
 /**
  * Sales grouped by the terms of one product taxonomy (categories, brands).
@@ -25,7 +25,7 @@ abstract class TermsReport extends Report
             ->join('commerce_products as p', 'p.id', '=', 's.product_id')
             ->join('sunrice_entry_term as et', 'et.entry_id', '=', 'p.entry_id')
             ->join('sunrice_terms as t', fn ($j) => $j->on('t.id', '=', 'et.term_id')->where('t.taxonomy_id', $taxonomyId))
-            ->leftJoin('sunrice_term_translations as tt', fn ($j) => $j->on('tt.term_id', '=', 't.id')->where('tt.locale', Locales::main()))
+            ->leftJoin('sunrice_term_translations as tt', fn ($j) => $j->on('tt.term_id', '=', 't.id')->where('tt.locale', Locales::default()))
             ->whereBetween('s.date', [$period->from, $period->to])
             ->groupBy('t.id', 'tt.name')
             ->selectRaw('t.id, tt.name, count(distinct s.product_id) as products, sum(s.units_sold) as units, sum(s.revenue) as revenue, sum(s.views) as views')

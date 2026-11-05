@@ -6,7 +6,7 @@ namespace Sunrice\Commerce\Shipping\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Support\Locales;
 
 /**
  * A method of a zone: its type, title and delivery estimate per language,
@@ -57,6 +57,6 @@ class ShippingMethod extends Model
         $values = array_filter((array) $values, fn ($v) => is_string($v) && trim($v) !== '');
         $locale ??= app()->getLocale();
 
-        return $values[$locale] ?? $values[Locales::main()] ?? (reset($values) ?: null);
+        return $values[$locale] ?? $values[Locales::default()] ?? (reset($values) ?: null);
     }
 }

@@ -13,7 +13,7 @@ use Sunrice\Admin\Table\Column;
 use Sunrice\Admin\Table\TableQuery;
 use Sunrice\Commerce\Catalog\ProductField;
 use Sunrice\Commerce\Features\Features;
-use Sunrice\Models\Collection;
+use Sunrice\Cms\Models\Collection;
 
 /** Base of the Shop admin controllers. */
 abstract class Controller extends BaseController
@@ -27,7 +27,7 @@ abstract class Controller extends BaseController
     protected function authorizeProductEditing(?Authenticatable $user): void
     {
         $collections = Collection::query()->with('blueprint')->get()->filter(fn (Collection $c) => $c->blueprint !== null
-            && collect($c->blueprint->schema()->fields())->contains(fn (array $f) => ($f['type'] ?? null) === ProductField::type()));
+            && collect($c->blueprint->schema()->fields())->contains(fn (array $f) => ($f['type'] ?? null) === (new ProductField)->type()));
         abort_unless($user instanceof Authorizable && $collections->contains(fn (Collection $c) => collect(['create', 'edit', 'edit-own'])
             ->contains(fn (string $action) => $user->can("sunrice.entries.{$c->id}.{$action}"))), 403);
     }

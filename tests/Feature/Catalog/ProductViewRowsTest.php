@@ -11,7 +11,7 @@ use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Catalog\ProductView;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 /*
  * A view's picker rows (ProductView::$variants) are built the first time
@@ -148,7 +148,7 @@ it('keeps rows unbuilt through with() and extenders, and lets them replace the r
         ->and($copy->variants)->toBe($view->variants)
         ->and(CountingProductViewFactory::$built)->toBe(1) // the copy shares the built rows
         ->and($view->with(variants: [['uid' => 'only']])->variants)->toBe([['uid' => 'only']])
-        ->and(new ProductView($view->entry, $view->product, 'variable', $view->price, [], $view->stock, $view->cta, [], [], [['uid' => 'given']])->variants)->toBe([['uid' => 'given']]);
+        ->and((new ProductView($view->entry, $view->product, 'variable', $view->price, [], $view->stock, $view->cta, [], [], [['uid' => 'given']]))->variants)->toBe([['uid' => 'given']]);
 
     $restored = unserialize(serialize($copy));
     expect($restored->variants)->toBe($view->variants)->and($restored->price)->toBe($view->price);

@@ -17,7 +17,7 @@ use Sunrice\Commerce\Orders\Actions\RecordRefund;
 #[Description('Record a refund on a paid order (money already returned to the customer, e.g. by bank transfer). amount is in the smallest currency unit, at most paid minus refunded; items {item_id, quantity} mark what came back and restock puts them back in stock. Needs confirm: true — ask the user first.')]
 class RefundOrderTool extends CommerceTool
 {
-    protected string $name = 'refund_order';
+    protected string $name = 'commerce_refund_order';
 
     protected ?string $feature = 'orders';
 

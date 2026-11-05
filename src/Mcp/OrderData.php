@@ -62,7 +62,7 @@ final class OrderData
             ])->all(),
             'refunds' => $order->refunds->map(fn (Refund $r) => ['amount' => self::money($r->amount), 'reason' => $r->reason, 'at' => $r->created_at?->toIso8601String()])->all(),
             'timeline' => $order->events->map(fn (OrderEvent $e) => ['at' => $e->created_at?->toIso8601String(), 'type' => $e->type, 'message' => $e->message])->all(),
-            // What update_order can move it to now.
+            // What commerce_update_order can move it to now.
             'next_statuses' => array_values(array_filter($targets, fn (string $to) => $to !== $order->status && $states->can($order, $to))),
         ];
     }

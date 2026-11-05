@@ -29,7 +29,7 @@ use Sunrice\Commerce\Marketing\StartingPoints;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\ActivityRecorder;
 use Sunrice\Fields\BlueprintSchema;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Support\Locales;
 
 /** Shop → Marketing (Campaigns and Automations): marketing emails, their audiences and results. */
 class MarketingController extends Controller
@@ -240,7 +240,7 @@ class MarketingController extends Controller
             'campaign' => [
                 'id' => $campaign->id, 'name' => $campaign->name, 'type' => $campaign->type, 'status' => $campaign->status,
                 'editable' => $campaign->editable(), 'trigger' => $trigger !== null ? $this->triggerSummary($campaign, $trigger) : null,
-                'subject' => $campaign->contentFor(Locales::main())['subject'],
+                'subject' => $campaign->contentFor(Locales::default())['subject'],
                 'started_at' => $campaign->started_at?->toIso8601String(), 'finished_at' => $campaign->finished_at?->toIso8601String(),
                 'scheduled_at' => $campaign->scheduled_at?->toIso8601String(),
             ],
@@ -265,7 +265,7 @@ class MarketingController extends Controller
         $triggers = app(Triggers::class);
         $automation = $campaign->isAutomation();
         $content = [];
-        foreach (Locales::available() as $locale) {
+        foreach (Locales::all() as $locale) {
             $content[$locale] = array_replace(['subject' => '', 'preheader' => '', 'body' => '', 'button_label' => '', 'button_url' => ''],
                 array_map(fn ($v) => (string) $v, (array) (($campaign->content ?? [])[$locale] ?? [])));
         }
@@ -280,8 +280,8 @@ class MarketingController extends Controller
                 'scheduled_at' => $campaign->scheduled_at?->toIso8601String(),
                 'sent_count' => $campaign->sent_count,
             ],
-            'locales' => array_map(fn (string $l) => ['code' => $l, 'name' => Locales::name($l)], Locales::available()),
-            'mainLocale' => Locales::main(),
+            'locales' => array_map(fn (string $l) => ['code' => $l, 'name' => Locales::name($l)], Locales::all()),
+            'mainLocale' => Locales::default(),
             'rules' => Audience::rules(),
             'tags' => SmartTags::all(),
             'triggers' => $automation ? array_values(array_map(fn (Trigger $t) => [
@@ -298,7 +298,7 @@ class MarketingController extends Controller
     /** @return array{0: Campaign, 1: Customer, 2: string} the unsaved campaign, a sample recipient and the language */
     protected function draft(Request $request): array
     {
-        $locale = in_array($request->input('locale'), Locales::available(), true) ? (string) $request->input('locale') : Locales::main();
+        $locale = in_array($request->input('locale'), Locales::all(), true) ? (string) $request->input('locale') : Locales::default();
         $campaign = new Campaign([
             'type' => Campaign::CAMPAIGN,
             'content' => (array) $request->input('content', []),

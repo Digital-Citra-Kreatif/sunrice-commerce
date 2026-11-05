@@ -10,7 +10,7 @@
         @include(\Sunrice\Commerce\Storefront\Layout::view('partials.messages'))
         @if ($entries->isEmpty())
             @include(\Sunrice\Commerce\Storefront\Layout::view('partials.empty'), ['title' => __('commerce::storefront.compare.empty'), 'icon' => 'compare',
-                'action' => ['url' => url(\Sunrice\Support\Locales::prefix(app()->getLocale()) ?: '/'), 'label' => __('commerce::storefront.cart.continue')]])
+                'action' => ['url' => url(\Sunrice\Cms\Support\Locales::prefix(app()->getLocale()) ?: '/'), 'label' => __('commerce::storefront.cart.continue')]])
         @else
             @php($views = $entries->mapWithKeys(fn ($e) => [$e->id => commerce_product($e)]))
             <div class="commerce-compare__scroll">

@@ -17,10 +17,10 @@ use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\OrderStatus;
 
 #[IsReadOnly]
-#[Description('List orders or quotes, newest first. Filter by type (order, quote), status, payment_status, fulfillment_status, a date range (from, to: Y-m-d) and search (number, name, email, phone or SKU). Use get_order for one order\'s items, addresses, shipments and timeline.')]
+#[Description('List orders or quotes, newest first. Filter by type (order, quote), status, payment_status, fulfillment_status, a date range (from, to: Y-m-d) and search (number, name, email, phone or SKU). Use commerce_get_order for one order\'s items, addresses, shipments and timeline.')]
 class ListOrdersTool extends CommerceTool
 {
-    protected string $name = 'list_orders';
+    protected string $name = 'commerce_list_orders';
 
     protected ?string $feature = 'orders';
 

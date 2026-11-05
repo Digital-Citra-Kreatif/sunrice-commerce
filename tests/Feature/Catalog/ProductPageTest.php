@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\View;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 beforeEach(fn () => app(ScaffoldStore::class)->handle());
 

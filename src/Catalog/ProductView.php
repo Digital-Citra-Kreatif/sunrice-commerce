@@ -9,7 +9,7 @@ use JsonSerializable;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 /**
  * What templates show for a product (ARCHITECTURE.md §7.4): its price

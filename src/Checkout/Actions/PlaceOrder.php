@@ -54,8 +54,8 @@ use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Promotions\Vouchers\VoucherRedemptions;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\Phone;
-use Sunrice\Models\Entry;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Support\Locales;
 
 /**
  * Turns a cart into an order or quote (ARCHITECTURE.md §11.3), in one
@@ -310,7 +310,7 @@ class PlaceOrder
     /** Lines as snapshots; bundle components as child lines. */
     public function insertLines(Order $order, CalculationState $state): void
     {
-        $locale = (string) ($order->locale ?? Locales::main());
+        $locale = (string) ($order->locale ?? Locales::default());
         $this->loadSnapshots($state);
         foreach ($state->lines as $line) {
             $item = OrderItem::query()->create($this->lineAttributes($order, $line, $locale));
@@ -498,7 +498,7 @@ class PlaceOrder
             return (string) ($variant->sku ?? 'Product');
         }
         $entry->loadMissing('translations');
-        $translation = $entry->translations->firstWhere('locale', $locale) ?? $entry->translations->firstWhere('locale', Locales::main()) ?? $entry->translations->first();
+        $translation = $entry->translations->firstWhere('locale', $locale) ?? $entry->translations->firstWhere('locale', Locales::default()) ?? $entry->translations->first();
 
         return (string) ($translation->title ?? $variant->sku ?? 'Product');
     }

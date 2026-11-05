@@ -16,10 +16,10 @@ use Sunrice\Commerce\Catalog\Models\ProductOptionValue;
 use Sunrice\Commerce\Catalog\Models\StockMovement;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Storefront\PageCache;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 use Sunrice\Models\Scopes\HiddenWithParent;
-use Sunrice\Models\Taxonomy;
-use Sunrice\Models\Term;
+use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\Term;
 use Throwable;
 
 /**

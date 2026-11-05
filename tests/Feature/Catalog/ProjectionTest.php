@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Event;
-use Sunrice\Actions\Entries\ForceDeleteEntry;
-use Sunrice\Actions\Entries\PublishTranslation;
+use Sunrice\Cms\Actions\Entries\ForceDeleteEntry;
+use Sunrice\Cms\Actions\Entries\PublishEntry;
 use Sunrice\Commerce\Catalog\Events\ProductSynced;
 use Sunrice\Commerce\Catalog\Events\ProductSyncFailed;
 use Sunrice\Commerce\Catalog\Models\Product;
@@ -77,7 +77,7 @@ it('records a failure without breaking the publish', function () {
     Event::fake([ProductSyncFailed::class]);
     $entry = publishProduct(shirt(), publish: false);
     Variant::factory()->create(['sku' => 'TS-S']); // taken between saving and publishing
-    app(PublishTranslation::class)->handle($entry->mainTranslation());
+    app(PublishEntry::class)->handle($entry->mainTranslation());
     $entry->refresh();
 
     expect($entry->status)->toBe('published');

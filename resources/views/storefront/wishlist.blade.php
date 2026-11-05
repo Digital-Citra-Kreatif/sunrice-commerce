@@ -15,7 +15,7 @@
         @include($L::view('partials.messages'))
         @if ($products->isEmpty())
             @include($L::view('partials.empty'), ['title' => __('commerce::storefront.wishlist.empty'), 'text' => __('commerce::storefront.theme.wishlist_empty_text'), 'icon' => 'heart',
-                'action' => ['url' => url(\Sunrice\Support\Locales::prefix(app()->getLocale()) ?: '/'), 'label' => __('commerce::storefront.cart.continue')]])
+                'action' => ['url' => url(\Sunrice\Cms\Support\Locales::prefix(app()->getLocale()) ?: '/'), 'label' => __('commerce::storefront.cart.continue')]])
         @else
             <div class="commerce-grid commerce-grid--wide">
                 @foreach ($products as $entry)

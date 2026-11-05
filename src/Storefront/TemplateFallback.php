@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Storefront;
 
-use Sunrice\Frontend\TemplateContext;
+use Sunrice\Cms\Site\Page;
 
 /**
  * Swaps Sunrice's generic templates for commerce's store views on product
@@ -16,7 +16,7 @@ final class TemplateFallback
 {
     public const GENERIC = ['sunrice::defaults.show', 'sunrice::defaults.index', 'sunrice::defaults.term', 'sunrice.show', 'sunrice.index', 'sunrice.taxonomies.show'];
 
-    public static function resolve(string $view, TemplateContext $context): ?string
+    public static function resolve(string $view, Page $context): ?string
     {
         // With Brands off, brand pages don't exist (published templates included).
         if ($context->pageType === 'term' && $context->taxonomy?->handle === config('commerce.catalog.brand_taxonomy') && ! commerce_feature('brands')) {

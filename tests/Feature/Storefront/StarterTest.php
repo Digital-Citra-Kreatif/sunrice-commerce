@@ -17,10 +17,10 @@ use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Regions\RegionImporter;
 use Sunrice\Commerce\Storefront\Templates;
 use Sunrice\Models\Asset;
-use Sunrice\Models\Entry;
-use Sunrice\Models\Menu;
-use Sunrice\Models\Term;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\Menu;
+use Sunrice\Cms\Models\Term;
+use Sunrice\Cms\Support\Locales;
 use Workbench\App\Models\User;
 
 /*
@@ -105,7 +105,7 @@ it('still renders the documents of starter orders as PDFs', function () {
 it('seeds in the store language, with one shot per colour', function () {
     app()->setLocale('en');
     starterStore();
-    $locale = Locales::main();
+    $locale = Locales::default();
     $customer = Customer::query()->firstOrFail();
 
     expect(app()->getLocale())->toBe('en')

@@ -6,8 +6,8 @@ namespace Sunrice\Commerce\Console;
 
 use Illuminate\Console\Command;
 use Sunrice\Commerce\Catalog\ProductProjector;
-use Sunrice\Models\Collection;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Collection;
+use Sunrice\Cms\Models\Entry;
 
 /** commerce:sync-products — re-project published product entries (all, or --entry=ID…). */
 class SyncProductsCommand extends Command

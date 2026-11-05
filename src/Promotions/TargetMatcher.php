@@ -6,7 +6,7 @@ namespace Sunrice\Commerce\Promotions;
 
 use Illuminate\Support\Facades\DB;
 use Sunrice\Commerce\Catalog\Models\Variant;
-use Sunrice\Models\Term;
+use Sunrice\Cms\Models\Term;
 
 /**
  * Whether a variant is among targets (products, variants, terms with

@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Inertia\Testing\AssertableInertia;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Models\ActivityLog;
+use Sunrice\Admin\Activity\ActivityLog;
 
 it('opens the first section the user may edit from the Store tab', function () {
     actingAsUserWith(['commerce.settings.catalog']);

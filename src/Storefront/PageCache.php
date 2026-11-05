@@ -6,24 +6,21 @@ namespace Sunrice\Commerce\Storefront;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Sunrice\Cms\Events\ContentChanged;
+use Sunrice\Cms\Site\Page;
+use Sunrice\Cms\Site\PageCache as SitePageCache;
 use Sunrice\Commerce\Cart\CompareList;
 use Sunrice\Commerce\Wishlist\WishlistManager;
-use Sunrice\Events\ContentChanged;
-use Sunrice\Frontend\TemplateContext;
-use Sunrice\Sunrice;
 
 /**
- * Store pages in Sunrice's full-page cache (U11). Commerce's own pages
- * (cart, checkout, account…) are never cached. Visitors with a cart,
- * wishlist, comparison or customer account always get fresh pages, so
- * every cached page is the one an anonymous visitor sees. Product, shop
- * and product term pages, and any page showing a product, are cached for
- * those visitors for commerce.cache.product_pages_ttl seconds, and cleared
- * when a product sells out or comes back, runs low, or prices change
- * (pricing rules, flash sales).
- *
- * On Sunrice versions without Sunrice::bypassPageCacheUsing(), product
- * pages are left out instead, as before.
+ * Store pages in the CMS's full-page cache. Commerce's own pages (cart,
+ * checkout, account…) are never kept. Visitors with a cart, wishlist,
+ * comparison or customer account always get fresh pages, so every kept
+ * page is the one an anonymous visitor sees. Product, shop and product
+ * term pages, and any page showing a product, are kept for those visitors
+ * for commerce.cache.product_pages_ttl seconds, and cleared when a product
+ * sells out or comes back, runs low, or prices change (pricing rules,
+ * flash sales).
  */
 final class PageCache
 {
@@ -32,39 +29,18 @@ final class PageCache
 
     public static function register(): void
     {
-        // Sunrice::cachePageUsing() arrives with U11; before it, the health check warns about the cache.
-        $sunrice = app(Sunrice::class);
-        $add = [$sunrice, 'cachePageUsing'];
-        if (is_callable($add)) {
-            $add(fn (Request $request, ?TemplateContext $page): bool => self::cacheable($request, $page));
-        }
-        // The bypass and lifetime hooks arrive later; without them product pages stay out.
-        $bypass = [$sunrice, 'bypassPageCacheUsing'];
-        $lifetime = [$sunrice, 'pageCacheLifetimeUsing'];
-        if (is_callable($bypass) && is_callable($lifetime)) {
-            $bypass(fn (Request $request): bool => self::personal($request));
-            $lifetime(fn (Request $request, ?TemplateContext $page): ?int => self::showsProducts($request, $page) ? self::productPagesTtl() : null);
-        }
+        app(SitePageCache::class)
+            ->skipWhen(fn (Request $request, ?Page $page): bool => ! self::cacheable($request, $page))
+            ->lifetimeUsing(fn (Request $request, ?Page $page): ?int => self::showsProducts($request, $page) ? self::productPagesTtl() : null);
     }
 
-    public static function supported(): bool
-    {
-        return method_exists(Sunrice::class, 'cachePageUsing');
-    }
-
-    /** Whether Sunrice can send visitors past the cache before it serves a page. */
-    public static function bypassSupported(): bool
-    {
-        return method_exists(Sunrice::class, 'bypassPageCacheUsing') && method_exists(Sunrice::class, 'pageCacheLifetimeUsing');
-    }
-
-    public static function cacheable(Request $request, ?TemplateContext $page): bool
+    public static function cacheable(Request $request, ?Page $page): bool
     {
         if (str_starts_with((string) $request->route()?->getName(), 'commerce.') || self::personal($request)) {
             return false;
         }
 
-        return ! self::showsProducts($request, $page) || (self::bypassSupported() && self::productPagesTtl() > 0);
+        return ! self::showsProducts($request, $page) || self::productPagesTtl() > 0;
     }
 
     /**
@@ -85,7 +61,7 @@ final class PageCache
     }
 
     /** Product, shop and product term pages, and any page that showed a product. */
-    public static function showsProducts(Request $request, ?TemplateContext $page): bool
+    public static function showsProducts(Request $request, ?Page $page): bool
     {
         if ($request->attributes->get(self::DYNAMIC)) {
             return true;
@@ -93,9 +69,9 @@ final class PageCache
         $collections = (array) config('commerce.catalog.collections', ['products']);
         $taxonomies = array_filter([config('commerce.catalog.category_taxonomy'), config('commerce.catalog.brand_taxonomy'), config('commerce.catalog.tag_taxonomy')]);
 
-        return match ($page?->pageType) {
-            'entry', 'archive' => in_array($page->collection?->handle, $collections, true),
-            'term' => in_array($page->taxonomy?->handle, $taxonomies, true),
+        return match ($page?->type) {
+            Page::ENTRY, Page::LISTING => in_array($page->collection?->handle, $collections, true),
+            Page::TERM => in_array($page->term?->term?->taxonomy?->handle, $taxonomies, true),
             default => false,
         };
     }
@@ -119,7 +95,7 @@ final class PageCache
      */
     public static function forget(string $reason): void
     {
-        if (! config('sunrice.cache.full_page') || ! self::bypassSupported()) {
+        if (! SitePageCache::enabled()) {
             return;
         }
         DB::afterCommit(fn () => ContentChanged::dispatch('commerce.'.$reason));

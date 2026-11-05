@@ -7,7 +7,7 @@
     <section class="commerce-term commerce-brand">
         <header class="commerce-listing__header commerce-brand__header">
             @include($L::view('partials.breadcrumbs'), ['items' => [
-                ['label' => __('commerce::storefront.theme.home'), 'url' => url(\Sunrice\Support\Locales::prefix(app()->getLocale()) ?: '/')],
+                ['label' => __('commerce::storefront.theme.home'), 'url' => url(\Sunrice\Cms\Support\Locales::prefix(app()->getLocale()) ?: '/')],
                 ['label' => __('commerce::storefront.listing.brands'), 'url' => \Illuminate\Support\Facades\Route::has('commerce.brands') ? commerce_url('commerce.brands') : null],
                 ['label' => $term->name, 'url' => null],
             ]])

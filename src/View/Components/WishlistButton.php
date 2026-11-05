@@ -9,7 +9,7 @@ use Illuminate\View\Component;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Wishlist\WishlistManager;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 /** <x-commerce::wishlist-button :entry="$entry" /> — add to / remove from the wishlist. */
 class WishlistButton extends Component

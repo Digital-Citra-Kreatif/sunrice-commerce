@@ -20,7 +20,7 @@ use Sunrice\Sunrice;
 #[Description('Start here for store work: the store\'s name, selling mode (shop, quote or WhatsApp), currency, which store modules are on, what needs doing (orders to ship, payments to verify, quotes, low stock) and which store tools you may use. Money in every store tool is an integer in the currency\'s smallest unit plus a formatted string.')]
 class GetStoreInfoTool extends CommerceTool
 {
-    protected string $name = 'get_store_info';
+    protected string $name = 'commerce_get_store_info';
 
     protected function run(Request $request): Response
     {

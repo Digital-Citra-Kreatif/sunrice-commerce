@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Sunrice\Commerce\Marketing\Tracker;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Support\Locales;
 
 /**
  * Marketing email links (stateless, like webhooks: no session or CSRF;
@@ -62,6 +62,6 @@ class MarketingTrackingController extends Controller
 
     protected function locale(?string $locale): void
     {
-        app()->setLocale(in_array($locale, Locales::available(), true) ? (string) $locale : Locales::main());
+        app()->setLocale(in_array($locale, Locales::all(), true) ? (string) $locale : Locales::default());
     }
 }

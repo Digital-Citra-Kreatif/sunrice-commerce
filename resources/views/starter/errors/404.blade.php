@@ -7,7 +7,7 @@
 
 @php
     $locale = app()->getLocale();
-    $shop = \Sunrice\Models\Collection::query()->where('handle', (string) (config('commerce.catalog.collections', ['products'])[0] ?? 'products'))->first();
+    $shop = \Sunrice\Cms\Models\Collection::query()->where('handle', (string) (config('commerce.catalog.collections', ['products'])[0] ?? 'products'))->first();
     $shopUrl = url($shop !== null ? app(\Sunrice\Frontend\UrlGenerator::class)->archive($shop) : '/products');
 @endphp
 
@@ -23,7 +23,7 @@
             <button type="submit" class="commerce-button commerce-button--primary">{{ __('commerce::storefront.theme.search') }}</button>
         </form>
         <p class="commerce-empty__actions">
-            <a class="commerce-button commerce-button--secondary" href="{{ url(\Sunrice\Support\Locales::prefix($locale) ?: '/') }}">{{ __('sunrice::frontend.back_home') }}</a>
+            <a class="commerce-button commerce-button--secondary" href="{{ url(\Sunrice\Cms\Support\Locales::prefix($locale) ?: '/') }}">{{ __('sunrice::frontend.back_home') }}</a>
             <a class="commerce-button commerce-button--primary" href="{{ $shopUrl }}">{{ __('commerce::storefront.theme.shop_now') }}</a>
         </p>
     </section>

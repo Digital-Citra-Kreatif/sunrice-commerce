@@ -7,7 +7,7 @@ namespace Sunrice\Commerce\Catalog\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Sunrice\Models\Term;
+use Sunrice\Cms\Models\Term;
 
 /**
  * A value of an option: a label (custom options) or a term (attribute taxonomies).

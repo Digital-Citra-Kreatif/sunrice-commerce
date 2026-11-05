@@ -20,7 +20,7 @@ use Sunrice\Commerce\Notifications\StoreEmail;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\ActivityRecorder;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Support\Locales;
 
 /** Settings → Store → Emails: every email's switch, recipients, texts and attachments, with a preview and a test. */
 class EmailsSettingsController extends Controller
@@ -106,7 +106,7 @@ class EmailsSettingsController extends Controller
         $this->guard();
         $this->email($emails, $key);
         abort_unless($this->usesStoreEmail($key), 404);
-        $locale = in_array($request->query('lang'), Locales::available(), true) ? (string) $request->query('lang') : Locales::main();
+        $locale = in_array($request->query('lang'), Locales::all(), true) ? (string) $request->query('lang') : Locales::default();
 
         return response($this->render($key, $locale), 200, ['Content-Type' => 'text/html; charset=utf-8']);
     }
@@ -117,7 +117,7 @@ class EmailsSettingsController extends Controller
         $this->email($emails, $key);
         abort_unless($this->usesStoreEmail($key), 404);
         $to = (string) $request->user()->getAttribute('email');
-        Notification::route('mail', $to)->notifyNow((new StoreEmail($key, $this->sampleOrder(), null, null, [], Locales::main()))->locale(Locales::main()));
+        Notification::route('mail', $to)->notifyNow((new StoreEmail($key, $this->sampleOrder(), null, null, [], Locales::default()))->locale(Locales::default()));
 
         return back()->with('success', "Test email sent to {$to}.");
     }
@@ -138,7 +138,7 @@ class EmailsSettingsController extends Controller
         return Order::query()->where('type', 'order')->latest('id')->first() ?? (new Order)->forceFill([
             'id' => 0, 'type' => 'order', 'number' => 'ORD-SAMPLE-0001', 'order_key' => str_repeat('x', 40), 'status' => 'pending', 'payment_status' => 'unpaid',
             'fulfillment_status' => 'unfulfilled', 'customer_name' => 'Rina', 'email' => 'rina@example.com', 'subtotal' => 100000, 'total' => 110000,
-            'shipping_total' => 10000, 'shipping_method' => ['label' => 'JNE REG'], 'placed_at' => now(), 'currency' => 'IDR', 'locale' => Locales::main(),
+            'shipping_total' => 10000, 'shipping_method' => ['label' => 'JNE REG'], 'placed_at' => now(), 'currency' => 'IDR', 'locale' => Locales::default(),
         ]);
     }
 
@@ -165,7 +165,7 @@ class EmailsSettingsController extends Controller
     {
         $perLanguage = function (string $handle, string $label, string $type = 'text') {
             $fields = [];
-            foreach (Locales::available() as $locale) {
+            foreach (Locales::all() as $locale) {
                 $fields[] = ['handle' => $locale, 'type' => $type, 'label' => Locales::name($locale), 'translatable' => false, 'config' => ['max' => $type === 'text' ? 200 : 2000]];
             }
 

@@ -5,8 +5,8 @@ declare(strict_types=1);
 use Illuminate\Support\Str;
 use Laravel\Mcp\Server\Testing\TestResponse;
 use Spatie\Permission\Models\Role;
-use Sunrice\Actions\Entries\PublishTranslation;
-use Sunrice\Actions\Entries\SaveDraft;
+use Sunrice\Cms\Actions\Entries\PublishEntry;
+use Sunrice\Cms\Actions\Entries\SaveDraft;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
@@ -20,12 +20,12 @@ use Sunrice\Commerce\Shipping\Models\ShippingMethod;
 use Sunrice\Commerce\Shipping\Models\ShippingZone;
 use Sunrice\Commerce\Tests\TestCase;
 use Sunrice\Mcp\SunriceServer;
-use Sunrice\Models\Blueprint;
-use Sunrice\Models\Collection;
-use Sunrice\Models\Entry;
-use Sunrice\Models\Taxonomy;
-use Sunrice\Models\Term;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Models\Blueprint;
+use Sunrice\Cms\Models\Collection;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\Term;
+use Sunrice\Cms\Support\Locales;
 use Workbench\App\Commerce\TestTransfer;
 use Workbench\App\Models\User;
 
@@ -89,12 +89,12 @@ function publishProduct(array $value, ?Entry $entry = null, string $title = 'T-s
 {
     $collection = productCollection();
     $entry ??= Entry::query()->create(['collection_id' => $collection->id, 'status' => 'draft', 'sort_order' => 0]);
-    $translation = $entry->translations()->firstOrCreate(['locale' => Locales::main()], [
+    $translation = $entry->translations()->firstOrCreate(['locale' => Locales::default()], [
         'collection_id' => $collection->id, 'title' => $title, 'slug' => Str::slug($title), 'data' => [], 'seo' => [],
     ]);
     app(SaveDraft::class)->handle($translation, ['title' => $title, 'slug' => Str::slug($title), 'data' => ['product' => $value]]);
     if ($publish) {
-        app(PublishTranslation::class)->handle($translation->fresh());
+        app(PublishEntry::class)->handle($translation->fresh());
     }
 
     return $entry->fresh();

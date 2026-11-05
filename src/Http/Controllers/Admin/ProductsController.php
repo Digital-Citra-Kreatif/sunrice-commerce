@@ -16,12 +16,12 @@ use Sunrice\Admin\Table\TableQuery;
 use Sunrice\Commerce\Catalog\Actions\UpdateProductValues;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Support\MoneyFormatter;
-use Sunrice\Models\Collection;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Collection;
+use Sunrice\Cms\Models\Entry;
 use Sunrice\Models\Scopes\HiddenWithParent;
-use Sunrice\Models\Taxonomy;
-use Sunrice\Models\Term;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\Term;
+use Sunrice\Cms\Support\Locales;
 
 /** Shop → Products: product entries with their commerce data; rows open Sunrice's entry editor. */
 class ProductsController extends Controller
@@ -34,9 +34,9 @@ class ProductsController extends Controller
         $query = Entry::query()->withTrashed()->withoutGlobalScope(HiddenWithParent::class)
             ->select('sunrice_entries.*', 't.title as product_title', 'p.type', 'p.min_price', 'p.max_price', 'p.in_stock', 'p.featured', 'p.sync_status', 'p.sync_error', 'p.id as product_id')
             ->whereIn('sunrice_entries.collection_id', $collections->pluck('id'))
-            ->leftJoin('sunrice_entry_translations as t', fn ($j) => $j->on('t.entry_id', '=', 'sunrice_entries.id')->where('t.locale', Locales::main()))
+            ->leftJoin('sunrice_entry_translations as t', fn ($j) => $j->on('t.entry_id', '=', 'sunrice_entries.id')->where('t.locale', Locales::default()))
             ->leftJoin('commerce_products as p', 'p.entry_id', '=', 'sunrice_entries.id')
-            ->with(['terms.translations', 'collection:id,handle', 'translations' => fn ($q) => $q->where('locale', Locales::main())]);
+            ->with(['terms.translations', 'collection:id,handle', 'translations' => fn ($q) => $q->where('locale', Locales::default())]);
 
         $table = TableQuery::for($query)
             // Title or SKU.
@@ -110,7 +110,7 @@ class ProductsController extends Controller
                     },
                     'sync_failed' => $entry->getAttribute('sync_status') === 'failed',
                     'sync_error' => $entry->getAttribute('sync_error'),
-                    'categories' => $entry->terms->where('taxonomy_id', $categoryTaxonomy)->map(fn ($t) => $t->translations->firstWhere('locale', Locales::main())->name ?? '')->values()->implode(', '),
+                    'categories' => $entry->terms->where('taxonomy_id', $categoryTaxonomy)->map(fn ($t) => $t->translations->firstWhere('locale', Locales::default())->name ?? '')->values()->implode(', '),
                     'can_edit' => $user->can('update', $entry),
                 ];
             }), [
@@ -172,7 +172,7 @@ class ProductsController extends Controller
         $model = Taxonomy::query()->where('handle', $taxonomy)->first();
 
         return $model === null ? [] : Term::query()->where('taxonomy_id', $model->id)->with('translations')->get()
-            ->map(fn ($t) => ['value' => (string) $t->id, 'label' => (string) ($t->translations->firstWhere('locale', Locales::main())->name ?? $t->id)])
+            ->map(fn ($t) => ['value' => (string) $t->id, 'label' => (string) ($t->translations->firstWhere('locale', Locales::default())->name ?? $t->id)])
             ->sortBy('label')->values()->all();
     }
 }

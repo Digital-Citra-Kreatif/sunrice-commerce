@@ -8,9 +8,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
-use Sunrice\Models\Taxonomy;
-use Sunrice\Models\Term;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\Term;
+use Sunrice\Cms\Support\Locales;
 
 /** GET commerce/api/targets?q=…&types[]=product&taxonomies[]=brands — choices for the targets picker. */
 class TargetsApiController extends Controller
@@ -25,7 +25,7 @@ class TargetsApiController extends Controller
         $results = [];
 
         if (in_array('product', $types, true)) {
-            Product::query()->join('sunrice_entry_translations as t', fn ($j) => $j->on('t.entry_id', '=', 'commerce_products.entry_id')->where('t.locale', Locales::main()))
+            Product::query()->join('sunrice_entry_translations as t', fn ($j) => $j->on('t.entry_id', '=', 'commerce_products.entry_id')->where('t.locale', Locales::default()))
                 ->whereNull('commerce_products.removed_at')
                 ->when($q !== '', fn ($query) => $query->whereLike('t.title', $like))
                 ->orderBy('t.title')->limit(15)->get(['commerce_products.id', 't.title'])
@@ -35,7 +35,7 @@ class TargetsApiController extends Controller
         }
         if (in_array('variant', $types, true) && $q !== '') {
             Variant::query()->join('commerce_products as p', 'p.id', '=', 'commerce_variants.product_id')
-                ->join('sunrice_entry_translations as t', fn ($j) => $j->on('t.entry_id', '=', 'p.entry_id')->where('t.locale', Locales::main()))
+                ->join('sunrice_entry_translations as t', fn ($j) => $j->on('t.entry_id', '=', 'p.entry_id')->where('t.locale', Locales::default()))
                 ->whereNull('p.removed_at')
                 ->where(fn ($w) => $w->whereLike('commerce_variants.sku', $like)->orWhereLike('t.title', $like))
                 ->orderBy('t.title')->orderBy('commerce_variants.position')->limit(15)
@@ -52,7 +52,7 @@ class TargetsApiController extends Controller
                     ->when($q !== '', fn ($query) => $query->whereHas('translations', fn ($t) => $t->whereLike('name', $like)))
                     ->limit(15)->get()
                     ->each(function (Term $term) use (&$results, $taxonomy) {
-                        $results[] = ['type' => 'term', 'id' => $term->id, 'label' => (string) ($term->translations->firstWhere('locale', Locales::main())->name ?? $term->id), 'group' => $taxonomy->title];
+                        $results[] = ['type' => 'term', 'id' => $term->id, 'label' => (string) ($term->translations->firstWhere('locale', Locales::default())->name ?? $term->id), 'group' => $taxonomy->title];
                     });
             }
         }

@@ -6,8 +6,8 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Sunrice\Commerce\Database\Seeders\CommerceRolesSeeder;
 use Sunrice\Commerce\Permissions\CommercePermissions;
-use Sunrice\Models\Blueprint;
-use Sunrice\Models\Collection;
+use Sunrice\Cms\Models\Blueprint;
+use Sunrice\Cms\Models\Collection;
 use Workbench\App\Models\User;
 
 it('registers commerce permissions with Sunrice', function () {

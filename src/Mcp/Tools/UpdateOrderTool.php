@@ -18,10 +18,10 @@ use Sunrice\Commerce\Orders\Actions\UpdateOrderAddresses;
 use Sunrice\Commerce\Orders\OrderStateMachine;
 use Sunrice\Commerce\Orders\OrderStatus;
 
-#[Description('Change an order the way staff do in the admin, one or more of: status (with a reason; see get_order\'s next_statuses), a note (to_customer emails it), a shipment with tracking (all unshipped items unless items is given), marking it paid, and its addresses. Cancelling and marking paid need confirm: true — ask the user first. Each change needs its own permission.')]
+#[Description('Change an order the way staff do in the admin, one or more of: status (with a reason; see commerce_get_order\'s next_statuses), a note (to_customer emails it), a shipment with tracking (all unshipped items unless items is given), marking it paid, and its addresses. Cancelling and marking paid need confirm: true — ask the user first. Each change needs its own permission.')]
 class UpdateOrderTool extends CommerceTool
 {
-    protected string $name = 'update_order';
+    protected string $name = 'commerce_update_order';
 
     protected ?string $feature = 'orders';
 
@@ -103,7 +103,7 @@ class UpdateOrderTool extends CommerceTool
     {
         return [
             'order' => $schema->string()->description('The order\'s id or number.')->required(),
-            'status' => $schema->string()->description('The new status: processing, on_hold, completed, cancelled… (see get_order next_statuses).'),
+            'status' => $schema->string()->description('The new status: processing, on_hold, completed, cancelled… (see commerce_get_order next_statuses).'),
             'reason' => $schema->string()->description('Why (kept on the timeline; shown to the customer for cancellations).'),
             'note' => $schema->string()->description('A note for the timeline.'),
             'to_customer' => $schema->boolean()->description('Email the note to the customer.'),
@@ -112,12 +112,12 @@ class UpdateOrderTool extends CommerceTool
                 'service' => $schema->string()->description('Service, e.g. REG.'),
                 'tracking_number' => $schema->string(),
                 'items' => $schema->array()->items($schema->object(['item_id' => $schema->integer()->required(), 'quantity' => $schema->integer()->required()]))
-                    ->description('Only these items (get_order item ids); default: everything not shipped yet.'),
+                    ->description('Only these items (commerce_get_order item ids); default: everything not shipped yet.'),
             ])->description('Add a shipment with tracking.'),
             'mark_paid' => $schema->boolean()->description('Record the full payment as received (needs confirm).'),
             'reference' => $schema->string()->description('Payment reference for mark_paid.'),
-            'shipping_address' => $schema->object()->description('The whole address, in the shape get_order returns.'),
-            'billing_address' => $schema->object()->description('The whole address, in the shape get_order returns.'),
+            'shipping_address' => $schema->object()->description('The whole address, in the shape commerce_get_order returns.'),
+            'billing_address' => $schema->object()->description('The whole address, in the shape commerce_get_order returns.'),
             'confirm' => $schema->boolean()->description('true once the user agreed (cancelling, marking paid).'),
         ];
     }

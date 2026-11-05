@@ -8,7 +8,7 @@ use Sunrice\Commerce\Catalog\ProductData;
 use Sunrice\Commerce\Catalog\ProductField;
 use Sunrice\Commerce\Catalog\ProductValue;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
-use Sunrice\Fields\HydrationContext;
+use Sunrice\Cms\Fields\HydrationContext;
 
 function productErrors(array $value): array
 {

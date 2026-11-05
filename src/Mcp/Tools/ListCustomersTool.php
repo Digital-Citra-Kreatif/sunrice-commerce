@@ -18,7 +18,7 @@ use Sunrice\Commerce\Mcp\OrderData;
 #[Description('List customers (people who ordered or have an account): name, email, phone, orders and amount spent. Search by name, email or phone; sort by recent, spent or orders.')]
 class ListCustomersTool extends CommerceTool
 {
-    protected string $name = 'list_customers';
+    protected string $name = 'commerce_list_customers';
 
     protected ?string $permission = 'commerce.customers.view';
 

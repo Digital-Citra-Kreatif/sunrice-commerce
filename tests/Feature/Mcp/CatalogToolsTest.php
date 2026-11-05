@@ -14,7 +14,7 @@ use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
 use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Shipping\Models\ShippingMethod;
-use Sunrice\Models\ActivityLog;
+use Sunrice\Admin\Activity\ActivityLog;
 
 beforeEach(function () {
     $this->mug = checkoutStore(['track_stock' => true, 'initial_stock' => 5]);
@@ -36,7 +36,7 @@ it('lists and reads products, and documents the product field', function () {
     $product = mcpTool(Tools\GetProductTool::class, ['product' => (string) $list['products'][0]['id']]);
     expect($product['variants'][0])->toMatchArray(['variant_id' => $this->mug->id, 'stock' => 5])
         ->and($product['product']['type'])->toBe('simple')
-        ->and($product['editing'])->toContain('update_entry')
+        ->and($product['editing'])->toContain('cms_save_entry')
         ->and(mcpTool(Tools\GetProductTool::class, ['product' => $this->mug->sku])['id'])->toBe($product['id']);
 
     staffWith(['commerce.orders.view']);   // no product collection access

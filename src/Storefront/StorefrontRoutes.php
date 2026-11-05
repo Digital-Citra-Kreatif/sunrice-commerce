@@ -7,8 +7,8 @@ namespace Sunrice\Commerce\Storefront;
 use Closure;
 use Illuminate\Support\Facades\Route;
 use Sunrice\Commerce\Http\Middleware\ForgetLocaleParameter;
-use Sunrice\Http\Middleware\SetFrontendLocale;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Site\SetSiteLocale;
+use Sunrice\Cms\Support\Locales;
 
 /**
  * Registers store routes in the visitor's language, like Sunrice's own
@@ -27,11 +27,11 @@ final class StorefrontRoutes
     /** @param  Closure(string): void  $routes */
     public static function localized(Closure $routes): void
     {
-        $middleware = [...(array) config('sunrice.frontend.middleware', ['web']), SetFrontendLocale::class, ForgetLocaleParameter::class];
+        $middleware = [...(array) config('sunrice.frontend.middleware', ['web']), SetSiteLocale::class, ForgetLocaleParameter::class];
 
         Route::middleware($middleware)->group(fn () => $routes(''));
 
-        $others = array_values(array_filter(Locales::available(), fn (string $l) => ! Locales::isMain($l)));
+        $others = array_values(array_filter(Locales::all(), fn (string $l) => ! ($l === Locales::default())));
         if ($others !== []) {
             Route::middleware($middleware)
                 ->prefix('{locale}')
@@ -48,7 +48,7 @@ final class StorefrontRoutes
     public static function url(string $name, array $parameters = [], ?string $locale = null, bool $absolute = true): string
     {
         $locale ??= app()->getLocale();
-        if (! Locales::isMain($locale) && Locales::isAvailable($locale) && Route::has($name.self::LOCALE_SUFFIX)) {
+        if (! ($locale === Locales::default()) && Locales::has($locale) && Route::has($name.self::LOCALE_SUFFIX)) {
             return route($name.self::LOCALE_SUFFIX, ['locale' => $locale, ...$parameters], $absolute);
         }
 

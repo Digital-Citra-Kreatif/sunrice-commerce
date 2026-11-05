@@ -9,7 +9,7 @@ use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 use Sunrice\Commerce\Support\MoneyFormatter;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 /*
  * Global helpers for templates. Each is wrapped in function_exists().

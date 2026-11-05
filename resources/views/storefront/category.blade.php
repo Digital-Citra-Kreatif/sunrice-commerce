@@ -18,7 +18,7 @@
     <section class="commerce-term commerce-category">
         <header class="commerce-listing__header">
             @include($L::view('partials.breadcrumbs'), ['items' => [
-                ['label' => __('commerce::storefront.theme.home'), 'url' => url(\Sunrice\Support\Locales::prefix($locale) ?: '/')],
+                ['label' => __('commerce::storefront.theme.home'), 'url' => url(\Sunrice\Cms\Support\Locales::prefix($locale) ?: '/')],
                 ...$trail->all(),
                 ['label' => $term->name, 'url' => null],
             ]])

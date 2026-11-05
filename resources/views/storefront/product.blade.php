@@ -33,7 +33,7 @@
         @php($node = $node->parent)
     @endwhile
     @include($L::view('partials.breadcrumbs'), ['items' => [
-        ['label' => __('commerce::storefront.theme.home'), 'url' => url(\Sunrice\Support\Locales::prefix($locale) ?: '/')],
+        ['label' => __('commerce::storefront.theme.home'), 'url' => url(\Sunrice\Cms\Support\Locales::prefix($locale) ?: '/')],
         ...$trail->all(),
         ['label' => $entry->title, 'url' => null],
     ]])
@@ -104,7 +104,7 @@
                 </details>
             @endif
         </div>
-        @if ($product && $product->cta['type'] === 'inquiry' && \Sunrice\Models\Form::query()->where('handle', config('commerce.catalog.inquiry_form'))->exists())
+        @if ($product && $product->cta['type'] === 'inquiry' && \Sunrice\Cms\Models\Form::query()->where('handle', config('commerce.catalog.inquiry_form'))->exists())
             <section class="commerce-inquiry" id="inquiry">
                 <h2>{{ __('commerce::storefront.product.inquiry') }}</h2>
                 @include($L::view('partials.inquiry-form'))

@@ -8,7 +8,7 @@ use Illuminate\Foundation\Http\Events\RequestHandled;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Contracts\Tracking;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Frontend\TemplateContext;
+use Sunrice\Cms\Site\Page;
 
 /**
  * A product page served (200, GET, not a preview) counts a view, after
@@ -23,7 +23,7 @@ class RecordProductView
     public function handle(RequestHandled $event): void
     {
         $page = $event->request->attributes->get('sunrice.page');
-        if (! $page instanceof TemplateContext || $page->pageType !== 'entry' || $page->entry === null
+        if (! $page instanceof Page || $page->pageType !== 'entry' || $page->entry === null
             || ! $event->request->isMethod('GET') || $event->response->getStatusCode() !== 200
             || $event->request->attributes->get('sunrice.preview') === true
             || ! commerce_feature('analytics')

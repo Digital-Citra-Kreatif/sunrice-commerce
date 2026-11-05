@@ -19,7 +19,7 @@ use Sunrice\Commerce\Payments\PaymentMethodBase;
 use Sunrice\Commerce\Payments\PaymentResult;
 use Sunrice\Commerce\Payments\PaymentStart;
 use Sunrice\Commerce\Support\MoneyFormatter;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Support\Locales;
 use Throwable;
 
 /**
@@ -166,7 +166,7 @@ abstract class GatewayMethod extends PaymentMethodBase implements HandlesReturn,
     {
         $status = fn (array $names) => implode(', ', array_map(fn (string $config, string $env) => $env.' ('.(filled(config($config)) ? 'set' : 'missing').')', array_keys($names), $names));
         $fields = [];
-        foreach (Locales::available() as $locale) {
+        foreach (Locales::all() as $locale) {
             $fields[] = ['handle' => $locale, 'type' => 'textarea', 'label' => Locales::name($locale), 'translatable' => false, 'config' => ['max' => 3000]];
         }
 

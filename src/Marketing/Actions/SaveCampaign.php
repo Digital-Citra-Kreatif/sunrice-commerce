@@ -10,8 +10,8 @@ use Illuminate\Validation\ValidationException;
 use Sunrice\Commerce\Marketing\Audience;
 use Sunrice\Commerce\Marketing\Automations\Triggers;
 use Sunrice\Commerce\Marketing\Models\Campaign;
-use Sunrice\Support\HtmlSanitizer;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Support\HtmlSanitizer;
+use Sunrice\Cms\Support\Locales;
 
 /**
  * Saves a campaign or automation: name, audience rules, content per
@@ -31,7 +31,7 @@ class SaveCampaign
             throw ValidationException::withMessages(['name' => 'A campaign that has been sent can\'t be changed. Duplicate it instead.']);
         }
         $automation = $campaign->isAutomation();
-        $main = Locales::main();
+        $main = Locales::default();
         $data = Validator::make($input, [
             'name' => ['required', 'string', 'max:150'],
             'trigger' => $automation ? ['required', Rule::in(array_keys(app(Triggers::class)->all()))] : ['nullable'],
@@ -53,7 +53,7 @@ class SaveCampaign
         ])->validate();
 
         $content = [];
-        foreach (Locales::available() as $locale) {
+        foreach (Locales::all() as $locale) {
             $part = (array) ($data['content'][$locale] ?? []);
             $content[$locale] = [
                 'subject' => trim((string) ($part['subject'] ?? '')),

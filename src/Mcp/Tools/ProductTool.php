@@ -6,8 +6,8 @@ namespace Sunrice\Commerce\Mcp\Tools;
 
 use Illuminate\Support\Collection as Support;
 use Sunrice\Commerce\Mcp\CommerceTool;
-use Sunrice\Models\Collection;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Collection;
+use Sunrice\Cms\Models\Entry;
 
 /** Product tools: listed for users who may see a product collection, like Shop → Products. */
 abstract class ProductTool extends CommerceTool

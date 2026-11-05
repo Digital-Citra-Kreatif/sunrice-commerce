@@ -7,7 +7,7 @@ use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 /*
  * Product view build times for a page of large variable products and a

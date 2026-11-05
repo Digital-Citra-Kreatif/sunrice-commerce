@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Catalog\Listeners;
 
 use Sunrice\Commerce\Catalog\ProductProjector;
-use Sunrice\Events\EntryDeleted;
-use Sunrice\Events\EntryPublished;
+use Sunrice\Cms\Events\EntryDeleted;
+use Sunrice\Cms\Events\EntryPublished;
 
 /** Keeps the commerce tables in step with published product entries. */
 class ProjectProducts

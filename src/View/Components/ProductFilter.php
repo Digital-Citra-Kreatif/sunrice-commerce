@@ -9,7 +9,7 @@ use Illuminate\View\Component;
 use Sunrice\Commerce\Catalog\PriceVisibility;
 use Sunrice\Commerce\Catalog\ProductQuery;
 use Sunrice\Commerce\Storefront\Layout;
-use Sunrice\Models\Taxonomy;
+use Sunrice\Cms\Models\Taxonomy;
 
 /**
  * <x-commerce::product-filter /> — the filter form (a GET form on the

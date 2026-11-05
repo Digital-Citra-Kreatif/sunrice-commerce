@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Validation\ValidationException;
-use Sunrice\Auth\TwoFactorLogin;
+use Sunrice\Admin\Auth\TwoFactorLogin;
 use Sunrice\Commerce\Checkout\TermsPage;
 use Sunrice\Commerce\Customers\Actions\AssignCustomerRole;
 use Sunrice\Commerce\Customers\Actions\LinkGuestOrders;
@@ -34,7 +34,7 @@ use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 use Sunrice\Commerce\Support\Phone;
-use Sunrice\Support\Captcha;
+use Sunrice\Admin\Security\Captcha;
 
 /**
  * Storefront sign-in with a password, registration, password reset and

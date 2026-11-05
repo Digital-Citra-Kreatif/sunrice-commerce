@@ -8,9 +8,12 @@ use Closure;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Fields\FieldType;
-use Sunrice\Fields\HydrationContext;
-use Sunrice\Models\Taxonomy;
+use Sunrice\Cms\Fields\Field;
+use Sunrice\Cms\Fields\FieldType;
+use Sunrice\Cms\Fields\Reference;
+use Sunrice\Cms\Fields\Schema;
+use Sunrice\Cms\Fields\HydrationContext;
+use Sunrice\Cms\Models\Taxonomy;
 
 /**
  * `commerce_product`: a product's commerce data (type, options, variants,
@@ -20,12 +23,13 @@ use Sunrice\Models\Taxonomy;
  */
 class ProductField extends FieldType
 {
-    public static function type(): string
+    public function type(): string
     {
         return 'commerce_product';
     }
 
-    public function rules(array $field): array
+    /** @return list<mixed> */
+    public function rules(Field $field): array
     {
         return ['array', function (string $attribute, mixed $value, Closure $fail): void {
             $errors = ProductValue::errors(ProductValue::normalize($value));
@@ -52,28 +56,28 @@ class ProductField extends FieldType
         return '';
     }
 
-    public function defaultValue(array $field): mixed
+    public function defaultValue(Field $field): mixed
     {
         return ProductValue::withIds(ProductValue::defaults());
     }
 
-    public function normalize(mixed $value, array $field): mixed
+    public function normalize(mixed $value, Field $field): mixed
     {
         return ProductValue::withIds(ProductValue::normalize($value));
     }
 
-    public function hydrate(mixed $value, array $field, HydrationContext $ctx): mixed
+    public function hydrate(mixed $value, Field $field, HydrationContext $context): mixed
     {
         return new ProductData($value);
     }
 
-    public function references(mixed $value, array $field): array
+    public function references(mixed $value, Field $field): array
     {
         $value = ProductValue::normalize($value);
         $references = [];
         foreach ($value['variants'] as $i => $variant) {
             if ($variant['image'] !== null) {
-                $references[] = ['target_type' => 'asset', 'target_id' => $variant['image'], 'field_path' => "variants.{$i}.image"];
+                $references[] = new Reference(Reference::MEDIA, (int) $variant['image'], "variants.{$i}.image");
             }
         }
         $componentIds = array_filter(array_column($value['bundle']['items'] ?? [], 'variant_id'));
@@ -81,7 +85,7 @@ class ProductField extends FieldType
             $entries = Variant::withTrashed()->join('commerce_products', 'commerce_products.id', '=', 'commerce_variants.product_id')
                 ->whereIn('commerce_variants.id', $componentIds)->distinct()->pluck('commerce_products.entry_id');
             foreach ($entries as $entryId) {
-                $references[] = ['target_type' => 'entry', 'target_id' => (int) $entryId, 'field_path' => 'bundle'];
+                $references[] = new Reference(Reference::ENTRY, (int) $entryId, 'bundle');
             }
         }
 
@@ -93,11 +97,10 @@ class ProductField extends FieldType
         return false;
     }
 
-    public function toAdminSchema(array $field): array
+    public function toAdmin(Field $field, Schema $schema): array
     {
-        $field['translatable'] = false;
-        $field['config'] = [
-            ...($field['config'] ?? []),
+        return ['translatable' => false, 'config' => [
+            ...(array) $field->config,
             'max_options' => (int) config('commerce.catalog.max_options', 3),
             'max_variants' => (int) config('commerce.catalog.max_variants', 100),
             'link_presets' => ProductValue::LINK_PRESETS,
@@ -106,8 +109,6 @@ class ProductField extends FieldType
                 ->orderBy('title')->get(['handle', 'title'])->toArray(),
             'tax_classes' => (array) app(StoreSettings::class)->get('taxes.classes', ['standard']),
             'features' => app(Features::class)->states(),
-        ];
-
-        return $field;
+        ]] + parent::toAdmin($field, $schema);
     }
 }

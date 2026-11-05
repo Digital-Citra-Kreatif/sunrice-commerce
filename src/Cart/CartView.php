@@ -17,7 +17,7 @@ use Sunrice\Commerce\Pricing\CalculationState;
 use Sunrice\Commerce\Pricing\Calculator;
 use Sunrice\Commerce\Pricing\PricingContext;
 use Sunrice\Commerce\Support\MoneyFormatter;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 /**
  * The cart as the customer sees it: lines with their product views,

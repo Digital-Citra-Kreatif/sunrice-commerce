@@ -7,7 +7,7 @@ namespace Sunrice\Commerce\Payments;
 use DateTimeInterface;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Contracts\PaymentMethod;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Support\Locales;
 
 /**
  * The settings every method shares (stored in payments.methods.{key}):
@@ -72,7 +72,7 @@ abstract class PaymentMethodBase implements PaymentMethod
         $values = array_filter((array) $this->setting($key, []), fn ($v) => is_string($v) && trim($v) !== '');
         $locale ??= app()->getLocale();
 
-        return $values[$locale] ?? $values[Locales::main()] ?? (reset($values) ?: null);
+        return $values[$locale] ?? $values[Locales::default()] ?? (reset($values) ?: null);
     }
 
     public function settingsRules(): array
@@ -134,7 +134,7 @@ abstract class PaymentMethodBase implements PaymentMethod
     {
         $perLanguage = function (string $handle, string $label, string $type) {
             $fields = [];
-            foreach (Locales::available() as $locale) {
+            foreach (Locales::all() as $locale) {
                 $fields[] = ['handle' => $locale, 'type' => $type, 'label' => Locales::name($locale), 'translatable' => false, 'config' => ['max' => $type === 'text' ? 120 : 2000]];
             }
 

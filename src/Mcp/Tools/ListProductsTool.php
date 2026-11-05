@@ -12,20 +12,20 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Sunrice\Commerce\Mcp\OrderData;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Support\Locales;
 
 #[IsReadOnly]
-#[Description('List products with their commerce data: entry id (for get_product and update_entry), title, type, price or price range, stock and publication status. Search by title or SKU; filter by stock (in, out, low) or featured.')]
+#[Description('List products with their commerce data: entry id (for commerce_get_product and cms_save_entry), title, type, price or price range, stock and publication status. Search by title or SKU; filter by stock (in, out, low) or featured.')]
 class ListProductsTool extends ProductTool
 {
-    protected string $name = 'list_products';
+    protected string $name = 'commerce_list_products';
 
     protected function run(Request $request): Response
     {
         $args = $request->validate(['search' => ['nullable', 'string', 'max:120'], 'stock' => ['nullable', 'in:in,out,low'], 'featured' => ['nullable', 'boolean'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:100']]);
         $query = DB::table('commerce_products as p')->join('sunrice_entries as e', 'e.id', '=', 'p.entry_id')
-            ->leftJoin('sunrice_entry_translations as t', fn ($j) => $j->on('t.entry_id', '=', 'e.id')->where('t.locale', Locales::main()))
+            ->leftJoin('sunrice_entry_translations as t', fn ($j) => $j->on('t.entry_id', '=', 'e.id')->where('t.locale', Locales::default()))
             ->whereIn('e.collection_id', $this->collections()->pluck('id'))->whereNull('e.deleted_at')->whereNull('p.removed_at');
         if (! empty($args['search'])) {
             $like = '%'.$args['search'].'%';

@@ -11,7 +11,7 @@ use Sunrice\Commerce\Pricing\PricingContext;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Taxes\TaxDisplay;
 use Sunrice\Commerce\Taxes\TaxRate;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 function taxesOn(array $settings): void
 {

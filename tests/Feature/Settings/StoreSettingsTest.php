@@ -7,7 +7,7 @@ use Sunrice\Commerce\Facades\Commerce;
 use Sunrice\Commerce\Settings\Actions\SaveStoreSettings;
 use Sunrice\Commerce\Settings\SettingsSection;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Models\ActivityLog;
+use Sunrice\Admin\Activity\ActivityLog;
 
 it('lays saved values over the config defaults', function () {
     $settings = app(StoreSettings::class);

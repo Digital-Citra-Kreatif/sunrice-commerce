@@ -7,7 +7,7 @@ namespace Sunrice\Commerce\Catalog\Actions;
 use Closure;
 use Sunrice\Commerce\Catalog\ProductProjector;
 use Sunrice\Commerce\Catalog\ProductValue;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 /**
  * Changes the product field of entries outside the editor (bulk actions,

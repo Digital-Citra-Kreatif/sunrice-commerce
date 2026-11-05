@@ -7,7 +7,7 @@ namespace Sunrice\Commerce\Http\Controllers\Storefront;
 use Illuminate\Contracts\View\View;
 use Sunrice\Commerce\Catalog\ProductQuery;
 use Sunrice\Commerce\Storefront\Layout;
-use Sunrice\Models\Term;
+use Sunrice\Cms\Models\Term;
 
 /** GET /brands — every brand with live products. */
 class BrandsController

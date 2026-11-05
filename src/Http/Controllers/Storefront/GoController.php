@@ -10,7 +10,7 @@ use Sunrice\Commerce\Catalog\Catalog;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Contracts\Tracking;
 use Sunrice\Commerce\Storefront\WhatsApp;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 /**
  * GET /go/{type}/{entry}: counts a call-to-action click and redirects to

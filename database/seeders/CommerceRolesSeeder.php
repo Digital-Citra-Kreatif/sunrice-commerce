@@ -9,11 +9,11 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 use Sunrice\Commerce\Permissions\CommercePermissions;
 use Sunrice\Database\Seeders\RolesSeeder;
-use Sunrice\Models\Collection;
-use Sunrice\Models\Form;
-use Sunrice\Models\Taxonomy;
+use Sunrice\Cms\Models\Collection;
+use Sunrice\Cms\Models\Form;
+use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\Permissions\PermissionRegistry;
-use Sunrice\Permissions\SyncPermissions;
+use Sunrice\Admin\Actions\Permissions\SyncPermissions;
 
 /**
  * The store's roles. Permissions are only ever added, so changes made to

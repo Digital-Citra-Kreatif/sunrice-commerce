@@ -8,7 +8,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 use Sunrice\Commerce\Catalog\ProductView;
 use Sunrice\Commerce\Storefront\Layout;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 /**
  * <x-commerce::product :entry="$entry" /> — the buying block of a product:

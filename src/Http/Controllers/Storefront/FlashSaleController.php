@@ -10,7 +10,7 @@ use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\ProductQuery;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 use Sunrice\Commerce\Storefront\Layout;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 /** GET /flash-sale (running and upcoming sales) and /flash-sale/{slug}. */
 class FlashSaleController

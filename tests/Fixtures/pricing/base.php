@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 return [
     'base prices and quantities' => [

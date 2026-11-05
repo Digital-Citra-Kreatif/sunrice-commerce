@@ -12,11 +12,11 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Models\Entry;
-use Sunrice\Models\Taxonomy;
-use Sunrice\Models\Term;
-use Sunrice\Query\EntryQuery;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\Term;
+use Sunrice\Cms\Query\EntryQuery;
+use Sunrice\Cms\Support\Locales;
 
 /**
  * Product listings (ARCHITECTURE.md §7.5): Sunrice decides which entries
@@ -404,7 +404,7 @@ class ProductQuery
             '-price' => $query->orderByDesc('commerce_products.max_price'),
             'best_selling' => $query->orderByDesc('commerce_products.sales_count'),
             'newest' => $entries()->orderByDesc('e.published_at'),
-            'name' => $query->join('sunrice_entry_translations as nt', fn ($j) => $j->on('nt.entry_id', '=', 'commerce_products.entry_id')->where('nt.locale', Locales::main()))
+            'name' => $query->join('sunrice_entry_translations as nt', fn ($j) => $j->on('nt.entry_id', '=', 'commerce_products.entry_id')->where('nt.locale', Locales::default()))
                 ->orderBy('nt.title'),
             default => $entries()->orderByDesc('commerce_products.featured')->orderBy('e.sort_order')->orderByDesc('e.published_at'),
         };

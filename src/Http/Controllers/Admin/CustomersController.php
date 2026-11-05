@@ -27,7 +27,7 @@ use Sunrice\Commerce\Support\ActivityRecorder;
 use Sunrice\Commerce\Support\Address;
 use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Commerce\Support\Phone;
-use Sunrice\Permissions\PermissionRank;
+use Sunrice\Admin\Users\PermissionRank;
 use Sunrice\Support\CsvCell;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 

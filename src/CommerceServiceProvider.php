@@ -17,14 +17,13 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
-use Inertia\Inertia;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Sunrice\Events\EntryDeleted;
-use Sunrice\Events\EntryPublished;
-use Sunrice\Facades\Sunrice;
-use Sunrice\Frontend\TemplateContext;
-use Sunrice\Http\Middleware\SetFrontendLocale;
+use Sunrice\Cms\Content;
+use Sunrice\Cms\Events\EntryDeleted;
+use Sunrice\Cms\Events\EntryPublished;
+use Sunrice\Cms\Site\Page;
+use Sunrice\Cms\Site\SetSiteLocale;
 
 class CommerceServiceProvider extends PackageServiceProvider
 {
@@ -112,10 +111,8 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->registerCommands();
         $this->registerAdminAssets();
         $this->registerFeatureGates();
-        Permissions\CommercePermissions::register();
         $this->registerStorefront();
         $this->registerHealthAndSchedule();
-        $this->registerMcpTools();
         $this->registerAdmin();
         $this->registerCatalog();
         $this->registerPromotions();
@@ -151,7 +148,7 @@ class CommerceServiceProvider extends PackageServiceProvider
             });
             Route::group([], __DIR__.'/../routes/webhooks.php');
             Route::group([], __DIR__.'/../routes/marketing.php');
-            Route::middleware([...(array) config('sunrice.frontend.middleware', ['web']), SetFrontendLocale::class])->group(__DIR__.'/../routes/oauth.php');
+            Route::middleware(['web', SetSiteLocale::class])->group(__DIR__.'/../routes/oauth.php');
         });
 
         Blade::component(View\Components\Slot::class, 'commerce::slot');
@@ -166,9 +163,9 @@ class CommerceServiceProvider extends PackageServiceProvider
         Blade::component(View\Components\CompareButton::class, 'commerce::compare-button');
 
         // Product pages (and the shop's listings) when the app has no template of its own.
-        Sunrice::resolveTemplateUsing(fn (string $view, TemplateContext $context): ?string => Storefront\TemplateFallback::resolve($view, $context));
+        Content::resolveTemplateUsing(fn (string $view, Page $page): ?string => Storefront\TemplateFallback::resolve($view, $page));
 
-        Sunrice::bodyClassUsing(function (array $classes): array {
+        Content::bodyClassUsing(function (array $classes): array {
             $name = (string) request()->route()?->getName();
             if (str_starts_with($name, 'commerce.') && ! str_starts_with($name, 'commerce.api.')) {
                 $page = str_replace('.', '-', substr(preg_replace('/\.locale$/', '', $name) ?? $name, strlen('commerce.')));
@@ -187,7 +184,7 @@ class CommerceServiceProvider extends PackageServiceProvider
     {
         $guard = (string) config('commerce.auth.guard', 'commerce');
         if (config("auth.guards.{$guard}") === null) {
-            $adminGuard = (string) config('sunrice.auth.guard', 'web');
+            $adminGuard = (string) config('sunrice-admin.guard', 'web');
             config(["auth.guards.{$guard}" => ['driver' => 'session', 'provider' => config("auth.guards.{$adminGuard}.provider", 'users')]]);
         }
     }
@@ -207,12 +204,6 @@ class CommerceServiceProvider extends PackageServiceProvider
         $nav->register('wishlist', fn () => __('commerce::storefront.wishlist.title'), 'commerce.wishlist', 'wishlist', position: 60);
         $nav->register('addresses', fn () => __('commerce::account.addresses.title'), 'commerce.account.addresses', position: 70);
 
-        // Users lists staff: users whose roles are all customer roles are customers.
-        Sunrice::usersQueryUsing(function (Builder $query): Builder {
-            $customerRoles = (array) $this->app->make(Settings\StoreSettings::class)->get('accounts.customer_roles', ['Customer']);
-
-            return $query->where(fn ($q) => $q->whereDoesntHave('roles')->orWhereHas('roles', fn ($r) => $r->whereNotIn('name', $customerRoles)));
-        });
         $this->app->make(Commerce::class)->registerHealthCheck(Health\Checks\AccountsCheck::class);
     }
 
@@ -370,25 +361,13 @@ class CommerceServiceProvider extends PackageServiceProvider
     /** Shop navigation, Settings → Store, admin routes and field types. */
     protected function registerAdmin(): void
     {
-        foreach ([Admin\Fields\MoneyField::class, Admin\Fields\DateTimeRangeField::class, Admin\Fields\RegionField::class, Admin\Fields\TargetsField::class, Catalog\ProductField::class] as $field) {
-            Sunrice::registerField($field);
-        }
-        Admin\ShopNavigation::register();
         Settings\Sections\BuiltinSections::register($this->app->make(Settings\SettingsRegistry::class));
         Admin\Setup\SetupChecklist::registerBuiltin($this->app->make(Admin\Setup\SetupChecklist::class));
 
-        // The store's money format, for the admin's money inputs and figures.
-        Inertia::share('commerce', fn (): array => ['currency' => (array) $this->app->make(Settings\StoreSettings::class)->get('general.currency', [])]);
-
-        Sunrice::addSettingsTab('store', 'Store', 'commerce/settings', fn (mixed $user): bool => Http\Controllers\Admin\SettingsController::menu($user) !== []);
-        Sunrice::adminRoutes(function (): void {
-            require __DIR__.'/../routes/admin.php';
-        });
     }
 
     protected function registerHealthAndSchedule(): void
     {
-        Admin\Dashboard\StoreCard::register();
         Storefront\PageCache::register();
         // Product pages show availability and "only a few left": clear them when it changes.
         foreach ([Inventory\Events\StockOut::class, Inventory\Events\StockLow::class, Inventory\Events\StockBackIn::class] as $event) {
@@ -434,10 +413,6 @@ class CommerceServiceProvider extends PackageServiceProvider
         ]);
     }
 
-    /**
-     * The prebuilt admin bundle (dist/), published to public/vendor/commerce
-     * and loaded on every admin page after Sunrice's own.
-     */
     /** Socialite reads services.google (and needs a redirect key; the controller sets the real URL); the app's own values win. */
     public static function mapGoogleConfig(): void
     {
@@ -447,37 +422,13 @@ class CommerceServiceProvider extends PackageServiceProvider
         ]]);
     }
 
-    /** Store tools on Sunrice's MCP server (ARCHITECTURE.md §23); each hides itself unless allowed. */
-    protected function registerMcpTools(): void
-    {
-        foreach (Mcp\StoreTools::ALL as $tool) {
-            Sunrice::registerMcpTool($tool);
-        }
-        // Sunrice::addMcpInstructions() arrives with U6; before it, get_store_info carries the guidance.
-        $add = [$this->app->make(\Sunrice\Sunrice::class), 'addMcpInstructions'];
-        if (is_callable($add)) {
-            $add(Mcp\StoreTools::INSTRUCTIONS);
-        }
-    }
-
     protected function registerAdminAssets(): void
     {
         // The admin bundle, and the storefront theme as it ships (a published, customized copy in public/commerce-theme wins).
-        $this->publishes([__DIR__.'/../dist' => public_path('vendor/commerce'), __DIR__.'/../stubs/theme' => public_path('vendor/commerce/theme')], 'commerce-assets');
+        $this->publishes([__DIR__.'/../dist' => public_path('vendor/commerce'), __DIR__.'/../stubs/theme' => public_path('vendor/commerce/theme')], ['commerce-assets', 'laravel-assets']);
         $this->publishes(Storefront\Templates::publishable(), 'commerce-templates');
         $this->publishes(Storefront\Templates::starter(), 'commerce-starter');
         $this->publishes([__DIR__.'/../resources/lang' => $this->app->langPath('vendor/commerce')], 'commerce-translations');
-
-        $version = static::assetVersion();
-        Sunrice::registerAdminScript('vendor/commerce/admin.js?v='.$version);
-        Sunrice::registerAdminStyle('vendor/commerce/admin.css?v='.$version);
     }
 
-    /** Changes with every build, so editors get the new bundle after an upgrade. */
-    public static function assetVersion(): string
-    {
-        $manifest = __DIR__.'/../dist/manifest.json';
-
-        return substr(md5(Commerce::VERSION.'|'.(is_file($manifest) ? (string) filemtime($manifest) : '')), 0, 12);
-    }
 }

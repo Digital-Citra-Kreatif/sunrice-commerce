@@ -12,8 +12,8 @@ use Sunrice\Commerce\Settings\SettingsRegistry;
 use Sunrice\Commerce\Settings\SettingsSection;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\NumberFormat;
-use Sunrice\Models\Taxonomy;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Support\Locales;
 
 /**
  * The Settings → Store sections commerce itself provides. Sections of
@@ -226,7 +226,7 @@ final class BuiltinSections
     protected static function perLanguage(string $handle, string $label, string $instructions): array
     {
         $fields = [];
-        foreach (Locales::available() as $locale) {
+        foreach (Locales::all() as $locale) {
             $fields[] = ['handle' => $locale, 'type' => 'textarea', 'label' => Locales::name($locale), 'translatable' => false, 'config' => ['max' => 1000]];
         }
 

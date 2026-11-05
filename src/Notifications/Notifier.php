@@ -12,7 +12,7 @@ use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\Timeline;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Support\Locales;
 
 /**
  * Sends a store email (ARCHITECTURE.md §19): checks the module and the
@@ -60,7 +60,7 @@ class Notifier
             return [];
         }
 
-        return [mb_strtolower($address) => (string) ($order->locale ?? ($customer !== null ? $customer->locale : null) ?? Locales::main())];
+        return [mb_strtolower($address) => (string) ($order->locale ?? ($customer !== null ? $customer->locale : null) ?? Locales::default())];
     }
 
     /** @return array<string, string> email => locale */
@@ -68,7 +68,7 @@ class Notifier
     {
         $out = [];
         foreach ($this->settings->addresses($key) as $address) {
-            $out[$address] = Locales::main();
+            $out[$address] = Locales::default();
         }
         $roles = Role::query()->whereIn('name', $this->settings->roles($key))->pluck('name')->all();
         if ($roles !== []) {
@@ -76,7 +76,7 @@ class Notifier
             foreach ($model::query()->role($roles)->get() as $user) {
                 $mail = mb_strtolower((string) $user->getAttribute('email'));
                 if ($mail !== '' && ! isset($out[$mail])) {
-                    $out[$mail] = Locales::main();
+                    $out[$mail] = Locales::default();
                 }
             }
         }

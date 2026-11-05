@@ -6,7 +6,7 @@ use Inertia\Testing\AssertableInertia;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 beforeEach(function () {
     app(ScaffoldStore::class)->handle();

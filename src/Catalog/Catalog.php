@@ -10,8 +10,8 @@ use Sunrice\Commerce\Contracts\Inventory;
 use Sunrice\Commerce\Contracts\SaleLimits;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Models\Collection;
-use Sunrice\Query\EntryQuery;
+use Sunrice\Cms\Models\Collection;
+use Sunrice\Cms\Query\EntryQuery;
 
 /**
  * Purchasability (ARCHITECTURE.md §7.3): one place deciding whether a

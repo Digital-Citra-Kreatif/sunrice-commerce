@@ -16,13 +16,13 @@
     $L = \Sunrice\Commerce\Storefront\Layout::class;
     $page = $sunricePage->entry ?? $entry;
     $heroImage = $page->get('hero_image');
-    $categoryTaxonomy = \Sunrice\Models\Taxonomy::query()->where('handle', config('commerce.catalog.category_taxonomy', 'product_categories'))->first();
-    $departments = $categoryTaxonomy === null ? collect() : \Sunrice\Models\Term::query()->where('taxonomy_id', $categoryTaxonomy->id)->whereNull('parent_id')
+    $categoryTaxonomy = \Sunrice\Cms\Models\Taxonomy::query()->where('handle', config('commerce.catalog.category_taxonomy', 'product_categories'))->first();
+    $departments = $categoryTaxonomy === null ? collect() : \Sunrice\Cms\Models\Term::query()->where('taxonomy_id', $categoryTaxonomy->id)->whereNull('parent_id')
         ->with(['translations', 'children.translations'])->orderBy('sort_order')->orderBy('id')->get();
     $categories = $departments->flatMap(fn ($department) => $department->children->sortBy('sort_order'))->take(12);
-    $brandTaxonomy = commerce_feature('brands') ? \Sunrice\Models\Taxonomy::query()->where('handle', config('commerce.catalog.brand_taxonomy', 'brands'))->first() : null;
-    $brands = $brandTaxonomy === null ? collect() : \Sunrice\Models\Term::query()->where('taxonomy_id', $brandTaxonomy->id)->with('translations')->orderBy('sort_order')->orderBy('id')->limit(12)->get();
-    $shop = \Sunrice\Models\Collection::query()->where('handle', (string) (config('commerce.catalog.collections', ['products'])[0] ?? 'products'))->first();
+    $brandTaxonomy = commerce_feature('brands') ? \Sunrice\Cms\Models\Taxonomy::query()->where('handle', config('commerce.catalog.brand_taxonomy', 'brands'))->first() : null;
+    $brands = $brandTaxonomy === null ? collect() : \Sunrice\Cms\Models\Term::query()->where('taxonomy_id', $brandTaxonomy->id)->with('translations')->orderBy('sort_order')->orderBy('id')->limit(12)->get();
+    $shop = \Sunrice\Cms\Models\Collection::query()->where('handle', (string) (config('commerce.catalog.collections', ['products'])[0] ?? 'products'))->first();
     $shopUrl = url($shop !== null ? app(\Sunrice\Frontend\UrlGenerator::class)->archive($shop) : '/products');
 @endphp
 

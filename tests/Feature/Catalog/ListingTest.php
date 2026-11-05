@@ -12,8 +12,8 @@ use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\View\Components\Products;
-use Sunrice\Models\Entry;
-use Sunrice\Models\Term;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\Term;
 
 /** @param array<int, Term> $terms */
 function listed(string $title, int $price, array $terms = [], array $extra = []): Entry

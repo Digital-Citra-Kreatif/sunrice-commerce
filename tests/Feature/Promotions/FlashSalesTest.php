@@ -17,7 +17,7 @@ use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSaleBoundaries;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSaleItem;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSaleReservations;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 beforeEach(function () {
     app(ScaffoldStore::class)->handle();

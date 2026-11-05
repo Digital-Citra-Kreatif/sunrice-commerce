@@ -8,7 +8,7 @@ use Sunrice\Commerce\Catalog\CatalogVersion;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Contracts\Inventory;
 use Sunrice\Commerce\Storefront\PageCache;
-use Sunrice\Events\ContentChanged;
+use Sunrice\Cms\Events\ContentChanged;
 use Sunrice\Facades\Sunrice;
 use Workbench\App\Models\User;
 

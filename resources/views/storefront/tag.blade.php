@@ -7,7 +7,7 @@
     <section class="commerce-term commerce-tag">
         <header class="commerce-listing__header">
             @include($L::view('partials.breadcrumbs'), ['items' => [
-                ['label' => __('commerce::storefront.theme.home'), 'url' => url(\Sunrice\Support\Locales::prefix(app()->getLocale()) ?: '/')],
+                ['label' => __('commerce::storefront.theme.home'), 'url' => url(\Sunrice\Cms\Support\Locales::prefix(app()->getLocale()) ?: '/')],
                 ['label' => $term->name, 'url' => null],
             ]])
             <h1 class="commerce-listing__title">{{ $term->name }}</h1>

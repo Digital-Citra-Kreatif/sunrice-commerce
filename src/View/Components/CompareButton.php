@@ -9,7 +9,7 @@ use Illuminate\View\Component;
 use Sunrice\Commerce\Cart\CompareList;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Storefront\Layout;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 /** <x-commerce::compare-button :entry="$entry" /> — add to / remove from the comparison. */
 class CompareButton extends Component

@@ -14,7 +14,7 @@ use Sunrice\Commerce\Cart\Models\CartItem;
 use Sunrice\Commerce\Catalog\ProductView;
 use Sunrice\Commerce\Pricing\CalcLine;
 use Sunrice\Commerce\Storefront\Layout;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 /**
  * <x-commerce::cart /> — the cart lines, voucher field and totals (the cart

@@ -327,7 +327,7 @@ can be given or taken away here; the account's other roles, including staff role
 accounts can't be anonymized here: they are managed in Users. Edits, verifications and
 anonymizations are recorded in Sunrice's activity log (type `customer`).
 
-AI agents can read customers too, with `list_customers` and `get_customer`
+AI agents can read customers too, with `commerce_list_customers` and `commerce_get_customer`
 ([ai-agents.md](ai-agents.md)).
 
 ## Privacy

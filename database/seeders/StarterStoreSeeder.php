@@ -15,11 +15,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Sunrice\Actions\Assets\UploadAsset;
-use Sunrice\Actions\Entries\PublishTranslation;
-use Sunrice\Actions\Entries\SaveDraft;
-use Sunrice\Actions\Entries\SyncEntryTerms;
+use Sunrice\Cms\Actions\Entries\PublishEntry;
+use Sunrice\Cms\Actions\Entries\SaveDraft;
+use Sunrice\Cms\Actions\Entries\SyncEntryTerms;
 use Sunrice\Actions\Globals\SaveGlobalValues;
-use Sunrice\Actions\Taxonomies\SaveTerm;
+use Sunrice\Cms\Actions\Terms\SaveTerm;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\DownloadFile;
@@ -51,16 +51,16 @@ use Sunrice\Commerce\Wishlist\Wishlist;
 use Sunrice\Facades\Sunrice;
 use Sunrice\Models\Asset;
 use Sunrice\Models\AssetFolder;
-use Sunrice\Models\Blueprint;
-use Sunrice\Models\Collection;
-use Sunrice\Models\Entry;
-use Sunrice\Models\GlobalSet;
-use Sunrice\Models\Menu;
+use Sunrice\Cms\Models\Blueprint;
+use Sunrice\Cms\Models\Collection;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\GlobalSet;
+use Sunrice\Cms\Models\Menu;
 use Sunrice\Models\Setting;
-use Sunrice\Models\Taxonomy;
-use Sunrice\Models\Term;
-use Sunrice\Models\TermTranslation;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\Term;
+use Sunrice\Cms\Models\TermTranslation;
+use Sunrice\Cms\Support\Locales;
 
 /**
  * The starter store (commerce:install --starter --demo): an apparel shop
@@ -101,7 +101,7 @@ class StarterStoreSeeder extends Seeder
 
     public function run(): void
     {
-        $this->locale = Locales::main() === 'id' ? 'id' : 'en';
+        $this->locale = Locales::default() === 'id' ? 'id' : 'en';
         // Labels the core stores (adjustments, order notes, emails) follow the store's language.
         $previous = app()->getLocale();
         app()->setLocale($this->locale);
@@ -202,12 +202,12 @@ class StarterStoreSeeder extends Seeder
         }
 
         GlobalSet::query()->where('handle', 'site')->first()?->values()->doesntExist()
-            && app(SaveGlobalValues::class)->handle(GlobalSet::query()->where('handle', 'site')->firstOrFail(), ['locale' => Locales::main(), 'values' => [
+            && app(SaveGlobalValues::class)->handle(GlobalSet::query()->where('handle', 'site')->firstOrFail(), ['locale' => Locales::default(), 'values' => [
                 'name' => 'KAIN', 'logo' => $logo,
                 'announcement' => $this->t('Gratis ongkir untuk belanja di atas Rp500.000 · Tukar ukuran gratis 30 hari', 'Free shipping over Rp500,000 · Free size exchanges for 30 days'),
             ]]);
         GlobalSet::query()->where('handle', 'footer')->first()?->values()->doesntExist()
-            && app(SaveGlobalValues::class)->handle(GlobalSet::query()->where('handle', 'footer')->firstOrFail(), ['locale' => Locales::main(), 'values' => [
+            && app(SaveGlobalValues::class)->handle(GlobalSet::query()->where('handle', 'footer')->firstOrFail(), ['locale' => Locales::default(), 'values' => [
                 'text' => '<p>'.$this->t('Pakaian sehari-hari yang sederhana, dibuat untuk dipakai lama.', 'Simple everyday clothing, made to be worn for years.').'</p>',
                 'social' => [['label' => 'Instagram', 'url' => 'https://instagram.com/'], ['label' => 'TikTok', 'url' => 'https://tiktok.com/'], ['label' => 'YouTube', 'url' => 'https://youtube.com/']],
             ]]);
@@ -428,7 +428,7 @@ class StarterStoreSeeder extends Seeder
             app(SaveDraft::class)->handle($translation, ['title' => (string) $translation->title, 'slug' => (string) $translation->slug, 'data' => [...(array) $translation->data,
                 'related_products' => $ids($related), 'upsells' => $ids($upsells), 'cross_sells' => $ids([...$cross->all(), 'B01'])]]);
             $published = Entry::query()->whereKey($entry->id)->value('published_at');
-            app(PublishTranslation::class)->handle($translation->fresh());
+            app(PublishEntry::class)->handle($translation->fresh());
             Entry::query()->whereKey($entry->id)->update(['published_at' => $published]);
         }
     }
@@ -555,7 +555,7 @@ class StarterStoreSeeder extends Seeder
         foreach (Entry::query()->where('collection_id', $pages->id)->where('status', 'draft')->with('translations')->get() as $draft) {
             $translation = $draft->mainTranslation();
             if ($translation !== null && $translation->draft !== null) {
-                app(PublishTranslation::class)->handle($translation);
+                app(PublishEntry::class)->handle($translation);
             }
         }
         $terms = Entry::query()->where('collection_id', $pages->id)->whereHas('translations', fn ($q) => $q->whereIn('slug', ['syarat-dan-ketentuan', 'terms-and-conditions']))->value('id');
@@ -769,9 +769,9 @@ class StarterStoreSeeder extends Seeder
     protected function publish(Collection $collection, string $title, string $slug, array $data, ?int $blueprintId = null, ?string $template = null): Entry
     {
         $entry = Entry::query()->create(['collection_id' => $collection->id, 'blueprint_id' => $blueprintId, 'template' => $template, 'status' => 'draft', 'sort_order' => 0]);
-        $translation = $entry->translations()->create(['locale' => Locales::main(), 'collection_id' => $collection->id, 'title' => $title, 'slug' => $slug, 'data' => [], 'seo' => []]);
+        $translation = $entry->translations()->create(['locale' => Locales::default(), 'collection_id' => $collection->id, 'title' => $title, 'slug' => $slug, 'data' => [], 'seo' => []]);
         app(SaveDraft::class)->handle($translation, ['title' => $title, 'slug' => $slug, 'data' => $data]);
-        app(PublishTranslation::class)->handle($translation->fresh() ?? $translation);
+        app(PublishEntry::class)->handle($translation->fresh() ?? $translation);
 
         return $entry->fresh() ?? $entry;
     }
@@ -792,7 +792,7 @@ class StarterStoreSeeder extends Seeder
         $model = Taxonomy::query()->where('handle', $taxonomy)->firstOrFail();
         $id = TermTranslation::query()->where('taxonomy_id', $model->id)->where('slug', $slug)->value('term_id');
         if ($id === null) {
-            $term = app(SaveTerm::class)->handle($model, ['parent_id' => $parent, 'translations' => [Locales::main() => ['title' => $name, 'slug' => $slug, 'data' => $data]]]);
+            $term = app(SaveTerm::class)->handle($model, ['parent_id' => $parent, 'translations' => [Locales::default() => ['title' => $name, 'slug' => $slug, 'data' => $data]]]);
             $id = $term->id;
             if ($order > 0) {
                 Term::query()->whereKey($id)->update(['sort_order' => $order]);

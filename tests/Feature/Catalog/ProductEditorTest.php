@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\DownloadFile;
 use Sunrice\Commerce\Catalog\Models\Product;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 beforeEach(function () {
     app(ScaffoldStore::class)->handle();

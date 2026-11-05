@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Notifications;
 
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Support\Locales;
 
 /** An email's stored settings (emails.{key}): switch, recipients, texts per language, attachments. */
 class EmailSettings
@@ -105,6 +105,6 @@ class EmailSettings
 
     public static function mainLocale(): string
     {
-        return Locales::main();
+        return Locales::default();
     }
 }

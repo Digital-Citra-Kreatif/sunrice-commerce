@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Spatie\Permission\Models\Role;
-use Sunrice\Actions\Entries\TrashEntry;
+use Sunrice\Cms\Actions\Entries\TrashEntry;
 use Sunrice\Commerce\Catalog\Catalog;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\PriceVisibility;

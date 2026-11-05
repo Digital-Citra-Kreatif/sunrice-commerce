@@ -13,7 +13,7 @@ use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 #[Description('Create or change a flash sale, like Shop → Flash sales: name, dates (start and end), and items (each a product or variant target with discount_type percent_off, amount_off or fixed_price and its percent or amount, optionally a unit cap). Call without values to see the fields, then send what changes. A product can be in one active sale at a time. Saving an active sale with items needs confirm: true — ask the user first.')]
 class SaveFlashSaleTool extends SaveWithFormTool
 {
-    protected string $name = 'save_flash_sale';
+    protected string $name = 'commerce_save_flash_sale';
 
     protected ?string $feature = 'flash_sales';
 

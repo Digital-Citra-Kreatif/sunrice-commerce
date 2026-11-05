@@ -12,7 +12,7 @@ use Sunrice\Commerce\Pricing\Calculator;
 use Sunrice\Commerce\Pricing\PricingContext;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 beforeEach(function () {
     $this->mugEntry = publishProduct(['variants' => [['id' => 'mug', 'sku' => 'MUG', 'price' => 40000, 'weight' => 300, 'track_stock' => true, 'initial_stock' => 10]]], title: 'Mug');

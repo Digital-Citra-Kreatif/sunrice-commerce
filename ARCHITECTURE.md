@@ -1657,13 +1657,13 @@ public/commerce-theme/commerce.css · commerce.js
   (also used by the admin pages): without `values` the tool returns the form's fields and current
   values; with `values` they are merged over the current ones.
 - **Instructions** (U6): `StoreTools::INSTRUCTIONS` is added with `Sunrice::addMcpInstructions()`
-  when it exists (on older Sunrice the same guidance is in `get_store_info` and the tool
+  when it exists (on older Sunrice the same guidance is in `commerce_get_store_info` and the tool
   descriptions):
 
-  > Store tools start with get_store_info. Ask the user before approving payments, refunding,
+  > Store tools start with commerce_get_store_info. Ask the user before approving payments, refunding,
   > cancelling orders, switching store features or changing many prices (pricing rules, flash
   > sales); those tools need confirm: true. Products are Sunrice
-  > entries: change their content and Product data with update_entry (field `product`); get_product
+  > entries: change their content and Product data with cms_save_entry (field `product`); commerce_get_product
   > shows the field's shape.
 
 ## 24. Extension contracts

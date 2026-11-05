@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Checkout;
 
 use Sunrice\Commerce\Settings\StoreSettings;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 /**
  * The terms page customers agree to at checkout and when creating an

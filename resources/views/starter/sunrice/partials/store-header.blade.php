@@ -13,8 +13,8 @@
     $site = sunrice_global('site');
     $mainMenu = sunrice_menu('main');
     $L = \Sunrice\Commerce\Storefront\Layout::class;
-    $home = url(\Sunrice\Support\Locales::prefix($locale ?? app()->getLocale()) ?: '/');
-    $products = \Sunrice\Models\Collection::query()->where('handle', (string) (config('commerce.catalog.collections', ['products'])[0] ?? 'products'))->first();
+    $home = url(\Sunrice\Cms\Support\Locales::prefix($locale ?? app()->getLocale()) ?: '/');
+    $products = \Sunrice\Cms\Models\Collection::query()->where('handle', (string) (config('commerce.catalog.collections', ['products'])[0] ?? 'products'))->first();
     $searchUrl = url($products !== null ? app(\Sunrice\Frontend\UrlGenerator::class)->archive($products, $locale ?? null) : '/products');
     $storeName = $site->get('name') ?: commerce_store_name();
 @endphp

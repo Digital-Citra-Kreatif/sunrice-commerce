@@ -23,7 +23,7 @@ use Sunrice\Commerce\Marketing\Models\Campaign;
 use Sunrice\Commerce\Marketing\Models\CampaignLink;
 use Sunrice\Commerce\Marketing\Models\CampaignSend;
 use Sunrice\Commerce\Marketing\SmartTags;
-use Sunrice\Support\Locales;
+use Sunrice\Cms\Support\Locales;
 
 use function Pest\Laravel\get;
 use function Pest\Laravel\post;
@@ -322,7 +322,7 @@ it('starts automations from their templates in every language', function () {
     get('/cms/commerce/marketing/automations/create?trigger=abandoned_cart')->assertOk()
         ->assertInertia(fn ($page) => $page->where('campaign.trigger', 'abandoned_cart')->where('campaign.delay', 3)
             ->where('campaign.content.en.button_url', '{cart_url}')
-            ->where('campaign.content.'.Locales::main().'.button_label', 'Kembali ke keranjang'));
+            ->where('campaign.content.'.Locales::default().'.button_label', 'Kembali ke keranjang'));
 });
 
 it('keeps smart tags in the links of the email\'s text', function () {

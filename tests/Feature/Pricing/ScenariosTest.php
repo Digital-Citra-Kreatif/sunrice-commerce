@@ -11,9 +11,9 @@ use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Pricing\Calculator;
 use Sunrice\Commerce\Pricing\PricingContext;
 use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
-use Sunrice\Models\Entry;
-use Sunrice\Models\Taxonomy;
-use Sunrice\Models\Term;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\Term;
 use Workbench\App\Models\User;
 
 /*

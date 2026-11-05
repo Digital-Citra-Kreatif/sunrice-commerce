@@ -15,10 +15,10 @@ use Sunrice\Commerce\Settings\SettingsSection;
 use Sunrice\Commerce\Settings\StoreSettings;
 
 #[IsReadOnly]
-#[Description('Read store settings (Settings → Store): without section, the sections you may change; with section (general, catalog, checkout, accounts, taxes, documents…), its fields and current values. Payments, shipping zones and emails have their own admin pages and are not here. Change values with update_store_settings.')]
+#[Description('Read store settings (Settings → Store): without section, the sections you may change; with section (general, catalog, checkout, accounts, taxes, documents…), its fields and current values. Payments, shipping zones and emails have their own admin pages and are not here. Change values with commerce_update_store_settings.')]
 class GetStoreSettingsTool extends CommerceTool
 {
-    protected string $name = 'get_store_settings';
+    protected string $name = 'commerce_get_store_settings';
 
     public function shouldRegister(): bool
     {

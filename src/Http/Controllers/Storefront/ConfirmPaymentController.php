@@ -12,7 +12,7 @@ use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Actions\SubmitPaymentConfirmation;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
-use Sunrice\Support\Captcha;
+use Sunrice\Admin\Security\Captcha;
 
 /**
  * /confirm-payment: "I have paid" for an order, reached from the order

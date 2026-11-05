@@ -19,7 +19,7 @@ use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\PageCache;
 use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Commerce\Taxes\TaxDisplay;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 
 /**
  * Builds ProductViews for a page of entries in a fixed number of queries

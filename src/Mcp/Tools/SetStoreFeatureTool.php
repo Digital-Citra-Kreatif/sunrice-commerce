@@ -12,10 +12,10 @@ use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Features\FeatureRegistry;
 use Sunrice\Commerce\Mcp\CommerceTool;
 
-#[Description('Switch a store module on or off (Settings → Store → Features; get_store_info lists them). Modules that need it follow (switching off orders also switches off checkout); the result lists what changed. Needs confirm: true — ask the user first, as customers see the difference.')]
+#[Description('Switch a store module on or off (Settings → Store → Features; commerce_get_store_info lists them). Modules that need it follow (switching off orders also switches off checkout); the result lists what changed. Needs confirm: true — ask the user first, as customers see the difference.')]
 class SetStoreFeatureTool extends CommerceTool
 {
-    protected string $name = 'set_store_feature';
+    protected string $name = 'commerce_set_store_feature';
 
     protected ?string $permission = 'commerce.settings.features';
 
