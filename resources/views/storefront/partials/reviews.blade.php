@@ -65,7 +65,7 @@
             </fieldset>
             @if ($guest)
                 <label class="commerce-field" for="review-name"><span>{{ __('commerce::storefront.reviews.name') }} *</span>
-                    <input id="review-name" name="name" value="{{ old('name') }}" maxlength="100" required autocomplete="name">
+                    <input id="review-name" name="name" value="{{ old('name') }}" maxlength="120" required autocomplete="name">
                     @include($L::view('partials.field-error'), ['name' => 'name'])</label>
                 <label class="commerce-field" for="review-email"><span>{{ __('commerce::storefront.reviews.email') }} *</span>
                     <input id="review-email" type="email" name="email" value="{{ old('email') }}" maxlength="255" required autocomplete="email">

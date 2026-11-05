@@ -127,3 +127,11 @@ it('keeps one review per customer and product in the database', function () {
     Review::query()->create(['product_id' => $this->product->id, 'name' => 'Guest 2', 'rating' => 4, 'body' => 'Another guest.']);
     expect(Review::query()->count())->toBe(3);
 });
+
+it('takes reviews from customers with names as long as their profile allows', function () {
+    $customer = reviewer();
+    $customer->update(['name' => str_repeat('A', 120)]);
+
+    $this->post("/reviews/{$this->product->id}", ['rating' => 5, 'body' => 'Long name, good mug.'])->assertSessionHasNoErrors();
+    expect(Review::query()->sole()->name)->toHaveLength(120);
+});

@@ -23,7 +23,7 @@ class ReviewsController extends Controller
             'rating' => ['required', 'integer', 'between:1,5'],
             'title' => ['nullable', 'string', 'max:150'],
             'body' => ['required', 'string', 'min:10', 'max:5000'],
-            'name' => [$customer === null ? 'required' : 'nullable', 'string', 'max:100'],
+            'name' => [$customer === null ? 'required' : 'nullable', 'string', 'max:120'],
             'email' => [$customer === null ? 'required' : 'nullable', 'email', 'max:255'],
         ]);
         if ($customer === null && ! app(Captcha::class)->passes($request)) {

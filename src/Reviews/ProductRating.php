@@ -6,6 +6,7 @@ namespace Sunrice\Commerce\Reviews;
 
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Reviews\Models\Review;
+use Sunrice\Commerce\Storefront\PageCache;
 
 /** A product's rating from its approved reviews, stored on the product for listings and its JSON-LD. */
 class ProductRating
@@ -18,6 +19,8 @@ class ProductRating
             'rating_count' => $approved('count(*)'),
             'rating_average' => $approved('round(avg(rating), 2)'),
         ]);
+        // Every review change comes through here: cached product pages and listings show reviews and ratings.
+        PageCache::forget('reviews_changed');
     }
 
     /** @param  list<int>  $productIds */

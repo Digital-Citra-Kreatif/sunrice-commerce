@@ -16,7 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('customer_id')->nullable()->index();
             // The order it was bought in: shown as a verified purchase.
             $table->foreignId('order_id')->nullable()->constrained('commerce_orders')->nullOnDelete();
-            $table->string('name', 100);
+            // As long as a customer's name may be (UpdateProfile: 120).
+            $table->string('name', 120);
             $table->string('email')->nullable();
             $table->unsignedTinyInteger('rating');
             $table->string('title', 150)->nullable();

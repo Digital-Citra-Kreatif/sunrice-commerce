@@ -10,6 +10,8 @@ use Sunrice\Cms\Site\PageCache as SitePageCache;
 use Sunrice\Commerce\Catalog\CatalogVersion;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Contracts\Inventory;
+use Sunrice\Commerce\Reviews\Actions\ReplyToReview;
+use Sunrice\Commerce\Reviews\Models\Review;
 use Sunrice\Commerce\Storefront\PageCache;
 use Workbench\App\Models\User;
 
@@ -70,4 +72,12 @@ it('clears the page cache when availability or prices change', function () {
     CatalogVersion::bump(); // pricing rules and flash sales
     Event::assertDispatched(ContentChanged::class, fn (ContentChanged $e) => $e->what === 'commerce.catalog_changed');
 
+})->skip(fn () => ! SitePageCache::enabled(), 'Needs the full-page cache (spatie/laravel-responsecache)');
+
+it('clears the page cache when reviews change', function () {
+    Event::fake([ContentChanged::class]);
+    $review = Review::query()->create(['product_id' => $this->mug->product_id, 'name' => 'Budi', 'rating' => 4, 'body' => 'Holds my coffee.']);
+
+    app(ReplyToReview::class)->handle($review, 'Thank you!', 'approved');
+    Event::assertDispatched(ContentChanged::class, fn (ContentChanged $e) => $e->what === 'commerce.reviews_changed');
 })->skip(fn () => ! SitePageCache::enabled(), 'Needs the full-page cache (spatie/laravel-responsecache)');
