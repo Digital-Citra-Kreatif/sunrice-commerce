@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Returns\Actions;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Sunrice\Commerce\Notifications\Notifier;
 use Sunrice\Commerce\Orders\Actor;
@@ -18,12 +19,20 @@ class UpdateReturn
     /** @throws ValidationException */
     public function handle(ReturnRequest $return, string $status, ?string $note, Actor $actor): void
     {
-        if (! in_array($status, $return->allowedStatuses(), true)) {
-            throw ValidationException::withMessages(['values.status' => 'A '.$return->status.' return can\'t be moved to '.$status.'.']);
-        }
         $note = trim((string) $note) === '' ? null : trim((string) $note);
-        $changed = $status !== $return->status;
-        $return->update(['status' => $status, 'note' => $note, 'resolved_at' => in_array($status, ['rejected', 'closed'], true) ? ($return->resolved_at ?? now()) : null]);
+        // Checked against the row as it is now, locked: two staff saving at once can't both move it from the same status.
+        $changed = DB::transaction(function () use ($return, $status, $note): bool {
+            /** @var ReturnRequest $locked */
+            $locked = ReturnRequest::query()->whereKey($return->id)->lockForUpdate()->firstOrFail();
+            if (! in_array($status, $locked->allowedStatuses(), true)) {
+                throw ValidationException::withMessages(['values.status' => 'A '.$locked->status.' return can\'t be moved to '.$status.'.']);
+            }
+            $changed = $status !== $locked->status;
+            $locked->update(['status' => $status, 'note' => $note, 'resolved_at' => in_array($status, ['rejected', 'closed'], true) ? ($locked->resolved_at ?? now()) : null]);
+            $return->setRawAttributes($locked->getAttributes(), true);
+
+            return $changed;
+        });
         if (! $changed) {
             return;
         }

@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\ValidationException;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Notifications\StoreEmail;
+use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\OrderStatus;
+use Sunrice\Commerce\Returns\Actions\UpdateReturn;
 use Sunrice\Commerce\Returns\Models\ReturnRequest;
 use Sunrice\Commerce\Returns\Returns;
 use Sunrice\Commerce\Settings\StoreSettings;
@@ -104,4 +107,14 @@ it('moves a return only forward: rejected and closed are final', function () {
     $this->put("/admin/commerce/returns/{$return->id}", ['values' => ['status' => 'approved']])->assertSessionHasErrors('values.status');
     expect($return->fresh()->status)->toBe('rejected');
     $this->get("/admin/commerce/returns/{$return->id}")->assertInertia(fn ($p) => $p->where('form.fields.0.config.options', [['value' => 'rejected', 'label' => 'Rejected']]));
+});
+
+it('checks a move against the return as it is now, not as the page loaded it', function () {
+    $return = ReturnRequest::query()->create(['order_id' => $this->order->id, 'customer_id' => $this->order->customer_id, 'reason' => 'other']);
+    $return->items()->create(['order_item_id' => $this->item->id, 'quantity' => 1]);
+    $stale = $return->fresh();
+    ReturnRequest::query()->whereKey($return->id)->update(['status' => 'rejected']);
+
+    expect(fn () => app(UpdateReturn::class)->handle($stale, 'approved', null, Actor::system()))->toThrow(ValidationException::class);
+    expect($return->fresh()->status)->toBe('rejected');
 });
