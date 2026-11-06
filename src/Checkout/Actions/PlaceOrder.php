@@ -407,7 +407,7 @@ class PlaceOrder
         try {
             app(Inventory::class)->reserve($lines, $order, 'order');
         } catch (OutOfStock $e) {
-            throw new CheckoutRefused($e->getMessage());
+            throw new CheckoutRefused($e->customerMessage(), previous: $e);
         }
         $order->setMeta('reserved.stock', true);
 
