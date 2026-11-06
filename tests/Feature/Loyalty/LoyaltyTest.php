@@ -191,3 +191,16 @@ it('lets staff see and adjust points, never below zero, and forgets them on anon
     app(ToggleFeature::class)->handle('loyalty', false);
     $this->get('/admin/commerce/loyalty')->assertNotFound();
 });
+
+it('earns on prices without the tax they include, and less what was refunded before completion', function () {
+    $order = makeOrder(['customer_id' => $this->customer->id, 'user_id' => $this->user->id, 'status' => OrderStatus::PROCESSING, 'payment_status' => OrderStatus::PAID,
+        'prices_include_tax' => true, 'subtotal' => 110000, 'total' => 110000, 'paid_total' => 110000, 'paid_at' => now()]);
+    $order->items()->create(['name' => 'Mug', 'quantity' => 1, 'unit_price' => 110000, 'subtotal' => 110000, 'tax_total' => 10000, 'total' => 110000]);
+    // 5% of 100000: the 10000 tax inside doesn't earn.
+    expect(app(Loyalty::class)->earnable($order))->toBe(5000);
+
+    $order->forceFill(['refunded_total' => 55000])->save();
+    app(OrderStateMachine::class)->transition($order->fresh(), OrderStatus::COMPLETED, Actor::system());
+    // Half of it was refunded while it was processing: half the points.
+    expect($this->customer->fresh()->loyalty_points)->toBe(2500);
+});

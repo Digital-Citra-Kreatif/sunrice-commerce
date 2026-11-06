@@ -117,7 +117,8 @@ class Loyalty implements CalculationStage, ReservesDiscounts
                 ? ($include === [] || $matcher->matches($include, $variant)) && ($exclude === [] || ! $matcher->matches($exclude, $variant))
                 : $include === [];
             if ($eligible) {
-                $base += max(0, (int) $item->total);
+                // Products after discounts, without tax: included tax sits inside the line's total.
+                $base += max(0, (int) $item->total - ($order->prices_include_tax ? (int) $item->tax_total : 0));
             }
         }
         // Points don't earn points: only the share paid otherwise.
@@ -140,6 +141,8 @@ class Loyalty implements CalculationStage, ReservesDiscounts
         $order->save();
         if ($points > 0 && $order->customer_id !== null) {
             $this->wallet->credit($order->customer_id, $points, 'earn', $order);
+            // Refunded before it was completed: their share comes off at once.
+            $this->revoke($order);
         }
 
         return $points;

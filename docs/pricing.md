@@ -312,8 +312,9 @@ Rp1 in rupiah).
 - **Minimum order**: products after discounts; smaller orders earn nothing.
 - **Points expire after (days)**: from when points are earned or given back; 0 (the default): never.
 
-A customer with an account earns when the order is **completed** (`OrderCompleted`), once. A refund
-takes back the same share of what the order earned (as far as the balance allows).
+A customer with an account earns when the order is **completed** (`OrderCompleted`), once, on
+prices without the tax they include. A refund takes back the same share of what the order earned
+(as far as the balance allows), including a refund made before the order was completed.
 
 **Spending.** Signed-in customers with points see their balance in the cart and choose **Pay with
 my points**. Points are store credit, not a discount: the `Loyalty\Loyalty` stage runs after the
