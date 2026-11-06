@@ -280,8 +280,8 @@ bought and haven't asked to return already, rejected returns aside), a reason (`
   declined): `requested` → `approved` or `rejected`; `approved` → `received`, `rejected` or `closed`;
   `received` → `closed`. `rejected` and `closed` are final (a rejected return's items can be asked
   for again in a new return, so reopening it could return them twice). A change of status is emailed to the
-  customer ("Return updated") and both requests and changes go on the order's timeline, visible to
-  the customer.
+  customer ("Return updated", with the note) and both requests and changes go on the order's
+  timeline, visible to the customer (without the note, which stays on the return).
 - The request emails the staff ("Return requested", with a link to the return).
 - Money goes back with a refund on the order page ([Refunds](#refunds)), with the returned items and
   whether to restock them.

@@ -27,7 +27,8 @@ class RequestReturn
     {
         // The order row is locked while what's left is counted and the return is written: two requests at once can't both take the last units.
         $return = DB::transaction(function () use ($order, $quantities, $reason, $details): ReturnRequest {
-            Order::query()->whereKey($order->id)->lockForUpdate()->first();
+            // Checked on the locked row: a refund or cancellation since the page loaded counts.
+            $order = Order::query()->whereKey($order->id)->lockForUpdate()->firstOrFail();
             if (! $this->returns->open($order)) {
                 throw ValidationException::withMessages(['return' => __('commerce::account.returns.closed')]);
             }

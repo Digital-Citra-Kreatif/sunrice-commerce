@@ -12,6 +12,7 @@ use Sunrice\Commerce\Notifications\StoreEmail;
 use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\OrderStatus;
+use Sunrice\Commerce\Returns\Actions\RequestReturn;
 use Sunrice\Commerce\Returns\Actions\UpdateReturn;
 use Sunrice\Commerce\Returns\Models\ReturnRequest;
 use Sunrice\Commerce\Returns\Returns;
@@ -137,4 +138,16 @@ it('writes the emailed status in the customer\'s language, and forgets return te
 
     app(AnonymizeCustomer::class)->handle(Customer::query()->findOrFail($this->order->customer_id));
     expect($return->fresh())->details->toBeNull()->note->toBeNull();
+});
+
+it('checks the order as it is when the return is written, and keeps notes off the timeline', function () {
+    $stale = $this->order->fresh();
+    Order::query()->whereKey($this->order->id)->update(['status' => OrderStatus::REFUNDED]);
+    expect(fn () => app(RequestReturn::class)->handle($stale, [$this->item->id => 1], 'other', null, Actor::system()))->toThrow(ValidationException::class);
+    expect(ReturnRequest::query()->count())->toBe(0);
+
+    Order::query()->whereKey($this->order->id)->update(['status' => OrderStatus::COMPLETED]);
+    $return = app(RequestReturn::class)->handle($this->order->fresh(), [$this->item->id => 1], 'other', null, Actor::system());
+    app(UpdateReturn::class)->handle($return, 'approved', 'Ring 0812 3456 7890 first.', Actor::system());
+    expect($this->order->events()->where('type', 'return')->pluck('message')->implode(' '))->not->toContain('0812');
 });
