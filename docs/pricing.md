@@ -12,6 +12,7 @@ code, a choice); every amount is computed on the server from the catalog and the
 - [Pricing rules](#pricing-rules)
 - [Flash sales](#flash-sales)
 - [Vouchers and automatic discounts](#vouchers-and-automatic-discounts)
+- [Loyalty points](#loyalty-points)
 - [Shipping discounts and fees](#shipping-discounts-and-fees)
 - [Taxes](#taxes)
 - [Staff prices in manual orders, edits and quotes](#staff-prices-in-manual-orders-edits-and-quotes)
@@ -68,11 +69,12 @@ Only one currency per store is supported.
 | 70 | Fees | The payment method's fee and extension fees |
 | 80 | Taxes | The tax calculator (zero while Taxes is off) |
 | 90 | Totals | Adds it all up |
+| 95 | Loyalty points | The customer's points pay part or all of the total (see [Loyalty points](#loyalty-points)) |
 
 The totals:
 
 ```
-total = subtotal − discount + shipping − shipping_discount + fee + tax added on top
+total = subtotal − discount + shipping − shipping_discount + fee + tax added on top − points
 ```
 
 - A line is never discounted below zero, and the total never goes below zero.
@@ -296,7 +298,49 @@ discount given, end date and status (Active, Scheduled, Expired, Used up, Off), 
 from automatic discounts. Vouchers can be created, edited, switched off and deleted. Orders keep a
 snapshot of the discount, so deleting a used voucher doesn't change them.
 
-## Shipping discounts and fees
+## Loyalty points
+
+**Loyalty points** (`loyalty` module, off by default, Online store mode, needs customer accounts) are
+a wallet on each customer account. 1 point is worth 1 unit of the store's currency (1 point is
+Rp1 in rupiah).
+
+**Earning** (Settings → Store → Loyalty, `commerce.settings.loyalty`):
+
+- **Points earned (%)**: the share of an order's products, after discounts, that comes back as
+  points. Shipping, fees and taxes don't earn, and neither does the part paid with points.
+- **Only for** / **Except**: products, variants, categories or brands that earn (empty: all).
+- **Minimum order**: products after discounts; smaller orders earn nothing.
+- **Points expire after (days)**: from when points are earned or given back; 0 (the default): never.
+
+A customer with an account earns when the order is **completed** (`OrderCompleted`), once, on
+prices without the tax they include. A refund takes back the same share of what the order earned
+(as far as the balance allows), including a refund made before the order was completed.
+
+**Spending.** Signed-in customers with points see their balance in the cart and choose **Pay with
+my points**. Points are store credit, not a discount: the `Loyalty\Loyalty` stage runs after the
+totals, so prices, discounts and taxes are as without them, and the points pay what is left, up to
+the balance, with no cap (`totals.points`; `totals.total` is what remains to pay). An order paid in
+full with points is placed as paid. Orders keep the points as an adjustment of kind `points`.
+
+- Placing the order takes the points in its transaction (`Loyalty::commit()`, a
+  `ReservesDiscounts`): points spent elsewhere in between refuse the order ("Your points balance
+  changed").
+- Spending uses the points that expire first.
+- Cancelling the order, or its expiry unpaid, gives the points back, with a new expiry.
+- A refund goes to the money paid first (only that part is sent to the payment provider), then back
+  onto the wallet; the order is Refunded once both are back. An order paid in full with points is
+  refunded onto the wallet. Refunds of one order are serialized (the order is locked).
+- Orders paid partly with points can't be edited (re-pricing would drop them) and orders that took
+  points can't be deleted for good. Staff pricing (manual orders, edits, quotes) takes no points.
+- Reports count what points paid as sales (total sales, the Customers report and customers' total
+  spent).
+
+**Staff** with `commerce.loyalty.manage` see balances in Shop → Customers → Loyalty points, open a
+customer's history, and add or take points with a note (never below zero). Expired points leave the
+wallets in `commerce:prune` ("loyalty points"). Every change goes through `Loyalty\Wallet`
+(`credit()`, `debit()`), with the customer row locked, so a balance always matches its ledger
+(`commerce_loyalty_transactions`).
+
 
 - **Free shipping** vouchers apply in the shipping discounts stage, to the chosen rate's cost (and
   only when a line needs shipping). A free-shipping voucher limited to shipping methods doesn't

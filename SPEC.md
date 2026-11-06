@@ -177,6 +177,7 @@ switch them on and off.
 | Promotions | `pricing_rules` | Bulk, tier and customer-role prices | catalog | all | on |
 | Promotions | `flash_sales` | Flash sales | catalog | all | on |
 | Promotions | `vouchers` | Vouchers and automatic discounts | cart | shop, quote, whatsapp | on |
+| Customers | `loyalty` | Loyalty points | accounts, checkout | shop | **off** |
 | Customers | `accounts` | Customer accounts and My Account | catalog | all | on |
 | Customers | `passwordless_login` | Sign in with an emailed one-time code | accounts | all | off |
 | Customers | `google_login` | Sign in with Google | accounts | all | off |
@@ -372,6 +373,18 @@ and totals are sums of lines.
 - `/flash-sale` lists the current and upcoming sales; each sale also has its own page.
 - Carts recalculate when a sale starts or ends. If that happens during checkout, checkout shows
   "Prices changed".
+
+**Loyalty points (`loyalty`, off by default)**
+
+- A points wallet on each customer account; 1 point is 1 unit of the store's currency.
+- One store-wide rule (Settings → Loyalty): a percentage of the products after discounts, products
+  or categories to include or leave out, a minimum order, and an expiry in days (0: never).
+- Points are earned when an order is completed and taken back in proportion when it's refunded.
+- Signed-in customers pay with their points in the cart, after tax, up to the balance, with no cap;
+  an order paid in full is placed as paid. Points are taken when the order is placed and given back
+  if it's cancelled; refunds go to the money paid first, then back onto the wallet.
+- My Account → Points shows the balance, the next expiry and the history; staff see balances, the
+  history and adjust points with a note.
 
 **Vouchers and automatic discounts (`vouchers`)**
 
@@ -1196,8 +1209,7 @@ Deliberately not used:
 - Multiple currencies; multiple stores or warehouses; marketplaces (multi-vendor); point of sale.
 - Payment gateway and courier API integrations (separate packages); shipping labels.
 - Product Q&A.
-- Subscriptions, memberships, gift cards, store credit and loyalty points (loyalty is a separate
-  package).
+- Subscriptions, memberships and gift cards; loyalty tiers and referral rewards.
 - Price-drop alerts.
 - Configurable bundles (customer-picked components), product add-ons and personalization fields,
   deposits and installments.

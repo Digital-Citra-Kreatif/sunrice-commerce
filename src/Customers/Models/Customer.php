@@ -24,6 +24,7 @@ use Sunrice\Commerce\Support\Staff;
  * @property string|null $locale
  * @property int $orders_count
  * @property int $total_spent
+ * @property int $loyalty_points the points wallet (1 point is 1 unit of the store's currency)
  * @property Carbon|null $first_order_at
  * @property Carbon|null $last_order_at
  * @property string|null $note
@@ -47,6 +48,7 @@ class Customer extends Model
         'anonymized_at' => 'datetime',
         'meta' => 'array',
         'total_spent' => 'integer',
+        'loyalty_points' => 'integer',
     ];
 
     protected static function booted(): void

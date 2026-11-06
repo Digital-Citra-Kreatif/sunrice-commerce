@@ -30,6 +30,8 @@ class StatsRecorder
         $refunds = (int) DB::table('commerce_refunds')->where('status', 'completed')
             ->where('created_at', '>=', $from)->where('created_at', '<', $to)
             ->whereIn('order_id', CountedOrders::query()->select('id'))->sum('amount');
+        // Paid with loyalty points: part of what customers paid, though not part of the orders' remaining totals.
+        $points = -(int) DB::table('commerce_order_adjustments')->where('kind', 'points')->whereIn('order_id', (clone $orders)->select('id'))->sum('amount');
         [$new, $returning] = $this->customers($orders, $from);
         $quotes = DB::table('commerce_orders')->where('type', 'quote')->whereNull('deleted_at')
             ->where('created_at', '>=', $from)->where('created_at', '<', $to)->count();
@@ -40,7 +42,7 @@ class StatsRecorder
             'orders' => (int) $sums->orders, 'items_sold' => $items, 'gross_sales' => $gross, 'discounts' => $discounts, 'refunds' => $refunds,
             'net_sales' => $gross - $discounts - $refunds, 'shipping' => (int) $sums->shipping, 'taxes' => (int) $sums->taxes, 'fees' => (int) $sums->fees,
             // What customers paid, less refunds (taxes are already inside when prices include them).
-            'total_sales' => (int) $sums->total - $refunds,
+            'total_sales' => (int) $sums->total + $points - $refunds,
             'new_customers' => $new, 'returning_customers' => $returning, 'quotes_requested' => $quotes,
         ];
 

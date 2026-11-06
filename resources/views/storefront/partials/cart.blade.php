@@ -97,6 +97,17 @@
                     </div>
                 @endif
 
+                @php($wallet = commerce_feature('loyalty') && commerce_customer() !== null ? (int) (app(\Sunrice\Commerce\Customers\CurrentCustomer::class)->get()?->loyalty_points ?? 0) : 0)
+                @if ($wallet > 0 && \Illuminate\Support\Facades\Route::has('commerce.cart.points'))
+                    {{-- Pay with loyalty points: after tax, up to the balance. --}}
+                    <form method="POST" action="{{ commerce_url('commerce.cart.points') }}" class="commerce-cart__points">
+                        @csrf
+                        <input type="hidden" name="use" value="{{ $cart->state->ctx->usePoints ? '0' : '1' }}">
+                        <p>{{ __('commerce::storefront.cart.points_balance', ['points' => number_format($wallet, 0, ',', '.'), 'value' => $money->format($wallet)]) }}</p>
+                        <button type="submit" class="commerce-button commerce-button--secondary">{{ $cart->state->ctx->usePoints ? __('commerce::storefront.cart.points_stop') : __('commerce::storefront.cart.points_use') }}</button>
+                    </form>
+                @endif
+
                 @include($L::view('partials.totals'), ['state' => $cart->state])
                 <x-commerce::slot name="cart.totals_after" :cart="$cart" />
 

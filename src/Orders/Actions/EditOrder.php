@@ -31,7 +31,8 @@ class EditOrder
 
     public function editable(Order $order): bool
     {
-        return ! $order->isQuote() && $order->paid_total === 0 && $order->isUnpaid() && ! $order->trashed()
+        // Re-pricing drops what points paid (staff pricing takes no points): such orders are cancelled and placed again instead.
+        return ! $order->isQuote() && $order->paid_total === 0 && $order->isUnpaid() && ! $order->trashed() && ! $order->adjustments()->where('kind', 'points')->exists()
             && in_array($order->status, [OrderStatus::PENDING, OrderStatus::ON_HOLD, OrderStatus::PROCESSING, OrderStatus::FAILED], true)
             && $order->fulfillment_status !== OrderStatus::SHIPPED && $order->fulfillment_status !== OrderStatus::PARTIALLY_SHIPPED;
     }

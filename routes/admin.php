@@ -53,6 +53,10 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::put('vouchers/{voucher}', [Admin\VouchersController::class, 'update'])->name('vouchers.update');
     Route::delete('vouchers/{voucher}', [Admin\VouchersController::class, 'destroy'])->name('vouchers.destroy');
 
+    Route::get('loyalty', [Admin\LoyaltyController::class, 'index'])->name('loyalty');
+    Route::get('loyalty/{customer}', [Admin\LoyaltyController::class, 'edit'])->whereNumber('customer')->name('loyalty.edit');
+    Route::put('loyalty/{customer}', [Admin\LoyaltyController::class, 'update'])->whereNumber('customer')->name('loyalty.update');
+
     Route::get('marketing', fn () => redirect()->route('sunrice.admin.commerce.marketing.campaigns'))->name('marketing');
     Route::prefix('marketing')->name('marketing.')->group(function (): void {
         foreach (['campaigns' => 'campaign', 'automations' => 'automation'] as $path => $type) {

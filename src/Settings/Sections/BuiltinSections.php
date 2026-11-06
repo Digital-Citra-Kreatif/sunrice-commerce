@@ -33,6 +33,7 @@ final class BuiltinSections
         ]));
         $registry->register(new SettingsSection('taxes', 'Taxes', fn () => self::taxes(), feature: 'taxes', position: 50));
         $registry->register(new SettingsSection('accounts', 'Accounts', fn () => self::accounts(), feature: 'accounts', position: 60));
+        $registry->register(new SettingsSection('loyalty', 'Loyalty', fn () => self::loyalty(), feature: 'loyalty', position: 65));
         $registry->register(new SettingsSection('digital', 'Digital products', fn () => self::digital(), feature: 'digital', permission: 'commerce.settings.catalog', position: 25));
         $registry->register(new SettingsSection('documents', 'Documents', fn () => self::documents(), feature: 'documents', position: 80, rules: [
             'invoice_number_format' => [self::formatRule()],
@@ -197,6 +198,20 @@ final class BuiltinSections
             ['handle' => 'classes', 'type' => 'select', 'label' => 'Tax classes', 'instructions' => 'Products choose one; "standard" always exists. Type to add (e.g. "exempt").', 'config' => ['multiple' => true, 'options' => array_map(
                 fn (string $c) => ['value' => $c, 'label' => $c], array_values(array_unique(['standard', 'reduced', 'exempt', ...(array) app(StoreSettings::class)->get('taxes.classes', [])])),
             )]],
+        ];
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    protected static function loyalty(): array
+    {
+        return [
+            ['handle' => 'earn_percent', 'type' => 'number', 'label' => 'Points earned (%)', 'instructions' => 'Of each completed order\'s products, after discounts (not shipping or tax). 1 point is worth 1 of your currency. 0: none.',
+                'config' => ['min' => 0, 'max' => 100, 'step' => 0.01], 'validation' => ['numeric', 'decimal:0,2', 'min:0', 'max:100']],
+            ['handle' => 'include', 'type' => 'commerce_targets', 'label' => 'Only for', 'instructions' => 'Products, variants, categories or brands that earn points. Empty: every product.'],
+            ['handle' => 'exclude', 'type' => 'commerce_targets', 'label' => 'Except'],
+            ['handle' => 'min_subtotal', 'type' => 'commerce_money', 'label' => 'Minimum order', 'instructions' => 'Products after discounts. Empty: any order.'],
+            ['handle' => 'expiry_days', 'type' => 'number', 'label' => 'Points expire after (days)', 'instructions' => 'From when they are earned or given back. 0: never.',
+                'config' => ['min' => 0, 'max' => 3650], 'validation' => ['integer', 'min:0', 'max:3650']],
         ];
     }
 

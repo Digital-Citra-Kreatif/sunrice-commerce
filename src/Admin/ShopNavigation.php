@@ -68,6 +68,7 @@ final class ShopNavigation
             self::item('inventory', 'Inventory', 'commerce/inventory', 'clipboard-list', 'commerce.inventory.view', 'inventory', 'products', sort: 9),
             self::item('reviews', 'Reviews', 'commerce/reviews', 'star', 'commerce.reviews.manage', 'reviews', 'products', sort: 10),
             self::item('customers', 'Customers', 'commerce/customers', 'users', 'commerce.customers.view', sort: 3),
+            self::item('loyalty', 'Loyalty points', 'commerce/loyalty', 'coins', 'commerce.loyalty.manage', 'loyalty', 'customers', 1),
             NavigationItem::make('commerce-promotions')->label('Promotions')->url('commerce/promotions')->icon('megaphone')->group(self::GROUP)
                 ->sort(self::SORT + 4)->visible($promotions),
             ...array_map(fn (array $p, int $i): NavigationItem => self::item($p[0], $p[1], $p[2], 'megaphone', $p[3], $p[4], 'promotions', $i), self::PROMOTIONS, array_keys(self::PROMOTIONS)),

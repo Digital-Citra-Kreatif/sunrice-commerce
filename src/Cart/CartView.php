@@ -55,6 +55,7 @@ class CartView implements JsonSerializable
         $ctx = $ctx->with(array_filter([
             'email' => $ctx->email ?? ($checkout['email'] ?? null),
             'phone' => $checkout['phone'] ?? null,
+            'usePoints' => (bool) ($checkout['use_points'] ?? false),
         ]));
         $lines = [];
         foreach ($cart->items as $item) {

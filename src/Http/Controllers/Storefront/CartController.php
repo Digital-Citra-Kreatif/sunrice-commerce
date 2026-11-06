@@ -18,6 +18,7 @@ use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\VariantFromOptions;
 use Sunrice\Commerce\Catalog\LiveEntries;
+use Sunrice\Commerce\Loyalty\Actions\UsePoints;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 
@@ -61,6 +62,12 @@ class CartController
     public function remove(int $item, RemoveCartItem $remove): RedirectResponse
     {
         return $this->attempt(fn () => $remove->handle($item), __('commerce::storefront.cart.removed'));
+    }
+
+    /** Pay with loyalty points, or not (signed-in customers). */
+    public function usePoints(Request $request, UsePoints $use): RedirectResponse
+    {
+        return $this->attempt(fn () => $use->handle($request->boolean('use')), __('commerce::storefront.cart.points_saved'));
     }
 
     public function applyVoucher(Request $request, ApplyVoucher $apply): RedirectResponse

@@ -55,6 +55,7 @@ final class BuiltinFeatures
             new Feature('google_login', 'customers', 'Sign in with Google', 'Needs GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.', ['accounts'], default: false),
             new Feature('wishlist', 'customers', 'Wishlist', 'Customers save products for later.', ['catalog']),
             new Feature('compare', 'customers', 'Product comparison', 'Compare products side by side.', ['catalog']),
+            new Feature('loyalty', 'customers', 'Loyalty points', 'Customers earn points on completed orders and spend them at checkout, like a wallet.', ['accounts', 'checkout'], ['shop'], default: false),
             new Feature('reviews', 'customers', 'Product reviews', 'Customers rate and review products; reviews show once approved, with your reply.', ['catalog']),
             new Feature('marketing', 'customers', 'Marketing emails', 'Campaigns and automatic emails (abandoned cart, win back…) to customers who accept marketing, with open and click tracking.', ['catalog'], default: false),
 

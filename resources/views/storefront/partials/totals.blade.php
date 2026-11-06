@@ -17,5 +17,8 @@
     @if ($state->totals['tax'] > 0)
         <div><dt>{{ __('commerce::storefront.cart.tax') }}</dt><dd>{{ ($state->data['prices_include_tax'] ?? true) ? __('commerce::storefront.cart.tax_included', ['amount' => $money->format($state->totals['tax'])]) : $money->format($state->totals['tax']) }}</dd></div>
     @endif
+    @foreach ($state->adjustmentsOfType('points') as $adjustment)
+        <div class="commerce-totals__discount"><dt>{{ $adjustment->label }}</dt><dd>-{{ $money->format($adjustment->amount) }}</dd></div>
+    @endforeach
     <div class="commerce-totals__total"><dt>{{ __('commerce::storefront.cart.total') }}</dt><dd>{{ $money->format($state->totals['total']) }}</dd></div>
 </dl>

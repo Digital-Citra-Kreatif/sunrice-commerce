@@ -162,4 +162,15 @@ return [
         'added_again' => 'The products are back in your cart.',
         'unavailable' => 'No longer available: :products.',
     ],
+    'points' => [
+        'title' => 'Points',
+        'balance' => 'You have :points points, worth :value.',
+        'how' => 'You earn :percent% of what you spend on products, in points, when an order is completed. Spend them in the cart.',
+        'expiring' => ':points points expire on :date.',
+        'none' => 'No points yet.',
+        'date' => 'Date',
+        'what' => 'What',
+        'points' => 'Points',
+        'kinds' => ['earn' => 'Earned', 'redeem' => 'Spent', 'release' => 'Order cancelled: given back', 'refund' => 'Refunded', 'revoke' => 'Taken back (refund)', 'adjust' => 'Changed by the store', 'expire' => 'Expired'],
+    ],
 ];

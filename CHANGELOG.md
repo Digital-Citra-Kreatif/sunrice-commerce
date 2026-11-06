@@ -7,6 +7,20 @@ The first release. Commerce is a plugin for the Sunrice panel (`sunrice/admin`) 
 editor, the store's admin pages live in the panel under Shop, and the storefront renders through
 the CMS's templates and full-page cache.
 
+### Loyalty points
+- `loyalty` module (off by default, Online store mode): a points wallet on each customer account
+  (1 point is 1 unit of the store's currency). Settings → Loyalty sets one store-wide rule (a
+  percentage of the products after discounts, products to include or leave out, a minimum order,
+  an expiry in days); completed orders earn and refunds take back their share. Signed-in customers
+  pay with their points in the cart, after tax, up to the balance (a new last calculation stage,
+  `Loyalty\Loyalty`, and `totals.points`); points are taken when the order is placed, given back
+  when it's cancelled, and refunds beyond the money paid go back onto the wallet. My Account →
+  Points; Shop → Customers → Loyalty points (`commerce.loyalty.manage`) to see and adjust balances;
+  expiry in `commerce:prune`. New column `commerce_customers.loyalty_points` and table
+  `commerce_loyalty_transactions`.
+- Refunds lock the order while they're worked out, and send only the money part to the payment
+  provider.
+
 ### Returns
 - `returns` module (off by default): customers request returns of completed orders within
   `checkout.returns_days` from My Account (items, quantities, reason, details); staff review them

@@ -59,6 +59,7 @@ return [
         'payment' => 'Pilih metode pembayaran.',
         'paused' => 'Kami sedang tidak menerima pesanan. Silakan coba lagi nanti.',
         'changed' => 'Pesanan Anda berubah. Silakan periksa lalu buat pesanan lagi.',
+        'points' => 'Saldo poin Anda berubah. Silakan periksa keranjang Anda.',
         'flash_sale' => 'Kuota flash sale baru saja habis. Silakan periksa keranjang Anda.',
         'voucher' => 'Voucher :code tidak bisa dipakai lagi.',
     ],

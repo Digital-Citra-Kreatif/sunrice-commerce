@@ -43,6 +43,7 @@ const MODULE_SURFACES = [
     'wishlist' => [['/wishlist'], []],
     'compare' => [['/compare'], []],
     'reviews' => [['/admin/commerce/reviews'], ['Reviews']],
+    'loyalty' => [['/admin/commerce/loyalty'], ['Loyalty points']],
     'stock_alerts' => [[], []],
     'product_feeds' => [['/feeds/products.xml'], []],
     'returns' => [['/admin/commerce/returns'], ['Returns']],
