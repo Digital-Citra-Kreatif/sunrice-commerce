@@ -261,6 +261,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         Event::listen(Orders\Events\OrderCompleted::class, Digital\Listeners\GrantDownloads::class);
         Event::listen(Orders\Events\OrderCompleted::class, Loyalty\Listeners\EarnPoints::class);
         Event::listen(Orders\Events\OrderRefunded::class, Loyalty\Listeners\RevokePoints::class);
+        Event::listen(Payments\Events\PaymentRecorded::class, Loyalty\Listeners\RevokePoints::class);
         RateLimiter::for('commerce-feeds', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
         RateLimiter::for('commerce-stock-alerts', fn (Request $request) => Limit::perHour(20)->by($request->ip()));
         RateLimiter::for('commerce-reviews', fn (Request $request) => Limit::perHour(5)->by($request->ip()));

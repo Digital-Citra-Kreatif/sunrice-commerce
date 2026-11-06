@@ -25,6 +25,8 @@ use Sunrice\Commerce\Orders\Listeners\ReleaseReservations;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\OrderStateMachine;
 use Sunrice\Commerce\Orders\OrderStatus;
+use Sunrice\Commerce\Payments\Actions\RecordPaymentResult;
+use Sunrice\Commerce\Payments\PaymentResult;
 use Sunrice\Commerce\Pricing\Adjustment;
 use Sunrice\Commerce\Pricing\CalculationState;
 use Sunrice\Commerce\Pricing\PricingContext;
@@ -211,4 +213,13 @@ it('checks the minimum against the products, not a free-shipping discount', func
     $order->items()->create(['name' => 'Mug', 'quantity' => 2, 'unit_price' => 50000, 'subtotal' => 100000, 'total' => 100000]);
 
     expect(app(Loyalty::class)->earnable($order))->toBe(5000);
+});
+
+it('takes points back when the payment provider reports a refund', function () {
+    $order = completeOrder(placeAsRina(cartWith([[$this->mug, 2]])));
+    expect($this->customer->fresh()->loyalty_points)->toBe(5000);
+
+    // A gateway's webhook: half of what was paid comes back.
+    app(RecordPaymentResult::class)->handle($order->payments()->sole(), PaymentResult::refunded(55000, 'gw-refund-1'));
+    expect($this->customer->fresh()->loyalty_points)->toBe(2500);
 });
