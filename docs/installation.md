@@ -1,7 +1,7 @@
 # Installation
 
 Sunrice Commerce turns a Sunrice CMS site into a store. It needs PHP 8.4+, Laravel 13, Sunrice
-CMS 1.x (with the settings tabs, users scope and structure import changes) and SQLite, MySQL or
+0.6 (`sunrice/admin` and `sunrice/cms`, which Composer installs with it) and SQLite, MySQL or
 PostgreSQL. The admin bundle is prebuilt: you don't need Node.
 
 ## Contents
