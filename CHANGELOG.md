@@ -13,7 +13,8 @@ the CMS's templates and full-page cache.
   adjusted and switched off there with their history. Entered in the cart's code box, they pay part
   or all of an order after tax (a new last calculation stage, `GiftCards\GiftCards`, and
   `totals.gift_card`); the balance is taken when the order is placed and given back when it is
-  cancelled. New tables `commerce_gift_cards` and `commerce_gift_card_transactions`; the cart's
+  cancelled; refunds beyond the money paid go back onto the cards. New tables `commerce_gift_cards`
+  and `commerce_gift_card_transactions`; the cart's
   code endpoints now answer with either Vouchers or Gift cards on.
 
 ### Returns

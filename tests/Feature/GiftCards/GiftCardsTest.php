@@ -6,6 +6,7 @@ use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Testing\TestResponse;
+use Illuminate\Validation\ValidationException;
 use Sunrice\Commerce\Analytics\Period;
 use Sunrice\Commerce\Analytics\Reports\CustomersReport;
 use Sunrice\Commerce\Analytics\Stats;
@@ -20,6 +21,9 @@ use Sunrice\Commerce\GiftCards\GiftCards;
 use Sunrice\Commerce\GiftCards\Models\GiftCard;
 use Sunrice\Commerce\Notifications\StoreEmail;
 use Sunrice\Commerce\Orders\Actions\EditOrder;
+use Sunrice\Commerce\Orders\Actions\MarkOrderPaid;
+use Sunrice\Commerce\Orders\Actions\RecordRefund;
+use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\Listeners\ReleaseReservations;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\OrderStatus;
@@ -154,4 +158,43 @@ it('forgets the recipient when the customer is anonymized', function () {
 
     app(AnonymizeCustomer::class)->handle($customer);
     expect($card->fresh()->recipient_email)->toBeNull();
+});
+
+it('refunds money first, then onto the gift cards, and counts what cards paid as the customer\'s spend', function () {
+    $card = giftCard(30000);
+    $cart = cartWith([[$this->mug, 2]]);
+    $cart->update(['vouchers' => ['GIFT-0001']]);
+    placeWithCard($cart->fresh());
+    $order = Order::query()->sole();
+    app(MarkOrderPaid::class)->handle($order, Actor::system());
+    $order->refresh();
+    expect($order->paid_total)->toBe(80000)
+        ->and($order->customer->fresh()->total_spent)->toBe(110000);
+
+    $refund = app(RecordRefund::class);
+    expect(fn () => $refund->handle($order->fresh(), 110001, [], null, false, Actor::system()))->toThrow(ValidationException::class);
+    $refund->handle($order->fresh(), 100000, [], 'Broken', false, Actor::system());
+    expect($order->fresh())->refunded_total->toBe(80000)->status->not->toBe(OrderStatus::REFUNDED)
+        ->and($card->fresh()->balance)->toBe(20000);
+
+    $refund->handle($order->fresh(), 10000, [], null, false, Actor::system());
+    expect($order->fresh()->status)->toBe(OrderStatus::REFUNDED)
+        ->and($card->fresh()->balance)->toBe(30000)
+        ->and($order->customer->fresh()->total_spent)->toBe(0);
+
+    // Nothing is left for a cancellation to give back twice.
+    app(ReleaseReservations::class)->release($order->fresh());
+    expect($card->fresh()->balance)->toBe(30000);
+});
+
+it('refunds an order the cards paid in full back onto them', function () {
+    $card = giftCard(200000);
+    $cart = cartWith([[$this->mug, 2]]);
+    $cart->update(['vouchers' => ['GIFT-0001']]);
+    placeWithCard($cart->fresh());
+    $order = Order::query()->sole();
+
+    app(RecordRefund::class)->handle($order, 110000, [], null, false, Actor::system());
+    expect($card->fresh()->balance)->toBe(200000)
+        ->and($order->fresh()->status)->toBe(OrderStatus::REFUNDED);
 });

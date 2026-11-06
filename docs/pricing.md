@@ -318,15 +318,17 @@ order the cards pay in full is placed as paid.
   `ReservesDiscounts`): a card spent, expired or switched off in between refuses the order ("A gift
   card's balance changed").
 - Cancelling the order, or its expiry unpaid, gives the amounts back (`release()`, once).
-- A refund of a paid order refunds what was paid; it doesn't put anything back on the card (add it
-  to the balance on the card's page).
+- A refund goes to what was paid in money first, then back onto the cards that paid the rest (the
+  card used last first); the order is Refunded once both are back. An order the cards paid in full
+  is refunded onto them. Cancelling gives back only what wasn't refunded already.
 - Orders paid partly by gift card can't be edited (re-pricing would drop the card): cancel and
   place them again.
 - Staff pricing (manual orders, edits, quotes) takes no codes, so no cards.
 - A card spends only in the currency it was issued in (a card issued before the store's currency
   changed can't be used).
 - Reports count what cards paid as sales: total sales and customers' spend add the `gift_card`
-  adjustments to the orders' totals (which are what was left to pay).
+  adjustments to the orders' totals (which are what was left to pay), and a customer's total spent
+  includes what cards paid, less what went back onto them.
 
 
 - **Free shipping** vouchers apply in the shipping discounts stage, to the chosen rate's cost (and

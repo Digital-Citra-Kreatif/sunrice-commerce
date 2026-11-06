@@ -382,7 +382,8 @@ and totals are sums of lines.
   store credit (prices, discounts and taxes don't change), up to its balance; several cards apply in
   the order entered, and an order paid in full by cards is placed as paid.
 - The balance is taken when the order is placed (a card spent meanwhile refuses the order) and given
-  back when the order is cancelled or expires unpaid; refunds don't put it back on the card.
+  back when the order is cancelled or expires unpaid; refunds go to the money paid first, then back
+  onto the cards.
 
 **Vouchers and automatic discounts (`vouchers`)**
 

@@ -95,14 +95,64 @@ class GiftCards implements CalculationStage, ReservesDiscounts
         }
     }
 
-    /** The order was cancelled: what it took goes back on each card. Runs once per order (ReleaseReservations). */
+    /** The order was cancelled: what it took and wasn't refunded yet goes back on each card. Runs once per order (ReleaseReservations). */
     public function release(Order $order): void
     {
-        $taken = GiftCardTransaction::query()->where('order_id', $order->id)->where('kind', 'redeem')->get();
-        foreach ($taken as $redeemed) {
-            DB::table('commerce_gift_cards')->where('id', $redeemed->gift_card_id)
-                ->update(['balance' => DB::raw('balance + '.(int) -$redeemed->amount), 'updated_at' => now()]);
-            GiftCardTransaction::query()->create(['gift_card_id' => $redeemed->gift_card_id, 'order_id' => $order->id, 'kind' => 'release', 'amount' => -$redeemed->amount]);
+        foreach ($this->outstanding($order) as $cardId => $amount) {
+            $this->credit($cardId, $order, 'release', $amount);
         }
+    }
+
+    /** What gift cards paid of this order and hasn't gone back to them (refunded or released). */
+    public function refundable(Order $order): int
+    {
+        return array_sum($this->outstanding($order));
+    }
+
+    /** What gift cards paid of this order, given back or not. */
+    public function paid(Order $order): int
+    {
+        return -(int) GiftCardTransaction::query()->where('order_id', $order->id)->where('kind', 'redeem')->sum('amount');
+    }
+
+    /**
+     * Refund up to $amount of what cards paid back onto them, the card used last first.
+     *
+     * @return int what went back
+     */
+    public function refund(Order $order, int $amount, ?int $userId = null): int
+    {
+        $done = 0;
+        foreach (array_reverse($this->outstanding($order), true) as $cardId => $left) {
+            $part = min($left, $amount - $done);
+            if ($part <= 0) {
+                break;
+            }
+            $this->credit($cardId, $order, 'refund', $part, $userId);
+            $done += $part;
+        }
+
+        return $done;
+    }
+
+    /**
+     * Per card, in the order they were used: taken by the order less what went back.
+     *
+     * @return array<int, int> gift card id => amount
+     */
+    protected function outstanding(Order $order): array
+    {
+        $left = [];
+        foreach (GiftCardTransaction::query()->where('order_id', $order->id)->whereIn('kind', ['redeem', 'release', 'refund'])->orderBy('id')->get() as $t) {
+            $left[$t->gift_card_id] = ($left[$t->gift_card_id] ?? 0) - $t->amount;
+        }
+
+        return array_filter($left, fn (int $amount) => $amount > 0);
+    }
+
+    protected function credit(int $cardId, Order $order, string $kind, int $amount, ?int $userId = null): void
+    {
+        DB::table('commerce_gift_cards')->where('id', $cardId)->update(['balance' => DB::raw('balance + '.$amount), 'updated_at' => now()]);
+        GiftCardTransaction::query()->create(['gift_card_id' => $cardId, 'order_id' => $order->id, 'kind' => $kind, 'amount' => $amount, 'user_id' => $userId]);
     }
 }

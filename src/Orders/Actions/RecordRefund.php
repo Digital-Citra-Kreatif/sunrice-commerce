@@ -7,6 +7,7 @@ namespace Sunrice\Commerce\Orders\Actions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Sunrice\Commerce\Contracts\Inventory;
+use Sunrice\Commerce\GiftCards\GiftCards;
 use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\Events\OrderRefunded;
 use Sunrice\Commerce\Orders\Models\Order;
@@ -24,7 +25,8 @@ use Sunrice\Commerce\Support\MoneyFormatter;
 
 /**
  * Money returned to the customer (ARCHITECTURE.md §12.3): up to what was
- * paid and not yet refunded, with returned quantities and an optional
+ * paid and not yet refunded (beyond what was paid in money, back onto the
+ * gift cards that paid the rest), with returned quantities and an optional
  * restock. Payment totals change through RecordPaymentResult; once the
  * refunds reach the amount paid the order becomes Refunded. A gateway
  * method that supports refunds is asked first when $viaGateway.
@@ -40,7 +42,9 @@ class RecordRefund
      */
     public function handle(Order $order, int $amount, array $items, ?string $reason, bool $restock, Actor $actor, bool $viaGateway = false): Refund
     {
-        $refundable = $order->paid_total - $order->refunded_total;
+        // Money paid first, then what gift cards paid (back onto the cards).
+        $money = max(0, $order->paid_total - $order->refunded_total);
+        $refundable = $money + app(GiftCards::class)->refundable($order);
         if ($amount <= 0 || $amount > $refundable) {
             throw ValidationException::withMessages(['amount' => 'The refund must be more than zero and at most '.app(MoneyFormatter::class)->format(max(0, $refundable)).'.']);
         }
@@ -73,7 +77,7 @@ class RecordRefund
             }
         }
 
-        $refund = DB::transaction(function () use ($order, $amount, $rows, $reason, $restock, $actor, $reference, $method, $lines): Refund {
+        $refund = DB::transaction(function () use ($order, $amount, $money, $rows, $reason, $restock, $actor, $reference, $method, $lines): Refund {
             $refund = Refund::query()->create([
                 'order_id' => $order->id, 'amount' => $amount, 'reason' => $reason, 'items' => $rows ?: null, 'restock' => $restock,
                 'method' => $method, 'reference' => $reference, 'status' => 'completed', 'created_by' => $actor->userId,
@@ -92,8 +96,12 @@ class RecordRefund
                 app(Inventory::class)->release($restockLines, $order, 'refund');
             }
 
-            // Spread the amount over the paid payments, newest first.
-            $left = $amount;
+            // Spread the money part over the paid payments, newest first; the rest goes back onto gift cards.
+            $toCards = max(0, $amount - $money);
+            if ($toCards > 0) {
+                app(GiftCards::class)->refund($order, $toCards, $actor->userId);
+            }
+            $left = $amount - $toCards;
             foreach ($order->payments()->whereIn('status', ['paid', 'partially_refunded'])->orderByDesc('id')->get() as $payment) {
                 /** @var Payment $payment */
                 $part = min($left, $payment->amount - $payment->refunded_amount);
@@ -110,7 +118,7 @@ class RecordRefund
             $order->refresh();
             $this->timeline->record($order, 'refund', __('commerce::orders.timeline.refund', ['amount' => app(MoneyFormatter::class)->format($amount)]).($reason ? " — {$reason}" : ''),
                 ['refund_id' => $refund->id, 'restock' => $restock], $actor);
-            if ($order->refunded_total >= $order->paid_total && $this->states->can($order, OrderStatus::REFUNDED)) {
+            if ($order->refunded_total >= $order->paid_total && app(GiftCards::class)->refundable($order) === 0 && $this->states->can($order, OrderStatus::REFUNDED)) {
                 $this->states->transition($order, OrderStatus::REFUNDED, $actor);
             }
 
