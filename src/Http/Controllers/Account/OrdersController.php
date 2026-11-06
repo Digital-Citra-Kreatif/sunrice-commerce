@@ -7,14 +7,19 @@ namespace Sunrice\Commerce\Http\Controllers\Account;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Sunrice\Commerce\Cart\Actions\AddToCart;
 use Sunrice\Commerce\Cart\CartException;
 use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Digital\Models\DownloadGrant;
 use Sunrice\Commerce\Http\Controllers\Storefront\OrderController;
 use Sunrice\Commerce\Orders\Actions\CancelOrderByCustomer;
+use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\InvalidTransition;
 use Sunrice\Commerce\Orders\Models\Order;
+use Sunrice\Commerce\Returns\Actions\RequestReturn;
+use Sunrice\Commerce\Returns\Models\ReturnRequest;
+use Sunrice\Commerce\Returns\Returns;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 
 /**
@@ -43,9 +48,14 @@ class OrdersController
     {
         $model = $this->own($order);
 
+        $returns = app(Returns::class);
+
         return $account->page('order', __('commerce::checkout.order.title', ['number' => $model->displayNumber()]), [
             ...$orders->data($request, $model),
             'current' => $model->isQuote() ? 'quotes' : 'orders',
+            // The Returns module: requests made, and what may still be returned (null when nothing).
+            'returns' => commerce_feature('returns') ? ReturnRequest::query()->where('order_id', $model->id)->with('items')->latest('id')->get() : collect(),
+            'returnable' => $returns->open($model) ? $returns->returnable($model) : null,
         ]);
     }
 
@@ -77,6 +87,21 @@ class OrdersController
         }
 
         return $added > 0 ? $redirect->with('commerce.success', __('commerce::account.orders.added_again')) : back()->with('commerce.error', $error);
+    }
+
+    /** POST orders/{order}/returns: ask to return items (the Returns module, within the return window). */
+    public function requestReturn(Request $request, int $order, RequestReturn $returns): RedirectResponse
+    {
+        $model = $this->own($order);
+        $data = $request->validate([
+            'items' => ['required', 'array'],
+            'items.*' => ['nullable', 'integer', 'min:0'],
+            'reason' => ['required', Rule::in(ReturnRequest::REASONS)],
+            'details' => ['nullable', 'string', 'max:2000'],
+        ]);
+        $returns->handle($model, $data['items'], $data['reason'], $data['details'] ?? null, Actor::customer($request->user()));
+
+        return back()->with('commerce.success', __('commerce::account.returns.requested'));
     }
 
     public function cancel(Request $request, int $order, CancelOrderByCustomer $cancel): RedirectResponse

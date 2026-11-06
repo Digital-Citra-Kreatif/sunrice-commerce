@@ -102,6 +102,9 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::post('orders/{order}/restore', [Admin\OrdersController::class, 'restore'])->whereNumber('order')->name('orders.restore');
     Route::delete('orders/{order}/force', [Admin\OrdersController::class, 'forceDelete'])->whereNumber('order')->name('orders.force-delete');
 
+    Route::get('returns', [Admin\ReturnsController::class, 'index'])->name('returns');
+    Route::get('returns/{return}', [Admin\ReturnsController::class, 'edit'])->whereNumber('return')->name('returns.edit');
+    Route::put('returns/{return}', [Admin\ReturnsController::class, 'update'])->whereNumber('return')->name('returns.update');
     Route::get('reviews', [Admin\ReviewsController::class, 'index'])->name('reviews');
     Route::post('reviews/bulk', [Admin\ReviewsController::class, 'bulk'])->name('reviews.bulk');
     Route::get('reviews/{review}', [Admin\ReviewsController::class, 'edit'])->whereNumber('review')->name('reviews.edit');

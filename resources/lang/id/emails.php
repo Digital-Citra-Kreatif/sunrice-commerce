@@ -76,6 +76,18 @@ return [
         'intro' => '',
         'action' => 'Lihat pesanan',
     ],
+    'return_updated' => [
+        'subject' => 'Pengembalian untuk :number',
+        'heading' => 'Ada kabar tentang pengembalian Anda',
+        'intro' => '',
+        'action' => 'Lihat pesanan',
+    ],
+    'staff_return_requested' => [
+        'subject' => 'Permintaan pengembalian untuk :number',
+        'heading' => 'Pelanggan ingin mengembalikan barang',
+        'intro' => '',
+        'action' => 'Periksa pengembalian',
+    ],
     'back_in_stock' => [
         'subject' => 'Tersedia lagi: :product',
         'heading' => ':product tersedia lagi',

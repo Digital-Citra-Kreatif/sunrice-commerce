@@ -588,6 +588,10 @@ set their own). While a payment confirmation awaits review, the deadline is paus
   come with gateway packages.
 - **Trash** (soft delete) needs `commerce.orders.delete`. Orders with payments can't be deleted for
   good.
+- **Returns** (`returns`, off by default): customers ask to return items of a completed order within
+  a number of days (items and quantities, a reason, details) from My Account; staff approve, reject,
+  receive and close them in Shop → Orders → Returns with a note the customer is emailed; requests
+  and changes go on the order's timeline. Refunds are recorded on the order as before.
 
 ### Payments (`payments`, `manual_payments`)
 
@@ -1197,7 +1201,7 @@ Deliberately not used:
 - Price-drop alerts.
 - Configurable bundles (customer-picked components), product add-ons and personalization fields,
   deposits and installments.
-- A returns/RMA workflow and exchanges; refunds are recorded by hand.
+- Exchanges, and refunds started from a return (they're recorded on the order).
 - Creating products from CSV (the import changes existing variants by SKU).
 - A headless/REST API (the MCP server and the Blade components are the interfaces); search engines
   (Scout).

@@ -41,6 +41,7 @@ Route::middleware(['commerce.feature:accounts', 'commerce.noindex'])->prefix(Sto
         Route::get('quotes', [Account\OrdersController::class, 'quotes'])->middleware('commerce.feature:orders')->name('commerce.account.quotes'.$suffix);
         Route::get('orders/{order}', [Account\OrdersController::class, 'show'])->whereNumber('order')->middleware('commerce.feature:orders')->name('commerce.account.order'.$suffix);
         Route::post('orders/{order}/again', [Account\OrdersController::class, 'buyAgain'])->whereNumber('order')->middleware('commerce.feature:cart')->name('commerce.account.order.again'.$suffix);
+        Route::post('orders/{order}/returns', [Account\OrdersController::class, 'requestReturn'])->whereNumber('order')->middleware(['commerce.feature:returns', 'throttle:commerce-cart'])->name('commerce.account.order.return'.$suffix);
         Route::post('orders/{order}/cancel', [Account\OrdersController::class, 'cancel'])->whereNumber('order')->middleware('commerce.feature:orders')->name('commerce.account.order.cancel'.$suffix);
         Route::get('downloads', [Account\OrdersController::class, 'downloads'])->name('commerce.account.downloads'.$suffix);
         Route::post('delete', [Account\AccountController::class, 'requestDeletion'])->name('commerce.account.delete'.$suffix);

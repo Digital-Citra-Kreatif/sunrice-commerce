@@ -18,6 +18,7 @@ taken when it was placed, so later changes to products or regions don't rewrite 
 - [Quotes](#quotes)
 - [Shipments](#shipments)
 - [Refunds](#refunds)
+- [Returns](#returns)
 - [Documents](#documents)
 - [Trash](#trash)
 - [The customer's side](#the-customers-side)
@@ -265,6 +266,25 @@ It is a manual refund by default. With "via gateway", a payment method that impl
 payments (newest first) through `RecordPaymentResult`. Once refunds reach the amount paid, the
 order becomes Refunded. `OrderRefunded` emails "order refunded" and takes the units back from the
 products' sales counts.
+
+## Returns
+
+**Returns** (`returns` module, off by default): a customer asks to send items back from My Account →
+the order, for a completed order within **Returns accepted for (days)** of its completion
+(`checkout.returns_days`, default 14; 0: none). They choose how many of each line (at most what they
+bought and haven't asked to return already, rejected returns aside), a reason (`damaged`,
+`wrong_item`, `not_as_described`, `does_not_fit`, `changed_mind`, `other`) and details.
+
+- Staff with `commerce.returns.manage` see them in Shop → Orders → Returns, filtered by status and
+  reason, and move each on with a note to the customer (where to send the items, why it was
+  declined): `requested` → `approved` or `rejected`; `approved` → `received`, `rejected` or `closed`;
+  `received` → `closed`. `rejected` and `closed` are final (a rejected return's items can be asked
+  for again in a new return, so reopening it could return them twice). A change of status is emailed to the
+  customer ("Return updated", with the note) and both requests and changes go on the order's
+  timeline, visible to the customer (without the note, which stays on the return).
+- The request emails the staff ("Return requested", with a link to the return).
+- Money goes back with a refund on the order page ([Refunds](#refunds)), with the returned items and
+  whether to restock them.
 
 ## Documents
 

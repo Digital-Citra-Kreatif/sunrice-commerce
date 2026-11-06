@@ -28,6 +28,7 @@ final class CommercePermissions
             'commerce.orders.delete' => ['Trash orders', 'Store: Orders'],
             'commerce.orders.export' => ['Export orders', 'Store: Orders'],
             'commerce.quotes.respond' => ['Price and send quotes', 'Store: Orders'],
+            'commerce.returns.manage' => ['Review and update returns', 'Store: Orders'],
             'commerce.payments.verify' => ['Approve payment confirmations and mark orders paid', 'Store: Orders'],
             'commerce.shipments.manage' => ['Add shipments and tracking', 'Store: Orders'],
             'commerce.documents.view' => ['Download invoices, packing slips and quotations', 'Store: Orders'],

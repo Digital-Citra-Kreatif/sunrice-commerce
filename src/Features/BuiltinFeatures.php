@@ -37,6 +37,7 @@ final class BuiltinFeatures
             new Feature('cart', 'selling', 'Cart and mini cart', 'Customers collect products in a cart.', ['catalog'], $cart),
             new Feature('orders', 'selling', 'Orders', 'Orders, quotes and manual orders in the admin.', ['catalog']),
             new Feature('checkout', 'selling', 'Checkout', 'Customers check out: an order, a quote request or a WhatsApp order, by selling mode.', ['cart', 'orders'], $cart, ['shop' => ['payments']]),
+            new Feature('returns', 'selling', 'Returns', 'Customers ask to return items of completed orders; staff approve and track them.', ['orders'], default: false),
             new Feature('documents', 'selling', 'Invoices and packing slips', 'PDF invoices, packing slips and quotations.', ['orders']),
             new Feature('taxes', 'selling', 'Taxes', 'Tax classes and rates.', ['catalog'], default: false),
 
