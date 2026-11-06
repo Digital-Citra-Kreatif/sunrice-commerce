@@ -49,6 +49,7 @@ const MODULE_SURFACES = [
     'returns' => [['/admin/commerce/returns'], ['Returns']],
     'marketing' => [['/admin/commerce/marketing/campaigns', '/admin/commerce/marketing/automations'], ['Campaigns', 'Automations']],
     'analytics' => [['/admin/commerce/reports/sales'], ['Reports']],
+    'webhooks' => [['/admin/commerce/settings/webhooks'], []],
     'ai_tools' => [[], []],
 ];
 

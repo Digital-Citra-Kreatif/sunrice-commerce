@@ -132,6 +132,12 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::post('customers/{customer}/anonymize', [Admin\CustomersController::class, 'anonymize'])->name('customers.anonymize');
 
     Route::get('settings', [Admin\SettingsController::class, 'index'])->name('settings');
+    Route::get('settings/webhooks', [Admin\WebhooksController::class, 'index'])->name('settings.webhooks');
+    Route::get('settings/webhooks/create', [Admin\WebhooksController::class, 'create'])->name('settings.webhooks.create');
+    Route::post('settings/webhooks', [Admin\WebhooksController::class, 'store'])->name('settings.webhooks.store');
+    Route::get('settings/webhooks/{webhook}/edit', [Admin\WebhooksController::class, 'edit'])->whereNumber('webhook')->name('settings.webhooks.edit');
+    Route::put('settings/webhooks/{webhook}', [Admin\WebhooksController::class, 'update'])->whereNumber('webhook')->name('settings.webhooks.update');
+    Route::delete('settings/webhooks/{webhook}', [Admin\WebhooksController::class, 'destroy'])->whereNumber('webhook')->name('settings.webhooks.destroy');
     Route::get('settings/features', [Admin\FeaturesController::class, 'index'])->name('settings.features');
     Route::put('settings/features/{feature}', [Admin\FeaturesController::class, 'update'])->name('settings.features.update');
     Route::get('settings/tax-rates', [Admin\TaxRatesController::class, 'edit'])->name('settings.tax-rates');

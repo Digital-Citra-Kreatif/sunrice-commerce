@@ -116,6 +116,7 @@ changed).
 | Customers | `compare` | Product comparison | `catalog` | all | on |
 | Customers | `marketing` | Marketing emails: campaigns, automations, open and click tracking ([marketing.md](marketing.md)) | `catalog` | all | off |
 | Insights & AI | `analytics` | Store analytics | `catalog` | all | on |
+| Insights & AI | `webhooks` | Webhooks ([webhooks.md](webhooks.md)) | `orders` | all | **off** |
 | Insights & AI | `ai_tools` | Store tools for AI agents | `catalog` | all | on |
 
 Extension packages add their own modules, usually in the Integrations group (see
@@ -171,6 +172,7 @@ now off still shows its saved instructions.
 | `compare` | Compare pages answer 404 and `<x-commerce::compare-button>` renders nothing. |
 | `marketing` | Shop → Marketing is hidden and its pages answer 404; scheduled campaigns and automations wait. Tracking and unsubscribe links in emails already sent keep working. |
 | `analytics` | Shop → Reports and the dashboard figures are hidden; product views are not recorded. |
+| `webhooks` | Settings → Webhooks answers 404 and nothing is sent; endpoints and their log are kept. |
 | `ai_tools` | Commerce's MCP tools are not available (see [ai-agents.md](ai-agents.md)). |
 
 ## Checking modules in code

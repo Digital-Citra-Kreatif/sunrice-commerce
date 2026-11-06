@@ -60,6 +60,7 @@ final class BuiltinFeatures
             new Feature('marketing', 'customers', 'Marketing emails', 'Campaigns and automatic emails (abandoned cart, win back…) to customers who accept marketing, with open and click tracking.', ['catalog'], default: false),
 
             new Feature('analytics', 'insights', 'Store analytics', 'Dashboard figures and reports.', ['catalog']),
+            new Feature('webhooks', 'insights', 'Webhooks', 'Send orders, shipments and stock changes to other systems (accounting, a warehouse, automation tools) as they happen.', ['orders'], default: false),
             new Feature('ai_tools', 'insights', 'Store tools for AI agents', 'Commerce tools on Sunrice\'s MCP server.', ['catalog']),
         ];
     }

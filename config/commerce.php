@@ -170,6 +170,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Webhooks
+    |--------------------------------------------------------------------------
+    |
+    | Outgoing webhooks (Settings → Webhooks): how long a delivery may take,
+    | how long the delivery log is kept, and after how many failed deliveries
+    | in a row an endpoint is switched off. Endpoints must be public HTTPS
+    | URLs; allow_private lets them be local or private addresses (only for
+    | development).
+    |
+    */
+
+    'webhooks' => [
+        'timeout' => 10,
+        'keep_days' => 30,
+        'disable_after' => 20,
+        'allow_private' => false,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Payments
     |--------------------------------------------------------------------------
     |

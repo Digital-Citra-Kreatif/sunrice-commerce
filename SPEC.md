@@ -1042,6 +1042,20 @@ Sunrice) and helpers, all documented:
   `commerce_url($name)`;
 - `@commerceFeature('wishlist') … @endcommerceFeature`.
 
+### Webhooks (`webhooks`)
+
+- Settings → Webhooks (`commerce.settings.webhooks`) lists endpoints: a name, a public `https://`
+  URL, the events it receives and a signing secret made when it is saved (and replaced on request).
+- Events: `order.placed`, `order.paid`, `order.status_changed`, `order.cancelled`,
+  `order.completed`, `order.refunded` (staff refunds and refunds the payment provider reports, each
+  sent once), `shipment.created`, `shipment.delivered`, `stock.low`, `stock.out`, `stock.back_in`.
+- Each is a queued, signed JSON `POST` (`X-Sunrice-Signature: t=<time>,v1=<HMAC-SHA256 of
+  "<time>.<body>">`) sent once the change that caused it is saved; nothing is sent for a change that
+  is rolled back. A delivery without a 2xx answer is retried (seven attempts over about 11 hours);
+  after `commerce.webhooks.disable_after` failed deliveries in a row the endpoint is switched off.
+- Local, private and reserved addresses are refused when saving and before each delivery; redirects
+  are not followed. The delivery log is kept for `commerce.webhooks.keep_days`.
+
 ### AI agents (MCP)
 
 - While `ai_tools` is active, commerce adds tools to Sunrice's MCP server. They use the same token

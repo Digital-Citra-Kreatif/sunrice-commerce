@@ -31,6 +31,7 @@ final class CommercePermissions
             'commerce.returns.manage' => ['Review and update returns', 'Store: Orders'],
             'commerce.loyalty.manage' => ['See and adjust customers\' loyalty points', 'Store: Customers'],
             'commerce.settings.loyalty' => ['Edit store settings: Loyalty', 'Store: Settings'],
+            'commerce.settings.webhooks' => ['Manage webhooks (their signing secrets included)', 'Store: Settings'],
             'commerce.payments.verify' => ['Approve payment confirmations and mark orders paid', 'Store: Orders'],
             'commerce.shipments.manage' => ['Add shipments and tracking', 'Store: Orders'],
             'commerce.documents.view' => ['Download invoices, packing slips and quotations', 'Store: Orders'],
