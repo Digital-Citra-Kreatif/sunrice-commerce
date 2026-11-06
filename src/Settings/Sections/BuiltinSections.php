@@ -206,7 +206,7 @@ final class BuiltinSections
     {
         return [
             ['handle' => 'earn_percent', 'type' => 'number', 'label' => 'Points earned (%)', 'instructions' => 'Of each completed order\'s products, after discounts (not shipping or tax). 1 point is worth 1 of your currency. 0: none.',
-                'config' => ['min' => 0, 'max' => 100, 'step' => 0.01], 'validation' => ['numeric', 'min:0', 'max:100']],
+                'config' => ['min' => 0, 'max' => 100, 'step' => 0.01], 'validation' => ['numeric', 'decimal:0,2', 'min:0', 'max:100']],
             ['handle' => 'include', 'type' => 'commerce_targets', 'label' => 'Only for', 'instructions' => 'Products, variants, categories or brands that earn points. Empty: every product.'],
             ['handle' => 'exclude', 'type' => 'commerce_targets', 'label' => 'Except'],
             ['handle' => 'min_subtotal', 'type' => 'commerce_money', 'label' => 'Minimum order', 'instructions' => 'Products after discounts. Empty: any order.'],

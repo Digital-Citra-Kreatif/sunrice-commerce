@@ -223,3 +223,11 @@ it('takes points back when the payment provider reports a refund', function () {
     app(RecordPaymentResult::class)->handle($order->payments()->sole(), PaymentResult::refunded(55000, 'gw-refund-1'));
     expect($this->customer->fresh()->loyalty_points)->toBe(2500);
 });
+
+it('works out a fractional rate exactly', function () {
+    // 100,000 at 0.29% is 290 exactly; in floating point it comes to 289.99999999999994.
+    app(StoreSettings::class)->saveSection('loyalty', ['earn_percent' => 0.29]);
+    completeOrder(placeAsRina(cartWith([[$this->mug, 2]])));
+
+    expect($this->customer->fresh()->loyalty_points)->toBe(290);
+});

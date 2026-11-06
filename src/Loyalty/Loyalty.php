@@ -99,8 +99,9 @@ class Loyalty implements CalculationStage, ReservesDiscounts
      */
     public function earnable(Order $order): int
     {
-        $percent = (float) $this->settings->get('loyalty.earn_percent', 0);
-        if ($percent <= 0 || $order->isQuote() || $order->customer_id === null || $order->customer?->user_id === null) {
+        // In basis points (the setting has two decimals), so the award is exact integer arithmetic.
+        $basisPoints = (int) round((float) $this->settings->get('loyalty.earn_percent', 0) * 100);
+        if ($basisPoints <= 0 || $order->isQuote() || $order->customer_id === null || $order->customer?->user_id === null) {
             return 0;
         }
         $include = (array) $this->settings->get('loyalty.include', []);
@@ -132,7 +133,7 @@ class Loyalty implements CalculationStage, ReservesDiscounts
             $base = intdiv($base * $order->total, max(1, $order->total + $paidWithPoints));
         }
 
-        return (int) floor($base * $percent / 100);
+        return intdiv($base * $basisPoints, 10000);
     }
 
     /** Credits what a completed order earns, once (the order locked, so two completions can't both credit it). */
