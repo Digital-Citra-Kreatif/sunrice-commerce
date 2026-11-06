@@ -323,6 +323,10 @@ order the cards pay in full is placed as paid.
 - Orders paid partly by gift card can't be edited (re-pricing would drop the card): cancel and
   place them again.
 - Staff pricing (manual orders, edits, quotes) takes no codes, so no cards.
+- A card spends only in the currency it was issued in (a card issued before the store's currency
+  changed can't be used).
+- Reports count what cards paid as sales: total sales and customers' spend add the `gift_card`
+  adjustments to the orders' totals (which are what was left to pay).
 
 
 - **Free shipping** vouchers apply in the shipping discounts stage, to the chosen rate's cost (and

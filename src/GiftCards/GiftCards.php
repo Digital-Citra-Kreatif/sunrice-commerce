@@ -14,6 +14,7 @@ use Sunrice\Commerce\Pricing\Adjustment;
 use Sunrice\Commerce\Pricing\CalculationState;
 use Sunrice\Commerce\Pricing\Contracts\CalculationStage;
 use Sunrice\Commerce\Pricing\Contracts\ReservesDiscounts;
+use Sunrice\Commerce\Settings\StoreSettings;
 
 /**
  * Gift cards at checkout: the last stage of the calculation (after
@@ -51,13 +52,15 @@ class GiftCards implements CalculationStage, ReservesDiscounts
             return;
         }
         $cards = GiftCard::query()->whereIn('code', $state->codes)->get()->keyBy('code');
+        $state->data['currency'] ??= (string) app(StoreSettings::class)->get('general.currency.code', 'IDR');
         foreach ($state->codes as $code) {
             $card = $cards->get($code);
             if ($card === null) {
                 continue;
             }
             $left = $state->totals['total'];
-            if (! $card->usable() || $card->balance <= 0) {
+            // Balances are minor units of the currency the card was issued in: never another one.
+            if (! $card->usable() || $card->balance <= 0 || $card->currency !== $state->data['currency']) {
                 $state->notice('gift_card_empty', __('commerce::validation.gift_card.unusable', ['code' => $card->masked()]), voucher: $code);
 
                 continue;
@@ -82,6 +85,7 @@ class GiftCards implements CalculationStage, ReservesDiscounts
         foreach ($state->adjustmentsOfType(Adjustment::GIFT_CARD) as $adjustment) {
             $id = (int) $adjustment->source['id'];
             $taken = DB::table('commerce_gift_cards')->where('id', $id)->where('balance', '>=', $adjustment->amount)->whereNull('disabled_at')
+                ->where('currency', $order->currency)
                 ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
                 ->update(['balance' => DB::raw('balance - '.(int) $adjustment->amount), 'updated_at' => now()]) === 1;
             if (! $taken) {

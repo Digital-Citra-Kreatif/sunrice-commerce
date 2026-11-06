@@ -6,6 +6,10 @@ use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Testing\TestResponse;
+use Sunrice\Commerce\Analytics\Period;
+use Sunrice\Commerce\Analytics\Reports\CustomersReport;
+use Sunrice\Commerce\Analytics\Stats;
+use Sunrice\Commerce\Analytics\StatsRecorder;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Checkout\CheckoutRefused;
 use Sunrice\Commerce\Customers\Actions\AnonymizeCustomer;
@@ -78,6 +82,11 @@ it('pays a whole order, leaving the rest on the card', function () {
     expect($order->total)->toBe(0)
         ->and($order->payment_status)->toBe(OrderStatus::PAID)
         ->and($card->fresh()->balance)->toBe(200000 - 110000);
+
+    // Reports count what the card paid as a sale.
+    app(StatsRecorder::class)->recompute(now()->toDateString());
+    expect(app(Stats::class)->totals(now()->toDateString(), now()->toDateString())['total_sales'])->toBe(110000)
+        ->and(app(CustomersReport::class)->run(Period::preset('today'))->rows[0]['spent'])->toBe(110000);
 });
 
 it('refuses a card that is used up, expired or switched off, and an order once a card can no longer give its amount', function () {
@@ -86,6 +95,10 @@ it('refuses a card that is used up, expired or switched off, and an order once a
     $this->post('/cart/vouchers', ['code' => 'GIFT-0001'])->assertSessionHas('commerce.error', __('commerce::validation.gift_card.unusable', ['code' => $card->masked()]));
     $card->update(['balance' => 5000, 'expires_at' => now()->subDay()]);
     $this->post('/cart/vouchers', ['code' => 'GIFT-0001'])->assertSessionHas('commerce.error');
+    // Issued in another currency (before the store's changed): never spent as this one.
+    $card->update(['expires_at' => null, 'currency' => 'USD']);
+    $this->post('/cart/vouchers', ['code' => 'GIFT-0001'])->assertSessionHas('commerce.error');
+    $card->update(['currency' => 'IDR']);
 
     // Spent elsewhere between the calculation and placing: the order is refused.
     $card->update(['balance' => 1000, 'expires_at' => null]);
@@ -128,7 +141,8 @@ it('lets staff issue, email, adjust and switch off gift cards', function () {
     expect($card->fresh())->balance->toBe(75000)->disabled_at->not->toBeNull()
         ->and($card->transactions()->where('kind', 'adjust')->sole()->amount)->toBe(-25000);
 
-    $this->post('/admin/commerce/gift-cards', ['values' => ['amount' => 5000, 'code' => $card->code]])->assertSessionHasErrors('values.code');
+    $this->post('/admin/commerce/gift-cards', ['values' => ['amount' => 5000, 'code' => mb_strtolower($card->code)]])->assertSessionHasErrors('values.code');
+    expect(GiftCard::query()->count())->toBe(1);
 
     app(ToggleFeature::class)->handle('gift_cards', false);
     $this->get('/admin/commerce/gift-cards')->assertNotFound();

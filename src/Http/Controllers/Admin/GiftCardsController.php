@@ -90,6 +90,10 @@ class GiftCardsController extends Controller
     public function store(Request $request, IssueGiftCard $issue): RedirectResponse
     {
         $this->guard();
+        // Stored uppercase: checked as stored, so a lowercase copy of a code is refused like the code.
+        if (is_string($request->input('values.code'))) {
+            $request->merge(['values' => [...(array) $request->input('values'), 'code' => mb_strtoupper(trim((string) $request->input('values.code')))]]);
+        }
         $data = $request->validate([
             'values.amount' => ['required', 'integer', 'min:1', 'max:100000000000000'],
             'values.code' => ['nullable', 'string', 'min:6', 'max:32', 'regex:/^[A-Za-z0-9-]+$/', Rule::unique('commerce_gift_cards', 'code')],
