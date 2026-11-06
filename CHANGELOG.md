@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- `webhooks` module (off by default): Settings → Webhooks (`commerce.settings.webhooks`) sends
+  orders (`order.placed`, `order.paid`, `order.status_changed`, `order.cancelled`,
+  `order.completed`, `order.refunded`), shipments (`shipment.created`, `shipment.delivered`) and
+  stock changes (`stock.low`, `stock.out`, `stock.back_in`) to endpoints as signed JSON POSTs,
+  queued after the change is saved, retried for about 11 hours and logged; endpoints that keep
+  failing are switched off. Public HTTPS addresses only. Config `commerce.webhooks.*`; new tables
+  `commerce_webhooks` and `commerce_webhook_deliveries`. See [docs/webhooks.md](docs/webhooks.md).
+
 ## 0.1.0 (2026-11-06)
 
 The first release, for `sunrice/admin` and `sunrice/cms` 0.6. Until 1.0, minor versions (0.2, 0.3…) may change

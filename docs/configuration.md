@@ -94,6 +94,17 @@ See [marketing.md](marketing.md#sending-queue-batches-and-limits).
 | `downloads.attachment_max_mb` | `10` | Files up to this size can be attached to emails |
 | `downloads.max_upload_mb` | `512` | Largest upload in the product editor |
 
+### webhooks
+
+| Key | Default | |
+| --- | --- | --- |
+| `webhooks.timeout` | `10` | Seconds an endpoint has to answer a delivery |
+| `webhooks.keep_days` | `30` | Days the delivery log is kept (`commerce:prune`) |
+| `webhooks.disable_after` | `20` | Failed deliveries in a row after which an endpoint is switched off |
+| `webhooks.allow_private` | `false` | Allow `http://` and local or private addresses as endpoints (development only) |
+
+See [webhooks.md](webhooks.md).
+
 ### payments
 
 | Key | Default | |

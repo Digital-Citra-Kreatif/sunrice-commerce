@@ -87,6 +87,9 @@ class SettingsController extends Controller
         if (commerce_feature('taxes') && $user->can('commerce.settings.taxes')) {
             $menu[] = ['key' => 'tax-rates', 'label' => 'Tax rates', 'href' => 'commerce/settings/tax-rates'];
         }
+        if (commerce_feature('webhooks') && $user->can('commerce.settings.webhooks')) {
+            $menu[] = ['key' => 'webhooks', 'label' => 'Webhooks', 'href' => 'commerce/settings/webhooks'];
+        }
         if ($user->can('commerce.settings.features')) {
             $menu[] = ['key' => 'features', 'label' => 'Features', 'href' => 'commerce/settings/features'];
         }
