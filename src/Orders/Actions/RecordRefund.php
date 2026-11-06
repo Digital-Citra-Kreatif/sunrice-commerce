@@ -44,6 +44,8 @@ class RecordRefund
     {
         // The order is locked while what can be refunded is worked out and recorded: two refunds at once can't both take the same amount.
         $refund = DB::transaction(function () use ($order, $amount, $items, $reason, $restock, $actor, $viaGateway): Refund {
+            // Payments first, then the order: the order RecordPaymentResult (and payment webhooks) lock them in, so the two can't deadlock.
+            Payment::query()->where('order_id', $order->id)->orderBy('id')->lockForUpdate()->get();
             /** @var Order $locked */
             $locked = Order::withTrashed()->whereKey($order->id)->lockForUpdate()->firstOrFail();
             // Money paid first, then the points the order paid with (back onto the wallet).

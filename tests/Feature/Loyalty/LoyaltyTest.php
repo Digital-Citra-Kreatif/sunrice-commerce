@@ -204,3 +204,11 @@ it('earns on prices without the tax they include, and less what was refunded bef
     // Half of it was refunded while it was processing: half the points.
     expect($this->customer->fresh()->loyalty_points)->toBe(2500);
 });
+
+it('checks the minimum against the products, not a free-shipping discount', function () {
+    app(StoreSettings::class)->saveSection('loyalty', ['earn_percent' => 5, 'min_subtotal' => 100000]);
+    $order = makeOrder(['customer_id' => $this->customer->id, 'user_id' => $this->user->id, 'subtotal' => 100000, 'discount_total' => 10000, 'shipping_total' => 10000, 'total' => 100000]);
+    $order->items()->create(['name' => 'Mug', 'quantity' => 2, 'unit_price' => 50000, 'subtotal' => 100000, 'total' => 100000]);
+
+    expect(app(Loyalty::class)->earnable($order))->toBe(5000);
+});

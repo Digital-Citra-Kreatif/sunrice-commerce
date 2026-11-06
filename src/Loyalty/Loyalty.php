@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Loyalty;
 
+use Illuminate\Support\Facades\DB;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Checkout\CheckoutRefused;
 use Sunrice\Commerce\Customers\Models\Customer;
@@ -102,24 +103,28 @@ class Loyalty implements CalculationStage, ReservesDiscounts
         if ($percent <= 0 || $order->isQuote() || $order->customer_id === null || $order->customer?->user_id === null) {
             return 0;
         }
-        if ($order->subtotal - $order->discount_total < (int) $this->settings->get('loyalty.min_subtotal', 0)) {
-            return 0;
-        }
         $include = (array) $this->settings->get('loyalty.include', []);
         $exclude = (array) $this->settings->get('loyalty.exclude', []);
         $matcher = app(TargetMatcher::class);
         $items = $order->items()->whereNull('parent_id')->with('variant.product')->get();
         $matcher->preload($items->map(fn (OrderItem $i) => $i->variant?->product?->entry_id)->filter()->map(fn ($id) => (int) $id)->all());
         $base = 0;
+        $products = 0;
         foreach ($items as $item) {
+            // Products after their own discounts, without tax: included tax sits inside the line's total.
+            $net = max(0, (int) $item->total - ($order->prices_include_tax ? (int) $item->tax_total : 0));
+            $products += $net;
             $variant = $item->variant;
             $eligible = $variant instanceof Variant
                 ? ($include === [] || $matcher->matches($include, $variant)) && ($exclude === [] || ! $matcher->matches($exclude, $variant))
                 : $include === [];
             if ($eligible) {
-                // Products after discounts, without tax: included tax sits inside the line's total.
-                $base += max(0, (int) $item->total - ($order->prices_include_tax ? (int) $item->tax_total : 0));
+                $base += $net;
             }
+        }
+        // The minimum is on the products after their discounts (a shipping discount doesn't count against it).
+        if ($products < (int) $this->settings->get('loyalty.min_subtotal', 0)) {
+            return 0;
         }
         // Points don't earn points: only the share paid otherwise.
         $paidWithPoints = $this->paid($order);
@@ -130,26 +135,41 @@ class Loyalty implements CalculationStage, ReservesDiscounts
         return (int) floor($base * $percent / 100);
     }
 
-    /** Credits what a completed order earns, once. */
+    /** Credits what a completed order earns, once (the order locked, so two completions can't both credit it). */
     public function earn(Order $order): int
     {
-        if (! $this->features->active('loyalty') || $order->meta('loyalty.earned') !== null) {
+        if (! $this->features->active('loyalty')) {
             return 0;
         }
-        $points = $this->earnable($order);
-        $order->setMeta('loyalty.earned', $points);
-        $order->save();
-        if ($points > 0 && $order->customer_id !== null) {
-            $this->wallet->credit($order->customer_id, $points, 'earn', $order);
-            // Refunded before it was completed: their share comes off at once.
-            $this->revoke($order);
-        }
 
-        return $points;
+        return DB::transaction(function () use ($order): int {
+            /** @var Order $locked */
+            $locked = Order::withTrashed()->whereKey($order->id)->lockForUpdate()->firstOrFail();
+            if ($locked->meta('loyalty.earned') !== null) {
+                return 0;
+            }
+            $points = $this->earnable($locked);
+            $locked->setMeta('loyalty.earned', $points);
+            $locked->save();
+            if ($points > 0 && $locked->customer_id !== null) {
+                $this->wallet->credit($locked->customer_id, $points, 'earn', $locked);
+                // Refunded before it was completed: their share comes off at once.
+                $this->revokeLocked($locked);
+            }
+
+            return $points;
+        });
     }
 
     /** A refund takes back the share of the points the order earned (as far as the balance allows). */
     public function revoke(Order $order): int
+    {
+        // The order locked: two refunds' listeners can't both take the same share.
+        return DB::transaction(fn (): int => $this->revokeLocked(Order::withTrashed()->whereKey($order->id)->lockForUpdate()->firstOrFail()));
+    }
+
+    /** revoke() on an order row this transaction has locked. */
+    protected function revokeLocked(Order $order): int
     {
         $earned = (int) $order->meta('loyalty.earned', 0);
         $gross = $order->total + $this->paid($order);
