@@ -177,6 +177,7 @@ switch them on and off.
 | Promotions | `pricing_rules` | Bulk, tier and customer-role prices | catalog | all | on |
 | Promotions | `flash_sales` | Flash sales | catalog | all | on |
 | Promotions | `vouchers` | Vouchers and automatic discounts | cart | shop, quote, whatsapp | on |
+| Promotions | `gift_cards` | Gift cards | checkout | shop | **off** |
 | Customers | `accounts` | Customer accounts and My Account | catalog | all | on |
 | Customers | `passwordless_login` | Sign in with an emailed one-time code | accounts | all | off |
 | Customers | `google_login` | Sign in with Google | accounts | all | off |
@@ -372,6 +373,16 @@ and totals are sums of lines.
 - `/flash-sale` lists the current and upcoming sales; each sale also has its own page.
 - Carts recalculate when a sale starts or ends. If that happens during checkout, checkout shows
   "Prices changed".
+
+**Gift cards (`gift_cards`, off by default)**
+
+- Staff issue a card (amount, code or a made-up one, recipient emailed the code, expiry, note),
+  add to or take from its balance and switch it off; each card shows its history.
+- Customers enter the code in the cart's code box. It pays part or all of the order after tax, as
+  store credit (prices, discounts and taxes don't change), up to its balance; several cards apply in
+  the order entered, and an order paid in full by cards is placed as paid.
+- The balance is taken when the order is placed (a card spent meanwhile refuses the order) and given
+  back when the order is cancelled or expires unpaid; refunds don't put it back on the card.
 
 **Vouchers and automatic discounts (`vouchers`)**
 
@@ -1196,8 +1207,8 @@ Deliberately not used:
 - Multiple currencies; multiple stores or warehouses; marketplaces (multi-vendor); point of sale.
 - Payment gateway and courier API integrations (separate packages); shipping labels.
 - Product Q&A.
-- Subscriptions, memberships, gift cards, store credit and loyalty points (loyalty is a separate
-  package).
+- Subscriptions, memberships, store credit accounts and loyalty points (loyalty is a separate
+  package); gift cards sold as products (staff issue them).
 - Price-drop alerts.
 - Configurable bundles (customer-picked components), product add-ons and personalization fields,
   deposits and installments.

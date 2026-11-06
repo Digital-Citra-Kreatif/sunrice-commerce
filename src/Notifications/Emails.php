@@ -26,6 +26,7 @@ class Emails
             new EmailDefinition('order_updated', 'Order changed', feature: 'orders', description: 'When staff edit an unpaid order and choose to tell the customer.'),
             new EmailDefinition('customer_note', 'Note to the customer', feature: 'orders', description: 'Notes staff send from the order page.'),
             new EmailDefinition('return_updated', 'Return updated', feature: 'returns', description: 'When staff approve, reject, receive or close a return, with their note.'),
+            new EmailDefinition('gift_card_issued', 'Gift card', feature: 'gift_cards', description: 'To the recipient of a gift card staff issue, with its code and balance.'),
             new EmailDefinition('back_in_stock', 'Back in stock', feature: 'stock_alerts', description: 'To customers who asked to be told when a sold-out product is back.'),
             new EmailDefinition('downloads_ready', 'Downloads ready', feature: 'digital', attachments: ['downloads'], defaultAttachments: ['downloads']),
             new EmailDefinition('quote_received', 'Quote request received', feature: 'orders'),

@@ -61,6 +61,7 @@ return [
         'changed' => 'Pesanan Anda berubah. Silakan periksa lalu buat pesanan lagi.',
         'flash_sale' => 'Kuota flash sale baru saja habis. Silakan periksa keranjang Anda.',
         'voucher' => 'Voucher :code tidak bisa dipakai lagi.',
+        'gift_card' => 'Saldo gift card berubah. Silakan periksa keranjang Anda.',
     ],
     'order' => [
         'title' => 'Pesanan :number',

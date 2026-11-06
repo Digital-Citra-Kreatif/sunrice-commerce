@@ -12,6 +12,7 @@ code, a choice); every amount is computed on the server from the catalog and the
 - [Pricing rules](#pricing-rules)
 - [Flash sales](#flash-sales)
 - [Vouchers and automatic discounts](#vouchers-and-automatic-discounts)
+- [Gift cards](#gift-cards)
 - [Shipping discounts and fees](#shipping-discounts-and-fees)
 - [Taxes](#taxes)
 - [Staff prices in manual orders, edits and quotes](#staff-prices-in-manual-orders-edits-and-quotes)
@@ -68,11 +69,12 @@ Only one currency per store is supported.
 | 70 | Fees | The payment method's fee and extension fees |
 | 80 | Taxes | The tax calculator (zero while Taxes is off) |
 | 90 | Totals | Adds it all up |
+| 95 | Gift cards | Gift cards pay part or all of the total (see [Gift cards](#gift-cards)) |
 
 The totals:
 
 ```
-total = subtotal − discount + shipping − shipping_discount + fee + tax added on top
+total = subtotal − discount + shipping − shipping_discount + fee + tax added on top − gift_card
 ```
 
 - A line is never discounted below zero, and the total never goes below zero.
@@ -296,7 +298,32 @@ discount given, end date and status (Active, Scheduled, Expired, Used up, Off), 
 from automatic discounts. Vouchers can be created, edited, switched off and deleted. Orders keep a
 snapshot of the discount, so deleting a used voucher doesn't change them.
 
-## Shipping discounts and fees
+## Gift cards
+
+**Gift cards** (`gift_cards` module, off by default, Online store mode) are codes with a balance.
+Staff with `commerce.gift_cards.manage` issue them in Shop → Promotions → Gift cards: an amount, a
+code (or one made up, like `ABCD-EFGH-JKMN-PQRS`), an optional recipient (emailed the code, "Gift
+card" email), an expiry and a note. A card's page shows its balance and history; staff add to or
+take from the balance (never below zero) and switch a card off.
+
+Customers enter the code in the cart's code box, the same as vouchers (it says "Voucher or gift
+card code" while both modules are on, and works with only gift cards on). A card is store credit,
+not a discount: the `GiftCards\GiftCards` stage runs after the totals, so prices, discounts and taxes
+are worked out as without it, and the card pays what is left, up to its balance (`totals.gift_card`;
+`totals.total` is what remains to pay). Several cards apply in the order entered. Orders keep the
+card as an adjustment of kind `gift_card` (shown with the code's last four characters), and an
+order the cards pay in full is placed as paid.
+
+- Placing the order takes each card's amount in its transaction (`GiftCards::commit()`, a
+  `ReservesDiscounts`): a card spent, expired or switched off in between refuses the order ("A gift
+  card's balance changed").
+- Cancelling the order, or its expiry unpaid, gives the amounts back (`release()`, once).
+- A refund of a paid order refunds what was paid; it doesn't put anything back on the card (add it
+  to the balance on the card's page).
+- Orders paid partly by gift card can't be edited (re-pricing would drop the card): cancel and
+  place them again.
+- Staff pricing (manual orders, edits, quotes) takes no codes, so no cards.
+
 
 - **Free shipping** vouchers apply in the shipping discounts stage, to the chosen rate's cost (and
   only when a line needs shipping). A free-shipping voucher limited to shipping methods doesn't

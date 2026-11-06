@@ -53,6 +53,12 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::put('vouchers/{voucher}', [Admin\VouchersController::class, 'update'])->name('vouchers.update');
     Route::delete('vouchers/{voucher}', [Admin\VouchersController::class, 'destroy'])->name('vouchers.destroy');
 
+    Route::get('gift-cards', [Admin\GiftCardsController::class, 'index'])->name('gift-cards');
+    Route::get('gift-cards/create', [Admin\GiftCardsController::class, 'create'])->name('gift-cards.create');
+    Route::post('gift-cards', [Admin\GiftCardsController::class, 'store'])->name('gift-cards.store');
+    Route::get('gift-cards/{card}/edit', [Admin\GiftCardsController::class, 'edit'])->whereNumber('card')->name('gift-cards.edit');
+    Route::put('gift-cards/{card}', [Admin\GiftCardsController::class, 'update'])->whereNumber('card')->name('gift-cards.update');
+
     Route::get('marketing', fn () => redirect()->route('sunrice.admin.commerce.marketing.campaigns'))->name('marketing');
     Route::prefix('marketing')->name('marketing.')->group(function (): void {
         foreach (['campaigns' => 'campaign', 'automations' => 'automation'] as $path => $type) {

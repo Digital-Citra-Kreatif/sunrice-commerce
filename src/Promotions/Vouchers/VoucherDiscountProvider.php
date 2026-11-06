@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Promotions\Vouchers;
 
 use Sunrice\Commerce\Features\Features;
+use Sunrice\Commerce\GiftCards\GiftCards;
 use Sunrice\Commerce\Pricing\CalculationState;
 use Sunrice\Commerce\Pricing\Contracts\DiscountProvider;
 
@@ -20,18 +21,20 @@ class VoucherDiscountProvider implements DiscountProvider
 
     public function apply(CalculationState $state): void
     {
-        if ($state->codes === []) {
+        // Gift card codes share the box; the GiftCards stage takes them.
+        $codes = array_values(array_diff($state->codes, GiftCards::codesIn($state->codes)));
+        if ($codes === []) {
             return;
         }
         if (! $this->features->active('vouchers')) {
-            foreach ($state->codes as $code) {
+            foreach ($codes as $code) {
                 $state->notice('voucher_invalid', __('commerce::validation.voucher.not_found', ['code' => $code]), voucher: $code);
             }
 
             return;
         }
-        $found = Voucher::query()->with('targets')->where('automatic', false)->whereIn('code', $state->codes)->get()->keyBy('code');
-        foreach ($state->codes as $code) {
+        $found = Voucher::query()->with('targets')->where('automatic', false)->whereIn('code', $codes)->get()->keyBy('code');
+        foreach ($codes as $code) {
             $voucher = $found->get($code);
             if ($voucher === null) {
                 $state->notice('voucher_invalid', __('commerce::validation.voucher.not_found', ['code' => $code]), voucher: $code);

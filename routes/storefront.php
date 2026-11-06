@@ -27,7 +27,7 @@ Route::middleware(['commerce.feature:cart', 'commerce.noindex'])->prefix(Storefr
     Route::post('items', [Storefront\CartController::class, 'add'])->middleware(ProtectAgainstSpam::class)->name('commerce.cart.add'.$suffix);
     Route::patch('items/{item}', [Storefront\CartController::class, 'update'])->whereNumber('item')->name('commerce.cart.update'.$suffix);
     Route::delete('items/{item}', [Storefront\CartController::class, 'remove'])->whereNumber('item')->name('commerce.cart.remove'.$suffix);
-    Route::post('vouchers', [Storefront\CartController::class, 'applyVoucher'])->middleware(['commerce.feature:vouchers', 'throttle:commerce-voucher'])->name('commerce.cart.voucher'.$suffix);
+    Route::post('vouchers', [Storefront\CartController::class, 'applyVoucher'])->middleware('throttle:commerce-voucher')->name('commerce.cart.voucher'.$suffix);
     Route::delete('vouchers/{code}', [Storefront\CartController::class, 'removeVoucher'])->name('commerce.cart.voucher.remove'.$suffix);
     Route::get('restore/{token}', Storefront\CartRestoreController::class)->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:commerce-cart')->name('commerce.cart.restore'.$suffix);
 });

@@ -5,6 +5,10 @@ declare(strict_types=1);
 return [
     'country' => 'Pilih negara dari daftar.',
     'region' => 'Pilih ulang provinsi, kota, kecamatan dan kelurahan: datanya tidak cocok.',
+    'gift_card' => [
+        'unusable' => 'Gift card :code tidak bisa dipakai: saldonya habis, sudah kedaluwarsa atau dinonaktifkan.',
+        'not_needed' => 'Tidak ada lagi yang perlu dibayar: gift card tidak diperlukan.',
+    ],
     'voucher' => [
         'not_found' => 'Kode :code tidak ditemukan.',
         'inactive' => 'Kode ini sudah tidak berlaku.',

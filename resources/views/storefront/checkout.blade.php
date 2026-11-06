@@ -159,7 +159,7 @@
             </aside>
 
             <div class="commerce-checkout__place">
-            @if (commerce_feature('vouchers'))
+            @if (commerce_feature('vouchers') || commerce_feature('gift_cards'))
                 <p class="commerce-checkout__voucher"><a href="{{ commerce_url('commerce.cart') }}">{{ __('commerce::checkout.voucher_link') }}</a></p>
             @endif
             @if (commerce_feature('accounts') && $guest)

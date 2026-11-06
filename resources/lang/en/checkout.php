@@ -61,6 +61,7 @@ return [
         'changed' => 'Your order changed. Please check it and place it again.',
         'flash_sale' => 'The flash sale quantity just ran out. Please check your cart.',
         'voucher' => 'The voucher :code can\'t be used any more.',
+        'gift_card' => 'A gift card\'s balance changed. Please check your cart.',
     ],
     'order' => [
         'title' => 'Order :number',

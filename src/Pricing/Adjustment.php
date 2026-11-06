@@ -19,6 +19,9 @@ final class Adjustment
 
     public const UNIQUE_CODE = 'unique_code';
 
+    /** Paid with a gift card, after tax (GiftCards\GiftCards): lowers what is left to pay. */
+    public const GIFT_CARD = 'gift_card';
+
     /**
      * @param  array{type: string, id?: int|string|null, code?: string|null}  $source  e.g. voucher 12 / code HEMAT10
      * @param  array<string, int>  $allocations  line key => amount
@@ -34,10 +37,10 @@ final class Adjustment
         public array $meta = [],
     ) {}
 
-    /** Discounts and shipping discounts lower the total; fees and unique codes raise it. */
+    /** Discounts, shipping discounts and gift cards lower the total; fees and unique codes raise it. */
     public function sign(): int
     {
-        return in_array($this->type, [self::DISCOUNT, self::SHIPPING_DISCOUNT], true) ? -1 : 1;
+        return in_array($this->type, [self::DISCOUNT, self::SHIPPING_DISCOUNT, self::GIFT_CARD], true) ? -1 : 1;
     }
 
     /** @return array<string, mixed> */

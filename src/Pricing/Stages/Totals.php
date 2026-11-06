@@ -56,6 +56,7 @@ class Totals implements CalculationStage
             'shipping_discount' => $shippingDiscount,
             'fee' => $fee,
             'tax' => $tax,
+            'gift_card' => 0,
             'total' => max(0, $subtotal - $discount + $shipping - $shippingDiscount + $fee + $taxAdded),
         ];
     }

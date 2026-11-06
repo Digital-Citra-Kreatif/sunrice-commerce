@@ -37,6 +37,7 @@ const MODULE_SURFACES = [
     'pricing_rules' => [['/admin/commerce/pricing-rules'], ['Pricing rules']],
     'flash_sales' => [['/flash-sale', '/admin/commerce/flash-sales'], ['Flash sales']],
     'vouchers' => [['/admin/commerce/vouchers'], ['Vouchers']],
+    'gift_cards' => [['/admin/commerce/gift-cards'], ['Gift cards']],
     'accounts' => [['/account/login'], []],
     'passwordless_login' => [[], []],
     'google_login' => [['/account/login/google'], []],

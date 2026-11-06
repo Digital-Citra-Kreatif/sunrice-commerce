@@ -11,7 +11,7 @@ use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\Events\VoucherApplied;
 use Sunrice\Commerce\Features\Features;
 
-/** Adds a voucher code to the cart when it applies; otherwise says why. */
+/** Adds a voucher or gift card code to the cart when it applies; otherwise says why. */
 class ApplyVoucher
 {
     public function __construct(protected CartManager $carts, protected Features $features) {}
@@ -19,7 +19,7 @@ class ApplyVoucher
     public function handle(string $code): string
     {
         $code = Str::upper(trim($code));
-        if ($code === '' || ! $this->features->active('vouchers')) {
+        if ($code === '' || (! $this->features->active('vouchers') && ! $this->features->active('gift_cards'))) {
             throw new CartException(__('commerce::validation.voucher.not_found', ['code' => $code]), 'voucher_invalid');
         }
         $cart = $this->carts->current();

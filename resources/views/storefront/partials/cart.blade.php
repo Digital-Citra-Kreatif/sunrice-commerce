@@ -75,7 +75,7 @@
 
             <aside class="commerce-cart__summary" aria-labelledby="commerce-cart-summary">
                 <h2 class="commerce-cart__summary-title" id="commerce-cart-summary">{{ __('commerce::storefront.theme.order_summary') }}</h2>
-                @if (commerce_feature('vouchers'))
+                @if (commerce_feature('vouchers') || commerce_feature('gift_cards'))
                     <div class="commerce-cart__vouchers">
                         @foreach ($cart->state->appliedCodes as $code)
                             <form method="POST" action="{{ commerce_url('commerce.cart.voucher.remove', ['code' => $code]) }}" class="commerce-voucher-chip">
@@ -88,7 +88,7 @@
                         @endforeach
                         <form method="POST" action="{{ commerce_url('commerce.cart.voucher') }}" class="commerce-voucher-form" data-commerce-voucher-form>
                             @csrf
-                            <label for="commerce-voucher-code">{{ __('commerce::storefront.cart.voucher') }}</label>
+                            <label for="commerce-voucher-code">{{ __(commerce_feature('gift_cards') ? (commerce_feature('vouchers') ? 'commerce::storefront.cart.voucher_or_gift_card' : 'commerce::storefront.cart.gift_card_code') : 'commerce::storefront.cart.voucher') }}</label>
                             <span class="commerce-inline-form">
                                 <input type="text" id="commerce-voucher-code" name="code" autocomplete="off" maxlength="64" autocapitalize="characters">
                                 <button type="submit" class="commerce-button commerce-button--secondary">{{ __('commerce::storefront.cart.apply') }}</button>

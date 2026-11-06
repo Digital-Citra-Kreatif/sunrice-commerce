@@ -7,6 +7,15 @@ The first release. Commerce is a plugin for the Sunrice panel (`sunrice/admin`) 
 editor, the store's admin pages live in the panel under Shop, and the storefront renders through
 the CMS's templates and full-page cache.
 
+### Gift cards
+- `gift_cards` module (off by default, Online store mode): codes with a balance issued in Shop →
+  Promotions → Gift cards (`commerce.gift_cards.manage`), emailed to a recipient ("Gift card"),
+  adjusted and switched off there with their history. Entered in the cart's code box, they pay part
+  or all of an order after tax (a new last calculation stage, `GiftCards\GiftCards`, and
+  `totals.gift_card`); the balance is taken when the order is placed and given back when it is
+  cancelled. New tables `commerce_gift_cards` and `commerce_gift_card_transactions`; the cart's
+  code endpoints now answer with either Vouchers or Gift cards on.
+
 ### Returns
 - `returns` module (off by default): customers request returns of completed orders within
   `checkout.returns_days` from My Account (items, quantities, reason, details); staff review them

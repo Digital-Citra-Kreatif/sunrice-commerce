@@ -30,6 +30,7 @@ final class ShopNavigation
     /** The promotions pages, in the order Promotions opens the first the user may see. */
     public const PROMOTIONS = [
         ['vouchers', 'Vouchers', 'commerce/vouchers', 'commerce.vouchers.manage', 'vouchers'],
+        ['gift-cards', 'Gift cards', 'commerce/gift-cards', 'commerce.gift_cards.manage', 'gift_cards'],
         ['flash-sales', 'Flash sales', 'commerce/flash-sales', 'commerce.flash-sales.manage', 'flash_sales'],
         ['pricing-rules', 'Pricing rules', 'commerce/pricing-rules', 'commerce.pricing-rules.manage', 'pricing_rules'],
     ];

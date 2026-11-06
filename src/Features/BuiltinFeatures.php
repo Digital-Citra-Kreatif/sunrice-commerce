@@ -49,6 +49,7 @@ final class BuiltinFeatures
             new Feature('pricing_rules', 'promotions', 'Pricing rules', 'Bulk, tier and customer-role prices.', ['catalog']),
             new Feature('flash_sales', 'promotions', 'Flash sales', 'Time-boxed sale prices with countdowns and quantity caps.', ['catalog']),
             new Feature('vouchers', 'promotions', 'Vouchers', 'Discount codes and automatic discounts.', ['cart'], $cart),
+            new Feature('gift_cards', 'promotions', 'Gift cards', 'Codes with a balance that pay part or all of an order, after tax.', ['checkout'], ['shop'], default: false),
 
             new Feature('accounts', 'customers', 'Customer accounts', 'Registration, sign-in and My Account.', ['catalog']),
             new Feature('passwordless_login', 'customers', 'Sign in with an emailed code', 'One-time codes instead of a password.', ['accounts'], default: false),
