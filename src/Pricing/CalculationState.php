@@ -27,8 +27,8 @@ final class CalculationState
      */
     public array $shipping = ['needed' => false, 'rates' => [], 'rate' => null, 'cost' => 0];
 
-    /** @var array{subtotal: int, discount: int, shipping: int, shipping_discount: int, fee: int, tax: int, gift_card: int, total: int} total: what is left to pay (after gift cards) */
-    public array $totals = ['subtotal' => 0, 'discount' => 0, 'shipping' => 0, 'shipping_discount' => 0, 'fee' => 0, 'tax' => 0, 'gift_card' => 0, 'total' => 0];
+    /** @var array{subtotal: int, discount: int, shipping: int, shipping_discount: int, fee: int, tax: int, points: int, total: int} total: what is left to pay (after loyalty points) */
+    public array $totals = ['subtotal' => 0, 'discount' => 0, 'shipping' => 0, 'shipping_discount' => 0, 'fee' => 0, 'tax' => 0, 'points' => 0, 'total' => 0];
 
     /** @var array<int, array{code: string, message: string, line?: string|null, voucher?: string|null}> */
     public array $notices = [];

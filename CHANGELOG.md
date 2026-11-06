@@ -7,15 +7,19 @@ The first release. Commerce is a plugin for the Sunrice panel (`sunrice/admin`) 
 editor, the store's admin pages live in the panel under Shop, and the storefront renders through
 the CMS's templates and full-page cache.
 
-### Gift cards
-- `gift_cards` module (off by default, Online store mode): codes with a balance issued in Shop →
-  Promotions → Gift cards (`commerce.gift_cards.manage`), emailed to a recipient ("Gift card"),
-  adjusted and switched off there with their history. Entered in the cart's code box, they pay part
-  or all of an order after tax (a new last calculation stage, `GiftCards\GiftCards`, and
-  `totals.gift_card`); the balance is taken when the order is placed and given back when it is
-  cancelled; refunds beyond the money paid go back onto the cards. New tables `commerce_gift_cards`
-  and `commerce_gift_card_transactions`; the cart's
-  code endpoints now answer with either Vouchers or Gift cards on.
+### Loyalty points
+- `loyalty` module (off by default, Online store mode): a points wallet on each customer account
+  (1 point is 1 unit of the store's currency). Settings → Loyalty sets one store-wide rule (a
+  percentage of the products after discounts, products to include or leave out, a minimum order,
+  an expiry in days); completed orders earn and refunds take back their share. Signed-in customers
+  pay with their points in the cart, after tax, up to the balance (a new last calculation stage,
+  `Loyalty\Loyalty`, and `totals.points`); points are taken when the order is placed, given back
+  when it's cancelled, and refunds beyond the money paid go back onto the wallet. My Account →
+  Points; Shop → Customers → Loyalty points (`commerce.loyalty.manage`) to see and adjust balances;
+  expiry in `commerce:prune`. New column `commerce_customers.loyalty_points` and table
+  `commerce_loyalty_transactions`.
+- Refunds lock the order while they're worked out, and send only the money part to the payment
+  provider.
 
 ### Returns
 - `returns` module (off by default): customers request returns of completed orders within

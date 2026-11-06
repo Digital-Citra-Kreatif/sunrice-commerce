@@ -248,6 +248,7 @@ The customer's language is also remembered at the first sign-in, for their email
 | An order | `commerce.account.order` | Timeline, payment instructions and confirmation, tracking, invoice download, downloads, buy again, cancel |
 | Quotes | `commerce.account.quotes` | Quote requests (shown in Quotation mode) |
 | Downloads | `commerce.account.downloads` | The digital library (shown once the customer has downloads) |
+| Points | `commerce.account.points` | The loyalty balance, how points are earned, the next expiry and the history (needs `loyalty`; see [pricing.md](pricing.md#loyalty-points)) |
 | Wishlist | `commerce.wishlist` | The wishlist page (needs `wishlist`) |
 | Addresses | `commerce.account.addresses` | Add, edit and delete addresses; default shipping and billing |
 | Profile | `commerce.account.profile` | Name, email, phone, marketing consent, the linked Google account, password, account deletion |
@@ -342,9 +343,9 @@ AI agents can read customers too, with `commerce_list_customers` and `commerce_g
 - addresses, wishlists and per-customer voucher records are deleted;
 - the customer's orders keep their items and amounts, but lose the name, email, phone, addresses,
   dropshipper, checkout fields, customer note, IP address and user agent;
-- payment confirmations lose the sender name, note and IP address.
+- payment confirmations lose the sender name, note and IP address;
+- the loyalty wallet is emptied (its ledger keeps the amounts, without notes).
 - returns keep their items and status, but lose the customer's details and the note to them;
-- gift cards keep their balance, but no longer name them as the recipient;
 
 Emails are never sent to the placeholder address. Extensions that store personal data on orders can
 add their own clean-up with `AnonymizeCustomer::scrubOrdersUsing(fn (Customer $customer, string

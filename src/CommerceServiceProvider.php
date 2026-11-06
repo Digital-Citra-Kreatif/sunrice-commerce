@@ -195,6 +195,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $nav->register('downloads', fn () => __('commerce::digital.title'), 'commerce.account.downloads',
             fn (): bool => Digital\Models\DownloadGrant::query()->whereHas('order', fn ($q) => $q->where('user_id', commerce_customer()?->getAuthIdentifier()))->exists(), position: 30);
         $nav->register('wishlist', fn () => __('commerce::storefront.wishlist.title'), 'commerce.wishlist', 'wishlist', position: 60);
+        $nav->register('points', fn () => __('commerce::account.points.title'), 'commerce.account.points', 'loyalty', position: 35);
         $nav->register('addresses', fn () => __('commerce::account.addresses.title'), 'commerce.account.addresses', position: 70);
 
         $this->app->make(Commerce::class)->registerHealthCheck(Health\Checks\AccountsCheck::class);
@@ -231,6 +232,8 @@ class CommerceServiceProvider extends PackageServiceProvider
             return $count + DB::table('commerce_payment_confirmations')->whereNotNull('ip_address')->where('created_at', '<', $before)->update(['ip_address' => null]);
         });
         // Stock alerts: a month after they were sent, half a year when the product never came back.
+        // Loyalty points past their expiry leave the wallets.
+        $commerce->onPrune('loyalty points', fn (): int => commerce_feature('loyalty') ? $this->app->make(Loyalty\Wallet::class)->expireDue() : 0);
         $commerce->onPrune('stock alerts', fn (): int => StockAlerts\Models\StockAlert::query()
             ->where(fn ($q) => $q->where('notified_at', '<', now()->subDays(30))->orWhere(fn ($q) => $q->whereNull('notified_at')->where('created_at', '<', now()->subDays(180))))
             ->delete());
@@ -256,6 +259,8 @@ class CommerceServiceProvider extends PackageServiceProvider
         Event::listen(Orders\Events\OrderPaid::class, Documents\AssignInvoiceNumber::class);
         $this->publishes([__DIR__.'/../resources/views/documents' => resource_path('views/vendor/commerce/documents')], 'commerce-documents');
         Event::listen(Orders\Events\OrderCompleted::class, Digital\Listeners\GrantDownloads::class);
+        Event::listen(Orders\Events\OrderCompleted::class, Loyalty\Listeners\EarnPoints::class);
+        Event::listen(Orders\Events\OrderRefunded::class, Loyalty\Listeners\RevokePoints::class);
         RateLimiter::for('commerce-feeds', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
         RateLimiter::for('commerce-stock-alerts', fn (Request $request) => Limit::perHour(20)->by($request->ip()));
         RateLimiter::for('commerce-reviews', fn (Request $request) => Limit::perHour(5)->by($request->ip()));

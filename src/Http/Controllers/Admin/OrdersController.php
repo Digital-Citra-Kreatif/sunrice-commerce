@@ -21,7 +21,7 @@ use Sunrice\Commerce\Admin\Tables\TableQuery;
 use Sunrice\Commerce\Analytics\Day;
 use Sunrice\Commerce\Digital\Models\DownloadGrant;
 use Sunrice\Commerce\Documents\Documents;
-use Sunrice\Commerce\GiftCards\GiftCards;
+use Sunrice\Commerce\Loyalty\Loyalty;
 use Sunrice\Commerce\Orders\Actions\AddOrderNote;
 use Sunrice\Commerce\Orders\Actions\CreateManualOrder;
 use Sunrice\Commerce\Orders\Actions\CreateShipment;
@@ -393,7 +393,7 @@ class OrdersController extends Controller
                     'shipping' => $order->needsShipping() ? $f($order->shipping_total) : null, 'fees' => $order->fee_total > 0 ? $f($order->fee_total) : null,
                     'tax' => $order->tax_total > 0 ? $f($order->tax_total) : null, 'tax_included' => $order->prices_include_tax,
                     'total' => $f($order->total), 'total_amount' => $order->total, 'paid' => $f($order->paid_total), 'refunded' => $order->refunded_total > 0 ? $f($order->refunded_total) : null,
-                    'refundable' => max(0, $order->paid_total - $order->refunded_total) + app(GiftCards::class)->refundable($order),
+                    'refundable' => max(0, $order->paid_total - $order->refunded_total) + app(Loyalty::class)->refundable($order),
                 ],
                 'adjustments' => $order->adjustments->map(fn ($a) => ['kind' => $a->kind, 'label' => $a->label, 'code' => $a->code, 'source' => $a->source_type,
                     'amount' => ($a->amount < 0 ? '-' : '').$f(abs($a->amount)), 'included' => (bool) ($a->meta['included'] ?? false)])->values()->all(),
@@ -436,7 +436,7 @@ class OrdersController extends Controller
             'can' => [
                 'edit' => $user->can('commerce.orders.edit'),
                 'cancel' => $user->can('commerce.orders.cancel'),
-                'refund' => $user->can('commerce.orders.refund') && ($order->paid_total > $order->refunded_total || app(GiftCards::class)->refundable($order) > 0),
+                'refund' => $user->can('commerce.orders.refund') && ($order->paid_total > $order->refunded_total || app(Loyalty::class)->refundable($order) > 0),
                 'delete' => $user->can('commerce.orders.delete'),
                 'force_delete' => $user->can('commerce.orders.delete') && $order->trashed() && app(TrashOrder::class)->canForceDelete($order),
                 'mark_paid' => $user->can('commerce.payments.verify') && ! $order->isQuote() && $order->isUnpaid() && $order->total > 0 && $order->status !== OrderStatus::CANCELLED,

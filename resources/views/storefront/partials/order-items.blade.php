@@ -29,7 +29,7 @@
     @if ($order->tax_total > 0)
         <div><dt>{{ __('commerce::storefront.cart.tax') }}</dt><dd>{{ $order->prices_include_tax ? __('commerce::storefront.cart.tax_included', ['amount' => $money->format($order->tax_total)]) : $money->format($order->tax_total) }}</dd></div>
     @endif
-    @foreach ($order->adjustments->where('kind', 'gift_card') as $adjustment)
+    @foreach ($order->adjustments->where('kind', 'points') as $adjustment)
         <div class="commerce-totals__discount"><dt>{{ $adjustment->label }}</dt><dd>-{{ $money->format(abs($adjustment->amount)) }}</dd></div>
     @endforeach
     <div class="commerce-totals__total"><dt>{{ __('commerce::storefront.cart.total') }}</dt><dd>{{ $money->format($order->total) }}</dd></div>

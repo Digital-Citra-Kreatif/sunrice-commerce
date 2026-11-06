@@ -34,6 +34,8 @@ final class PricingContext
         public readonly bool $placing = false,
         public readonly array $overrides = [],
         public readonly ?array $billingAddress = null,
+        // The customer chose to pay with their loyalty points (the cart's choice).
+        public readonly bool $usePoints = false,
     ) {}
 
     public static function guest(): self

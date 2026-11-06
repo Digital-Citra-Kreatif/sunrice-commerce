@@ -49,13 +49,13 @@ final class BuiltinFeatures
             new Feature('pricing_rules', 'promotions', 'Pricing rules', 'Bulk, tier and customer-role prices.', ['catalog']),
             new Feature('flash_sales', 'promotions', 'Flash sales', 'Time-boxed sale prices with countdowns and quantity caps.', ['catalog']),
             new Feature('vouchers', 'promotions', 'Vouchers', 'Discount codes and automatic discounts.', ['cart'], $cart),
-            new Feature('gift_cards', 'promotions', 'Gift cards', 'Codes with a balance that pay part or all of an order, after tax.', ['checkout'], ['shop'], default: false),
 
             new Feature('accounts', 'customers', 'Customer accounts', 'Registration, sign-in and My Account.', ['catalog']),
             new Feature('passwordless_login', 'customers', 'Sign in with an emailed code', 'One-time codes instead of a password.', ['accounts'], default: false),
             new Feature('google_login', 'customers', 'Sign in with Google', 'Needs GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.', ['accounts'], default: false),
             new Feature('wishlist', 'customers', 'Wishlist', 'Customers save products for later.', ['catalog']),
             new Feature('compare', 'customers', 'Product comparison', 'Compare products side by side.', ['catalog']),
+            new Feature('loyalty', 'customers', 'Loyalty points', 'Customers earn points on completed orders and spend them at checkout, like a wallet.', ['accounts', 'checkout'], ['shop'], default: false),
             new Feature('reviews', 'customers', 'Product reviews', 'Customers rate and review products; reviews show once approved, with your reply.', ['catalog']),
             new Feature('marketing', 'customers', 'Marketing emails', 'Campaigns and automatic emails (abandoned cart, win back…) to customers who accept marketing, with open and click tracking.', ['catalog'], default: false),
 

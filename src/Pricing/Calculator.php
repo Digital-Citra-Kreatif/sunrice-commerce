@@ -6,7 +6,7 @@ namespace Sunrice\Commerce\Pricing;
 
 use Illuminate\Support\Str;
 use Sunrice\Commerce\Catalog\Models\Variant;
-use Sunrice\Commerce\GiftCards\GiftCards;
+use Sunrice\Commerce\Loyalty\Loyalty;
 use Sunrice\Commerce\Pricing\Contracts\CalculationStage;
 
 /**
@@ -32,8 +32,8 @@ class Calculator
         Stages\Fees::class => 70,
         Stages\Taxes::class => 80,
         Stages\Totals::class => 90,
-        // After the total: gift cards pay part of it, like store credit.
-        GiftCards::class => 95,
+        // After the total: loyalty points pay part of it, like store credit.
+        Loyalty::class => 95,
     ];
 
     /** @param  class-string<CalculationStage>  $stage */

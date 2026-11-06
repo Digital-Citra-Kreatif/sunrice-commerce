@@ -12,7 +12,7 @@ code, a choice); every amount is computed on the server from the catalog and the
 - [Pricing rules](#pricing-rules)
 - [Flash sales](#flash-sales)
 - [Vouchers and automatic discounts](#vouchers-and-automatic-discounts)
-- [Gift cards](#gift-cards)
+- [Loyalty points](#loyalty-points)
 - [Shipping discounts and fees](#shipping-discounts-and-fees)
 - [Taxes](#taxes)
 - [Staff prices in manual orders, edits and quotes](#staff-prices-in-manual-orders-edits-and-quotes)
@@ -69,12 +69,12 @@ Only one currency per store is supported.
 | 70 | Fees | The payment method's fee and extension fees |
 | 80 | Taxes | The tax calculator (zero while Taxes is off) |
 | 90 | Totals | Adds it all up |
-| 95 | Gift cards | Gift cards pay part or all of the total (see [Gift cards](#gift-cards)) |
+| 95 | Loyalty points | The customer's points pay part or all of the total (see [Loyalty points](#loyalty-points)) |
 
 The totals:
 
 ```
-total = subtotal − discount + shipping − shipping_discount + fee + tax added on top − gift_card
+total = subtotal − discount + shipping − shipping_discount + fee + tax added on top − points
 ```
 
 - A line is never discounted below zero, and the total never goes below zero.
@@ -298,37 +298,47 @@ discount given, end date and status (Active, Scheduled, Expired, Used up, Off), 
 from automatic discounts. Vouchers can be created, edited, switched off and deleted. Orders keep a
 snapshot of the discount, so deleting a used voucher doesn't change them.
 
-## Gift cards
+## Loyalty points
 
-**Gift cards** (`gift_cards` module, off by default, Online store mode) are codes with a balance.
-Staff with `commerce.gift_cards.manage` issue them in Shop → Promotions → Gift cards: an amount, a
-code (or one made up, like `ABCD-EFGH-JKMN-PQRS`), an optional recipient (emailed the code, "Gift
-card" email), an expiry and a note. A card's page shows its balance and history; staff add to or
-take from the balance (never below zero) and switch a card off.
+**Loyalty points** (`loyalty` module, off by default, Online store mode, needs customer accounts) are
+a wallet on each customer account. 1 point is worth 1 unit of the store's currency (1 point is
+Rp1 in rupiah).
 
-Customers enter the code in the cart's code box, the same as vouchers (it says "Voucher or gift
-card code" while both modules are on, and works with only gift cards on). A card is store credit,
-not a discount: the `GiftCards\GiftCards` stage runs after the totals, so prices, discounts and taxes
-are worked out as without it, and the card pays what is left, up to its balance (`totals.gift_card`;
-`totals.total` is what remains to pay). Several cards apply in the order entered. Orders keep the
-card as an adjustment of kind `gift_card` (shown with the code's last four characters), and an
-order the cards pay in full is placed as paid.
+**Earning** (Settings → Store → Loyalty, `commerce.settings.loyalty`):
 
-- Placing the order takes each card's amount in its transaction (`GiftCards::commit()`, a
-  `ReservesDiscounts`): a card spent, expired or switched off in between refuses the order ("A gift
-  card's balance changed").
-- Cancelling the order, or its expiry unpaid, gives the amounts back (`release()`, once).
-- A refund goes to what was paid in money first, then back onto the cards that paid the rest (the
-  card used last first); the order is Refunded once both are back. An order the cards paid in full
-  is refunded onto them. Cancelling gives back only what wasn't refunded already.
-- Orders paid partly by gift card can't be edited (re-pricing would drop the card): cancel and
-  place them again.
-- Staff pricing (manual orders, edits, quotes) takes no codes, so no cards.
-- A card spends only in the currency it was issued in (a card issued before the store's currency
-  changed can't be used).
-- Reports count what cards paid as sales: total sales and customers' spend add the `gift_card`
-  adjustments to the orders' totals (which are what was left to pay), and a customer's total spent
-  includes what cards paid, less what went back onto them.
+- **Points earned (%)**: the share of an order's products, after discounts, that comes back as
+  points. Shipping, fees and taxes don't earn, and neither does the part paid with points.
+- **Only for** / **Except**: products, variants, categories or brands that earn (empty: all).
+- **Minimum order**: products after discounts; smaller orders earn nothing.
+- **Points expire after (days)**: from when points are earned or given back; 0 (the default): never.
+
+A customer with an account earns when the order is **completed** (`OrderCompleted`), once. A refund
+takes back the same share of what the order earned (as far as the balance allows).
+
+**Spending.** Signed-in customers with points see their balance in the cart and choose **Pay with
+my points**. Points are store credit, not a discount: the `Loyalty\Loyalty` stage runs after the
+totals, so prices, discounts and taxes are as without them, and the points pay what is left, up to
+the balance, with no cap (`totals.points`; `totals.total` is what remains to pay). An order paid in
+full with points is placed as paid. Orders keep the points as an adjustment of kind `points`.
+
+- Placing the order takes the points in its transaction (`Loyalty::commit()`, a
+  `ReservesDiscounts`): points spent elsewhere in between refuse the order ("Your points balance
+  changed").
+- Spending uses the points that expire first.
+- Cancelling the order, or its expiry unpaid, gives the points back, with a new expiry.
+- A refund goes to the money paid first (only that part is sent to the payment provider), then back
+  onto the wallet; the order is Refunded once both are back. An order paid in full with points is
+  refunded onto the wallet. Refunds of one order are serialized (the order is locked).
+- Orders paid partly with points can't be edited (re-pricing would drop them) and orders that took
+  points can't be deleted for good. Staff pricing (manual orders, edits, quotes) takes no points.
+- Reports count what points paid as sales (total sales, the Customers report and customers' total
+  spent).
+
+**Staff** with `commerce.loyalty.manage` see balances in Shop → Customers → Loyalty points, open a
+customer's history, and add or take points with a note (never below zero). Expired points leave the
+wallets in `commerce:prune` ("loyalty points"). Every change goes through `Loyalty\Wallet`
+(`credit()`, `debit()`), with the customer row locked, so a balance always matches its ledger
+(`commerce_loyalty_transactions`).
 
 
 - **Free shipping** vouchers apply in the shipping discounts stage, to the chosen rate's cost (and

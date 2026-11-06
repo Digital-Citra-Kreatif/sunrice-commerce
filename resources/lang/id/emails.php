@@ -88,13 +88,6 @@ return [
         'intro' => '',
         'action' => 'Periksa pengembalian',
     ],
-    'gift_card' => ['code' => 'Kode', 'balance' => 'Saldo', 'expires' => 'Pakai sebelum :date.'],
-    'gift_card_issued' => [
-        'subject' => 'Gift card dari :store',
-        'heading' => 'Gift card untuk Anda',
-        'intro' => 'Masukkan kodenya di keranjang atau saat checkout: kode ini membayar pesanan Anda, sampai sebesar saldonya.',
-        'action' => 'Mulai belanja',
-    ],
     'back_in_stock' => [
         'subject' => 'Tersedia lagi: :product',
         'heading' => ':product tersedia lagi',

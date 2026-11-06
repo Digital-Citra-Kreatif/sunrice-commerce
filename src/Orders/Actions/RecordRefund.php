@@ -7,7 +7,7 @@ namespace Sunrice\Commerce\Orders\Actions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Sunrice\Commerce\Contracts\Inventory;
-use Sunrice\Commerce\GiftCards\GiftCards;
+use Sunrice\Commerce\Loyalty\Loyalty;
 use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\Events\OrderRefunded;
 use Sunrice\Commerce\Orders\Models\Order;
@@ -25,8 +25,8 @@ use Sunrice\Commerce\Support\MoneyFormatter;
 
 /**
  * Money returned to the customer (ARCHITECTURE.md §12.3): up to what was
- * paid and not yet refunded (beyond what was paid in money, back onto the
- * gift cards that paid the rest), with returned quantities and an optional
+ * paid and not yet refunded (beyond the money paid, the loyalty points the
+ * order paid with go back onto the wallet), with returned quantities and an optional
  * restock. Payment totals change through RecordPaymentResult; once the
  * refunds reach the amount paid the order becomes Refunded. A gateway
  * method that supports refunds is asked first when $viaGateway.
@@ -42,44 +42,49 @@ class RecordRefund
      */
     public function handle(Order $order, int $amount, array $items, ?string $reason, bool $restock, Actor $actor, bool $viaGateway = false): Refund
     {
-        // Money paid first, then what gift cards paid (back onto the cards).
-        $money = max(0, $order->paid_total - $order->refunded_total);
-        $refundable = $money + app(GiftCards::class)->refundable($order);
-        if ($amount <= 0 || $amount > $refundable) {
-            throw ValidationException::withMessages(['amount' => 'The refund must be more than zero and at most '.app(MoneyFormatter::class)->format(max(0, $refundable)).'.']);
-        }
-        $lines = $order->items()->whereNull('parent_id')->get()->keyBy('id');
-        $rows = [];
-        foreach ($items as $row) {
-            $qty = (int) $row['quantity'];
-            if ($qty <= 0) {
-                continue;
+        // The order is locked while what can be refunded is worked out and recorded: two refunds at once can't both take the same amount.
+        $refund = DB::transaction(function () use ($order, $amount, $items, $reason, $restock, $actor, $viaGateway): Refund {
+            /** @var Order $locked */
+            $locked = Order::withTrashed()->whereKey($order->id)->lockForUpdate()->firstOrFail();
+            // Money paid first, then the points the order paid with (back onto the wallet).
+            $money = max(0, $locked->paid_total - $locked->refunded_total);
+            $refundable = $money + app(Loyalty::class)->refundable($locked);
+            if ($amount <= 0 || $amount > $refundable) {
+                throw ValidationException::withMessages(['amount' => 'The refund must be more than zero and at most '.app(MoneyFormatter::class)->format(max(0, $refundable)).'.']);
             }
-            /** @var OrderItem|null $item */
-            $item = $lines->get((int) $row['order_item_id']);
-            if ($item === null || $qty > $item->quantity - $item->refunded_quantity) {
-                throw ValidationException::withMessages(['items' => 'A quantity is more than was bought.']);
-            }
-            $rows[] = ['order_item_id' => $item->id, 'quantity' => $qty];
-        }
-
-        $reference = null;
-        $method = 'manual';
-        if ($viaGateway) {
-            $payment = $order->payments()->whereIn('status', ['paid', 'partially_refunded'])->latest('id')->first();
-            $gateway = $payment !== null ? app(PaymentManager::class)->get($payment->method) : null;
-            if ($payment !== null && $gateway instanceof SupportsRefunds) {
-                $result = $gateway->refund($payment, $amount, (string) $reason);
-                if (! $result->ok) {
-                    throw ValidationException::withMessages(['amount' => $result->error ?? 'The payment provider refused the refund.']);
+            $toMoney = min($amount, $money);
+            $lines = $locked->items()->whereNull('parent_id')->get()->keyBy('id');
+            $rows = [];
+            foreach ($items as $row) {
+                $qty = (int) $row['quantity'];
+                if ($qty <= 0) {
+                    continue;
                 }
-                [$reference, $method] = [$result->reference, 'gateway'];
+                /** @var OrderItem|null $item */
+                $item = $lines->get((int) $row['order_item_id']);
+                if ($item === null || $qty > $item->quantity - $item->refunded_quantity) {
+                    throw ValidationException::withMessages(['items' => 'A quantity is more than was bought.']);
+                }
+                $rows[] = ['order_item_id' => $item->id, 'quantity' => $qty];
             }
-        }
 
-        $refund = DB::transaction(function () use ($order, $amount, $money, $rows, $reason, $restock, $actor, $reference, $method, $lines): Refund {
+            $reference = null;
+            $method = 'manual';
+            if ($viaGateway && $toMoney > 0) {
+                $payment = $locked->payments()->whereIn('status', ['paid', 'partially_refunded'])->latest('id')->first();
+                $gateway = $payment !== null ? app(PaymentManager::class)->get($payment->method) : null;
+                if ($payment !== null && $gateway instanceof SupportsRefunds) {
+                    // Only the money part goes to the provider; points go back onto the wallet.
+                    $result = $gateway->refund($payment, $toMoney, (string) $reason);
+                    if (! $result->ok) {
+                        throw ValidationException::withMessages(['amount' => $result->error ?? 'The payment provider refused the refund.']);
+                    }
+                    [$reference, $method] = [$result->reference, 'gateway'];
+                }
+            }
+
             $refund = Refund::query()->create([
-                'order_id' => $order->id, 'amount' => $amount, 'reason' => $reason, 'items' => $rows ?: null, 'restock' => $restock,
+                'order_id' => $locked->id, 'amount' => $amount, 'reason' => $reason, 'items' => $rows ?: null, 'restock' => $restock,
                 'method' => $method, 'reference' => $reference, 'status' => 'completed', 'created_by' => $actor->userId,
             ]);
             $restockLines = [];
@@ -93,16 +98,15 @@ class RecordRefund
                 }
             }
             if ($restockLines !== []) {
-                app(Inventory::class)->release($restockLines, $order, 'refund');
+                app(Inventory::class)->release($restockLines, $locked, 'refund');
             }
 
-            // Spread the money part over the paid payments, newest first; the rest goes back onto gift cards.
-            $toCards = max(0, $amount - $money);
-            if ($toCards > 0) {
-                app(GiftCards::class)->refund($order, $toCards, $actor->userId);
+            if ($amount > $toMoney) {
+                app(Loyalty::class)->refund($locked, $amount - $toMoney, $actor->userId);
             }
-            $left = $amount - $toCards;
-            foreach ($order->payments()->whereIn('status', ['paid', 'partially_refunded'])->orderByDesc('id')->get() as $payment) {
+            // Spread the money part over the paid payments, newest first.
+            $left = $toMoney;
+            foreach ($locked->payments()->whereIn('status', ['paid', 'partially_refunded'])->orderByDesc('id')->get() as $payment) {
                 /** @var Payment $payment */
                 $part = min($left, $payment->amount - $payment->refunded_amount);
                 if ($part > 0) {
@@ -112,14 +116,15 @@ class RecordRefund
             }
             if ($left > 0) {
                 // Paid without a payment row (zero-total orders never get here): count it on the order.
-                $order->forceFill(['refunded_total' => $order->refunded_total + $left])->save();
+                $locked->refresh();
+                $locked->forceFill(['refunded_total' => $locked->refunded_total + $left])->save();
             }
 
-            $order->refresh();
-            $this->timeline->record($order, 'refund', __('commerce::orders.timeline.refund', ['amount' => app(MoneyFormatter::class)->format($amount)]).($reason ? " — {$reason}" : ''),
+            $locked->refresh();
+            $this->timeline->record($locked, 'refund', __('commerce::orders.timeline.refund', ['amount' => app(MoneyFormatter::class)->format($amount)]).($reason ? " — {$reason}" : ''),
                 ['refund_id' => $refund->id, 'restock' => $restock], $actor);
-            if ($order->refunded_total >= $order->paid_total && app(GiftCards::class)->refundable($order) === 0 && $this->states->can($order, OrderStatus::REFUNDED)) {
-                $this->states->transition($order, OrderStatus::REFUNDED, $actor);
+            if ($locked->refunded_total >= $locked->paid_total && app(Loyalty::class)->refundable($locked) === 0 && $this->states->can($locked, OrderStatus::REFUNDED)) {
+                $this->states->transition($locked, OrderStatus::REFUNDED, $actor);
             }
 
             return $refund;

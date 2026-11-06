@@ -10,7 +10,7 @@
     @foreach ($order->adjustments->where('kind', 'tax') as $a)
         <tr><td>{{ $a->label }}{{ ($a->meta['included'] ?? false) ? ' ('.__('commerce::documents.included').')' : '' }}</td><td class="num">{{ $money->format($a->amount) }}</td></tr>
     @endforeach
-    @foreach ($order->adjustments->where('kind', 'gift_card') as $a)
+    @foreach ($order->adjustments->where('kind', 'points') as $a)
         <tr><td>{{ $a->label }}</td><td class="num">-{{ $money->format(abs($a->amount)) }}</td></tr>
     @endforeach
     <tr class="total"><td>{{ __('commerce::documents.total') }}</td><td class="num">{{ $money->format($order->total) }}</td></tr>

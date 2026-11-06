@@ -59,9 +59,9 @@ return [
         'payment' => 'Choose a payment method.',
         'paused' => 'We aren\'t taking orders right now. Please try again later.',
         'changed' => 'Your order changed. Please check it and place it again.',
+        'points' => 'Your points balance changed. Please check your cart.',
         'flash_sale' => 'The flash sale quantity just ran out. Please check your cart.',
         'voucher' => 'The voucher :code can\'t be used any more.',
-        'gift_card' => 'A gift card\'s balance changed. Please check your cart.',
     ],
     'order' => [
         'title' => 'Order :number',

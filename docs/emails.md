@@ -38,7 +38,6 @@ table) is on and the email is switched on.
 | `order_updated` | Order changed | `orders` | Staff edit an unpaid order and choose to tell the customer |
 | `customer_note` | Note to the customer | `orders` | Staff add a note "to the customer" on the order page |
 | `return_updated` | Return updated | `returns` | Staff change a return's status, with their note |
-| `gift_card_issued` | Gift card | `gift_cards` | Staff issue a gift card with a recipient: its code and balance |
 | `back_in_stock` | Back in stock | `stock_alerts` | A sold-out variant someone asked about can be ordered again |
 | `downloads_ready` | Downloads ready | `digital` | Digital access is granted: links or files |
 | `quote_received` | Quote request received | `orders` | A quote request is placed (Quotation mode) |

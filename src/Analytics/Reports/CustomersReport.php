@@ -36,10 +36,10 @@ class CustomersReport extends Report
         }
         $top = CountedOrders::between($period->from, $period->to)->whereNotNull('commerce_orders.customer_id')
             ->join('commerce_customers as c', 'c.id', '=', 'commerce_orders.customer_id')
-            // Spent includes what gift cards paid (orders' totals are what was left to pay).
-            ->leftJoinSub(DB::table('commerce_order_adjustments')->where('kind', 'gift_card')->groupBy('order_id')->selectRaw('order_id, -sum(amount) as paid'), 'g', 'g.order_id', '=', 'commerce_orders.id')
+            // Spent includes what points paid (orders' totals are what was left to pay).
+            ->leftJoinSub(DB::table('commerce_order_adjustments')->where('kind', 'points')->groupBy('order_id')->selectRaw('order_id, -sum(amount) as paid'), 'pts', 'pts.order_id', '=', 'commerce_orders.id')
             ->groupBy('c.id', 'c.name', 'c.email')
-            ->selectRaw('c.id, c.name, c.email, count(*) as orders, sum(commerce_orders.total + coalesce(g.paid, 0)) as spent, max(commerce_orders.placed_at) as last_order')
+            ->selectRaw('c.id, c.name, c.email, count(*) as orders, sum(commerce_orders.total + coalesce(pts.paid, 0)) as spent, max(commerce_orders.placed_at) as last_order')
             ->orderByDesc('spent')->limit(100)->get();
         $totals = $stats->totals($period->from, $period->to);
         $before = $period->compares() ? $stats->totals((string) $period->compareFrom, (string) $period->compareTo) : null;

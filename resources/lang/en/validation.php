@@ -5,10 +5,6 @@ declare(strict_types=1);
 return [
     'country' => 'Choose a country from the list.',
     'region' => 'Choose the province, city, district and village again: they don\'t match.',
-    'gift_card' => [
-        'unusable' => "The gift card :code can't be used: it has no balance left, has expired or was switched off.",
-        'not_needed' => "Nothing is left to pay: the gift card isn't needed.",
-    ],
     'voucher' => [
         'not_found' => "The code :code doesn't exist.",
         'inactive' => 'This code is no longer valid.',

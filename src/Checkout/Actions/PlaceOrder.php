@@ -31,8 +31,8 @@ use Sunrice\Commerce\Customers\Actions\AssignCustomerRole;
 use Sunrice\Commerce\Customers\Actions\SaveAddress;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Customers\Notifications\VerifyCustomerEmail;
-use Sunrice\Commerce\GiftCards\GiftCards;
 use Sunrice\Commerce\Inventory\OutOfStock;
+use Sunrice\Commerce\Loyalty\Loyalty;
 use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\Events\OrderPaid;
 use Sunrice\Commerce\Orders\Events\OrderPlaced;
@@ -442,7 +442,7 @@ class PlaceOrder
         // Extension providers that hold something back (loyalty points…).
         $committed = [];
         $providers = app(PriceProviders::class);
-        foreach ([...$providers->discounts(), ...$providers->shippingDiscounts(), ...$providers->fees(), ...($state->adjustmentsOfType(Adjustment::GIFT_CARD) !== [] ? [app(GiftCards::class)] : [])] as $provider) {
+        foreach ([...$providers->discounts(), ...$providers->shippingDiscounts(), ...$providers->fees(), ...($state->adjustmentsOfType(Adjustment::POINTS) !== [] ? [app(Loyalty::class)] : [])] as $provider) {
             if ($provider instanceof ReservesDiscounts && ! in_array($provider::class, $committed, true)) {
                 $provider->commit($order, $state);
                 $committed[] = $provider::class;

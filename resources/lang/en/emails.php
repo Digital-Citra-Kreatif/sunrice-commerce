@@ -88,13 +88,6 @@ return [
         'intro' => '',
         'action' => 'Review the return',
     ],
-    'gift_card' => ['code' => 'Code', 'balance' => 'Balance', 'expires' => 'Use it before :date.'],
-    'gift_card_issued' => [
-        'subject' => 'Your gift card from :store',
-        'heading' => 'A gift card for you',
-        'intro' => 'Enter the code in the cart or at checkout: it pays for your order, up to its balance.',
-        'action' => 'Start shopping',
-    ],
     'back_in_stock' => [
         'subject' => 'Back in stock: :product',
         'heading' => ':product is back',

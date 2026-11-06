@@ -162,4 +162,15 @@ return [
         'added_again' => 'Produknya sudah masuk keranjang lagi.',
         'unavailable' => 'Sudah tidak tersedia: :products.',
     ],
+    'points' => [
+        'title' => 'Poin',
+        'balance' => 'Anda punya :points poin, senilai :value.',
+        'how' => 'Anda mendapat :percent% dari belanja produk Anda dalam bentuk poin saat pesanan selesai. Pakai poinnya di keranjang.',
+        'expiring' => ':points poin kedaluwarsa pada :date.',
+        'none' => 'Belum ada poin.',
+        'date' => 'Tanggal',
+        'what' => 'Keterangan',
+        'points' => 'Poin',
+        'kinds' => ['earn' => 'Didapat', 'redeem' => 'Dipakai', 'release' => 'Pesanan dibatalkan: dikembalikan', 'refund' => 'Dikembalikan (refund)', 'revoke' => 'Ditarik (refund)', 'adjust' => 'Diubah oleh toko', 'expire' => 'Kedaluwarsa'],
+    ],
 ];

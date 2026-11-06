@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Orders;
 
 use Illuminate\Support\Facades\DB;
-use Sunrice\Commerce\GiftCards\GiftCards;
+use Sunrice\Commerce\Loyalty\Loyalty;
 use Sunrice\Commerce\Orders\Events\OrderCancelled;
 use Sunrice\Commerce\Orders\Events\OrderCompleted;
 use Sunrice\Commerce\Orders\Events\OrderFailed;
@@ -74,8 +74,8 @@ class OrderStateMachine
                 && $order->payment_method !== 'cod' && $order->total > 0 ? __('commerce::orders.transition.unpaid_processing') : null,
             OrderStatus::CANCELLED => $order->paid_total > $order->refunded_total ? __('commerce::orders.transition.refund_first') : null,
             OrderStatus::COMPLETED => $order->isPaid() || $order->payment_method === 'cod' || $order->total === 0 ? null : __('commerce::orders.transition.unpaid'),
-            OrderStatus::REFUNDED => ($order->paid_total > 0 || app(GiftCards::class)->paid($order) > 0) && $order->refunded_total >= $order->paid_total
-                && app(GiftCards::class)->refundable($order) === 0 ? null : __('commerce::orders.transition.not_refunded'),
+            OrderStatus::REFUNDED => ($order->paid_total > 0 || app(Loyalty::class)->paid($order) > 0) && $order->refunded_total >= $order->paid_total
+                && app(Loyalty::class)->refundable($order) === 0 ? null : __('commerce::orders.transition.not_refunded'),
             default => null,
         };
     }

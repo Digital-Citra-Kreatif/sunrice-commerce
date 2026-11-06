@@ -61,10 +61,10 @@ class AnonymizeCustomer
                 ->update([...$scrubbed, 'updated_at' => now()]);
             DB::table('commerce_payment_confirmations')->where('customer_id', $customer->id)->update(['sender_name' => 'Deleted customer', 'note' => null, 'ip_address' => null]);
             // What they wrote on their returns, and staff's notes back, can hold an address or a phone number.
-            if ($customer->email) {
-                DB::table('commerce_gift_cards')->where('recipient_email', mb_strtolower($customer->email))->update(['recipient_email' => null]);
-            }
             DB::table('commerce_returns')->where('customer_id', $customer->id)->update(['details' => null, 'note' => null]);
+            // The wallet goes with the account; the ledger keeps its amounts for the books, without notes.
+            DB::table('commerce_customers')->where('id', $customer->id)->update(['loyalty_points' => 0]);
+            DB::table('commerce_loyalty_transactions')->where('customer_id', $customer->id)->update(['remaining' => 0, 'note' => null]);
             DB::table('commerce_stock_alerts')->where(fn ($q) => $q->where('customer_id', $customer->id)->when($customer->email, fn ($q, $email) => $q->orWhere('email', mb_strtolower($email))))->delete();
             // Reviews stay (they're about the product), without who wrote them.
             $reviews = DB::table('commerce_reviews')->where(fn ($q) => $q->where('customer_id', $customer->id)->when($customer->email, fn ($q, $email) => $q->orWhereRaw('lower(email) = ?', [mb_strtolower($email)])))->update(['name' => 'Deleted customer', 'email' => null, 'ip_address' => null, 'customer_id' => null]);

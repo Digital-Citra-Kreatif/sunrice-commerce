@@ -21,7 +21,7 @@ Route::prefix(StorefrontRoutes::path('api'))->group(function () use ($suffix): v
         Route::post('cart/items', [Api\CartApiController::class, 'add'])->name('commerce.api.cart.add'.$suffix);
         Route::patch('cart/items/{item}', [Api\CartApiController::class, 'update'])->whereNumber('item')->name('commerce.api.cart.update'.$suffix);
         Route::delete('cart/items/{item}', [Api\CartApiController::class, 'remove'])->whereNumber('item')->name('commerce.api.cart.remove'.$suffix);
-        Route::post('cart/vouchers', [Api\CartApiController::class, 'applyVoucher'])->middleware('throttle:commerce-voucher')->name('commerce.api.cart.voucher'.$suffix);
+        Route::post('cart/vouchers', [Api\CartApiController::class, 'applyVoucher'])->middleware(['commerce.feature:vouchers', 'throttle:commerce-voucher'])->name('commerce.api.cart.voucher'.$suffix);
         Route::delete('cart/vouchers/{code}', [Api\CartApiController::class, 'removeVoucher'])->name('commerce.api.cart.voucher.remove'.$suffix);
     });
 });

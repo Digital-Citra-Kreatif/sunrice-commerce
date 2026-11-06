@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Orders\Actions;
 
 use Illuminate\Support\Facades\DB;
+use Sunrice\Commerce\Loyalty\Loyalty;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Support\ActivityRecorder;
 use Sunrice\Commerce\Support\DomainException;
@@ -29,7 +30,9 @@ class TrashOrder
 
     public function canForceDelete(Order $order): bool
     {
-        return $order->paid_total === 0 && $order->payments()->whereIn('status', ['paid', 'refunded', 'partially_refunded'])->doesntExist();
+        // Points paid count as a payment: their ledger points at the order.
+        return $order->paid_total === 0 && $order->payments()->whereIn('status', ['paid', 'refunded', 'partially_refunded'])->doesntExist()
+            && app(Loyalty::class)->paid($order) === 0;
     }
 
     /** @throws DomainException */
