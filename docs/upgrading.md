@@ -39,6 +39,7 @@ php artisan commerce:stats --rebuild
 
 ## Breaking changes
 
-1.x follows semantic versioning for the public API listed in [extending.md](extending.md), the
-helpers, the Blade components, the config keys and the template variables. Breaking changes wait
-for 2.0 and are listed in `CHANGELOG.md` with the steps to take.
+Commerce follows semantic versioning for the public API listed in [extending.md](extending.md), the
+helpers, the Blade components, the config keys and the template variables. Before 1.0, a minor
+version (0.2, 0.3…) may break them; from 1.0, breaking changes wait for the next major. Either
+way, `CHANGELOG.md` lists them with the steps to take.

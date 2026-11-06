@@ -1,8 +1,11 @@
 # Changelog
 
-## Unreleased — 1.0.0
+## Unreleased
 
-The first release. Commerce is a plugin for the Sunrice panel (`sunrice/admin`) and CMS
+## 0.1.0 (2026-11-06)
+
+The first release, for `sunrice/admin` and `sunrice/cms` 0.6. Until 1.0, minor versions (0.2, 0.3…) may change
+the public API; each change is listed here with the steps to take. Commerce is a plugin for the Sunrice panel (`sunrice/admin`) and CMS
 (`sunrice/cms`), on PHP 8.4 and Laravel 13: products are CMS entries edited in the CMS's entry
 editor, the store's admin pages live in the panel under Shop, and the storefront renders through
 the CMS's templates and full-page cache.

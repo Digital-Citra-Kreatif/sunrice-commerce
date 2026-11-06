@@ -1,9 +1,9 @@
 # Extending Sunrice Commerce
 
 Extension packages (gateways, couriers, loyalty, marketplaces…) plug into commerce from their own
-Laravel service provider. Everything here is the 1.x public surface: it follows semantic
-versioning. For a step-by-step walkthrough of a new package, see
-[extension-package.md](extension-package.md).
+Laravel service provider. Everything here is the public surface: it follows semantic
+versioning, and before 1.0 a minor version (0.2, 0.3…) may change it, as `CHANGELOG.md` lists.
+For a step-by-step walkthrough of a new package, see [extension-package.md](extension-package.md).
 
 ```php
 use Sunrice\Commerce\Facades\Commerce;   // or app(\Sunrice\Commerce\Commerce::class)
