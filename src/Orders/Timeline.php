@@ -8,13 +8,27 @@ use Sunrice\Commerce\Orders\Events\OrderNoteAdded;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\Models\OrderEvent;
 
-/** The order timeline: status changes, payments, notes, emails, shipments, edits. */
+/**
+ * The order timeline: status changes, payments, notes, emails, shipments,
+ * edits. Pass what commerce says as a TimelineText (Timeline::text()), so
+ * it reads in each reader's language; text people wrote (a note) as it is.
+ */
 class Timeline
 {
+    /** @param  array<string, string|int|float|TimelineText|null>  $replace */
+    public static function text(string $key, array $replace = []): TimelineText
+    {
+        return TimelineText::make($key, $replace);
+    }
+
     /** @param  array<string, mixed>  $data */
-    public function record(Order $order, string $type, string $message, array $data = [], ?Actor $actor = null, string $visibility = 'internal'): OrderEvent
+    public function record(Order $order, string $type, string|TimelineText $message, array $data = [], ?Actor $actor = null, string $visibility = 'internal'): OrderEvent
     {
         $actor ??= Actor::system();
+        if ($message instanceof TimelineText) {
+            $data['text'] = $message->toArray();
+            $message = $message->in();
+        }
 
         return OrderEvent::query()->create([
             'order_id' => $order->id,

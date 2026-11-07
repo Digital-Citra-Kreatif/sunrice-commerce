@@ -30,7 +30,7 @@ class UpdateShipment
             'tracking_url' => $this->couriers->trackingUrl($preset !== null ? $courier : null, $tracking),
             'status' => in_array($details['status'] ?? null, ['shipped', 'in_transit', 'returned', 'cancelled'], true) ? $details['status'] : $shipment->status,
         ])->save();
-        $this->timeline->record($shipment->order, 'shipment', __('commerce::orders.timeline.shipment_updated').($tracking ? " ({$tracking})" : ''), ['shipment_id' => $shipment->id], $actor);
+        $this->timeline->record($shipment->order, 'shipment', Timeline::text('commerce::orders.timeline.shipment_updated')->then($tracking ? " ({$tracking})" : ''), ['shipment_id' => $shipment->id], $actor);
 
         return $shipment;
     }
@@ -41,7 +41,7 @@ class UpdateShipment
             return $shipment;
         }
         $shipment->forceFill(['status' => 'delivered', 'delivered_at' => now()])->save();
-        $this->timeline->record($shipment->order, 'shipment', __('commerce::orders.timeline.delivered'), ['shipment_id' => $shipment->id], $actor, 'customer');
+        $this->timeline->record($shipment->order, 'shipment', Timeline::text('commerce::orders.timeline.delivered'), ['shipment_id' => $shipment->id], $actor, 'customer');
         DB::afterCommit(fn () => ShipmentDelivered::dispatch($shipment->order, $shipment));
 
         return $shipment;

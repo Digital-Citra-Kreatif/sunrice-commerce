@@ -57,6 +57,13 @@ return [
         'customer_cancelled' => 'Cancelled by the customer',
         'quote_sent' => 'Quote sent',
         'quote_accepted' => 'Quote accepted',
+        'return_requested' => 'Return :number requested: :reason',
+        'return_updated' => 'Return :number: :status',
+        'download_extended' => 'Download of :file extended by :days days',
+        'download_reset' => 'Download count of :file reset',
+        'download_revoked' => 'Download of :file revoked',
+        'downloads_sent' => 'Download links sent again',
+        'payment_link_sent' => 'Payment link sent',
     ],
     'currency_locked' => 'The currency can\'t be changed once the store has orders.',
 ];

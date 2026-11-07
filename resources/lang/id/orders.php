@@ -57,6 +57,13 @@ return [
         'customer_cancelled' => 'Dibatalkan oleh pelanggan',
         'quote_sent' => 'Penawaran dikirim',
         'quote_accepted' => 'Penawaran diterima',
+        'return_requested' => 'Retur :number diajukan: :reason',
+        'return_updated' => 'Retur :number: :status',
+        'download_extended' => 'Unduhan :file diperpanjang :days hari',
+        'download_reset' => 'Jumlah unduhan :file diatur ulang',
+        'download_revoked' => 'Unduhan :file dicabut',
+        'downloads_sent' => 'Tautan unduhan dikirim ulang',
+        'payment_link_sent' => 'Tautan pembayaran dikirim',
     ],
     'currency_locked' => 'Mata uang tidak bisa diubah setelah toko memiliki pesanan.',
 ];

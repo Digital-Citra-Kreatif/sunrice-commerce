@@ -129,7 +129,7 @@ class CreateManualOrder
             } catch (CheckoutRefused $e) {
                 throw ValidationException::withMessages(['lines' => $e->getMessage()]);
             }
-            $this->timeline->record($order, 'status', __('commerce::orders.timeline.placed'), ['to' => $order->status, 'channel' => 'admin'], $actor);
+            $this->timeline->record($order, 'status', Timeline::text('commerce::orders.timeline.placed'), ['to' => $order->status, 'channel' => 'admin'], $actor);
             if (! empty($data['note'])) {
                 $this->timeline->record($order, 'note', (string) $data['note'], [], $actor);
             }

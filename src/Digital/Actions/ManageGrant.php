@@ -18,7 +18,7 @@ class ManageGrant
     {
         $from = $grant->expires_at !== null && $grant->expires_at->isFuture() ? $grant->expires_at : now();
         $grant->forceFill(['expires_at' => $from->copy()->addDays($days)])->save();
-        $this->timeline->record($grant->order, 'system', "Download of {$grant->file->name} extended by {$days} days", [], $actor);
+        $this->timeline->record($grant->order, 'system', Timeline::text('commerce::orders.timeline.download_extended', ['file' => $grant->file->name, 'days' => $days]), [], $actor);
 
         return $grant;
     }
@@ -26,7 +26,7 @@ class ManageGrant
     public function reset(DownloadGrant $grant, ?int $limit, Actor $actor): DownloadGrant
     {
         $grant->forceFill(['downloads_remaining' => $limit, 'revoked_at' => null])->save();
-        $this->timeline->record($grant->order, 'system', "Download count of {$grant->file->name} reset", [], $actor);
+        $this->timeline->record($grant->order, 'system', Timeline::text('commerce::orders.timeline.download_reset', ['file' => $grant->file->name]), [], $actor);
 
         return $grant;
     }
@@ -34,7 +34,7 @@ class ManageGrant
     public function revoke(DownloadGrant $grant, Actor $actor): DownloadGrant
     {
         $grant->forceFill(['revoked_at' => now()])->save();
-        $this->timeline->record($grant->order, 'system', "Download of {$grant->file->name} revoked", [], $actor);
+        $this->timeline->record($grant->order, 'system', Timeline::text('commerce::orders.timeline.download_revoked', ['file' => $grant->file->name]), [], $actor);
 
         return $grant;
     }
@@ -42,6 +42,6 @@ class ManageGrant
     public function resend(DownloadGrant $grant, Actor $actor): void
     {
         DownloadsGranted::dispatch($grant->order, $grant->order->hasMany(DownloadGrant::class)->whereNull('revoked_at')->get()->all(), true);
-        $this->timeline->record($grant->order, 'email', 'Download links sent again', [], $actor, 'customer');
+        $this->timeline->record($grant->order, 'email', Timeline::text('commerce::orders.timeline.downloads_sent'), [], $actor, 'customer');
     }
 }

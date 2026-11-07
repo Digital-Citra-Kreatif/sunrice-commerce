@@ -12,6 +12,7 @@ use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\OrderStateMachine;
 use Sunrice\Commerce\Orders\OrderStatus;
 use Sunrice\Commerce\Orders\Timeline;
+use Sunrice\Commerce\Orders\TimelineText;
 use Sunrice\Commerce\Payments\Events\PaymentAfterCancellation;
 use Sunrice\Commerce\Payments\Events\PaymentExpired;
 use Sunrice\Commerce\Payments\Events\PaymentFailed;
@@ -62,7 +63,7 @@ class RecordPaymentResult
             // A gateway reporting less than was due doesn't settle the payment: staff can mark it paid.
             if ($result->status === 'paid' && $result->amount !== null && $result->amount < $locked->amount) {
                 $money = app(MoneyFormatter::class);
-                $this->timeline->record($order, 'note', __('commerce::orders.timeline.underpaid', [
+                $this->timeline->record($order, 'note', Timeline::text('commerce::orders.timeline.underpaid', [
                     'method' => $locked->method_title ?? $locked->method, 'amount' => $money->format($result->amount), 'expected' => $money->format($locked->amount),
                 ]), array_filter(['payment_id' => $locked->id, 'reference' => $result->reference, 'amount' => $result->amount]), $actor);
 
@@ -76,14 +77,14 @@ class RecordPaymentResult
             $order->save();
 
             $money = app(MoneyFormatter::class);
-            $this->timeline->record($order, 'payment', __('commerce::orders.timeline.payment', [
-                'status' => OrderStatus::label($locked->status, 'payment'),
+            $this->timeline->record($order, 'payment', Timeline::text('commerce::orders.timeline.payment', [
+                'status' => TimelineText::status($locked->status, 'payment'),
                 'amount' => $money->format($result->status === 'refunded' ? (int) $result->amount : ($result->amount ?? $locked->amount)),
             ]), array_filter(['payment_id' => $locked->id, 'method' => $locked->method, 'status' => $result->status, 'reference' => $result->reference]), $actor);
 
             if ($afterCancellation) {
                 // Its stock, sale quantities and vouchers were released: nothing is fulfilled until staff decide.
-                $this->timeline->record($order, 'note', __('commerce::orders.timeline.paid_after_cancel', [
+                $this->timeline->record($order, 'note', Timeline::text('commerce::orders.timeline.paid_after_cancel', [
                     'amount' => $money->format($result->amount ?? $locked->amount),
                 ]), ['payment_id' => $locked->id], $actor);
             }
