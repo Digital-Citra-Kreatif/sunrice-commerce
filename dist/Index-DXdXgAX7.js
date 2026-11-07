@@ -1,16 +1,16 @@
-import { R as m, u as b, a as j, b as u, j as a, c as t, P as x, S as D, i as S, g as q, d as C } from "./main-BtYEwHjd.js";
-import { D as _ } from "./DataTable-wHP2fYK-.js";
+import { R as m, u as x, a as b, b as u, j as a, c as t, P as j, S as D, i as S, h as q, d as C } from "./main-DqBD_5_V.js";
+import { D as _ } from "./DataTable-3ORWGZQn.js";
 const $ = { in_stock: "ok", out_of_stock: "error", backorder: "warning" };
-function F({ row: n, reasons: d, onClose: s }) {
-  const { Dialog: r, DialogContent: o, DialogHeader: v, DialogTitle: y, DialogDescription: f, DialogFooter: k, Button: h, Input: g, Label: i } = C, c = S.useForm({ mode: "add", quantity: 0, reason: "manual", note: "" }), [l, p] = m.useState(null);
+function F({ row: n, reasons: d, onClose: r }) {
+  const { Dialog: s, DialogContent: o, DialogHeader: v, DialogTitle: f, DialogDescription: y, DialogFooter: k, Button: h, Input: g, Label: i } = C, c = S.useForm({ mode: "add", quantity: 0, reason: "manual", note: "" }), [l, p] = m.useState(null);
   m.useEffect(() => {
     q(u(`commerce/inventory/${n.id}/history`)).then((e) => p(e.data)).catch(() => p([]));
   }, [n.id]);
   const N = c.data.mode === "set" ? c.data.quantity : (n.stock_quantity ?? 0) + c.data.quantity;
-  return /* @__PURE__ */ t(r, { open: !0, onOpenChange: (e) => !e && s(), children: /* @__PURE__ */ a(o, { className: "cm:max-w-lg", children: [
+  return /* @__PURE__ */ t(s, { open: !0, onOpenChange: (e) => !e && r(), children: /* @__PURE__ */ a(o, { className: "cm:max-w-lg", children: [
     /* @__PURE__ */ a(v, { children: [
-      /* @__PURE__ */ t(y, { children: "Adjust stock" }),
-      /* @__PURE__ */ a(f, { children: [
+      /* @__PURE__ */ t(f, { children: "Adjust stock" }),
+      /* @__PURE__ */ a(y, { children: [
         n.product_title,
         n.sku ? ` · ${n.sku}` : "",
         ". Now: ",
@@ -19,7 +19,7 @@ function F({ row: n, reasons: d, onClose: s }) {
       ] })
     ] }),
     /* @__PURE__ */ a("form", { id: "adjust-stock", className: "cm:grid cm:gap-3", onSubmit: (e) => {
-      e.preventDefault(), c.post(u(`commerce/inventory/${n.id}/adjust`), { preserveScroll: !0, onSuccess: s });
+      e.preventDefault(), c.post(u(`commerce/inventory/${n.id}/adjust`), { preserveScroll: !0, onSuccess: r });
     }, children: [
       /* @__PURE__ */ a("div", { className: "cm:grid cm:grid-cols-2 cm:gap-3", children: [
         /* @__PURE__ */ a("div", { className: "cm:grid cm:gap-1", children: [
@@ -69,28 +69,28 @@ function F({ row: n, reasons: d, onClose: s }) {
       ] }, e.id))
     ] }),
     /* @__PURE__ */ a(k, { children: [
-      /* @__PURE__ */ t(h, { variant: "outline", type: "button", onClick: s, children: "Cancel" }),
+      /* @__PURE__ */ t(h, { variant: "outline", type: "button", onClick: r, children: "Cancel" }),
       /* @__PURE__ */ t(h, { type: "submit", form: "adjust-stock", disabled: c.processing, children: "Save" })
     ] })
   ] }) });
 }
 function H(n) {
-  const [d, s] = m.useState(null);
-  return b(), j([{ label: "Shop", href: u("commerce") }, { label: "Inventory" }]), /* @__PURE__ */ a("div", { className: "cm:grid cm:gap-6 cm:p-4 cm:md:p-6", children: [
-    /* @__PURE__ */ t(x, { title: "Inventory", description: "Stock of every product variant. Every change is recorded." }),
+  const [d, r] = m.useState(null);
+  return x(), b([{ label: "Shop", href: u("commerce") }, { label: "Inventory" }]), /* @__PURE__ */ a("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6", children: [
+    /* @__PURE__ */ t(j, { title: "Inventory", description: "Stock of every product variant. Every change is recorded." }),
     /* @__PURE__ */ t(
       _,
       {
         ...n,
         searchPlaceholder: "Search products or SKUs…",
-        onRowClick: n.can.adjust ? (r) => s(r) : void 0,
-        renderCell: (r, o) => {
-          if (o.key === "status") return /* @__PURE__ */ t(D, { tone: r.low ? "warning" : $[r.status], children: r.low ? "Low" : r.status.replace(/_/g, " ") });
-          if (o.key === "stock_quantity") return r.track_stock ? r.stock_quantity : /* @__PURE__ */ t("span", { className: "cm:text-muted-foreground", children: "—" });
+        onRowClick: n.can.adjust ? (s) => r(s) : void 0,
+        renderCell: (s, o) => {
+          if (o.key === "status") return /* @__PURE__ */ t(D, { tone: s.low ? "warning" : $[s.status], children: s.low ? "Low" : s.status.replace(/_/g, " ") });
+          if (o.key === "stock_quantity") return s.track_stock ? s.stock_quantity : /* @__PURE__ */ t("span", { className: "cm:text-muted-foreground", children: "—" });
         }
       }
     ),
-    d && /* @__PURE__ */ t(F, { row: d, reasons: n.reasons, onClose: () => s(null) })
+    d && /* @__PURE__ */ t(F, { row: d, reasons: n.reasons, onClose: () => r(null) })
   ] });
 }
 export {

@@ -39,26 +39,26 @@ class SaveFlashSale
         $descriptions = array_map(fn (string $l) => ['handle' => $l, 'type' => 'textarea', 'label' => Locales::name($l), 'translatable' => false, 'config' => ['max' => 2000]], Locales::all());
 
         return [
-            ['handle' => 'name', 'type' => 'text', 'label' => 'Name', 'required' => true, 'translatable' => false, 'config' => ['max' => 120]],
-            ['handle' => 'slug', 'type' => 'text', 'label' => 'URL slug', 'translatable' => false, 'instructions' => 'Its page: /flash-sale/{slug}. Empty: from the name.', 'validation' => ['regex:/^[a-z0-9-]*$/', 'max:120']],
-            ['handle' => 'active', 'type' => 'toggle', 'label' => 'Active'],
-            ['handle' => 'dates', 'type' => 'commerce_datetime_range', 'label' => 'When', 'required' => true, 'config' => ['require_start' => true, 'require_end' => true]],
-            ['handle' => 'badge', 'type' => 'text', 'label' => 'Badge', 'translatable' => false, 'instructions' => 'e.g. "12.12"', 'config' => ['max' => 40]],
-            ['handle' => 'description', 'type' => 'group', 'label' => 'Description', 'config' => ['fields' => $descriptions]],
-            ['handle' => 'banner', 'type' => 'asset', 'label' => 'Banner', 'config' => ['image_only' => true]],
-            ['handle' => 'show_countdown', 'type' => 'toggle', 'label' => 'Show a countdown'],
-            ['handle' => 'show_progress', 'type' => 'toggle', 'label' => 'Show how much is sold (items with a cap)'],
-            ['handle' => 'show_teaser', 'type' => 'toggle', 'label' => 'Announce it before it starts'],
-            ['handle' => 'per_customer_limit', 'type' => 'number', 'label' => 'Units per customer', 'instructions' => 'At the sale price, per item. Empty: no limit.', 'config' => ['min' => 1], 'validation' => ['integer']],
-            ['handle' => 'items', 'type' => 'repeater', 'label' => 'Products', 'required' => true, 'config' => ['min' => 1, 'max' => 200, 'fields' => [
-                ['handle' => 'target', 'type' => 'commerce_targets', 'label' => 'Product or variant', 'required' => true, 'config' => ['types' => ['product', 'variant']]],
-                ['handle' => 'discount_type', 'type' => 'select', 'label' => 'Sale price', 'required' => true, 'config' => ['options' => [
+            ['handle' => 'name', 'section' => 'Sale', 'width' => 50, 'type' => 'text', 'label' => 'Name', 'required' => true, 'translatable' => false, 'config' => ['max' => 120]],
+            ['handle' => 'slug', 'section' => 'Sale', 'width' => 50, 'type' => 'text', 'label' => 'URL slug', 'translatable' => false, 'instructions' => 'Its page: /flash-sale/{slug}. Empty: from the name.', 'validation' => ['regex:/^[a-z0-9-]*$/', 'max:120']],
+            ['handle' => 'active', 'section' => 'Sale', 'width' => 50, 'type' => 'toggle', 'label' => 'Active'],
+            ['handle' => 'dates', 'section' => 'Sale', 'type' => 'commerce_datetime_range', 'label' => 'When', 'required' => true, 'config' => ['require_start' => true, 'require_end' => true]],
+            ['handle' => 'badge', 'section' => 'Sale', 'width' => 50, 'type' => 'text', 'label' => 'Badge', 'translatable' => false, 'instructions' => 'e.g. "12.12"', 'config' => ['max' => 40]],
+            ['handle' => 'description', 'section' => 'Sale page', 'type' => 'group', 'label' => 'Description', 'config' => ['fields' => $descriptions]],
+            ['handle' => 'banner', 'section' => 'Sale page', 'type' => 'asset', 'label' => 'Banner', 'config' => ['image_only' => true]],
+            ['handle' => 'show_countdown', 'section' => 'Sale page', 'type' => 'toggle', 'label' => 'Show a countdown'],
+            ['handle' => 'show_progress', 'section' => 'Sale page', 'type' => 'toggle', 'label' => 'Show how much is sold (items with a cap)'],
+            ['handle' => 'show_teaser', 'section' => 'Sale page', 'type' => 'toggle', 'label' => 'Announce it before it starts'],
+            ['handle' => 'per_customer_limit', 'section' => 'Sale', 'width' => 50, 'type' => 'number', 'label' => 'Units per customer', 'instructions' => 'At the sale price, per item. Empty: no limit.', 'config' => ['min' => 1], 'validation' => ['integer']],
+            ['handle' => 'items', 'section' => 'Products', 'type' => 'repeater', 'label' => 'Products', 'required' => true, 'config' => ['min' => 1, 'max' => 200, 'fields' => [
+                ['handle' => 'target', 'width' => 50, 'type' => 'commerce_targets', 'label' => 'Product or variant', 'required' => true, 'config' => ['types' => ['product', 'variant']]],
+                ['handle' => 'discount_type', 'width' => 25, 'type' => 'select', 'label' => 'Sale price', 'required' => true, 'config' => ['options' => [
                     ['value' => 'percent_off', 'label' => 'Percent off'], ['value' => 'amount_off', 'label' => 'Amount off'], ['value' => 'fixed_price', 'label' => 'Fixed price'],
                 ]]],
-                ['handle' => 'percent', 'type' => 'number', 'label' => 'Percent', 'config' => ['min' => 0, 'max' => 100]],
-                ['handle' => 'amount', 'type' => 'commerce_money', 'label' => 'Amount or price'],
-                ['handle' => 'quantity_limit', 'type' => 'number', 'label' => 'Units at this price (cap)', 'config' => ['min' => 1], 'validation' => ['integer']],
-                ['handle' => 'per_customer_limit', 'type' => 'number', 'label' => 'Units per customer', 'config' => ['min' => 1], 'validation' => ['integer']],
+                ['handle' => 'percent', 'width' => 25, 'condition' => ['field' => 'discount_type', 'operator' => 'equals', 'value' => 'percent_off'], 'type' => 'number', 'label' => 'Percent', 'config' => ['min' => 0, 'max' => 100]],
+                ['handle' => 'amount', 'width' => 25, 'condition' => ['field' => 'discount_type', 'operator' => 'not_equals', 'value' => 'percent_off'], 'type' => 'commerce_money', 'label' => 'Amount or price'],
+                ['handle' => 'quantity_limit', 'width' => 50, 'type' => 'number', 'label' => 'Units at this price (cap)', 'config' => ['min' => 1], 'validation' => ['integer']],
+                ['handle' => 'per_customer_limit', 'width' => 50, 'type' => 'number', 'label' => 'Units per customer', 'config' => ['min' => 1], 'validation' => ['integer']],
             ]]],
         ];
     }

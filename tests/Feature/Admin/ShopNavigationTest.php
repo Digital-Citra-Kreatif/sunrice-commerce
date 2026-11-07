@@ -25,10 +25,10 @@ function shopItems(): array
 it('shows the Shop items a user may open, while their module is active', function () {
     actingAsUserWith(['commerce.dashboard.view', 'commerce.reports.view', 'commerce.settings.features']);
 
-    expect(shopItems())->toMatchArray(['Dashboard', 'Reports', 'Store settings']);
+    expect(shopItems())->toMatchArray(['Overview', 'Reports', 'Store settings']);
 
     app(ToggleFeature::class)->handle('analytics', false);
-    expect(shopItems())->toContain('Dashboard')->not->toContain('Reports');
+    expect(shopItems())->toContain('Overview')->not->toContain('Reports');
 });
 
 it('shows only what a user may open: Store settings for one who may only switch features', function () {
@@ -43,9 +43,11 @@ it('keeps the whole store in one group: products, their taxonomies and the setti
 
     $this->get('/admin/commerce/settings/features')->assertInertia(function (AssertableInertia $page) {
         $groups = collect($page->toArray()['props']['navigation'])->keyBy('group');
+        // First, right under the panel's own Dashboard and Media.
+        expect($groups->keys()->search('Shop'))->toBe(1);
         $shop = collect($groups['Shop']['items'])->keyBy('label'); // Marketing is off by default
 
-        expect($shop->keys()->all())->toBe(['Dashboard', 'Orders', 'Products', 'Customers', 'Promotions', 'Reports', 'Store settings'])
+        expect($shop->keys()->all())->toBe(['Overview', 'Orders', 'Products', 'Customers', 'Promotions', 'Reports', 'Store settings'])
             ->and(array_column($shop['Products']['children'], 'label'))->toBe(['Product categories', 'Brands', 'Product tags', 'Inventory', 'Reviews'])
             ->and(array_column($shop['Orders']['children'], 'label'))->toBe(['Payments to verify'])
             ->and(array_column($shop['Promotions']['children'], 'label'))->toBe(['Vouchers', 'Flash sales', 'Pricing rules']);

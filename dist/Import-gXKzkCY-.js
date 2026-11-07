@@ -1,11 +1,11 @@
-import { i as N, a as x, b as l, j as r, c as e, P as w, d as v } from "./main-BtYEwHjd.js";
-import { I as y } from "./InputError-5eVrXBM9.js";
+import { i as x, a as N, b as l, j as r, c as e, P as w, d as v } from "./main-DqBD_5_V.js";
+import { I as y } from "./InputError-CU7pLWc2.js";
 const h = (t) => t === null || t === "" ? "—" : typeof t == "boolean" ? t ? "yes" : "no" : String(t);
 function C(t) {
-  const { Button: s, Input: p, Label: u } = v, { useForm: g, router: f, Link: b } = N;
-  x([{ label: "Shop", href: l("commerce") }, { label: "Products", href: l("commerce/products") }, { label: "Import" }]);
+  const { Button: s, Input: p, Label: u } = v, { useForm: g, router: f, Link: b } = x;
+  N([{ label: "Shop", href: l("commerce") }, { label: "Products", href: l("commerce/products") }, { label: "Import" }]);
   const a = g({ file: null }), i = t.preview ?? [], n = i.filter((c) => c.error === null && Object.keys(c.changes).length > 0), m = i.filter((c) => c.error !== null);
-  return /* @__PURE__ */ r("div", { className: "cm:grid cm:gap-6 cm:p-4 cm:md:p-6", children: [
+  return /* @__PURE__ */ r("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6 cm:max-w-5xl", children: [
     /* @__PURE__ */ e(w, { title: "Import products", description: "Change prices, stock and more from a CSV: rows are matched by SKU, and blank cells keep the value." }),
     /* @__PURE__ */ r("form", { className: "cm:grid cm:max-w-xl cm:gap-3", onSubmit: (c) => {
       c.preventDefault(), a.post(l("commerce/products/import"), { forceFormData: !0 });

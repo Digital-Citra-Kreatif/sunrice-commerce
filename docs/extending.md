@@ -82,6 +82,17 @@ Commerce::registerSettingsSection(new SettingsSection(
 Commerce::settings()->get('loyalty.point_value', 100);
 ```
 
+The form is drawn as the panel draws its forms. A field's `section` (a title) puts it in a card of
+that name; fields without one come first. The CMS's `width` (25, 33, 50, 66, 75 or 100 percent) sets
+fields side by side, and its `condition` shows a field only while another has a value. A hidden
+field's own rules don't apply, so `required` holds only while the field shows:
+
+```php
+['handle' => 'mode', 'type' => 'select', 'label' => 'Points from', 'section' => 'Earning', 'width' => 50, …],
+['handle' => 'percent', 'type' => 'number', 'label' => 'Percent', 'section' => 'Earning', 'width' => 50,
+    'condition' => ['field' => 'mode', 'operator' => 'equals', 'value' => 'percent']],
+```
+
 For a section that needs its own UI, register a React component with the same key (see
 [Admin JavaScript](#admin-javascript)); it receives `section` and `form` (the values and the save
 action) instead of the generated form.

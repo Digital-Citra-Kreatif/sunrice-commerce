@@ -4,12 +4,17 @@ import { useCommerceShared, type MenuItem } from '../lib/store';
 import { PageHeader } from './PageHeader';
 import { SectionNav } from './SectionNav';
 
-/** Settings → Store: the panel's Settings menu, the store's section menu and the section. */
-export function SettingsLayout({ sections, current, title, description, children }: {
+/**
+ * Settings → Store: the panel's Settings menu beside the page, the store's
+ * sections as tabs under the page's title (one menu at the side, as on
+ * every settings page), then the section.
+ */
+export function SettingsLayout({ sections, current, title, description, primary, children }: {
     sections: MenuItem[];
     current: string;
     title: string;
     description?: ReactNode;
+    primary?: ReactNode;
     children: ReactNode;
 }) {
     const { SettingsLayout: PanelSettings } = ui;
@@ -18,14 +23,12 @@ export function SettingsLayout({ sections, current, title, description, children
     useBreadcrumbs([{ label: 'Settings', href: adminUrl('settings') }, { label: 'Store', href: adminUrl('commerce/settings') }, { label: title }]);
 
     return (
-        <div className="cm:p-4 cm:md:p-6">
+        <div>
             <PanelSettings items={settingsNav} current="commerce-settings">
-                <div className="cm:grid cm:gap-6 cm:md:grid-cols-[12rem_1fr]">
+                <div className="cm:flex cm:min-w-0 cm:flex-col cm:gap-6">
+                    <PageHeader title={title} description={description} primary={primary} />
                     <SectionNav items={sections} current={current} label="Store settings" />
-                    <div className="cm:grid cm:min-w-0 cm:content-start cm:gap-6">
-                        <PageHeader title={title} description={description} />
-                        {children}
-                    </div>
+                    {children}
                 </div>
             </PanelSettings>
         </div>

@@ -1,8 +1,8 @@
-import { i as T, u as j, a as B, b as d, R as E, j as c, c as e, P as H, F as p, S as k, d as O, K as a } from "./main-BtYEwHjd.js";
+import { i as T, u as j, a as B, b as d, R as E, j as c, c as e, P as H, F as p, S as k, d as O, f as a } from "./main-DqBD_5_V.js";
 import { r as m } from "./marketing-Bya9hWH-.js";
 const b = (r) => `${r.toLocaleString()} ${r === 1 ? "person" : "people"}`, s = (r) => r ? new Date(r).toLocaleString(void 0, { dateStyle: "medium", timeStyle: "short" }) : "—", _ = { sent: "ok", queued: "info", sending: "info", failed: "error", skipped: "neutral", active: "ok", paused: "warning", cancelled: "error", scheduled: "info" };
 function F({ campaign: r, stats: n, links: g, recipients: f }) {
-  const { Card: x, CardContent: w, CardHeader: y, CardTitle: N, CardDescription: v, Button: u, Table: C, TableBody: S, TableCell: t, TableHead: l, TableHeader: $, TableRow: o } = O, { router: h, Link: L } = T, q = r.type === "automation";
+  const { Card: x, CardContent: y, CardHeader: w, CardTitle: N, CardDescription: v, Button: u, Table: C, TableBody: S, TableCell: t, TableHead: l, TableHeader: $, TableRow: o } = O, { router: h, Link: L } = T, q = r.type === "automation";
   return j(), B([
     { label: "Shop", href: d("commerce") },
     { label: "Marketing", href: d("commerce/marketing") },
@@ -12,7 +12,7 @@ function F({ campaign: r, stats: n, links: g, recipients: f }) {
     if (n.queued === 0 && r.status !== "sending") return;
     const i = setInterval(() => h.reload({ only: ["campaign", "stats", "links", "recipients"] }), 5e3);
     return () => clearInterval(i);
-  }, [n.queued, r.status]), /* @__PURE__ */ c("div", { className: "cm:mx-auto cm:grid cm:w-full cm:max-w-6xl cm:gap-6 cm:p-4 cm:md:p-6", children: [
+  }, [n.queued, r.status]), /* @__PURE__ */ c("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6", children: [
     /* @__PURE__ */ e(
       H,
       {
@@ -48,11 +48,11 @@ function F({ campaign: r, stats: n, links: g, recipients: f }) {
     ] }),
     /* @__PURE__ */ e("p", { className: "cm:text-xs cm:text-muted-foreground", children: "Opens are counted when the email's images load, so they are approximate: some inboxes load images for everyone, others never. A click also counts as an open." }),
     /* @__PURE__ */ c(x, { children: [
-      /* @__PURE__ */ c(y, { children: [
+      /* @__PURE__ */ c(w, { children: [
         /* @__PURE__ */ e(N, { children: "Links" }),
         /* @__PURE__ */ e(v, { children: "Clicks on each link in the email." })
       ] }),
-      /* @__PURE__ */ e(w, { className: "cm:p-0", children: g.length === 0 ? /* @__PURE__ */ e("p", { className: "cm:px-6 cm:pb-6 cm:text-sm cm:text-muted-foreground", children: "No clicks yet." }) : /* @__PURE__ */ c(C, { children: [
+      /* @__PURE__ */ e(y, { className: "cm:p-0", children: g.length === 0 ? /* @__PURE__ */ e("p", { className: "cm:px-6 cm:pb-6 cm:text-sm cm:text-muted-foreground", children: "No clicks yet." }) : /* @__PURE__ */ c(C, { children: [
         /* @__PURE__ */ e($, { children: /* @__PURE__ */ c(o, { children: [
           /* @__PURE__ */ e(l, { children: "Link" }),
           /* @__PURE__ */ e(l, { className: "cm:text-right", children: "People" }),
@@ -66,11 +66,11 @@ function F({ campaign: r, stats: n, links: g, recipients: f }) {
       ] }) })
     ] }),
     /* @__PURE__ */ c(x, { children: [
-      /* @__PURE__ */ c(y, { children: [
+      /* @__PURE__ */ c(w, { children: [
         /* @__PURE__ */ e(N, { children: "Latest recipients" }),
         /* @__PURE__ */ e(v, { children: "The 50 most recent." })
       ] }),
-      /* @__PURE__ */ e(w, { className: "cm:p-0", children: f.length === 0 ? /* @__PURE__ */ e("p", { className: "cm:px-6 cm:pb-6 cm:text-sm cm:text-muted-foreground", children: "Nobody yet." }) : /* @__PURE__ */ c(C, { children: [
+      /* @__PURE__ */ e(y, { className: "cm:p-0", children: f.length === 0 ? /* @__PURE__ */ e("p", { className: "cm:px-6 cm:pb-6 cm:text-sm cm:text-muted-foreground", children: "Nobody yet." }) : /* @__PURE__ */ c(C, { children: [
         /* @__PURE__ */ e($, { children: /* @__PURE__ */ c(o, { children: [
           /* @__PURE__ */ e(l, { children: "Email" }),
           /* @__PURE__ */ e(l, { children: "Status" }),

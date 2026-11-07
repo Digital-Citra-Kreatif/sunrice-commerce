@@ -11,6 +11,21 @@ export interface Kpi {
     change?: number | null;
 }
 
+/** A KpiCard's place while its figure loads: the same card, so nothing moves when it arrives. */
+export function KpiCardSkeleton() {
+    const { Card, CardContent } = ui;
+
+    return (
+        <Card aria-hidden="true">
+            <CardContent className="cm:grid cm:gap-1 cm:pt-6">
+                <span className="cm:my-0.5 cm:h-4 cm:w-24 cm:animate-pulse cm:rounded cm:bg-muted" />
+                <span className="cm:my-1 cm:h-6 cm:w-20 cm:animate-pulse cm:rounded cm:bg-muted" />
+                <span className="cm:h-4" />
+            </CardContent>
+        </Card>
+    );
+}
+
 /** A figure with its change against the comparison period. */
 export function KpiCard({ kpi }: { kpi: Kpi }) {
     const { Card, CardContent } = ui;

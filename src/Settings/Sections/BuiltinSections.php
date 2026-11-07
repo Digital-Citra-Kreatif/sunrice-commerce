@@ -66,30 +66,30 @@ final class BuiltinSections
     protected static function general(): array
     {
         return [
-            ['handle' => 'name', 'type' => 'text', 'label' => 'Store name', 'required' => true, 'translatable' => false, 'config' => ['max' => 120],
+            ['handle' => 'name', 'section' => 'Store', 'width' => 50, 'type' => 'text', 'label' => 'Store name', 'required' => true, 'translatable' => false, 'config' => ['max' => 120],
                 'instructions' => 'On invoices, emails and the storefront.'],
-            ['handle' => 'logo', 'type' => 'asset', 'label' => 'Logo', 'config' => ['image_only' => true], 'instructions' => 'For invoices and emails.'],
-            ['handle' => 'brand_color', 'type' => 'text', 'label' => 'Brand color', 'translatable' => false, 'instructions' => 'A hex color like #b45309 for email buttons, headings and links. Empty: the default.',
+            ['handle' => 'logo', 'section' => 'Brand', 'width' => 50, 'type' => 'asset', 'label' => 'Logo', 'config' => ['image_only' => true], 'instructions' => 'For invoices and emails.'],
+            ['handle' => 'brand_color', 'section' => 'Brand', 'width' => 50, 'type' => 'text', 'label' => 'Brand color', 'translatable' => false, 'instructions' => 'A hex color like #b45309 for email buttons, headings and links. Empty: the default.',
                 'validation' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/']],
-            ['handle' => 'email', 'type' => 'text', 'label' => 'Store email', 'translatable' => false, 'validation' => ['email:rfc', 'max:190'],
+            ['handle' => 'email', 'section' => 'Store', 'width' => 50, 'type' => 'text', 'label' => 'Store email', 'translatable' => false, 'validation' => ['email:rfc', 'max:190'],
                 'instructions' => 'Order notifications go here; customers reply to it.'],
-            ['handle' => 'phone', 'type' => 'text', 'label' => 'Phone', 'translatable' => false, 'config' => ['max' => 40]],
-            ['handle' => 'tax_id', 'type' => 'text', 'label' => 'Tax number (NPWP)', 'translatable' => false, 'config' => ['max' => 40]],
-            ['handle' => 'address', 'type' => 'group', 'label' => 'Store address', 'instructions' => 'Printed on invoices; shipping origin.', 'config' => ['fields' => [
+            ['handle' => 'phone', 'section' => 'Store', 'width' => 50, 'type' => 'text', 'label' => 'Phone', 'translatable' => false, 'config' => ['max' => 40]],
+            ['handle' => 'tax_id', 'section' => 'Store', 'width' => 50, 'type' => 'text', 'label' => 'Tax number (NPWP)', 'translatable' => false, 'config' => ['max' => 40]],
+            ['handle' => 'address', 'section' => 'Address', 'type' => 'group', 'label' => 'Store address', 'instructions' => 'Printed on invoices; shipping origin.', 'config' => ['fields' => [
                 ['handle' => 'line1', 'type' => 'text', 'label' => 'Street address', 'translatable' => false, 'config' => ['max' => 190]],
                 ['handle' => 'line2', 'type' => 'text', 'label' => 'Building, floor (optional)', 'translatable' => false, 'config' => ['max' => 190]],
                 ['handle' => 'region', 'type' => 'commerce_region', 'label' => 'Region', 'config' => ['depth' => 'district']],
-                ['handle' => 'postal_code', 'type' => 'text', 'label' => 'Postal code', 'translatable' => false, 'config' => ['max' => 12]],
+                ['handle' => 'postal_code', 'width' => 50, 'type' => 'text', 'label' => 'Postal code', 'translatable' => false, 'config' => ['max' => 12]],
             ]]],
-            ['handle' => 'selling_mode', 'type' => 'select', 'label' => 'Selling mode', 'required' => true, 'config' => ['options' => self::options([
+            ['handle' => 'selling_mode', 'section' => 'Selling', 'type' => 'select', 'label' => 'Selling mode', 'required' => true, 'config' => ['options' => self::options([
                 'shop' => 'Online store: customers check out and pay',
                 'quote' => 'Quotation: customers request a quote, you send prices',
                 'whatsapp' => 'WhatsApp order: the cart is sent to you on WhatsApp',
                 'catalog' => 'Catalog: no cart; products show a call to action',
             ])]],
-            ['handle' => 'pause_orders', 'type' => 'toggle', 'label' => 'Pause orders', 'instructions' => 'The store stays open, but checkout is closed (holidays, stocktaking).'],
-            ['handle' => 'pause_message', 'type' => 'textarea', 'label' => 'Message while paused', 'config' => ['max' => 500]],
-            ['handle' => 'whatsapp', 'type' => 'group', 'label' => 'WhatsApp', 'config' => ['fields' => [
+            ['handle' => 'pause_orders', 'section' => 'Selling', 'type' => 'toggle', 'label' => 'Pause orders', 'instructions' => 'The store stays open, but checkout is closed (holidays, stocktaking).'],
+            ['handle' => 'pause_message', 'section' => 'Selling', 'condition' => ['field' => 'pause_orders', 'operator' => 'equals', 'value' => true], 'type' => 'textarea', 'label' => 'Message while paused', 'config' => ['max' => 500]],
+            ['handle' => 'whatsapp', 'section' => 'WhatsApp', 'type' => 'group', 'label' => 'WhatsApp', 'config' => ['fields' => [
                 ['handle' => 'numbers', 'type' => 'repeater', 'label' => 'Numbers', 'config' => ['max' => 10, 'fields' => [
                     ['handle' => 'number', 'type' => 'text', 'label' => 'Number', 'required' => true, 'translatable' => false, 'validation' => ['regex:/^\+?[0-9 ()-]{8,20}$/']],
                     ['handle' => 'name', 'type' => 'text', 'label' => 'Name (e.g. Sales Jakarta)', 'translatable' => false, 'config' => ['max' => 60]],
@@ -102,17 +102,17 @@ final class BuiltinSections
                 self::perLanguage('order_message', 'Message for an order',
                     'Placeholders: {order_number}, {items}, {total}, {name}, {phone}, {address}, {shipping}, {notes}, {url}. Empty: the default message.'),
             ]]],
-            ['handle' => 'currency', 'type' => 'group', 'label' => 'Currency', 'instructions' => "Can't be changed once there are orders.", 'config' => ['fields' => [
-                ['handle' => 'code', 'type' => 'text', 'label' => 'Currency code', 'required' => true, 'translatable' => false, 'validation' => ['regex:/^[A-Z]{3}$/']],
-                ['handle' => 'symbol', 'type' => 'text', 'label' => 'Symbol', 'required' => true, 'translatable' => false, 'config' => ['max' => 8]],
-                ['handle' => 'position', 'type' => 'select', 'label' => 'Symbol position', 'config' => ['options' => self::options(['left' => 'Before the amount', 'right' => 'After the amount'])]],
+            ['handle' => 'currency', 'section' => 'Currency and units', 'type' => 'group', 'label' => 'Currency', 'instructions' => "Can't be changed once there are orders.", 'config' => ['fields' => [
+                ['handle' => 'code', 'width' => 33, 'type' => 'text', 'label' => 'Currency code', 'required' => true, 'translatable' => false, 'validation' => ['regex:/^[A-Z]{3}$/']],
+                ['handle' => 'symbol', 'width' => 33, 'type' => 'text', 'label' => 'Symbol', 'required' => true, 'translatable' => false, 'config' => ['max' => 8]],
+                ['handle' => 'position', 'width' => 33, 'type' => 'select', 'label' => 'Symbol position', 'config' => ['options' => self::options(['left' => 'Before the amount', 'right' => 'After the amount'])]],
                 ['handle' => 'space', 'type' => 'toggle', 'label' => 'Space between symbol and amount'],
-                ['handle' => 'thousands', 'type' => 'select', 'label' => 'Thousands separator', 'config' => ['options' => self::options(['.' => 'Dot (1.000)', ',' => 'Comma (1,000)', ' ' => 'Space (1 000)', '' => 'None (1000)'])]],
-                ['handle' => 'decimal', 'type' => 'select', 'label' => 'Decimal separator', 'config' => ['options' => self::options([',' => 'Comma', '.' => 'Dot'])]],
-                ['handle' => 'decimals', 'type' => 'number', 'label' => 'Decimals', 'required' => true, 'config' => ['min' => 0, 'max' => 3], 'validation' => ['integer']],
+                ['handle' => 'thousands', 'width' => 33, 'type' => 'select', 'label' => 'Thousands separator', 'config' => ['options' => self::options(['.' => 'Dot (1.000)', ',' => 'Comma (1,000)', ' ' => 'Space (1 000)', '' => 'None (1000)'])]],
+                ['handle' => 'decimal', 'width' => 33, 'type' => 'select', 'label' => 'Decimal separator', 'config' => ['options' => self::options([',' => 'Comma', '.' => 'Dot'])]],
+                ['handle' => 'decimals', 'width' => 33, 'type' => 'number', 'label' => 'Decimals', 'required' => true, 'config' => ['min' => 0, 'max' => 3], 'validation' => ['integer']],
             ]]],
-            ['handle' => 'weight_unit', 'type' => 'select', 'label' => 'Weight unit', 'config' => ['options' => self::options(['kg' => 'Kilograms', 'g' => 'Grams'])]],
-            ['handle' => 'dimension_unit', 'type' => 'select', 'label' => 'Dimension unit', 'config' => ['options' => self::options(['cm' => 'Centimeters', 'm' => 'Meters', 'mm' => 'Millimeters'])]],
+            ['handle' => 'weight_unit', 'section' => 'Currency and units', 'width' => 50, 'type' => 'select', 'label' => 'Weight unit', 'config' => ['options' => self::options(['kg' => 'Kilograms', 'g' => 'Grams'])]],
+            ['handle' => 'dimension_unit', 'section' => 'Currency and units', 'width' => 50, 'type' => 'select', 'label' => 'Dimension unit', 'config' => ['options' => self::options(['cm' => 'Centimeters', 'm' => 'Meters', 'mm' => 'Millimeters'])]],
         ];
     }
 

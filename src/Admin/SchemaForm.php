@@ -24,6 +24,11 @@ use Sunrice\Cms\Support\Locales;
  *     $values = $form->validate($request->input('values', []), $extraRules);
  *
  * Posted values live under `values`; errors come back as `values.<handle>`.
+ * A field's `section` (a title) puts it in that section of the page, a
+ * card of its own, in the order the sections first appear, or in the
+ * order descriptions() names them, which also gives each a line under its
+ * title ('' for none). Fields side by side and shown
+ * only with others' values use the CMS's `width` and `condition`.
  */
 class SchemaForm implements JsonSerializable
 {
@@ -35,6 +40,9 @@ class SchemaForm implements JsonSerializable
     protected string $method = 'post';
 
     protected string $submitLabel = 'Save';
+
+    /** @var array<string, string> section title => its description */
+    protected array $descriptions = [];
 
     /**
      * @param  array<int, array<string, mixed>>  $fields
@@ -57,6 +65,35 @@ class SchemaForm implements JsonSerializable
         $this->method = strtolower($method);
 
         return $this;
+    }
+
+    /** @param  array<string, string>  $descriptions  section title => the line under it */
+    public function descriptions(array $descriptions): self
+    {
+        $this->descriptions = $descriptions;
+
+        return $this;
+    }
+
+    /**
+     * The page's sections in order: fields without a `section` first (no title), then each section.
+     *
+     * @return list<array{title: string|null, description: string|null, fields: list<string>}>
+     */
+    public function sections(): array
+    {
+        $sections = [];
+        foreach ($this->fields as $field) {
+            $title = is_string($field['section'] ?? null) && $field['section'] !== '' ? $field['section'] : null;
+            $sections[$title ?? ''] ??= ['title' => $title, 'description' => $title !== null ? ($this->descriptions[$title] ?? null) : null, 'fields' => []];
+            $sections[$title ?? '']['fields'][] = (string) $field['handle'];
+        }
+
+        $order = array_flip(array_keys($this->descriptions));
+        uksort($sections, fn (string $a, string $b): int => [$a === '' ? -1 : ($order[$a] ?? PHP_INT_MAX), array_search($a, array_keys($sections), true)]
+            <=> [$b === '' ? -1 : ($order[$b] ?? PHP_INT_MAX), array_search($b, array_keys($sections), true)]);
+
+        return array_values(array_map(fn (array $s): array => [...$s, 'description' => $s['description'] === '' ? null : $s['description']], $sections));
     }
 
     public function submitLabel(string $label): self
@@ -154,7 +191,7 @@ class SchemaForm implements JsonSerializable
     }
 
     /**
-     * @return array{fields: array<int, array<string, mixed>>, values: array<string, mixed>, action: string, method: string, submitLabel: string}
+     * @return array{fields: array<int, array<string, mixed>>, sections: list<array{title: string|null, description: string|null, fields: list<string>}>, values: array<string, mixed>, action: string, method: string, submitLabel: string}
      */
     public function toArray(): array
     {
@@ -162,6 +199,7 @@ class SchemaForm implements JsonSerializable
 
         return [
             'fields' => self::withChoices($this->schema()->toAdmin()),
+            'sections' => $this->sections(),
             'values' => array_replace($defaults, array_intersect_key($this->values, array_flip(array_column($this->fields, 'handle')))),
             'action' => $this->action,
             'method' => $this->method,

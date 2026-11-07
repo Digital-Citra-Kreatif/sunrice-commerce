@@ -1,5 +1,5 @@
-import { i as te, u as Ue, a as ze, b as o, R as u, g as he, j as c, c as e, P as He, F as U, S as Je, d as pe, h as We, t as z, T as qe } from "./main-BtYEwHjd.js";
-import { I as O } from "./InputError-5eVrXBM9.js";
+import { i as te, u as Ue, a as ze, b as o, R as u, h as he, j as c, c as e, P as He, F as U, S as Je, d as pe, k as We, t as z, T as qe } from "./main-DqBD_5_V.js";
+import { I as O } from "./InputError-CU7pLWc2.js";
 import { a as ce, u as Ke, g as Ye, d as ge, i as Ge } from "./marketing-Bya9hWH-.js";
 const Qe = { active: "ok", paused: "warning", scheduled: "info", draft: "neutral" };
 function ct({ campaign: n, locales: p, mainLocale: C, rules: h, tags: _, triggers: D, templates: R, reachable: H, bodyFields: J, currency: W }) {
@@ -110,7 +110,7 @@ function ct({ campaign: n, locales: p, mainLocale: C, rules: h, tags: _, trigger
       /* @__PURE__ */ e(O, { message: w(N) })
     ] });
   };
-  return /* @__PURE__ */ c("div", { className: "cm:mx-auto cm:grid cm:w-full cm:max-w-6xl cm:gap-6 cm:p-4 cm:md:p-6", children: [
+  return /* @__PURE__ */ c("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6 cm:max-w-5xl", children: [
     /* @__PURE__ */ e(
       He,
       {

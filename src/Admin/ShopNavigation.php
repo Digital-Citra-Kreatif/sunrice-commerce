@@ -24,8 +24,8 @@ final class ShopNavigation
 {
     public const GROUP = 'Shop';
 
-    /** Shop items sit between Content (10–55) and Structure (90+). */
-    public const SORT = 70;
+    /** The Shop group comes first, under the panel's Dashboard and Media (5), before Content (10): the store is what the admin is for. */
+    public const SORT = 6;
 
     /** The promotions pages, in the order Promotions opens the first the user may see. */
     public const PROMOTIONS = [
@@ -57,7 +57,7 @@ final class ShopNavigation
         $promotions = fn (Authorizable $user): bool => self::firstPromotion($user) !== null;
 
         return [
-            self::item('dashboard', 'Dashboard', 'commerce', 'shopping-bag', 'commerce.dashboard.view'),
+            self::item('dashboard', 'Overview', 'commerce', 'shopping-bag', 'commerce.dashboard.view'),
             self::item('orders', 'Orders', 'commerce/orders', 'shopping-cart', 'commerce.orders.view', 'orders', sort: 1),
             self::item('confirmations', 'Payments to verify', 'commerce/confirmations', 'credit-card', 'commerce.payments.verify', 'manual_payments', 'orders'),
             self::item('returns', 'Returns', 'commerce/returns', 'undo-2', 'commerce.returns.manage', 'returns', 'orders', 1),

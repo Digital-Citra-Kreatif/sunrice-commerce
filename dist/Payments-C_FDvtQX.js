@@ -1,9 +1,9 @@
-import { i as v, j as a, m as g, c as t, E as f, d as k, b as i, S as x } from "./main-BtYEwHjd.js";
-function w({ sections: m, methods: c, instanceTypes: l }) {
-  const { Card: o, CardContent: p, Button: s, Switch: h } = k, { Link: u, router: r } = v, d = (e, n) => r.post(i("commerce/settings/payments/move"), { key: e, direction: n }, { preserveScroll: !0 });
-  return /* @__PURE__ */ a(g, { sections: m, current: "payments", title: "Payments", description: "Payment methods offered at checkout and on the pay page, in this order.", children: [
+import { i as v, j as a, n as g, c as t, E as f, d as k, b as i, S as x } from "./main-DqBD_5_V.js";
+function w({ sections: o, methods: c, instanceTypes: l }) {
+  const { Card: m, CardContent: p, Button: s, Switch: h } = k, { Link: u, router: r } = v, d = (e, n) => r.post(i("commerce/settings/payments/move"), { key: e, direction: n }, { preserveScroll: !0 });
+  return /* @__PURE__ */ a(g, { sections: o, current: "payments", title: "Payments", description: "Payment methods offered at checkout and on the pay page, in this order.", children: [
     c.length === 0 && /* @__PURE__ */ t(f, { title: "No payment methods", description: "Switch on Bank transfer, QRIS and cash on delivery in Features, or install a gateway package." }),
-    c.length > 0 && /* @__PURE__ */ t(o, { children: /* @__PURE__ */ t(p, { className: "cm:p-0", children: /* @__PURE__ */ t("ul", { className: "cm:divide-y cm:divide-border", children: c.map((e, n) => /* @__PURE__ */ a("li", { className: "cm:flex cm:items-center cm:justify-between cm:gap-3 cm:px-4 cm:py-3", children: [
+    c.length > 0 && /* @__PURE__ */ t(m, { children: /* @__PURE__ */ t(p, { className: "cm:p-0", children: /* @__PURE__ */ t("ul", { className: "cm:divide-y cm:divide-border", children: c.map((e, n) => /* @__PURE__ */ a("li", { className: "cm:flex cm:items-center cm:justify-between cm:gap-3 cm:px-4 cm:py-3", children: [
       /* @__PURE__ */ a("div", { className: "cm:min-w-0", children: [
         /* @__PURE__ */ t(u, { href: i(e.edit_url), className: "cm:font-medium cm:hover:underline", children: e.title }),
         /* @__PURE__ */ a("p", { className: "cm:text-xs cm:text-muted-foreground", children: [
