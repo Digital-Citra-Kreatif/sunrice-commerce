@@ -18,6 +18,11 @@ the public API; each change is listed here with the steps to take. Commerce is a
 editor, the store's admin pages live in the panel under Shop, and the storefront renders through
 the CMS's templates and full-page cache.
 
+### Fixes
+- When stock runs out as an order is placed or a quote accepted, customers read "Only 2 of Mug
+  left." (or "Mug is out of stock."), in their language, instead of "Not enough stock of variant 1
+  (MUG): 3 requested, 2 available." `OutOfStock::customerMessage()` gives that text.
+
 ### Loyalty points
 - `loyalty` module (off by default, Online store mode): a points wallet on each customer account
   (1 point is 1 unit of the store's currency). Settings → Loyalty sets one store-wide rule (a
