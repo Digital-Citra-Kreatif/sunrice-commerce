@@ -11,6 +11,7 @@ use Sunrice\Admin\Dashboard\Widget;
 use Sunrice\Admin\Navigation\NavigationItem;
 use Sunrice\Admin\Panel;
 use Sunrice\Admin\Permissions\Permission;
+use Sunrice\Cms\Admin\ContentNavigation;
 use Sunrice\Cms\CmsPlugin;
 use Sunrice\Cms\Fields\FieldTypes;
 use Sunrice\Commerce\Admin\Dashboard\StoreCard;
@@ -51,6 +52,9 @@ final class CommercePlugin extends BasePlugin
             $panel->permissions(Permission::make($name, $label, $group));
         }
         $panel->navigation(...ShopNavigation::items());
+        $panel->navigationUsing(fn (): array => ShopNavigation::attributeItems());
+        // Products and their taxonomies are listed under Shop → Products, so not again under Content and Taxonomies.
+        app(ContentNavigation::class)->listElsewhere(collections: ShopNavigation::collections(...), taxonomies: ShopNavigation::taxonomies(...));
         // Settings → Store: one item in the Settings menu for anyone who may edit a section of it.
         $panel->navigation(NavigationItem::make('commerce-settings')->label('Store')->url('commerce/settings')->icon('shopping-bag')
             ->inSettings()->visible(fn (Authorizable $user): bool => SettingsController::menu($user) !== []));

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Inertia\Testing\AssertableInertia;
+use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Product;
@@ -68,4 +69,15 @@ it('needs entry permissions for bulk changes', function () {
     $this->get('/admin/commerce/products')->assertForbidden();
     $this->post('/admin/commerce/products/bulk', ['action' => 'featured', 'ids' => [$this->mug->id]])->assertSessionHas('success', '0 products updated.');
     expect(Product::query()->where('entry_id', $this->mug->id)->value('featured'))->toBeFalsy();
+});
+
+it('offers New product in every product collection the user may add to, as Content no longer lists them', function () {
+    Collection::create(['handle' => 'wholesale', 'title' => 'Wholesale', 'blueprint' => 'product']);
+    config(['commerce.catalog.collections' => ['products', 'wholesale']]);
+
+    $this->get('/admin/commerce/products')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('create', [
+            ['label' => 'Products', 'url' => 'cms/collections/products/entries/create'],
+            ['label' => 'Wholesale', 'url' => 'cms/collections/wholesale/entries/create'],
+        ]));
 });

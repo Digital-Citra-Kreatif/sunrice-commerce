@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Payments\Methods;
 
-use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Models\Payment;
 use Sunrice\Commerce\Payments\PaymentMethodBase;
@@ -42,13 +42,8 @@ abstract class ManualMethod extends PaymentMethodBase
     /** @return array<int, array<string, mixed>> */
     protected static function instructionFields(): array
     {
-        $fields = [];
-        foreach (Locales::all() as $locale) {
-            $fields[] = ['handle' => $locale, 'type' => 'textarea', 'label' => Locales::name($locale), 'translatable' => false, 'config' => ['max' => 3000]];
-        }
-
         return [
-            ['handle' => 'instructions', 'type' => 'group', 'label' => 'Instructions on the order page and in the email', 'config' => ['fields' => $fields]],
+            SchemaForm::perLanguage('instructions', 'Instructions on the order page and in the email', 'textarea', 3000),
             ['handle' => 'confirmation', 'type' => 'select', 'label' => 'Payment confirmation', 'config' => ['options' => [
                 ['value' => 'required', 'label' => 'Required: customers confirm with a proof'],
                 ['value' => 'optional', 'label' => 'Optional'],

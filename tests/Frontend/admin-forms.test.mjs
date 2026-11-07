@@ -11,7 +11,7 @@ const load = async (path) => {
     return import(`data:text/javascript,${encodeURIComponent(code)}`);
 };
 const { tableQuery, cellText } = await load('table.ts');
-const { optionsOf, errorsUnder, numberValue, isShown, selectValue, fromSelect, toSelect } = await load('fields.ts');
+const { optionsOf, errorsUnder, numberValue, isShown, selectValue, fromSelect, toSelect, summaryValues } = await load('fields.ts');
 
 const meta = { search: 'mug', sort: 'code', direction: 'asc', filters: { kind: 'code', empty: '' }, perPage: 25 };
 
@@ -76,4 +76,18 @@ test('shows a field only when its condition holds, as the CMS decides', () => {
     assert.equal(isShown(amount, { type: 'percent' }), false);
     assert.equal(isShown({ handle: 'x', type: 'text', condition: { field: 'roles', operator: 'filled' } }, { roles: [] }), false);
     assert.equal(isShown({ handle: 'x', type: 'text' }, {}), true);
+});
+
+test('sums up a folded card from what a reader sees: labels for options, groups flattened, no switches or hidden fields', () => {
+    const fields = [
+        { handle: 'kind', type: 'select', config: { options: [{ value: 'percent', label: 'Percentage off' }, { value: 'fixed', label: 'Fixed amount' }] } },
+        { handle: 'percent', type: 'number', condition: { field: 'kind', operator: 'equals', value: 'percent' } },
+        { handle: 'amount', type: 'commerce_money', condition: { field: 'kind', operator: 'equals', value: 'fixed' } },
+        { handle: 'active', type: 'toggle' },
+        { handle: 'area', type: 'commerce_region' },
+        { handle: 'limits', type: 'group', fields: [{ handle: 'per_customer', type: 'number' }] },
+    ];
+    assert.deepEqual(summaryValues(fields, { kind: 'percent', percent: 10, amount: 5000, active: true, area: { country: 'ID' }, limits: { per_customer: 2 } }),
+        ['Percentage off', 10, 2]);
+    assert.deepEqual(summaryValues(fields, null), []);
 });

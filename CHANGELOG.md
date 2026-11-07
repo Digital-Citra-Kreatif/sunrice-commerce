@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- **Forms fold and sum themselves up, as the panel's do**: a folded card (Settings, vouchers,
+  pricing rules, flash sales, shipping, payments) says in one line what it holds. Forms with two or
+  more cards get Expand all / Collapse all. A group is a small heading with a rule, not another
+  label over a box. Repeater rows (bank accounts, price tiers, pickup locations, weight tables) fold
+  to a one-line summary; new rows and rows with errors stay open. Text in each language (payment
+  titles and instructions, shipping method titles, email subjects, WhatsApp messages) is in language
+  tabs instead of one input per language. The region picker uses the panel's Select. The six
+  copies of the per-language builder are now one, `SchemaForm::perLanguage()`; see
+  [Extending](docs/extending.md).
+
+- **Products and their taxonomies show once in the sidebar**: with Sunrice 0.7 (now required), the
+  product collections and the product categories, brands, tags and attribute taxonomies are listed
+  only under Shop → Products (`ContentNavigation::listElsewhere()`), not again under Content and
+  Taxonomies; the attribute taxonomies (Settings → Catalog) join that submenu. With several product collections, **New product** asks which one, offering only those the user may add to.
+
 - **The order timeline reads in each reader's language**: entries were written once, in the store's
   language, so an English admin read "Status berubah dari Diproses ke Selesai". Commerce now records
   what it says as an `Orders\TimelineText` (`Timeline::text($key, $replace)`, with labels as nested

@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
-use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Regions\Countries;
 use Sunrice\Commerce\Regions\Region;
@@ -286,15 +285,7 @@ class ShippingController extends Controller
     /** @return array<int, array<string, mixed>> */
     protected function methodFields(ShippingMethodType $type): array
     {
-        $perLanguage = function (string $handle, string $label, bool $required): array {
-            $fields = [];
-            foreach (Locales::all() as $i => $locale) {
-                $fields[] = ['handle' => $locale, 'type' => 'text', 'label' => Locales::name($locale), 'translatable' => false,
-                    'required' => $required && $locale === Locales::default(), 'config' => ['max' => 120]];
-            }
-
-            return ['handle' => $handle, 'type' => 'group', 'label' => $label, 'config' => ['fields' => $fields]];
-        };
+        $perLanguage = fn (string $handle, string $label, bool $required): array => SchemaForm::perLanguage($handle, $label, 'text', 120, requireMain: $required);
 
         return [
             $perLanguage('title', 'Title', true),

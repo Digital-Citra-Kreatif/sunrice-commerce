@@ -1,4 +1,4 @@
-import { i as v, j as a, n as g, c as t, E as f, d as k, b as i, S as x } from "./main-DqBD_5_V.js";
+import { i as v, j as a, n as g, c as t, E as f, d as k, b as i, S as x } from "./main-BZm25ssn.js";
 function w({ sections: o, methods: c, instanceTypes: l }) {
   const { Card: m, CardContent: p, Button: s, Switch: h } = k, { Link: u, router: r } = v, d = (e, n) => r.post(i("commerce/settings/payments/move"), { key: e, direction: n }, { preserveScroll: !0 });
   return /* @__PURE__ */ a(g, { sections: o, current: "payments", title: "Payments", description: "Payment methods offered at checkout and on the pay page, in this order.", children: [

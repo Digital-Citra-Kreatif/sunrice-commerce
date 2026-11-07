@@ -83,3 +83,27 @@ export function fromSelect(next: string, numeric: boolean): string | number | nu
 
     return numeric ? Number(next) : next;
 }
+
+/** Fields whose values say nothing in a folded card's summary: switches, secrets, and codes or ids only their inputs can name. */
+const UNSUMMED = new Set(['toggle', 'password', 'secret', 'commerce_region', 'commerce_targets', 'entries', 'terms', 'media', 'asset']);
+
+/**
+ * What a folded card says it holds (the panel's cardSummary() joins them):
+ * the values a reader can see, in order, options by their labels, groups
+ * flattened beside the rest. Hidden fields keep their values, but don't count.
+ */
+export function summaryValues(fields: readonly FieldDef[], values: Record<string, unknown> | null | undefined): unknown[] {
+    if (!values || typeof values !== 'object' || Array.isArray(values)) return [];
+
+    return fields.filter((field) => isShown(field, values) && !UNSUMMED.has(field.type) && !field.config?.secret).flatMap((field): unknown[] => {
+        const value = values[field.handle];
+        if (field.type === 'group') return summaryValues(field.fields ?? [], value as Record<string, unknown>);
+        if (field.type === 'select') {
+            const options = optionsOf(field);
+            const label = (one: unknown) => options.find((o) => o.value === String(one))?.label ?? one;
+            return [Array.isArray(value) ? value.map(label).join(', ') : value === null || value === undefined ? value : label(value)];
+        }
+
+        return [value];
+    });
+}

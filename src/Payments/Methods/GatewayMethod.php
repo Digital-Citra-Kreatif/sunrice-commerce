@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Contracts\HandlesReturn;
 use Sunrice\Commerce\Payments\Contracts\HandlesWebhooks;
@@ -165,14 +165,10 @@ abstract class GatewayMethod extends PaymentMethodBase implements HandlesReturn,
     protected function gatewayFields(array $keys): array
     {
         $status = fn (array $names) => implode(', ', array_map(fn (string $config, string $env) => $env.' ('.(filled(config($config)) ? 'set' : 'missing').')', array_keys($names), $names));
-        $fields = [];
-        foreach (Locales::all() as $locale) {
-            $fields[] = ['handle' => $locale, 'type' => 'textarea', 'label' => Locales::name($locale), 'translatable' => false, 'config' => ['max' => 3000]];
-        }
 
         return [
             ['handle' => 'sandbox', 'type' => 'toggle', 'label' => 'Sandbox (test mode)', 'instructions' => 'On: uses '.$status($keys['sandbox']).'. Off: uses '.$status($keys['live']).'. Payment notification URL: '.route('commerce.webhooks', ['method' => static::key()])],
-            ['handle' => 'instructions', 'type' => 'group', 'label' => 'Instructions on the order page and in the email', 'config' => ['fields' => $fields]],
+            SchemaForm::perLanguage('instructions', 'Instructions on the order page and in the email', 'textarea', 3000),
         ];
     }
 }
