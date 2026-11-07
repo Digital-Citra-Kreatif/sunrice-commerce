@@ -163,14 +163,8 @@ class EmailsSettingsController extends Controller
     /** @return array<int, array<string, mixed>> */
     protected function fields(EmailDefinition $email): array
     {
-        $perLanguage = function (string $handle, string $label, string $type = 'text') {
-            $fields = [];
-            foreach (Locales::all() as $locale) {
-                $fields[] = ['handle' => $locale, 'type' => $type, 'label' => Locales::name($locale), 'translatable' => false, 'config' => ['max' => $type === 'text' ? 200 : 2000]];
-            }
-
-            return ['handle' => $handle, 'type' => 'group', 'label' => $label, 'instructions' => 'Empty: the default text. Placeholders: :number, :store, :name.', 'config' => ['fields' => $fields]];
-        };
+        $perLanguage = fn (string $handle, string $label, string $type = 'text'): array => SchemaForm::perLanguage($handle, $label, $type, $type === 'text' ? 200 : 2000,
+            ['instructions' => 'Empty: the default text. Placeholders: :number, :store, :name.']);
         $fields = [];
         if (! $email->locked) {
             $fields[] = ['handle' => 'enabled', 'type' => 'toggle', 'label' => 'Send this email'];

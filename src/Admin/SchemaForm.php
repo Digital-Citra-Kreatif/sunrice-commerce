@@ -109,6 +109,25 @@ class SchemaForm implements JsonSerializable
     }
 
     /**
+     * A group with one field per site language ({id: "…", en: "…"}), drawn
+     * as language tabs (`config.per_language`). With $requireMain, the main
+     * language's is required.
+     *
+     * @param  array<string, mixed>  $extra  more of the group's definition (instructions, …)
+     * @return array<string, mixed>
+     */
+    public static function perLanguage(string $handle, string $label, string $type = 'text', int $max = 2000, array $extra = [], bool $requireMain = false): array
+    {
+        $fields = [];
+        foreach (Locales::all() as $locale) {
+            $fields[] = ['handle' => $locale, 'type' => $type, 'label' => Locales::name($locale), 'translatable' => false,
+                'required' => $requireMain && $locale === Locales::default(), 'config' => ['max' => $max]];
+        }
+
+        return [...$extra, 'handle' => $handle, 'type' => 'group', 'label' => $label, 'config' => ['fields' => $fields, 'per_language' => true, 'main' => Locales::default()]];
+    }
+
+    /**
      * Definitions in the CMS's shape: a group's or repeater's fields at
      * `fields` (written under `config.fields` here too), media fields as
      * `media` (`asset`, with `image_only`, here too).

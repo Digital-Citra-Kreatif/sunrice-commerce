@@ -9,7 +9,7 @@ use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Models\Taxonomy;
-use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Settings\SettingsRegistry;
 use Sunrice\Commerce\Settings\SettingsSection;
@@ -250,12 +250,7 @@ final class BuiltinSections
      */
     protected static function perLanguage(string $handle, string $label, string $instructions): array
     {
-        $fields = [];
-        foreach (Locales::all() as $locale) {
-            $fields[] = ['handle' => $locale, 'type' => 'textarea', 'label' => Locales::name($locale), 'translatable' => false, 'config' => ['max' => 1000]];
-        }
-
-        return ['handle' => $handle, 'type' => 'group', 'label' => $label, 'instructions' => $instructions, 'config' => ['fields' => $fields]];
+        return SchemaForm::perLanguage($handle, $label, 'textarea', 1000, ['instructions' => $instructions]);
     }
 
     protected static function formatRule(): Closure

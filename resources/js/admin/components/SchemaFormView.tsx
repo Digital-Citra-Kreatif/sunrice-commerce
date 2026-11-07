@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { inertia, React, ui } from '../lib/sunrice';
 import { FieldRenderer } from '../components/FieldRenderer';
-import type { FieldDef } from '../lib/fields';
+import { summaryValues, type FieldDef } from '../lib/fields';
 
 export interface SchemaFormSection { title: string | null; description: string | null; fields: string[] }
 
@@ -17,14 +17,17 @@ export interface SchemaFormProps {
 /**
  * A SchemaForm (src/Admin/SchemaForm.php) drawn as the panel draws its
  * forms: each section a card (titled ones fold away, remembered per
- * `storageKey`), fields side by side by their width. With `id`, the page
+ * `storageKey`, saying in one line what they hold while folded, with
+ * Expand all / Collapse all once there are two), fields side by side by
+ * their width. With `id`, the page
  * puts the submit button where it likes (`<Button type="submit" form={id}>`,
  * in its header) and hears through `onProcessing` when a save starts and ends,
  * to disable it; without, it sits under the form. A submit while a save is
  * on its way is ignored, however it was made.
  */
 export function SchemaFormView({ form, id, storageKey, footer, onProcessing }: { form: SchemaFormProps; id?: string; storageKey?: string; footer?: ReactNode; onProcessing?: (processing: boolean) => void }) {
-    const { Button, Card, CardContent, CollapsibleCard, useUnsavedChanges } = ui as typeof ui & { useUnsavedChanges: (dirty: boolean, save?: () => void) => void };
+    const { Button, Card, CardContent, CollapsibleCard, CollapsibleCardGroup, useUnsavedChanges } = ui as typeof ui & { useUnsavedChanges: (dirty: boolean, save?: () => void) => void };
+    const cardSummary = (ui as unknown as { cardSummary: (values: unknown[]) => string }).cardSummary;
     const { data, setData, errors, processing, isDirty, ...submit } = inertia.useForm({ values: form.values });
     // Set at once (processing follows only when the request starts), so two quick clicks send one save.
     const sending = React.useRef(false);
@@ -50,15 +53,18 @@ export function SchemaFormView({ form, id, storageKey, footer, onProcessing }: {
                     {errors.section}
                 </div>
             )}
+            <CollapsibleCardGroup className="cm:gap-6">
             {sections.map((section, i) => section.title === null ? (
                 <Card key={`untitled-${i}`}><CardContent>{drawn(section.fields)}</CardContent></Card>
             ) : (
                 <CollapsibleCard key={section.title} title={section.title} description={section.description ?? undefined}
+                    summary={cardSummary(summaryValues(fields.filter((f) => section.fields.includes(f.handle)), data.values)) || undefined}
                     storageKey={storageKey ? `${storageKey}:${section.title}` : undefined}
                     hasErrors={section.fields.some((h) => errorKeys.some((k) => k === `values.${h}` || k.startsWith(`values.${h}.`)))}>
                     {drawn(section.fields, section.title)}
                 </CollapsibleCard>
             ))}
+            </CollapsibleCardGroup>
             {(id === undefined || footer) && (
                 <div className="cm:flex cm:items-center cm:gap-3">
                     {id === undefined && <Button type="submit" disabled={processing}>{form.submitLabel}</Button>}

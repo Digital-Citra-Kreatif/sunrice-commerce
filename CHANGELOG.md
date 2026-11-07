@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **Forms fold and sum themselves up, as the panel's do**: a folded card (Settings, vouchers,
+  pricing rules, flash sales, shipping, payments) says in one line what it holds. Forms with two or
+  more cards get Expand all / Collapse all. A group is a small heading with a rule, not another
+  label over a box. Repeater rows (bank accounts, price tiers, pickup locations, weight tables) fold
+  to a one-line summary; new rows and rows with errors stay open. Text in each language (payment
+  titles and instructions, shipping method titles, email subjects, WhatsApp messages) is in language
+  tabs instead of one input per language. The region picker uses the panel's Select. The six
+  copies of the per-language builder are now one, `SchemaForm::perLanguage()`; see
+  [Extending](docs/extending.md).
+
 - **Products and their taxonomies show once in the sidebar**: with Sunrice 0.7 (now required), the
   product collections and the product categories, brands, tags and attribute taxonomies are listed
   only under Shop → Products (`ContentNavigation::listElsewhere()`), not again under Content and

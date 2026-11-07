@@ -153,6 +153,14 @@ gives settings, title, availability rules, fees and deadlines from the admin for
 | `start(Order, Payment): PaymentStart` | `PaymentStart::redirect($url)`, `::embedded($view, $data)`, `::instructions($snapshot)` or `::paid($result)` |
 | `instructionsView()` | The pay page partial for instructions |
 
+A settings schema is a list of field definitions, the CMS's types plus commerce's own
+(`commerce_money`, `commerce_region`, …), with `width` and `condition` as in the CMS. The admin draws
+them as the rest of the panel does. A `section` key puts a field on a card of its own, and a folded
+card sums up what it holds. A `group` is a small heading with its fields under it, and a
+`repeater`'s rows fold to one line each. For text in each site language, use
+`SchemaForm::perLanguage('title', 'Title', 'text', 120)`: it gives `{id: "…", en: "…"}`, drawn as
+language tabs. Pass `requireMain: true` to require the main language's.
+
 Optional contracts:
 
 - `HandlesReturn::handleReturn(Request, Payment): PaymentResult` — the customer comes back;

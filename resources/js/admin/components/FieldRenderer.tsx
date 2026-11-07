@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as Ui from '../shims/ui';
 import { cn } from '../lib/cn';
 import type { FieldProps } from '../sunrice';
-import { errorsUnder, fromSelect, isShown, numberValue, optionsOf, SELECT_NONE, selectValue, toSelect, type FieldDef } from '../lib/fields';
+import { errorsUnder, fromSelect, isShown, numberValue, optionsOf, SELECT_NONE, selectValue, summaryValues, toSelect, type FieldDef } from '../lib/fields';
 import DateTimeRangeField from '../fields/DateTimeRangeField';
 import MoneyField from '../fields/MoneyField';
 import RegionField from '../fields/RegionField';
@@ -71,10 +71,31 @@ function FieldRow({ field, value, onChange, path, errors, hideLabel = false }: {
     const label = field.label ?? field.handle;
     const inline = field.type === 'toggle';
 
+    if (field.type === 'group' || field.type === 'commerce_region') {
+        // A group inside a card (or a region, several selects with labels of their own): a small heading and a rule, no box of its own (the card is the frame).
+        return (
+            <div role="group" aria-labelledby={hideLabel ? undefined : `${id}-label`} aria-label={hideLabel ? label : undefined} className="cm:grid cm:gap-4" data-field={field.handle}>
+                {!hideLabel && (
+                    <div className="cm:grid cm:gap-1">
+                        <div className="cm:flex cm:items-center cm:gap-3">
+                            <h3 id={`${id}-label`} className="cm:text-sm cm:font-medium cm:text-foreground">{label}</h3>
+                            <div aria-hidden="true" className="cm:h-px cm:flex-1 cm:bg-border" />
+                        </div>
+                        {help && <p id={help} className="cm:text-sm cm:text-muted-foreground">{field.instructions}</p>}
+                    </div>
+                )}
+                <Input field={field} value={value} onChange={onChange} id={id} path={path} errors={errors} describedBy={describedBy} label={label} />
+                {hideLabel && help && <p id={help} className="cm:text-sm cm:text-muted-foreground">{field.instructions}</p>}
+                {error && <p id={`${id}-error`} className="cm:text-sm cm:text-destructive">{error}</p>}
+            </div>
+        );
+    }
+
     return (
         <div className="cm:grid cm:gap-1.5" data-field={field.handle}>
-            {!inline && !hideLabel && (
-                <Label htmlFor={field.type === 'group' || field.type === 'repeater' ? undefined : id} id={`${id}-label`}>
+            {/* A label the card's title or a language tab already says is kept for screen readers only. */}
+            {!inline && (
+                <Label htmlFor={field.type === 'repeater' ? undefined : id} id={`${id}-label`} className={hideLabel ? 'cm:sr-only' : undefined}>
                     {label}{field.required && <span className="cm:text-destructive"> *</span>}
                 </Label>
             )}
@@ -157,30 +178,99 @@ function Input({ field, value, onChange, id, path, errors, describedBy, label }:
             return <RichTextEditor id={id} value={typeof value === 'string' ? value : ''} invalid={invalid} labelledBy={`${id}-label`}
                 onChange={(html: string | null) => onChange(html ?? '')} />;
         case 'group':
-            // Laid out with the fields around it, under its label: the section's card is the frame.
+            if (config.per_language === true) return <PerLanguage field={field} value={value} onChange={onChange} path={path} errors={errors} />;
             return <FieldRenderer fields={field.fields ?? []} values={(value as Values | null) ?? {}} errors={errors} pathPrefix={path} onChange={(next) => onChange(next)} />;
-        case 'repeater': {
-            const rows = Array.isArray(value) ? (value as Values[]) : [];
-            const set = (next: Values[]) => onChange(next);
-            const blank = () => Object.fromEntries((field.fields ?? []).map((f) => [f.handle, f.type === 'toggle' ? false : null]));
-            return (
-                <div className="cm:grid cm:gap-3">
-                    {rows.map((row, i) => (
-                        <div key={i} className="cm:grid cm:gap-3 cm:rounded-lg cm:border cm:p-4">
-                            <FieldRenderer fields={field.fields ?? []} values={row} errors={errors} pathPrefix={`${path}.${i}`}
-                                onChange={(next) => set(rows.map((r, j) => (j === i ? next : r)))} />
-                            <div className="cm:flex cm:gap-2">
-                                <Button type="button" size="sm" variant="ghost" disabled={i === 0} onClick={() => set(rows.map((r, j) => (j === i - 1 ? rows[i] : j === i ? rows[i - 1] : r)))}>Move up</Button>
-                                <Button type="button" size="sm" variant="ghost" onClick={() => set(rows.filter((_, j) => j !== i))}>Remove</Button>
-                            </div>
-                        </div>
-                    ))}
-                    <div><Button type="button" size="sm" variant="outline" disabled={typeof config.max === 'number' && rows.length >= config.max} onClick={() => set([...rows, blank()])}>Add {label.toLowerCase()}</Button></div>
-                </div>
-            );
-        }
+        case 'repeater':
+            return <Repeater field={field} value={value} onChange={onChange} path={path} errors={errors} label={label} />;
         default:
             return <TextInput id={id} value={typeof value === 'string' || typeof value === 'number' ? String(value) : ''} aria-invalid={invalid} aria-describedby={describedBy}
                 maxLength={undefined} placeholder={config.placeholder as string | undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)} />;
     }
+}
+
+/** A repeater: its rows are the only boxes in a form, each folding to a one-line summary. */
+function Repeater({ field, value, onChange, path, errors, label }: { field: FieldDef; value: unknown; onChange: (value: unknown) => void; path: string; errors: Record<string, string>; label: string }) {
+    const { Button } = ui;
+    const rows = Array.isArray(value) ? (value as Values[]) : [];
+    // Rows are matched to their fold state by a key that moves with them.
+    const keys = React.useRef<number[]>([]);
+    const next = React.useRef(0);
+    while (keys.current.length < rows.length) keys.current.push(next.current++);
+    keys.current.length = rows.length;
+    // Rows added here start open; the ones the page brought start folded.
+    const [open, setOpen] = React.useState<Set<number>>(() => new Set());
+    const set = (rowsNext: Values[], keysNext: number[]) => { keys.current = keysNext; onChange(rowsNext); };
+    const blank = () => Object.fromEntries((field.fields ?? []).map((f) => [f.handle, f.type === 'toggle' ? false : null]));
+    const max = typeof field.config?.max === 'number' ? field.config.max : null;
+    const swap = <T,>(list: T[], i: number): T[] => list.map((item, j) => (j === i - 1 ? list[i] : j === i ? list[i - 1] : item));
+
+    return (
+        <div className="cm:grid cm:gap-2">
+            {rows.map((row, i) => {
+                const key = keys.current[i];
+                const rowPath = `${path}.${i}`;
+                const failing = Object.keys(errors).some((k) => k === rowPath || k.startsWith(`${rowPath}.`));
+                const summary = (ui.cardSummary as unknown as (values: unknown[]) => string)(summaryValues(field.fields ?? [], row));
+                const shown = failing || open.has(key) || summary === '';
+                const toggle = () => setOpen((current) => {
+                    const copy = new Set(current);
+                    if (shown) copy.delete(key); else copy.add(key);
+                    return copy;
+                });
+                const bodyId = `${rowPath.replace(/[^A-Za-z0-9_-]+/g, '-')}-row`;
+
+                return (
+                    <div key={key} className={cn('cm:rounded-lg cm:border cm:bg-card', failing && 'cm:border-destructive/50')}>
+                        <div className="cm:flex cm:items-center cm:gap-1 cm:pr-2">
+                            <button type="button" aria-expanded={shown} aria-controls={bodyId} onClick={toggle} disabled={failing || summary === ''}
+                                className="cm:flex cm:min-w-0 cm:flex-1 cm:items-center cm:gap-2 cm:rounded-lg cm:px-3 cm:py-2.5 cm:text-left cm:text-sm cm:disabled:cursor-default cm:focus-visible:ring-2 cm:focus-visible:ring-ring cm:focus-visible:outline-none">
+                                <svg aria-hidden="true" viewBox="0 0 24 24" className={cn('cm:size-4 cm:shrink-0 cm:text-muted-foreground cm:transition-transform', !shown && 'cm:-rotate-90')} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                                <span className="cm:shrink-0 cm:tabular-nums cm:text-muted-foreground">{i + 1}.</span>
+                                <span className="cm:truncate cm:font-medium">{summary || `New ${label.toLowerCase()}`}</span>
+                            </button>
+                            <Button type="button" size="sm" variant="ghost" disabled={i === 0} aria-label={`Move ${i + 1} up`}
+                                onClick={() => set(swap(rows, i), swap(keys.current, i))}>Move up</Button>
+                            <Button type="button" size="sm" variant="ghost" aria-label={`Remove ${i + 1}`}
+                                onClick={() => set(rows.filter((_, j) => j !== i), keys.current.filter((_, j) => j !== i))}>Remove</Button>
+                        </div>
+                        <div id={bodyId} hidden={!shown} className="cm:border-t cm:p-4">
+                            <FieldRenderer fields={field.fields ?? []} values={row} errors={errors} pathPrefix={rowPath}
+                                onChange={(changed) => set(rows.map((r, j) => (j === i ? changed : r)), keys.current)} />
+                        </div>
+                    </div>
+                );
+            })}
+            <div>
+                <Button type="button" size="sm" variant="outline" disabled={max !== null && rows.length >= max}
+                    onClick={() => { const key = next.current++; setOpen((current) => new Set(current).add(key)); set([...rows, blank()], [...keys.current, key]); }}>
+                    Add {label.toLowerCase()}
+                </Button>
+            </div>
+        </div>
+    );
+}
+
+/** A group with one field per language (SchemaForm::perLanguage()): language tabs, one language's field at a time. */
+function PerLanguage({ field, value, onChange, path, errors }: { field: FieldDef; value: unknown; onChange: (value: unknown) => void; path: string; errors: Record<string, string> }) {
+    const { LanguageTabs } = ui;
+    const values = (value as Values | null) ?? {};
+    const languages = field.fields ?? [];
+    const main = String(field.config?.main ?? languages[0]?.handle ?? '');
+    const failing = (code: string) => Object.keys(errors).some((k) => k === `${path}.${code}` || k.startsWith(`${path}.${code}.`));
+    const [current, setCurrent] = React.useState(() => languages.find((l) => failing(l.handle))?.handle ?? main);
+    const empty = (code: string) => values[code] === null || values[code] === undefined || values[code] === '';
+
+    return (
+        <LanguageTabs value={current} onValueChange={setCurrent} label={field.label}
+            languages={languages.map((l) => ({
+                code: l.handle, name: l.label, main: l.handle === main, missing: l.handle !== main && empty(l.handle),
+                status: failing(l.handle) ? { tone: 'warning', label: 'Has an error' } : undefined,
+            }))}>
+            {(code: string) => (
+                // The tab names the language, so its field doesn't.
+                <FieldRenderer fields={languages.filter((l) => l.handle === code)} values={values} errors={errors} pathPrefix={path}
+                    section={languages.find((l) => l.handle === code)?.label ?? null} onChange={(next) => onChange(next)} />
+            )}
+        </LanguageTabs>
+    );
 }
