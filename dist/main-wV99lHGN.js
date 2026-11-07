@@ -152,42 +152,40 @@ r.DatePicker;
 r.DeveloperHelp;
 const _t = r.Dialog, It = r.DialogContent, Lt = r.DialogDescription, Mt = r.DialogFooter, Ft = r.DialogHeader, Rt = r.DialogTitle;
 r.DialogTrigger;
-const At = r.DropdownMenu, Ht = r.DropdownMenuCheckboxItem, Ot = r.DropdownMenuContent;
-r.DropdownMenuItem;
-const jt = r.DropdownMenuLabel;
+const At = r.DropdownMenu, Ht = r.DropdownMenuCheckboxItem, Ot = r.DropdownMenuContent, jt = r.DropdownMenuItem, Vt = r.DropdownMenuLabel;
 r.DropdownMenuSeparator;
-const Vt = r.DropdownMenuTrigger;
+const Bt = r.DropdownMenuTrigger;
 r.FormSections;
-const Bt = r.Input;
+const Ut = r.Input;
 r.KeptEditsNotice;
-const Ut = r.Label;
+const zt = r.Label;
 r.LanguageTabs;
 r.LinkAttributes;
 r.LinkSourcePicker;
-const zt = r.MediaPickerInput;
+const qt = r.MediaPickerInput;
 r.moveItem;
-const qt = r.PageHeader, Wt = r.Popover;
+const Wt = r.PageHeader, Kt = r.Popover;
 r.PopoverAnchor;
-const Kt = r.PopoverContent, Qt = r.PopoverTrigger;
+const Qt = r.PopoverContent, Xt = r.PopoverTrigger;
 r.registerCommandSource;
-const Xt = r.RichTextEditor, Gt = r.Select, Jt = r.SelectContent, Yt = r.SelectItem, Zt = r.SelectTrigger, en = r.SelectValue;
+const Gt = r.RichTextEditor, Jt = r.Select, Yt = r.SelectContent, Zt = r.SelectItem, en = r.SelectTrigger, tn = r.SelectValue;
 r.Separator;
-const tn = r.SettingsLayout;
+const nn = r.SettingsLayout;
 r.SettingsNav;
 r.Skeleton;
 r.SortableHandle;
 r.SortableList;
-const nn = r.Switch, rn = r.Table, cn = r.TableBody, sn = r.TableCell, on = r.TableHead, an = r.TableHeader, ln = r.TableRow, mn = r.Tabs, dn = r.TabsContent, un = r.TabsList, pn = r.TabsTrigger, gn = r.Textarea;
+const rn = r.Switch, cn = r.Table, sn = r.TableBody, on = r.TableCell, an = r.TableHead, ln = r.TableHeader, mn = r.TableRow, dn = r.Tabs, un = r.TabsContent, pn = r.TabsList, gn = r.TabsTrigger, hn = r.Textarea;
 r.Tooltip;
 r.TooltipContent;
 r.TooltipTrigger;
-const hn = r.toast;
+const fn = r.toast;
 r.TrashBanner;
 r.TrashHint;
 r.TrashTitle;
 const ae = r.useBreadcrumbs;
 r.useEditLock;
-const fn = r.useTablePreferences, bn = r.useUnsavedChanges;
+const bn = r.useTablePreferences, yn = r.useUnsavedChanges;
 r.ViewingNotice;
 const ie = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
@@ -209,45 +207,46 @@ const ie = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   DropdownMenu: At,
   DropdownMenuCheckboxItem: Ht,
   DropdownMenuContent: Ot,
-  DropdownMenuLabel: jt,
-  DropdownMenuTrigger: Vt,
-  Input: Bt,
-  Label: Ut,
-  MediaPickerInput: zt,
-  PageHeader: qt,
-  Popover: Wt,
-  PopoverContent: Kt,
-  PopoverTrigger: Qt,
-  RichTextEditor: Xt,
-  Select: Gt,
-  SelectContent: Jt,
-  SelectItem: Yt,
-  SelectTrigger: Zt,
-  SelectValue: en,
-  SettingsLayout: tn,
-  Switch: nn,
-  Table: rn,
-  TableBody: cn,
-  TableCell: sn,
-  TableHead: on,
-  TableHeader: an,
-  TableRow: ln,
-  Tabs: mn,
-  TabsContent: dn,
-  TabsList: un,
-  TabsTrigger: pn,
-  Textarea: gn,
-  toast: hn,
+  DropdownMenuItem: jt,
+  DropdownMenuLabel: Vt,
+  DropdownMenuTrigger: Bt,
+  Input: Ut,
+  Label: zt,
+  MediaPickerInput: qt,
+  PageHeader: Wt,
+  Popover: Kt,
+  PopoverContent: Qt,
+  PopoverTrigger: Xt,
+  RichTextEditor: Gt,
+  Select: Jt,
+  SelectContent: Yt,
+  SelectItem: Zt,
+  SelectTrigger: en,
+  SelectValue: tn,
+  SettingsLayout: nn,
+  Switch: rn,
+  Table: cn,
+  TableBody: sn,
+  TableCell: on,
+  TableHead: an,
+  TableHeader: ln,
+  TableRow: mn,
+  Tabs: dn,
+  TabsContent: un,
+  TabsList: pn,
+  TabsTrigger: gn,
+  Textarea: hn,
+  toast: fn,
   useBreadcrumbs: ae,
-  useTablePreferences: fn,
-  useUnsavedChanges: bn
+  useTablePreferences: bn,
+  useUnsavedChanges: yn
 }, Symbol.toStringTag, { value: "Module" })), G = 3, le = () => window.Sunrice, x = ft, D = ie, R = {
   router: St,
   Link: yt,
   Head: bt,
   usePage: Ct,
   useForm: vt
-}, Kn = D.toast, yn = ae;
+}, Qn = D.toast, Sn = ae;
 function U(e = "") {
   return e.startsWith("/") ? e : le().adminUrl(e);
 }
@@ -261,40 +260,40 @@ async function me(e, t = {}) {
     throw new Error(`${c.status} ${c.statusText}`);
   return await c.json();
 }
-function Sn(e) {
+function vn(e) {
   const t = le();
   if (t.version !== G)
     throw new Error(`[commerce] This bundle was built for admin runtime ${G}, but the panel runs ${t.version}. Update sunrice/commerce.`);
   for (const [n, c] of Object.entries(e))
     t.registerPageLoader(n, c);
 }
-const vn = {
-  "Commerce/Confirmations/Index": () => import("./Index-BiPcCqXY.js"),
-  "Commerce/Customers/Show": () => import("./Show-DSjC7fvZ.js"),
-  "Commerce/Dashboard": () => import("./Dashboard-D6XTqA9c.js"),
-  "Commerce/Inventory/Index": () => import("./Index-DXdXgAX7.js"),
-  "Commerce/Marketing/Editor": () => import("./Editor-CA-lL_55.js"),
-  "Commerce/Marketing/Report": () => import("./Report-BrMW_t4R.js"),
-  "Commerce/Orders/Editor": () => import("./Editor-RMY2e4To.js"),
-  "Commerce/Orders/Show": () => import("./Show-CkOAJkvl.js"),
-  "Commerce/Products/Index": () => import("./Index-CHQOGDJg.js"),
-  "Commerce/Products/Import": () => import("./Import-gXKzkCY-.js"),
-  "Commerce/Reports/Show": () => import("./Show-CZBu3wJE.js"),
-  "Commerce/Settings/Section": () => import("./Section-DkhpwsqD.js"),
-  "Commerce/Settings/Emails": () => import("./Emails-CXgpp97O.js"),
-  "Commerce/Settings/Features": () => import("./Features-DkdFu3xB.js"),
-  "Commerce/Settings/Payments": () => import("./Payments-C_FDvtQX.js"),
-  "Commerce/Settings/Shipping": () => import("./Shipping-DBxJcj1i.js"),
-  "Commerce/Shared/SchemaForm": () => import("./SchemaForm-Bc-ptu9d.js"),
-  "Commerce/Shared/ResourceIndex": () => import("./ResourceIndex-BDvqbjpv.js")
+const Cn = {
+  "Commerce/Confirmations/Index": () => import("./Index-LWVY0ogr.js"),
+  "Commerce/Customers/Show": () => import("./Show-C4RWT-Qm.js"),
+  "Commerce/Dashboard": () => import("./Dashboard-ISrJwqpe.js"),
+  "Commerce/Inventory/Index": () => import("./Index-CXf-c4Oa.js"),
+  "Commerce/Marketing/Editor": () => import("./Editor-CBJvg_hf.js"),
+  "Commerce/Marketing/Report": () => import("./Report-DAvnqwjc.js"),
+  "Commerce/Orders/Editor": () => import("./Editor-CIZiIGGU.js"),
+  "Commerce/Orders/Show": () => import("./Show-CzwQpNTL.js"),
+  "Commerce/Products/Index": () => import("./Index-SmacusQe.js"),
+  "Commerce/Products/Import": () => import("./Import-DeArKYtv.js"),
+  "Commerce/Reports/Show": () => import("./Show-BiS_sqMy.js"),
+  "Commerce/Settings/Section": () => import("./Section-DIiuAisR.js"),
+  "Commerce/Settings/Emails": () => import("./Emails-BCRRcwOm.js"),
+  "Commerce/Settings/Features": () => import("./Features-DaZERS-z.js"),
+  "Commerce/Settings/Payments": () => import("./Payments-hML2Ivbe.js"),
+  "Commerce/Settings/Shipping": () => import("./Shipping-DkrdRnEf.js"),
+  "Commerce/Shared/SchemaForm": () => import("./SchemaForm-Cfb5ISe_.js"),
+  "Commerce/Shared/ResourceIndex": () => import("./ResourceIndex-BKzqXLPa.js")
 };
-function Cn() {
-  Sn(vn);
+function xn() {
+  vn(Cn);
 }
 const O = globalThis.Sunrice?.modules?.["react/jsx-runtime"];
 if (!O)
   throw new Error("[commerce] This script needs the Sunrice admin panel (window.Sunrice.modules is missing).");
-const xn = O.Fragment, s = O.jsx, h = O.jsxs;
+const wn = O.Fragment, s = O.jsx, h = O.jsxs;
 O.jsx;
 function J(e) {
   if (!e) return "";
@@ -387,18 +386,18 @@ const Z = [
   { key: "city_code", label: "City / regency" },
   { key: "district_code", label: "District" },
   { key: "village_code", label: "Village" }
-], wn = { province: 1, city: 2, district: 3, village: 4 }, V = /* @__PURE__ */ new Map();
-function Tn(e, t) {
+], Tn = { province: 1, city: 2, district: 3, village: 4 }, V = /* @__PURE__ */ new Map();
+function Nn(e, t) {
   const n = t ? `${e}?parent=${encodeURIComponent(t)}` : e;
   return V.has(n) || V.set(n, me(n).then((c) => c.data).catch(() => (V.delete(n), []))), V.get(n);
 }
 const ee = "cm:h-9 cm:w-full cm:rounded-md cm:border cm:border-border cm:bg-background cm:px-3 cm:text-sm cm:disabled:opacity-50";
 function he({ field: e, value: t, onChange: n, id: c }) {
-  const { Label: o } = D, l = e.config ?? {}, a = String(l.api ?? ""), u = wn[l.depth ?? "district"] ?? 3, d = l.country_options ?? [], g = { country: "ID", province_code: null, city_code: null, district_code: null, village_code: null, ...t ?? {} }, w = Z.slice(0, u), [T, y] = x.useState({}), N = [null, g.province_code, g.city_code, g.district_code];
+  const { Label: o } = D, l = e.config ?? {}, a = String(l.api ?? ""), u = Tn[l.depth ?? "district"] ?? 3, d = l.country_options ?? [], g = { country: "ID", province_code: null, city_code: null, district_code: null, village_code: null, ...t ?? {} }, w = Z.slice(0, u), [T, y] = x.useState({}), N = [null, g.province_code, g.city_code, g.district_code];
   x.useEffect(() => {
     g.country !== "ID" || !a || w.forEach((S, m) => {
       const b = N[m];
-      m > 0 && !b || Tn(a, b).then((E) => y((A) => ({ ...A, [S.key]: E })));
+      m > 0 && !b || Nn(a, b).then((E) => y((A) => ({ ...A, [S.key]: E })));
     });
   }, [a, g.country, g.province_code, g.city_code, g.district_code]);
   const L = (S, m) => {
@@ -491,22 +490,22 @@ function fe({ field: e, value: t, onChange: n, id: c }) {
     ] })
   ] });
 }
-const Nn = x.lazy(() => import("./ProductEditor-CqG4WWBv.js")), En = (e) => x.createElement(x.Suspense, { fallback: null }, x.createElement(Nn, e)), $n = {
+const En = x.lazy(() => import("./ProductEditor-C4M9ocF_.js")), $n = (e) => x.createElement(x.Suspense, { fallback: null }, x.createElement(En, e)), kn = {
   commerce_money: ge,
   commerce_datetime_range: de,
   commerce_region: he,
   commerce_targets: fe,
-  commerce_product: En
+  commerce_product: $n
 };
-function kn() {
-  (window.SunriceCmsQueue ??= []).push((e) => Object.entries($n).forEach(([t, n]) => e.registerFieldInput(t, n)));
+function Pn() {
+  (window.SunriceCmsQueue ??= []).push((e) => Object.entries(kn).forEach(([t, n]) => e.registerFieldInput(t, n)));
 }
-const Pn = x.lazy(() => import("./ChartImpl-d17dg1GT.js"));
-function Dn(e) {
+const Dn = x.lazy(() => import("./ChartImpl-aQZn0BIB.js"));
+function _n(e) {
   const t = /* @__PURE__ */ s("div", { className: "cm:animate-pulse cm:rounded-md cm:bg-muted", style: { height: e.height ?? 260 } });
-  return /* @__PURE__ */ s(x.Suspense, { fallback: t, children: /* @__PURE__ */ s(Pn, { ...e }) });
+  return /* @__PURE__ */ s(x.Suspense, { fallback: t, children: /* @__PURE__ */ s(Dn, { ...e }) });
 }
-function _n({ title: e, description: t, action: n }) {
+function In({ title: e, description: t, action: n }) {
   return /* @__PURE__ */ h("div", { className: "cm:flex cm:flex-col cm:items-center cm:gap-2 cm:rounded-lg cm:border cm:border-dashed cm:px-6 cm:py-10 cm:text-center", children: [
     /* @__PURE__ */ s("p", { className: "cm:font-medium", children: e }),
     t && /* @__PURE__ */ s("p", { className: "cm:max-w-md cm:text-sm cm:text-muted-foreground", children: t }),
@@ -522,14 +521,14 @@ function be(e) {
   } else for (n in e) e[n] && (c && (c += " "), c += n);
   return c;
 }
-function In() {
+function Ln() {
   for (var e, t, n = 0, c = "", o = arguments.length; n < o; n++) (e = arguments[n]) && (t = be(e)) && (c && (c += " "), c += t);
   return c;
 }
 function q(...e) {
-  return In(e);
+  return Ln(e);
 }
-function Qn() {
+function Xn() {
   const { Card: e, CardContent: t } = D;
   return /* @__PURE__ */ s(e, { "aria-hidden": "true", children: /* @__PURE__ */ h(t, { className: "cm:grid cm:gap-1 cm:pt-6", children: [
     /* @__PURE__ */ s("span", { className: "cm:my-0.5 cm:h-4 cm:w-24 cm:animate-pulse cm:rounded cm:bg-muted" }),
@@ -537,7 +536,7 @@ function Qn() {
     /* @__PURE__ */ s("span", { className: "cm:h-4" })
   ] }) });
 }
-function Ln({ kpi: e }) {
+function Mn({ kpi: e }) {
   const { Card: t, CardContent: n } = D, { Link: c } = R, o = e.change ?? null, l = /* @__PURE__ */ h(n, { className: "cm:grid cm:gap-1 cm:pt-6", children: [
     /* @__PURE__ */ s("span", { className: "cm:text-sm cm:text-muted-foreground", children: e.label }),
     /* @__PURE__ */ s("span", { className: "cm:text-2xl cm:font-semibold cm:tabular-nums", children: e.value }),
@@ -564,13 +563,13 @@ function Ln({ kpi: e }) {
 }
 function ye({ title: e, description: t, actions: n, primary: c, menu: o, back: l, children: a }) {
   const { Head: u } = R, { PageHeader: d } = D;
-  return /* @__PURE__ */ h(xn, { children: [
+  return /* @__PURE__ */ h(wn, { children: [
     /* @__PURE__ */ s(u, { title: e }),
     /* @__PURE__ */ s(d, { title: e, description: t, actions: n, primary: c, menu: o?.length ? o : void 0, back: l, children: a })
   ] });
 }
 const te = (e) => e === !0 ? "true" : e === !1 ? "false" : e == null || typeof e == "object" ? "" : String(e);
-function Mn(e, t) {
+function Fn(e, t) {
   const n = e.condition;
   if (!n) return !0;
   const c = "rules" in n ? n.rules : [n];
@@ -581,29 +580,29 @@ function Mn(e, t) {
   });
   return "rules" in n && n.match === "any" ? o.includes(!0) : !o.includes(!1);
 }
-function Fn(e) {
+function Rn(e) {
   const t = e.config?.options;
   return Array.isArray(t) ? t.map((n) => typeof n == "object" && n !== null ? { value: String(n.value), label: String(n.label ?? n.value) } : { value: String(n), label: String(n) }) : [];
 }
-function Rn(e, t) {
+function An(e, t) {
   const n = {};
   for (const [c, o] of Object.entries(e))
     c === t ? n[""] = o : c.startsWith(`${t}.`) && (n[c.slice(t.length + 1)] = o);
   return n;
 }
-function An(e) {
+function Hn(e) {
   if (e.trim() === "") return null;
   const t = Number(e);
   return Number.isFinite(t) ? t : null;
 }
 const z = "__none", Se = "__empty", ve = (e) => e === "" ? Se : e;
-function Hn(e, t) {
+function On(e, t) {
   return e == null || e === "" && !t.some((n) => n.value === "") ? z : ve(String(e));
 }
-function On(e, t) {
+function jn(e, t) {
   return e === z ? null : e === Se ? "" : t ? Number(e) : e;
 }
-const Ce = ie, jn = {
+const Ce = ie, Vn = {
   // eslint-disable-line @typescript-eslint/no-explicit-any
   commerce_money: ge,
   commerce_datetime_range: de,
@@ -619,13 +618,13 @@ const Ce = ie, jn = {
 };
 function K({ fields: e, values: t, onChange: n, errors: c = {}, pathPrefix: o = "values", section: l }) {
   const a = e, u = c;
-  return /* @__PURE__ */ s("div", { className: "cm:grid cm:grid-cols-1 cm:gap-x-5 cm:gap-y-6 cm:md:grid-cols-12", children: a.filter((d) => Mn(d, t ?? {})).map((d) => /* @__PURE__ */ s("div", { className: q(
+  return /* @__PURE__ */ s("div", { className: "cm:grid cm:grid-cols-1 cm:gap-x-5 cm:gap-y-6 cm:md:grid-cols-12", children: a.filter((d) => Fn(d, t ?? {})).map((d) => /* @__PURE__ */ s("div", { className: q(
     "cm:min-w-0",
     ne[d.width ?? 100] ?? ne[100],
     // A switch beside an input sits level with the input, not its label.
     d.type === "toggle" && (d.width ?? 100) < 100 && "cm:md:self-end cm:md:pb-2.5"
   ), children: /* @__PURE__ */ s(
-    Vn,
+    Bn,
     {
       field: d,
       value: t?.[d.handle],
@@ -636,22 +635,22 @@ function K({ fields: e, values: t, onChange: n, errors: c = {}, pathPrefix: o = 
     }
   ) }, d.handle)) });
 }
-function Vn({ field: e, value: t, onChange: n, path: c, errors: o, hideLabel: l = !1 }) {
+function Bn({ field: e, value: t, onChange: n, path: c, errors: o, hideLabel: l = !1 }) {
   const { Label: a } = Ce, u = c.replace(/[^A-Za-z0-9_-]+/g, "-"), d = o[c], g = e.instructions ? `${u}-help` : void 0, w = [g, d ? `${u}-error` : void 0].filter(Boolean).join(" ") || void 0, T = e.label ?? e.handle, y = e.type === "toggle";
   return /* @__PURE__ */ h("div", { className: "cm:grid cm:gap-1.5", "data-field": e.handle, children: [
     !y && !l && /* @__PURE__ */ h(a, { htmlFor: e.type === "group" || e.type === "repeater" ? void 0 : u, id: `${u}-label`, children: [
       T,
       e.required && /* @__PURE__ */ s("span", { className: "cm:text-destructive", children: " *" })
     ] }),
-    /* @__PURE__ */ s(Bn, { field: e, value: t, onChange: n, id: u, path: c, errors: o, describedBy: w, label: T }),
+    /* @__PURE__ */ s(Un, { field: e, value: t, onChange: n, id: u, path: c, errors: o, describedBy: w, label: T }),
     g && /* @__PURE__ */ s("p", { id: g, className: "cm:text-sm cm:text-muted-foreground", children: e.instructions }),
     d && /* @__PURE__ */ s("p", { id: `${u}-error`, className: "cm:text-sm cm:text-destructive", children: d })
   ] });
 }
-function Bn({ field: e, value: t, onChange: n, id: c, path: o, errors: l, describedBy: a, label: u }) {
-  const { Input: d, Textarea: g, Switch: w, Label: T, Button: y, MediaPickerInput: N, RichTextEditor: L, Checkbox: S, Select: m, SelectTrigger: b, SelectValue: E, SelectContent: A, SelectItem: j } = Ce, k = l[o] !== void 0, f = e.config ?? {}, M = jn[e.type];
+function Un({ field: e, value: t, onChange: n, id: c, path: o, errors: l, describedBy: a, label: u }) {
+  const { Input: d, Textarea: g, Switch: w, Label: T, Button: y, MediaPickerInput: N, RichTextEditor: L, Checkbox: S, Select: m, SelectTrigger: b, SelectValue: E, SelectContent: A, SelectItem: j } = Ce, k = l[o] !== void 0, f = e.config ?? {}, M = Vn[e.type];
   if (M)
-    return /* @__PURE__ */ s(M, { field: e, value: t, onChange: n, errors: Rn(l, o), id: c, describedBy: a });
+    return /* @__PURE__ */ s(M, { field: e, value: t, onChange: n, errors: An(l, o), id: c, describedBy: a });
   switch (e.type) {
     case "textarea":
       return /* @__PURE__ */ s(
@@ -678,7 +677,7 @@ function Bn({ field: e, value: t, onChange: n, id: c, path: o, errors: l, descri
           min: f.min,
           max: f.max,
           step: f.step ?? "any",
-          onChange: (p) => n(An(p.target.value))
+          onChange: (p) => n(Hn(p.target.value))
         }
       );
     case "date":
@@ -701,7 +700,7 @@ function Bn({ field: e, value: t, onChange: n, id: c, path: o, errors: l, descri
     case "select":
     case "entries":
     case "terms": {
-      const p = Fn(e), P = e.type !== "select";
+      const p = Rn(e), P = e.type !== "select";
       if (f.multiple === !0) {
         const C = (Array.isArray(t) ? t : []).map(String), F = ($, H) => {
           const X = H ? [...C, $] : C.filter((we) => we !== $);
@@ -712,8 +711,8 @@ function Bn({ field: e, value: t, onChange: n, id: c, path: o, errors: l, descri
           $.label
         ] }, $.value)) });
       }
-      const W = Array.isArray(t) ? t[0] : t, _ = Hn(W, p);
-      return /* @__PURE__ */ h(m, { value: _, onValueChange: (C) => n(On(C, P)), children: [
+      const W = Array.isArray(t) ? t[0] : t, _ = On(W, p);
+      return /* @__PURE__ */ h(m, { value: _, onValueChange: (C) => n(jn(C, P)), children: [
         /* @__PURE__ */ s(b, { id: c, className: "cm:w-full", "aria-invalid": k, "aria-describedby": a, children: /* @__PURE__ */ s(E, { placeholder: "—" }) }),
         /* @__PURE__ */ h(A, { children: [
           (!e.required || _ === z) && /* @__PURE__ */ s(j, { value: z, children: "—" }),
@@ -788,7 +787,7 @@ function Bn({ field: e, value: t, onChange: n, id: c, path: o, errors: l, descri
       );
   }
 }
-function Un({ form: e, id: t, storageKey: n, footer: c, onProcessing: o }) {
+function zn({ form: e, id: t, storageKey: n, footer: c, onProcessing: o }) {
   const { Button: l, Card: a, CardContent: u, CollapsibleCard: d, useUnsavedChanges: g } = D, { data: w, setData: T, errors: y, processing: N, isDirty: L, ...S } = R.useForm({ values: e.values }), m = x.useRef(!1), b = () => {
     m.current || (m.current = !0, S[e.method](e.action, { preserveScroll: !0, onFinish: () => {
       m.current = !1;
@@ -843,11 +842,11 @@ function xe({ items: e, current: t, label: n = "Sections" }) {
     o.key
   )) });
 }
-function zn({ sections: e, current: t, title: n, description: c, primary: o, children: l }) {
+function qn({ sections: e, current: t, title: n, description: c, primary: o, children: l }) {
   const { SettingsLayout: a } = D;
   pe();
   const u = R.usePage().props.commerce?.settingsNav ?? [];
-  return yn([{ label: "Settings", href: U("settings") }, { label: "Store", href: U("commerce/settings") }, { label: n }]), /* @__PURE__ */ s("div", { children: /* @__PURE__ */ s(a, { items: u, current: "commerce-settings", children: /* @__PURE__ */ h("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6", children: [
+  return Sn([{ label: "Settings", href: U("settings") }, { label: "Store", href: U("commerce/settings") }, { label: n }]), /* @__PURE__ */ s("div", { children: /* @__PURE__ */ s(a, { items: u, current: "commerce-settings", children: /* @__PURE__ */ h("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6", children: [
     /* @__PURE__ */ s(ye, { title: n, description: c, primary: o }),
     /* @__PURE__ */ s(xe, { items: e, current: t, label: "Store settings" }),
     l
@@ -861,28 +860,28 @@ const re = {
   info: "cm:bg-sky-500/10 cm:text-sky-700 cm:dark:text-sky-400",
   neutral: "cm:bg-muted cm:text-muted-foreground"
 };
-function qn({ tone: e = "neutral", children: t }) {
+function Wn({ tone: e = "neutral", children: t }) {
   return /* @__PURE__ */ s("span", { className: q("cm:inline-flex cm:items-center cm:rounded-full cm:px-2 cm:py-0.5 cm:text-xs cm:font-medium", re[e] ?? re.neutral), children: t });
 }
-function Wn() {
-  Object.assign(B.components, { Chart: Dn, EmptyState: _n, KpiCard: Ln, MoneyInput: ue, PageHeader: ye, SchemaFormView: Un, SectionNav: xe, SettingsLayout: zn, StatusBadge: qn });
+function Kn() {
+  Object.assign(B.components, { Chart: _n, EmptyState: In, KpiCard: Mn, MoneyInput: ue, PageHeader: ye, SchemaFormView: zn, SectionNav: xe, SettingsLayout: qn, StatusBadge: Wn });
 }
 Ne();
-Wn();
-kn();
-Cn();
+Kn();
+Pn();
+xn();
 export {
   ft as A,
   it as B,
-  Dn as C,
+  _n as C,
   dt as D,
-  _n as E,
-  xn as F,
+  In as E,
+  wn as F,
   Ye as G,
   nt as H,
   st as I,
   at as J,
-  Qn as K,
+  Xn as K,
   Ke as L,
   ue as M,
   Pe as N,
@@ -890,16 +889,16 @@ export {
   ye as P,
   ke as Q,
   x as R,
-  qn as S,
+  Wn as S,
   fe as T,
   ie as U,
   _e as V,
-  yn as a,
+  Sn as a,
   U as b,
   s as c,
   D as d,
   B as e,
-  Ln as f,
+  Mn as f,
   se as g,
   me as h,
   R as i,
@@ -907,15 +906,15 @@ export {
   K as k,
   he as l,
   q as m,
-  zn as n,
-  Un as o,
+  qn as n,
+  zn as o,
   ut as p,
-  fn as q,
+  bn as q,
   qe as r,
   ze as s,
-  Kn as t,
+  Qn as t,
   pe as u,
-  In as v,
+  Ln as v,
   Be as w,
   Ze as x,
   Ve as y,

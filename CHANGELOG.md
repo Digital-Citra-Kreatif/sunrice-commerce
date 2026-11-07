@@ -5,7 +5,7 @@
 - **Products and their taxonomies show once in the sidebar**: with Sunrice 0.7 (now required), the
   product collections and the product categories, brands, tags and attribute taxonomies are listed
   only under Shop → Products (`ContentNavigation::listElsewhere()`), not again under Content and
-  Taxonomies; the attribute taxonomies (Settings → Catalog) join that submenu.
+  Taxonomies; the attribute taxonomies (Settings → Catalog) join that submenu. With several product collections, **New product** asks which one, offering only those the user may add to.
 
 - **The order timeline reads in each reader's language**: entries were written once, in the store's
   language, so an English admin read "Status berubah dari Diproses ke Selesai". Commerce now records
