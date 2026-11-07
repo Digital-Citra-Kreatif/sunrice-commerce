@@ -17,14 +17,10 @@ export default function ResourceIndex(props: DataTableProps & { title: string; d
     useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: props.title }]);
 
     return (
-        <div className="cm:grid cm:gap-6 cm:p-4 cm:md:p-6">
+        <div className="cm:flex cm:min-w-0 cm:flex-col cm:gap-6">
             <PageHeader title={props.title} description={props.description}
-                actions={props.createUrl || props.exportUrl ? (
-                    <div className="cm:flex cm:gap-2">
-                        {props.exportUrl ? <Button asChild variant="outline"><a href={props.exportUrl + window.location.search}>Export CSV</a></Button> : null}
-                        {props.createUrl ? <Button asChild><Link href={adminUrl(props.createUrl)}>{props.createLabel ?? 'New'}</Link></Button> : null}
-                    </div>
-                ) : null} />
+                primary={props.createUrl ? <Button asChild><Link href={adminUrl(props.createUrl)}>{props.createLabel ?? 'New'}</Link></Button> : undefined}
+                menu={props.exportUrl ? [{ label: 'Export CSV', href: props.exportUrl + window.location.search, download: true }] : undefined} />
             <DataTable
                 {...props}
                 bulkUrl={props.bulkUrl ? adminUrl(props.bulkUrl) : undefined}

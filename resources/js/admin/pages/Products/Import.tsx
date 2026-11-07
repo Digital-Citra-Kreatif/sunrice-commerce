@@ -18,7 +18,7 @@ export default function ProductsImport(props: { columns: string[]; changeable: s
     const failing = rows.filter((r) => r.error !== null);
 
     return (
-        <div className="cm:grid cm:gap-6 cm:p-4 cm:md:p-6">
+        <div className="cm:flex cm:min-w-0 cm:flex-col cm:gap-6 cm:max-w-5xl">
             <PageHeader title="Import products" description="Change prices, stock and more from a CSV: rows are matched by SKU, and blank cells keep the value." />
             <form className="cm:grid cm:max-w-xl cm:gap-3" onSubmit={(e) => { e.preventDefault(); upload.post(adminUrl('commerce/products/import'), { forceFormData: true }); }}>
                 <Label htmlFor="import-file">CSV file</Label>

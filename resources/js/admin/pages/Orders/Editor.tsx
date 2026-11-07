@@ -70,7 +70,7 @@ export default function OrderEditor({ mode, order, paymentMethods, canOverride, 
     const priceOf = (variantId: number) => preview?.lines.find((l) => l.variant_id === variantId);
 
     return (
-        <form onSubmit={submit} className="cm:mx-auto cm:grid cm:w-full cm:max-w-5xl cm:gap-6 cm:p-4 cm:md:p-6">
+        <form onSubmit={submit} className="cm:flex cm:min-w-0 cm:flex-col cm:gap-6 cm:max-w-5xl">
             <PageHeader title={mode === 'create' ? 'New order' : mode === 'quote' ? `Quote ${order?.number}` : `Edit ${order?.number}`}
                 description={mode === 'edit' ? 'Existing lines keep their price; new lines use today\'s price. The stock difference is reserved or given back.'
                     : mode === 'quote' ? `For ${order?.customer}. Set the prices, shipping and discount, then send it.` : 'An order for a customer, from a chat or a call.'} />

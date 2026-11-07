@@ -33,40 +33,36 @@ export default function OrderShow(props: OrderPageProps) {
     const go = (to: string, why?: string) => router.post(adminUrl(`${base}/transition`), { to, reason: why ?? null }, { preserveScroll: true, onFinish: () => setTransition(null) });
 
     return (
-        <div className="cm:mx-auto cm:grid cm:w-full cm:max-w-6xl cm:gap-6 cm:p-4 cm:md:p-6">
+        <div className="cm:flex cm:min-w-0 cm:flex-col cm:gap-6">
             <PageHeader
                 title={`${order.type === 'quote' ? 'Quote' : 'Order'} ${order.number}`}
                 description={<>Placed {dateTime(order.placed_at)} · {order.channel}{order.trashed ? ' · in the trash' : ''}</>}
-                actions={<div className="cm:flex cm:flex-wrap cm:items-center cm:gap-2">
+                back={{ href: adminUrl('commerce/orders'), label: 'Back to orders' }}
+                actions={<>
+                    {can.mark_paid && <Button variant="outline" onClick={() => setPaying(true)}>Mark paid</Button>}
+                    {can.shipments && order.items.some((i) => i.unfulfilled > 0) && <Button variant="outline" onClick={() => setShipping(true)}>Add shipment</Button>}
+                    {transitions.filter((t) => t.permission && t.allowed && t.to !== 'cancelled' && t.to !== 'on_hold').map((t) => (
+                        <Button key={t.to} variant="outline" onClick={() => go(t.to)}>Mark {t.label.toLowerCase()}</Button>
+                    ))}
+                </>}
+                primary={can.respond_quote ? <Button asChild><Link href={adminUrl(`${base}/quote`)}>{order.status === 'quoted' ? 'Edit quote' : 'Send a quote'}</Link></Button> : undefined}
+                menu={[
+                    { label: 'Customer view', href: order.storefront_url, external: true },
+                    ...(can.edit_items ? [{ label: 'Edit items', href: adminUrl(`${base}/edit`) }] : []),
+                    ...(can.refund ? [{ label: 'Refund…', onSelect: () => setRefunding(true) }] : []),
+                    ...(can.send_link ? [{ label: 'Send payment link', onSelect: () => router.post(adminUrl(`${base}/payment-link`), {}, { preserveScroll: true }) }] : []),
+                    ...transitions.filter((t) => t.permission && t.allowed && (t.to === 'cancelled' || t.to === 'on_hold'))
+                        .map((t) => ({ label: t.to === 'cancelled' ? 'Cancel order…' : 'Put on hold…', onSelect: () => setTransition(t), group: 'Status' })),
+                    ...(can.delete && !order.trashed ? [{ label: 'Move to trash', destructive: true, group: 'Delete', onSelect: () => { if (window.confirm('Move this order to the trash?')) router.delete(adminUrl(base)); } }] : []),
+                    ...(can.delete && order.trashed ? [{ label: 'Restore', group: 'Delete', onSelect: () => router.post(adminUrl(`${base}/restore`)) }] : []),
+                    ...(can.force_delete ? [{ label: 'Delete for good', destructive: true, group: 'Delete', onSelect: () => { if (window.confirm('Delete this order for good? This can\'t be undone.')) router.delete(adminUrl(`${base}/force`)); } }] : []),
+                ]}>
+                <div className="cm:flex cm:flex-wrap cm:items-center cm:gap-1.5">
                     <StatusBadge tone={tone(order.status)}>{order.status_label}</StatusBadge>
                     {order.type === 'order' && <StatusBadge tone={tone(order.payment_status)}>{order.payment_label}</StatusBadge>}
                     {order.type === 'order' && order.fulfillment_status !== 'not_required' && <StatusBadge tone={tone(order.fulfillment_status)}>{order.fulfillment_label}</StatusBadge>}
-                    <Button variant="outline" size="sm" asChild><a href={order.storefront_url} target="_blank" rel="noreferrer">Customer view</a></Button>
-                </div>} />
-
-            <div className="cm:flex cm:flex-wrap cm:gap-2">
-                {transitions.filter((t) => t.permission).map((t) => (
-                    <Button key={t.to} size="sm" variant={t.to === 'cancelled' ? 'outline' : 'default'} disabled={!t.allowed} title={t.reason ?? undefined}
-                        onClick={() => (t.to === 'cancelled' || t.to === 'on_hold' ? setTransition(t) : go(t.to))}>
-                        {t.to === 'cancelled' ? 'Cancel order' : `Mark ${t.label.toLowerCase()}`}
-                    </Button>
-                ))}
-                {can.mark_paid && <Button size="sm" variant="outline" onClick={() => setPaying(true)}>Mark paid</Button>}
-                {can.shipments && order.items.some((i) => i.unfulfilled > 0) && <Button size="sm" variant="outline" onClick={() => setShipping(true)}>Add shipment</Button>}
-                {can.refund && <Button size="sm" variant="outline" onClick={() => setRefunding(true)}>Refund</Button>}
-                {can.send_link && <Button size="sm" variant="outline" onClick={() => router.post(adminUrl(`${base}/payment-link`), {}, { preserveScroll: true })}>Send payment link</Button>}
-                {can.edit_items && <Button size="sm" variant="outline" asChild><Link href={adminUrl(`${base}/edit`)}>Edit items</Link></Button>}
-                {can.respond_quote && <Button size="sm" asChild><Link href={adminUrl(`${base}/quote`)}>{order.status === 'quoted' ? 'Edit quote' : 'Send a quote'}</Link></Button>}
-                {can.delete && !order.trashed && (
-                    <Button size="sm" variant="ghost" className="cm:ml-auto cm:text-destructive"
-                        onClick={() => window.confirm('Move this order to the trash?') && router.delete(adminUrl(base))}>Trash</Button>
-                )}
-                {can.delete && order.trashed && <Button size="sm" variant="outline" className="cm:ml-auto" onClick={() => router.post(adminUrl(`${base}/restore`))}>Restore</Button>}
-                {can.force_delete && (
-                    <Button size="sm" variant="ghost" className="cm:text-destructive"
-                        onClick={() => window.confirm('Delete this order for good? This can\'t be undone.') && router.delete(adminUrl(`${base}/force`))}>Delete for good</Button>
-                )}
-            </div>
+                </div>
+            </PageHeader>
 
             <div className="cm:grid cm:gap-6 cm:lg:grid-cols-[2fr_1fr]">
                 <div className="cm:grid cm:content-start cm:gap-6">

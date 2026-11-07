@@ -1,7 +1,8 @@
 import * as React from 'react';
 import * as Ui from '../shims/ui';
+import { cn } from '../lib/cn';
 import type { FieldProps } from '../sunrice';
-import { errorsUnder, numberValue, optionsOf, type FieldDef } from '../lib/fields';
+import { errorsUnder, isShown, numberValue, optionsOf, type FieldDef } from '../lib/fields';
 import DateTimeRangeField from '../fields/DateTimeRangeField';
 import MoneyField from '../fields/MoneyField';
 import RegionField from '../fields/RegionField';
@@ -24,33 +25,44 @@ export const COMMERCE_INPUTS: Record<string, React.ComponentType<FieldProps<any>
 
 
 
-const selectClass = 'cm:h-9 cm:w-full cm:rounded-md cm:border cm:border-input cm:bg-background cm:px-3 cm:text-sm';
+/** A field's share of the row (the CMS's widths) on a 12-column grid, full width on phones. */
+const SPAN: Record<number, string> = {
+    25: 'cm:md:col-span-3', 33: 'cm:md:col-span-4', 50: 'cm:md:col-span-6', 66: 'cm:md:col-span-8', 75: 'cm:md:col-span-9', 100: 'cm:md:col-span-12',
+};
+
+const NONE = '__none';
 
 /**
  * Commerce's forms (SchemaForm, src/Admin/SchemaForm.php): each field with
  * its label, input, help and error. Values are by handle; errors keyed by
  * `pathPrefix.handle` (as the server names them).
  */
-export function FieldRenderer({ fields, values, onChange, errors = {}, pathPrefix = 'values' }: {
+export function FieldRenderer({ fields, values, onChange, errors = {}, pathPrefix = 'values', section }: {
     fields: readonly FieldDef[] | ReadonlyArray<Record<string, unknown>>;
     values: Values;
     onChange: (values: Values) => void;
     errors?: Partial<Record<string, string>>;
     pathPrefix?: string;
+    /** The section's title: a field labelled the same doesn't repeat it. */
+    section?: string | null;
 }) {
     const defs = fields as readonly FieldDef[];
     const messages = errors as Record<string, string>;
     return (
-        <div className="cm:grid cm:gap-5">
-            {defs.map((field) => (
-                <FieldRow key={field.handle} field={field} value={values?.[field.handle]} path={`${pathPrefix}.${field.handle}`} errors={messages}
-                    onChange={(value) => onChange({ ...values, [field.handle]: value })} />
+        <div className="cm:grid cm:grid-cols-1 cm:gap-x-5 cm:gap-y-6 cm:md:grid-cols-12">
+            {defs.filter((field) => isShown(field, values ?? {})).map((field) => (
+                <div key={field.handle} className={cn('cm:min-w-0', SPAN[field.width ?? 100] ?? SPAN[100],
+                    // A switch beside an input sits level with the input, not its label.
+                    field.type === 'toggle' && (field.width ?? 100) < 100 && 'cm:md:self-end cm:md:pb-2.5')}>
+                    <FieldRow field={field} value={values?.[field.handle]} path={`${pathPrefix}.${field.handle}`} errors={messages} hideLabel={!!section && field.label === section}
+                        onChange={(value) => onChange({ ...values, [field.handle]: value })} />
+                </div>
             ))}
         </div>
     );
 }
 
-function FieldRow({ field, value, onChange, path, errors }: { field: FieldDef; value: unknown; onChange: (value: unknown) => void; path: string; errors: Record<string, string> }) {
+function FieldRow({ field, value, onChange, path, errors, hideLabel = false }: { field: FieldDef; value: unknown; onChange: (value: unknown) => void; path: string; errors: Record<string, string>; hideLabel?: boolean }) {
     const { Label } = ui;
     const id = path.replace(/[^A-Za-z0-9_-]+/g, '-');
     const error = errors[path];
@@ -61,7 +73,7 @@ function FieldRow({ field, value, onChange, path, errors }: { field: FieldDef; v
 
     return (
         <div className="cm:grid cm:gap-1.5" data-field={field.handle}>
-            {!inline && (
+            {!inline && !hideLabel && (
                 <Label htmlFor={field.type === 'group' || field.type === 'repeater' ? undefined : id} id={`${id}-label`}>
                     {label}{field.required && <span className="cm:text-destructive"> *</span>}
                 </Label>
@@ -76,7 +88,7 @@ function FieldRow({ field, value, onChange, path, errors }: { field: FieldDef; v
 function Input({ field, value, onChange, id, path, errors, describedBy, label }: {
     field: FieldDef; value: unknown; onChange: (value: unknown) => void; id: string; path: string; errors: Record<string, string>; describedBy?: string; label: string;
 }) {
-    const { Input: TextInput, Textarea, Switch, Label, Button, MediaPickerInput, RichTextEditor } = ui;
+    const { Input: TextInput, Textarea, Switch, Label, Button, MediaPickerInput, RichTextEditor, Checkbox, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } = ui;
     const invalid = errors[path] !== undefined;
     const config = field.config ?? {};
     const Own = COMMERCE_INPUTS[field.type];
@@ -115,10 +127,10 @@ function Input({ field, value, onChange, id, path, errors, describedBy, label }:
                     onChange(numeric ? next.map(Number) : next);
                 };
                 return (
-                    <div role="group" aria-labelledby={`${id}-label`} aria-describedby={describedBy} className="cm:grid cm:gap-1.5 cm:sm:grid-cols-2">
+                    <div role="group" aria-labelledby={`${id}-label`} aria-describedby={describedBy} className="cm:grid cm:gap-2 cm:sm:grid-cols-2">
                         {options.map((o) => (
                             <label key={o.value} className="cm:flex cm:items-center cm:gap-2 cm:text-sm">
-                                <input type="checkbox" checked={chosen.includes(o.value)} onChange={(e) => toggle(o.value, e.target.checked)} />
+                                <Checkbox checked={chosen.includes(o.value)} onCheckedChange={(on: boolean) => toggle(o.value, on === true)} />
                                 {o.label}
                             </label>
                         ))}
@@ -126,12 +138,15 @@ function Input({ field, value, onChange, id, path, errors, describedBy, label }:
                 );
             }
             const current = Array.isArray(value) ? value[0] : value;
+            const empty = current === null || current === undefined || current === '';
             return (
-                <select id={id} className={selectClass} value={current === null || current === undefined ? '' : String(current)} aria-invalid={invalid} aria-describedby={describedBy}
-                    onChange={(e) => onChange(e.target.value === '' ? null : numeric ? Number(e.target.value) : e.target.value)}>
-                    {(!field.required || current === null || current === undefined || current === '') && <option value="">—</option>}
-                    {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
+                <Select value={empty ? NONE : String(current)} onValueChange={(next: string) => onChange(next === NONE ? null : numeric ? Number(next) : next)}>
+                    <SelectTrigger id={id} className="cm:w-full" aria-invalid={invalid} aria-describedby={describedBy}><SelectValue placeholder="—" /></SelectTrigger>
+                    <SelectContent>
+                        {(!field.required || empty) && <SelectItem value={NONE}>—</SelectItem>}
+                        {options.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                    </SelectContent>
+                </Select>
             );
         }
         case 'media':
@@ -142,11 +157,8 @@ function Input({ field, value, onChange, id, path, errors, describedBy, label }:
             return <RichTextEditor id={id} value={typeof value === 'string' ? value : ''} invalid={invalid} labelledBy={`${id}-label`}
                 onChange={(html: string | null) => onChange(html ?? '')} />;
         case 'group':
-            return (
-                <div className="cm:rounded-lg cm:border cm:p-4">
-                    <FieldRenderer fields={field.fields ?? []} values={(value as Values | null) ?? {}} errors={errors} pathPrefix={path} onChange={(next) => onChange(next)} />
-                </div>
-            );
+            // Laid out with the fields around it, under its label: the section's card is the frame.
+            return <FieldRenderer fields={field.fields ?? []} values={(value as Values | null) ?? {}} errors={errors} pathPrefix={path} onChange={(next) => onChange(next)} />;
         case 'repeater': {
             const rows = Array.isArray(value) ? (value as Values[]) : [];
             const set = (next: Values[]) => onChange(next);

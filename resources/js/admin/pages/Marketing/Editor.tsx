@@ -168,7 +168,7 @@ export default function Editor({ campaign, locales, mainLocale, rules, tags, tri
     };
 
     return (
-        <div className="cm:mx-auto cm:grid cm:w-full cm:max-w-6xl cm:gap-6 cm:p-4 cm:md:p-6">
+        <div className="cm:flex cm:min-w-0 cm:flex-col cm:gap-6 cm:max-w-5xl">
             <PageHeader
                 title={campaign.id ? campaign.name : automation ? 'New automation' : 'New campaign'}
                 description={automation

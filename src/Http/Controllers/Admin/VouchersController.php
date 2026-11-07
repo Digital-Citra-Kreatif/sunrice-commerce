@@ -128,7 +128,14 @@ class VouchersController extends Controller
         return Inertia::render('Commerce/Shared/SchemaForm', [
             'title' => $voucher->exists ? $voucher->label() : 'New voucher',
             'description' => $voucher->exists ? "Used {$voucher->times_used} times." : null,
-            'form' => SchemaForm::make($this->fields(), $values)->action(
+            'form' => SchemaForm::make($this->fields(), $values)->descriptions([
+                'Voucher' => '',
+                'Discount' => 'What the customer gets.',
+                'Products' => 'Which products it applies to. Empty: all of them.',
+                'Requirements' => 'What the cart must have for the voucher to apply.',
+                'Customers' => 'Who may use it.',
+                'Schedule and limits' => 'When it runs, how often it can be used, and with which other vouchers.',
+            ])->action(
                 $voucher->exists ? route('sunrice.admin.commerce.vouchers.update', $voucher, false) : route('sunrice.admin.commerce.vouchers.store', [], false),
                 $voucher->exists ? 'put' : 'post',
             ),

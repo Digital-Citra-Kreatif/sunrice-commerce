@@ -28,7 +28,7 @@ export default function ConfirmationsIndex({ status, confirmations }: { status: 
     };
 
     return (
-        <div className="cm:mx-auto cm:grid cm:w-full cm:max-w-5xl cm:gap-6 cm:p-4 cm:md:p-6">
+        <div className="cm:flex cm:min-w-0 cm:flex-col cm:gap-6">
             <PageHeader title="Payments to verify" description="Customers' transfer confirmations. Compare the proof with the amount expected, then approve or reject." />
             <div className="cm:flex cm:gap-2">
                 {['submitted', 'approved', 'rejected'].map((s) => (

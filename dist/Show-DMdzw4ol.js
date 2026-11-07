@@ -1,10 +1,10 @@
-import { i as C, u as j, a as A, b as g, R as B, j as i, c as e, P as L, F as k, S as s, d as $ } from "./main-BtYEwHjd.js";
-const v = (d) => d ? new Date(d).toLocaleDateString(void 0, { dateStyle: "medium" }) : "—";
+import { i as C, u as j, a as A, b as g, R as B, j as i, c as e, P as L, F as k, S as m, d as $ } from "./main-Zvb9Pf3Y.js";
+const u = (d) => d ? new Date(d).toLocaleDateString(void 0, { dateStyle: "medium" }) : "—";
 function P({ customer: d, account: r, roleOptions: S, orders: N, can: l }) {
-  const { Card: n, CardContent: t, CardHeader: h, CardTitle: o, Button: m, Input: x, Label: p, Textarea: _, Switch: w, Checkbox: D } = $, { Link: y, router: z } = C;
+  const { Card: n, CardContent: t, CardHeader: h, CardTitle: o, Button: s, Input: x, Label: p, Textarea: _, Switch: D, Checkbox: w } = $, { Link: y, router: z } = C;
   j(), A([{ label: "Shop", href: g("commerce") }, { label: "Customers", href: g("commerce/customers") }, { label: d.name ?? d.email }]);
   const c = C.useForm({ name: d.name ?? "", phone: d.phone ?? "", note: d.note ?? "", accepts_marketing: d.accepts_marketing, roles: r?.roles ?? [] }), [F, b] = B.useState(!1), f = (a) => z.post(g(`commerce/customers/${d.id}/${a}`), {}, { preserveScroll: !0 });
-  return /* @__PURE__ */ i("div", { className: "cm:mx-auto cm:grid cm:w-full cm:max-w-5xl cm:gap-6 cm:p-4 cm:md:p-6", children: [
+  return /* @__PURE__ */ i("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6", children: [
     /* @__PURE__ */ e(
       L,
       {
@@ -14,17 +14,17 @@ function P({ customer: d, account: r, roleOptions: S, orders: N, can: l }) {
           d.phone ? ` · ${d.phone}` : ""
         ] }),
         actions: /* @__PURE__ */ i(k, { children: [
-          d.deletion_requested_at && /* @__PURE__ */ i(s, { tone: "warning", children: [
+          d.deletion_requested_at && /* @__PURE__ */ i(m, { tone: "warning", children: [
             "Deletion requested ",
-            v(d.deletion_requested_at)
+            u(d.deletion_requested_at)
           ] }),
-          r ? /* @__PURE__ */ e(s, { tone: "ok", children: "Registered" }) : /* @__PURE__ */ e(s, { children: "Guest" })
+          r ? /* @__PURE__ */ e(m, { tone: "ok", children: "Registered" }) : /* @__PURE__ */ e(m, { children: "Guest" })
         ] })
       }
     ),
-    /* @__PURE__ */ e("div", { className: "cm:grid cm:gap-4 cm:sm:grid-cols-3", children: [["Orders", String(d.orders_count)], ["Spent", d.total_spent], ["Last order", v(d.last_order_at)]].map(([a, u]) => /* @__PURE__ */ e(n, { children: /* @__PURE__ */ i(t, { className: "cm:grid cm:gap-1 cm:pt-6", children: [
+    /* @__PURE__ */ e("div", { className: "cm:grid cm:gap-4 cm:sm:grid-cols-3", children: [["Orders", String(d.orders_count)], ["Spent", d.total_spent], ["Last order", u(d.last_order_at)]].map(([a, v]) => /* @__PURE__ */ e(n, { children: /* @__PURE__ */ i(t, { className: "cm:grid cm:gap-1 cm:pt-6", children: [
       /* @__PURE__ */ e("span", { className: "cm:text-sm cm:text-muted-foreground", children: a }),
-      /* @__PURE__ */ e("span", { className: "cm:text-xl cm:font-semibold", children: u })
+      /* @__PURE__ */ e("span", { className: "cm:text-xl cm:font-semibold", children: v })
     ] }) }, a)) }),
     /* @__PURE__ */ i("div", { className: "cm:grid cm:gap-6 cm:lg:grid-cols-[2fr_1fr]", children: [
       /* @__PURE__ */ i("div", { className: "cm:grid cm:content-start cm:gap-6", children: [
@@ -34,10 +34,10 @@ function P({ customer: d, account: r, roleOptions: S, orders: N, can: l }) {
             /* @__PURE__ */ i("span", { children: [
               a.number,
               " · ",
-              v(a.date)
+              u(a.date)
             ] }),
             /* @__PURE__ */ i("span", { children: [
-              /* @__PURE__ */ e(s, { children: a.status }),
+              /* @__PURE__ */ e(m, { children: a.status }),
               " ",
               a.total
             ] })
@@ -49,8 +49,8 @@ function P({ customer: d, account: r, roleOptions: S, orders: N, can: l }) {
             a.label && /* @__PURE__ */ e("p", { className: "cm:font-medium", children: a.label }),
             /* @__PURE__ */ e("p", { className: "cm:whitespace-pre-line", children: a.text }),
             /* @__PURE__ */ i("div", { className: "cm:mt-1 cm:flex cm:gap-1", children: [
-              a.default_shipping && /* @__PURE__ */ e(s, { children: "Shipping" }),
-              a.default_billing && /* @__PURE__ */ e(s, { children: "Billing" })
+              a.default_shipping && /* @__PURE__ */ e(m, { children: "Shipping" }),
+              a.default_billing && /* @__PURE__ */ e(m, { children: "Billing" })
             ] })
           ] }, a.id)) })
         ] })
@@ -74,24 +74,24 @@ function P({ customer: d, account: r, roleOptions: S, orders: N, can: l }) {
               /* @__PURE__ */ e(_, { id: "c-note", disabled: !l.edit, value: c.data.note, onChange: (a) => c.setData("note", a.target.value) })
             ] }),
             /* @__PURE__ */ i("div", { className: "cm:flex cm:items-center cm:gap-2", children: [
-              /* @__PURE__ */ e(w, { id: "c-marketing", disabled: !l.edit, checked: c.data.accepts_marketing, onCheckedChange: (a) => c.setData("accepts_marketing", a) }),
+              /* @__PURE__ */ e(D, { id: "c-marketing", disabled: !l.edit, checked: c.data.accepts_marketing, onCheckedChange: (a) => c.setData("accepts_marketing", a) }),
               /* @__PURE__ */ e(p, { htmlFor: "c-marketing", children: "Accepts marketing" })
             ] }),
             r && /* @__PURE__ */ i("fieldset", { className: "cm:grid cm:gap-1.5", children: [
               /* @__PURE__ */ e("legend", { className: "cm:mb-1 cm:text-sm cm:font-medium", children: "Roles" }),
               S.map((a) => /* @__PURE__ */ i("label", { className: "cm:flex cm:items-center cm:gap-2 cm:text-sm", children: [
                 /* @__PURE__ */ e(
-                  D,
+                  w,
                   {
                     disabled: !l.edit,
                     checked: c.data.roles.includes(a),
-                    onCheckedChange: (u) => c.setData("roles", u ? [...c.data.roles, a] : c.data.roles.filter((R) => R !== a))
+                    onCheckedChange: (v) => c.setData("roles", v ? [...c.data.roles, a] : c.data.roles.filter((R) => R !== a))
                   }
                 ),
                 a
               ] }, a))
             ] }),
-            l.edit && /* @__PURE__ */ e(m, { type: "submit", disabled: c.processing, children: "Save" })
+            l.edit && /* @__PURE__ */ e(s, { type: "submit", disabled: c.processing, children: "Save" })
           ] }) })
         ] }),
         r && /* @__PURE__ */ i(n, { children: [
@@ -105,8 +105,8 @@ function P({ customer: d, account: r, roleOptions: S, orders: N, can: l }) {
               "Google: ",
               r.google
             ] }),
-            l.edit && /* @__PURE__ */ e(m, { variant: "outline", size: "sm", onClick: () => f("password-reset"), children: "Send a password reset link" }),
-            l.edit && !r.email_verified && /* @__PURE__ */ e(m, { variant: "outline", size: "sm", onClick: () => f("verify"), children: "Mark email verified" })
+            l.edit && /* @__PURE__ */ e(s, { variant: "outline", size: "sm", onClick: () => f("password-reset"), children: "Send a password reset link" }),
+            l.edit && !r.email_verified && /* @__PURE__ */ e(s, { variant: "outline", size: "sm", onClick: () => f("verify"), children: "Mark email verified" })
           ] })
         ] }),
         l.delete && !d.anonymized && /* @__PURE__ */ i(n, { children: [
@@ -114,9 +114,9 @@ function P({ customer: d, account: r, roleOptions: S, orders: N, can: l }) {
           /* @__PURE__ */ i(t, { className: "cm:grid cm:gap-2 cm:text-sm", children: [
             /* @__PURE__ */ e("p", { className: "cm:text-muted-foreground", children: "Name, email, phone and addresses are deleted; orders keep their amounts." }),
             F ? /* @__PURE__ */ i("div", { className: "cm:flex cm:gap-2", children: [
-              /* @__PURE__ */ e(m, { variant: "destructive", size: "sm", onClick: () => f("anonymize"), children: "Remove for good" }),
-              /* @__PURE__ */ e(m, { variant: "outline", size: "sm", onClick: () => b(!1), children: "Cancel" })
-            ] }) : /* @__PURE__ */ e(m, { variant: "outline", size: "sm", onClick: () => b(!0), children: "Anonymize" })
+              /* @__PURE__ */ e(s, { variant: "destructive", size: "sm", onClick: () => f("anonymize"), children: "Remove for good" }),
+              /* @__PURE__ */ e(s, { variant: "outline", size: "sm", onClick: () => b(!1), children: "Cancel" })
+            ] }) : /* @__PURE__ */ e(s, { variant: "outline", size: "sm", onClick: () => b(!0), children: "Anonymize" })
           ] })
         ] })
       ] })

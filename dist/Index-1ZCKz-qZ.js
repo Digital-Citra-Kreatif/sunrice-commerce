@@ -1,15 +1,15 @@
-import { i as w, u as k, a as S, b as a, R as p, j as t, c as r, P as R, d as $, E as D, F as f, S as P } from "./main-BtYEwHjd.js";
-function B({ status: l, confirmations: d }) {
-  const { Card: g, CardContent: x, Button: n, Input: v, Dialog: b, DialogContent: _, DialogFooter: N, DialogHeader: C, DialogTitle: j } = $, { Link: s, router: c } = w;
-  k(), S([{ label: "Shop", href: a("commerce") }, { label: "Payments to verify" }]);
-  const [i, o] = p.useState(null), [m, u] = p.useState(""), y = (e) => {
+import { i as k, u as w, a as S, b as a, R as p, j as t, c as r, P as R, d as $, E as D, F as f, S as P } from "./main-Zvb9Pf3Y.js";
+function B({ status: m, confirmations: d }) {
+  const { Card: g, CardContent: x, Button: n, Input: v, Dialog: b, DialogContent: _, DialogFooter: N, DialogHeader: C, DialogTitle: j } = $, { Link: s, router: c } = k;
+  w(), S([{ label: "Shop", href: a("commerce") }, { label: "Payments to verify" }]);
+  const [i, o] = p.useState(null), [l, u] = p.useState(""), y = (e) => {
     const h = e.expected_amount !== null && e.amount_value < e.expected_amount;
     h && !window.confirm(`${e.amount} is less than the ${e.expected} expected. Approve anyway?`) || c.post(a(`commerce/confirmations/${e.id}/approve`), { anyway: h }, { preserveScroll: !0 });
   };
-  return /* @__PURE__ */ t("div", { className: "cm:mx-auto cm:grid cm:w-full cm:max-w-5xl cm:gap-6 cm:p-4 cm:md:p-6", children: [
+  return /* @__PURE__ */ t("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6", children: [
     /* @__PURE__ */ r(R, { title: "Payments to verify", description: "Customers' transfer confirmations. Compare the proof with the amount expected, then approve or reject." }),
-    /* @__PURE__ */ r("div", { className: "cm:flex cm:gap-2", children: ["submitted", "approved", "rejected"].map((e) => /* @__PURE__ */ r(n, { size: "sm", variant: e === l ? "default" : "outline", asChild: !0, children: /* @__PURE__ */ r(s, { href: a(`commerce/confirmations?status=${e}`), children: e === "submitted" ? "Waiting" : e[0].toUpperCase() + e.slice(1) }) }, e)) }),
-    d.length === 0 && /* @__PURE__ */ r(D, { title: l === "submitted" ? "Nothing to verify" : "None yet" }),
+    /* @__PURE__ */ r("div", { className: "cm:flex cm:gap-2", children: ["submitted", "approved", "rejected"].map((e) => /* @__PURE__ */ r(n, { size: "sm", variant: e === m ? "default" : "outline", asChild: !0, children: /* @__PURE__ */ r(s, { href: a(`commerce/confirmations?status=${e}`), children: e === "submitted" ? "Waiting" : e[0].toUpperCase() + e.slice(1) }) }, e)) }),
+    d.length === 0 && /* @__PURE__ */ r(D, { title: m === "submitted" ? "Nothing to verify" : "None yet" }),
     d.map((e) => /* @__PURE__ */ r(g, { children: /* @__PURE__ */ t(x, { className: "cm:grid cm:gap-4 cm:pt-6 cm:md:grid-cols-[1fr_16rem]", children: [
       /* @__PURE__ */ t("div", { className: "cm:grid cm:content-start cm:gap-1 cm:text-sm", children: [
         /* @__PURE__ */ t("p", { className: "cm:text-base cm:font-medium", children: [
@@ -66,10 +66,10 @@ function B({ status: l, confirmations: d }) {
     /* @__PURE__ */ r(b, { open: i !== null, onOpenChange: (e) => !e && o(null), children: /* @__PURE__ */ t(_, { children: [
       /* @__PURE__ */ r(C, { children: /* @__PURE__ */ r(j, { children: "Reject this confirmation?" }) }),
       /* @__PURE__ */ r("p", { className: "cm:text-sm cm:text-muted-foreground", children: "The customer is emailed the reason and can confirm again; the payment deadline resumes." }),
-      /* @__PURE__ */ r(v, { "aria-label": "Reason", placeholder: "e.g. We haven't received the transfer yet", value: m, onChange: (e) => u(e.target.value) }),
+      /* @__PURE__ */ r(v, { "aria-label": "Reason", placeholder: "e.g. We haven't received the transfer yet", value: l, onChange: (e) => u(e.target.value) }),
       /* @__PURE__ */ t(N, { children: [
         /* @__PURE__ */ r(n, { variant: "outline", onClick: () => o(null), children: "Back" }),
-        /* @__PURE__ */ r(n, { disabled: m.trim() === "", onClick: () => i && c.post(a(`commerce/confirmations/${i.id}/reject`), { reason: m }, { preserveScroll: !0, onSuccess: () => o(null) }), children: "Reject" })
+        /* @__PURE__ */ r(n, { disabled: l.trim() === "", onClick: () => i && c.post(a(`commerce/confirmations/${i.id}/reject`), { reason: l }, { preserveScroll: !0, onSuccess: () => o(null) }), children: "Reject" })
       ] })
     ] }) })
   ] });

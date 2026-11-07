@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- **The admin looks and works like the rest of the panel**: Shop pages use the panel's page header
+  (the title in its display style, one primary action, the rest in a "⋮" menu, a back button), the
+  panel's width and spacing (lists, dashboards and order pages full width; forms at the forms'
+  width, left-aligned) instead of their own padding and centred columns, and the panel's lists (a
+  search box, `Status: all` filters with the rest under "More filters", a Columns menu, the table in
+  a card with its pages at the foot, rows that open when clicked). Forms put Save in the header and
+  warn before leaving with unsaved changes, lay out in titled cards that fold away, with fields side
+  by side and shown only when they apply (the CMS's `width` and `condition`, plus a field's
+  `section`; vouchers, pricing rules, flash sales and Settings → General use them), and use the
+  panel's selects and checkboxes. Store settings show their sections as tabs, so one menu stays at
+  the side. On an order, the status badges sit by its number, its next steps are buttons and the
+  rest (customer view, edit items, refund, cancel, trash) is in the "⋮" menu. The Shop group comes
+  first in the sidebar and its dashboard is called Overview. The dashboard's loading placeholders
+  are as large as what replaces them, so nothing moves while it loads.
+
 - `webhooks` module (off by default): Settings → Webhooks (`commerce.settings.webhooks`) sends
   orders (`order.placed`, `order.paid`, `order.status_changed`, `order.cancelled`,
   `order.completed`, `order.refunded`), shipments (`shipment.created`, `shipment.delivered`) and
