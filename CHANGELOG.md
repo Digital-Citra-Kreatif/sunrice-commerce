@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 0.2.0 (2026-11-07)
+
+**Upgrading from 0.1**: commerce now needs Sunrice 0.7. Run `composer require sunrice/commerce:^0.2 sunrice/admin:^0.7 sunrice/cms:^0.7 -W`, then `php artisan migrate` (the webhook tables) and `php artisan sunrice:assets`. Update the gateways at the same time: `sunrice/commerce-midtrans`, `-xendit` and `-biteship` 0.1.1 accept commerce 0.2.
+
+**Highlights.**
+
+- **Outgoing webhooks**: signed, queued, retried and logged, for orders, shipments and stock.
+- **The admin matches the panel**: page headers, menus and widths are the panel's. Settings sections are tabs, and nothing shifts while a page loads.
+- **Forms fold and sum themselves up**: cards show a one-line summary when folded, with Expand all / Collapse all. Groups are headings, repeater rows fold, and text in each language goes in language tabs.
+- **Products show once in the sidebar**, under Shop. With several product collections, New product asks which one.
+- **The order timeline reads in each reader's language.**
+
 - **Forms fold and sum themselves up, as the panel's do**: a folded card (Settings, vouchers,
   pricing rules, flash sales, shipping, payments) says in one line what it holds. Forms with two or
   more cards get Expand all / Collapse all. A group is a small heading with a rule, not another
