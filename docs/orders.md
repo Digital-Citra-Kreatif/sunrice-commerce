@@ -333,8 +333,14 @@ Every change says who made it with an `Orders\Actor`:
 `customer`). Staff notes go through `Orders\Actions\AddOrderNote`; a note to the customer is
 emailed.
 
+Pass what your package says as `Timeline::text($key, $replace)`, an `Orders\TimelineText`: the entry
+keeps the translation key and its values, so staff read it in their own language whatever language
+the store was in when it was recorded. A value may be another `TimelineText` (`TimelineText::status($to)`
+for a status's label), and `->then($more)` adds text as it is. Text someone wrote (a note) is passed
+as a plain string. `OrderEvent::text($locale = null)` gives an entry's words.
+
 ```php
-app(Timeline::class)->record($order, 'loyalty', 'Earned 120 points', ['points' => 120], Actor::system());
+app(Timeline::class)->record($order, 'loyalty', Timeline::text('loyalty::timeline.earned', ['points' => 120]), ['points' => 120], Actor::system());
 ```
 
 ## Events

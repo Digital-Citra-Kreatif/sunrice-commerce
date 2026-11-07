@@ -9,6 +9,7 @@ use Illuminate\Validation\ValidationException;
 use Sunrice\Commerce\Notifications\Notifier;
 use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\Timeline;
+use Sunrice\Commerce\Orders\TimelineText;
 use Sunrice\Commerce\Returns\Models\ReturnRequest;
 
 /** Staff move a return on (approve, reject, received, closed), with a note emailed to the customer. */
@@ -36,8 +37,9 @@ class UpdateReturn
         if (! $changed) {
             return;
         }
-        $label = __("commerce::account.returns.statuses.{$status}");
-        $this->timeline->record($return->order, 'return', "Return {$return->number()}: {$label}", ['return' => $return->id, 'status' => $status], $actor, 'customer');
+        $this->timeline->record($return->order, 'return', Timeline::text('commerce::orders.timeline.return_updated', [
+            'number' => $return->number(), 'status' => TimelineText::make("commerce::account.returns.statuses.{$status}"),
+        ]), ['return' => $return->id, 'status' => $status], $actor, 'customer');
         $this->notifier->send('return_updated', $return->order, ['return' => $return->number(), 'status' => $status, 'note' => $note]);
     }
 }

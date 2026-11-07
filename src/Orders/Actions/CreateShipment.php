@@ -73,7 +73,7 @@ class CreateShipment
                 'created_by' => $actor->userId,
             ]);
             $this->refreshStatus($locked);
-            $this->timeline->record($locked, 'shipment', __('commerce::orders.timeline.shipment', ['courier' => $shipment->courier_name ?? '—']).($tracking ? " ({$tracking})" : ''),
+            $this->timeline->record($locked, 'shipment', Timeline::text('commerce::orders.timeline.shipment', ['courier' => $shipment->courier_name ?? '—'])->then($tracking ? " ({$tracking})" : ''),
                 ['shipment_id' => $shipment->id], $actor, 'customer');
 
             return $shipment;

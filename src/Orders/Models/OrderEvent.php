@@ -7,6 +7,7 @@ namespace Sunrice\Commerce\Orders\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Sunrice\Commerce\Orders\TimelineText;
 
 /**
  * A line of the order timeline: who did what, and when.
@@ -35,5 +36,13 @@ class OrderEvent extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    /** The entry's words in a language (the current one when null): recorded as a TimelineText, or as it was written. */
+    public function text(?string $locale = null): string
+    {
+        $text = is_array($this->data['text'] ?? null) ? TimelineText::fromArray($this->data['text']) : null;
+
+        return $text?->in($locale) ?? (string) $this->message;
     }
 }

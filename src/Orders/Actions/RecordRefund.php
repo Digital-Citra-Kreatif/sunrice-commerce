@@ -123,7 +123,7 @@ class RecordRefund
             }
 
             $locked->refresh();
-            $this->timeline->record($locked, 'refund', __('commerce::orders.timeline.refund', ['amount' => app(MoneyFormatter::class)->format($amount)]).($reason ? " — {$reason}" : ''),
+            $this->timeline->record($locked, 'refund', Timeline::text('commerce::orders.timeline.refund', ['amount' => app(MoneyFormatter::class)->format($amount)])->then($reason ? " — {$reason}" : ''),
                 ['refund_id' => $refund->id, 'restock' => $restock], $actor);
             if ($locked->refunded_total >= $locked->paid_total && app(Loyalty::class)->refundable($locked) === 0 && $this->states->can($locked, OrderStatus::REFUNDED)) {
                 $this->states->transition($locked, OrderStatus::REFUNDED, $actor);

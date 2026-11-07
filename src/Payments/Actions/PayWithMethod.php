@@ -84,7 +84,7 @@ class PayWithMethod
             ]);
             $deadline = $method->deadline($order);
             $order->forceFill(['expires_at' => $deadline])->save();
-            $this->timeline->record($order, 'payment', __('commerce::payments.method_chosen', ['method' => $order->payment_method_title]), ['method' => $key], Actor::customer());
+            $this->timeline->record($order, 'payment', Timeline::text('commerce::payments.method_chosen', ['method' => $order->payment_method_title]), ['method' => $key], Actor::customer());
 
             return Payment::query()->create([
                 'order_id' => $order->id, 'method' => $key, 'method_title' => $order->payment_method_title, 'amount' => $order->total,

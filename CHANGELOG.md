@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **The order timeline reads in each reader's language**: entries were written once, in the store's
+  language, so an English admin read "Status berubah dari Diproses ke Selesai". Commerce now records
+  what it says as an `Orders\TimelineText` (`Timeline::text($key, $replace)`, with labels as nested
+  texts and `->then()` for tracking numbers and reasons), kept with the entry and translated when the
+  admin order page or the AI tools read it (`OrderEvent::text()`); notes people wrote stay as they
+  are, and entries recorded before keep their text. Return, download and payment link entries have
+  translations of their own now.
+
 - **The admin looks and works like the rest of the panel**: Shop pages use the panel's page header
   (the title in its display style, one primary action, the rest in a "⋮" menu, a back button), the
   panel's width and spacing (lists, dashboards and order pages full width; forms at the forms'

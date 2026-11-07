@@ -330,7 +330,7 @@ class OrdersController extends Controller
         $this->authorize('commerce.orders.edit');
         abort_unless($order->isUnpaid() && ! $order->isQuote(), 422);
         PaymentLinkRequested::dispatch($order);
-        app(Timeline::class)->record($order, 'email', 'Payment link sent', [], Actor::admin($request->user()), 'customer');
+        app(Timeline::class)->record($order, 'email', Timeline::text('commerce::orders.timeline.payment_link_sent'), [], Actor::admin($request->user()), 'customer');
 
         return back()->with('success', 'Payment link sent to the customer.');
     }
@@ -420,7 +420,7 @@ class OrdersController extends Controller
                     $order->isQuote() ? ['type' => 'quotation', 'label' => 'Quotation', 'number' => $order->quote_number, 'url' => route('sunrice.admin.commerce.orders.document', [$order, 'quotation'], false)] : null,
                 ])) : [],
                 'timeline' => $order->events->sortByDesc('id')->values()->map(fn (OrderEvent $e) => ['id' => $e->id, 'type' => $e->type, 'visibility' => $e->visibility,
-                    'message' => $e->message, 'source' => $e->source, 'actor' => $e->data['actor'] ?? null, 'created_at' => $e->created_at?->toIso8601String()])->all(),
+                    'message' => $e->text(), 'source' => $e->source, 'actor' => $e->data['actor'] ?? null, 'created_at' => $e->created_at?->toIso8601String()])->all(),
                 'storefront_url' => $order->url(),
             ],
             'transitions' => collect(OrderStateMachine::TRANSITIONS[$order->type][$order->status] ?? [])

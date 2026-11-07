@@ -294,7 +294,7 @@ class PlaceOrder
             $order->adjustments()->create(['kind' => 'unique_code', 'source_type' => 'unique_code', 'label' => __('commerce::payments.unique_code'),
                 'amount' => $uniqueCode, 'created_at' => now()]);
         }
-        $this->timeline->record($order, 'status', __($isQuote ? 'commerce::orders.timeline.quote_requested' : 'commerce::orders.timeline.placed'),
+        $this->timeline->record($order, 'status', Timeline::text($isQuote ? 'commerce::orders.timeline.quote_requested' : 'commerce::orders.timeline.placed'),
             ['to' => $order->status, 'channel' => 'storefront'], Actor::customer());
 
         if ($method !== null) {
