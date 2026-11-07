@@ -18,6 +18,11 @@ the public API; each change is listed here with the steps to take. Commerce is a
 editor, the store's admin pages live in the panel under Shop, and the storefront renders through
 the CMS's templates and full-page cache.
 
+### Fixes
+- `commerce:install` stops with instructions when the app has no Sunrice panel or the panel
+  doesn't have `CommercePlugin`, instead of failing on the store structure with "The selected
+  type is invalid". The quick start runs `sunrice:install --plugins` first.
+
 ### Loyalty points
 - `loyalty` module (off by default, Online store mode): a points wallet on each customer account
   (1 point is 1 unit of the store's currency). Settings → Loyalty sets one store-wide rule (a

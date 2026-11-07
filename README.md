@@ -6,6 +6,7 @@ An e-commerce package for [Sunrice CMS](https://github.com/Digital-Citra-Kreatif
 
 ```bash
 composer require sunrice/commerce
+php artisan sunrice:install --plugins   # the Sunrice panel, with the Commerce plugin on it
 php artisan commerce:install --demo
 ```
 

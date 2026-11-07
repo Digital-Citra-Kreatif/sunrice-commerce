@@ -18,8 +18,19 @@ PostgreSQL. The admin bundle is prebuilt: you don't need Node.
 
 ```bash
 composer require sunrice/commerce
+php artisan sunrice:install --plugins
 php artisan commerce:install
 ```
+
+Commerce is a plugin of the Sunrice panel. `sunrice:install` creates the app's panel provider
+when there is none and adds `CommercePlugin` to it (`--plugins` without asking). On a site that
+already has the panel, it only adds the plugin; you can also add it by hand:
+
+```php
+$panel->plugin(CmsPlugin::make())->plugin(CommercePlugin::make());
+```
+
+`commerce:install` stops with these instructions when the plugin isn't on the panel.
 
 Try it with sample data first:
 
