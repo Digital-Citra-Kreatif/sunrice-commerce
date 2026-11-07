@@ -12,7 +12,7 @@ php artisan commerce:install --demo
 Then run the scheduler and a queue worker, set up mail, and open the admin → **Shop → Dashboard**:
 a checklist leads you through the rest. Details in [docs/installation.md](docs/installation.md).
 
-Requirements: PHP 8.4+, Laravel 13, Sunrice 0.6 (`sunrice/admin` and `sunrice/cms`), SQLite, MySQL or PostgreSQL. No Node needed:
+Requirements: PHP 8.4+, Laravel 13, Sunrice 0.7 (`sunrice/admin` and `sunrice/cms`), SQLite, MySQL or PostgreSQL. No Node needed:
 the admin bundle is prebuilt.
 
 ## Documentation

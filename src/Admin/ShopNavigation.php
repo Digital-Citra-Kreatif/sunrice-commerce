@@ -8,9 +8,11 @@ use Illuminate\Contracts\Auth\Access\Authorizable;
 use Illuminate\Http\RedirectResponse;
 use Sunrice\Admin\Navigation\NavigationItem;
 use Sunrice\Admin\Panel;
+use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\Cms\Support\Access;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Http\Controllers\Admin\SettingsController;
+use Sunrice\Commerce\Settings\StoreSettings;
 
 /**
  * The admin sidebar's Shop group: everything the store needs in one place.
@@ -106,6 +108,45 @@ final class ShopNavigation
         }
 
         return $items;
+    }
+
+    /**
+     * The attribute taxonomies (sizes, colors…) in the Products submenu,
+     * after the product taxonomies: built with the sidebar (they come from
+     * Settings → Catalog), with their titles in one query.
+     *
+     * @return list<NavigationItem>
+     */
+    public static function attributeItems(): array
+    {
+        $handles = array_values(array_filter((array) app(StoreSettings::class)->get('catalog.attribute_taxonomies', []), 'is_string'));
+        if ($handles === []) {
+            return [];
+        }
+        $titles = Taxonomy::query()->whereIn('handle', $handles)->orderBy('title')->pluck('title', 'handle');
+        $items = [];
+        foreach ($titles as $handle => $title) {
+            $handle = (string) $handle;
+            $items[] = NavigationItem::make("commerce-attribute-{$handle}")->label((string) $title)->verbatim()->url("cms/taxonomies/{$handle}/terms")->icon('tag')
+                ->group(self::GROUP)->parent('commerce-products')->sort(self::SORT + 4 + count($items))
+                ->visible(fn (Authorizable $user): bool => Access::terms($user, 'view', $handle));
+        }
+
+        return $items;
+    }
+
+    /** @return list<string> the product collections, which Shop → Products lists instead of Content */
+    public static function collections(): array
+    {
+        return array_values(array_filter((array) config('commerce.catalog.collections', ['products']), 'is_string'));
+    }
+
+    /** @return list<string> the product taxonomies and attributes, which Shop → Products lists instead of Taxonomies */
+    public static function taxonomies(): array
+    {
+        $handles = array_map(fn (string $key): mixed => config("commerce.catalog.{$key}"), ['category_taxonomy', 'brand_taxonomy', 'tag_taxonomy']);
+
+        return array_values(array_filter([...$handles, ...(array) app(StoreSettings::class)->get('catalog.attribute_taxonomies', [])], fn (mixed $h): bool => is_string($h) && $h !== ''));
     }
 
     /** The first promotions page the user may open, or null. */
