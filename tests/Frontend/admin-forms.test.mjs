@@ -11,7 +11,7 @@ const load = async (path) => {
     return import(`data:text/javascript,${encodeURIComponent(code)}`);
 };
 const { tableQuery, cellText } = await load('table.ts');
-const { optionsOf, errorsUnder, numberValue } = await load('fields.ts');
+const { optionsOf, errorsUnder, numberValue, isShown, selectValue, fromSelect, toSelect } = await load('fields.ts');
 
 const meta = { search: 'mug', sort: 'code', direction: 'asc', filters: { kind: 'code', empty: '' }, perPage: 25 };
 
@@ -44,4 +44,36 @@ test('reads number inputs as numbers, empty as null', () => {
     assert.equal(numberValue(''), null);
     assert.equal(numberValue(' 12.5 '), 12.5);
     assert.equal(numberValue('abc'), null);
+});
+
+test('keeps an empty option apart from nothing chosen in the panel\'s Select', () => {
+    const options = [{ value: '', label: 'None (1000)' }, { value: '.', label: 'Dot (1.000)' }];
+
+    assert.equal(selectValue('', options), toSelect(''));
+    assert.notEqual(toSelect(''), '');
+    assert.equal(fromSelect(toSelect(''), false), '');
+    assert.equal(selectValue(null, options), selectValue(undefined, options));
+    assert.equal(fromSelect(selectValue(null, options), false), null);
+    // Without an empty option, '' is nothing chosen; ids come back as numbers.
+    assert.equal(selectValue('', [{ value: '.', label: 'Dot' }]), selectValue(null, options));
+    assert.equal(fromSelect('12', true), 12);
+    assert.equal(fromSelect('.', false), '.');
+});
+
+test('shows a field only when its condition holds, as the CMS decides', () => {
+    const percent = { handle: 'percent', type: 'number', condition: { field: 'type', operator: 'equals', value: 'percent' } };
+    assert.equal(isShown(percent, { type: 'percent' }), true);
+    assert.equal(isShown(percent, { type: 'fixed_cart' }), false);
+
+    const code = { handle: 'code', type: 'text', condition: { field: 'automatic', operator: 'not_equals', value: true } };
+    assert.equal(isShown(code, { automatic: false }), true);
+    assert.equal(isShown(code, { automatic: true }), false);
+
+    const amount = { handle: 'amount', type: 'text', condition: { match: 'any', rules: [
+        { field: 'type', operator: 'equals', value: 'fixed_cart' }, { field: 'type', operator: 'equals', value: 'free_shipping' },
+    ] } };
+    assert.equal(isShown(amount, { type: 'free_shipping' }), true);
+    assert.equal(isShown(amount, { type: 'percent' }), false);
+    assert.equal(isShown({ handle: 'x', type: 'text', condition: { field: 'roles', operator: 'filled' } }, { roles: [] }), false);
+    assert.equal(isShown({ handle: 'x', type: 'text' }, {}), true);
 });

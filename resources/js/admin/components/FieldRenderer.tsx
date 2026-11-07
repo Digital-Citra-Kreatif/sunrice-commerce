@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as Ui from '../shims/ui';
 import { cn } from '../lib/cn';
 import type { FieldProps } from '../sunrice';
-import { errorsUnder, isShown, numberValue, optionsOf, type FieldDef } from '../lib/fields';
+import { errorsUnder, fromSelect, isShown, numberValue, optionsOf, SELECT_NONE, selectValue, toSelect, type FieldDef } from '../lib/fields';
 import DateTimeRangeField from '../fields/DateTimeRangeField';
 import MoneyField from '../fields/MoneyField';
 import RegionField from '../fields/RegionField';
@@ -30,7 +30,7 @@ const SPAN: Record<number, string> = {
     25: 'cm:md:col-span-3', 33: 'cm:md:col-span-4', 50: 'cm:md:col-span-6', 66: 'cm:md:col-span-8', 75: 'cm:md:col-span-9', 100: 'cm:md:col-span-12',
 };
 
-const NONE = '__none';
+
 
 /**
  * Commerce's forms (SchemaForm, src/Admin/SchemaForm.php): each field with
@@ -138,13 +138,13 @@ function Input({ field, value, onChange, id, path, errors, describedBy, label }:
                 );
             }
             const current = Array.isArray(value) ? value[0] : value;
-            const empty = current === null || current === undefined || current === '';
+            const chosen = selectValue(current, options);
             return (
-                <Select value={empty ? NONE : String(current)} onValueChange={(next: string) => onChange(next === NONE ? null : numeric ? Number(next) : next)}>
+                <Select value={chosen} onValueChange={(next: string) => onChange(fromSelect(next, numeric))}>
                     <SelectTrigger id={id} className="cm:w-full" aria-invalid={invalid} aria-describedby={describedBy}><SelectValue placeholder="—" /></SelectTrigger>
                     <SelectContent>
-                        {(!field.required || empty) && <SelectItem value={NONE}>—</SelectItem>}
-                        {options.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                        {(!field.required || chosen === SELECT_NONE) && <SelectItem value={SELECT_NONE}>—</SelectItem>}
+                        {options.map((o) => <SelectItem key={o.value} value={toSelect(o.value)}>{o.label}</SelectItem>)}
                     </SelectContent>
                 </Select>
             );

@@ -88,7 +88,7 @@ export function DataTable(props: DataTableProps) {
             <SelectTrigger className={className} aria-label={filter.label}><SelectValue /></SelectTrigger>
             <SelectContent>
                 <SelectItem value={ALL}>{filter.label}: all</SelectItem>
-                {filter.options.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                {filter.options.filter((o) => o.value !== '').map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
             </SelectContent>
         </Select>
     );

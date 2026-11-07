@@ -1,10 +1,10 @@
-import { j as n, c, p as z, U as ue, i as ge, q as pe } from "./main-Zvb9Pf3Y.js";
+import { j as n, c, p as z, U as ue, i as ge, q as pe } from "./main-DVaJaMrz.js";
 const G = [10, 25, 50, 100, 200];
 function fe(t, d = {}) {
-  const a = { ...t, ...d }, h = {};
-  a.search && (h.search = a.search);
-  const f = Object.fromEntries(Object.entries(a.filters ?? {}).filter(([, x]) => x !== ""));
-  return Object.keys(f).length > 0 && (h.filters = f), a.sort && (h.sort = (a.direction === "desc" ? "-" : "") + a.sort), a.perPage && (h.per_page = a.perPage), d.page && d.page > 1 && (h.page = d.page), h;
+  const r = { ...t, ...d }, h = {};
+  r.search && (h.search = r.search);
+  const f = Object.fromEntries(Object.entries(r.filters ?? {}).filter(([, x]) => x !== ""));
+  return Object.keys(f).length > 0 && (h.filters = f), r.sort && (h.sort = (r.direction === "desc" ? "-" : "") + r.sort), r.perPage && (h.per_page = r.perPage), d.page && d.page > 1 && (h.page = d.page), h;
 }
 function ve(t) {
   return t == null || t === "" ? "—" : typeof t == "boolean" ? t ? "Yes" : "No" : String(t);
@@ -36,7 +36,7 @@ const be = (t) => /* @__PURE__ */ n(m, { ...t, children: [
 function ze(t) {
   const {
     Input: d,
-    Button: a,
+    Button: r,
     Card: h,
     Checkbox: f,
     Table: x,
@@ -58,21 +58,21 @@ function ze(t) {
     Popover: te,
     PopoverTrigger: ne,
     PopoverContent: le
-  } = Pe, { meta: s, rows: l } = t, [V, E] = z(s.search ?? ""), [p, v] = z([]), $ = t.visibleColumns !== void 0 && t.tableKey !== void 0, [b, ae] = z(t.visibleColumns), re = Te(t.tableKey ?? "commerce-table", $ ? { columns: t.visibleColumns } : null), se = (e, i) => {
-    const r = t.columns.map((o) => o.key).filter((o) => o === e ? i : (b ?? []).includes(o));
-    r.length !== 0 && (ae(r), re.setColumns(r));
-  }, M = b ? t.columns.filter((e) => b.includes(e.key)) : t.columns, k = (t.bulkActions ?? []).length > 0 && t.bulkUrl !== void 0, I = l.data.map((e) => e.id).filter((e) => e !== void 0), P = t.filters ?? [], ie = P.slice(0, Q), T = P.slice(Q), H = (e) => (s.filters?.[e] ?? "") !== "", F = T.filter((e) => H(e.key)).length, O = P.some((e) => H(e.key)) || !!s.search, u = (e) => {
-    v([]), D.get(window.location.pathname, fe(s, e), { preserveState: !0, preserveScroll: !0, replace: !0 });
-  }, oe = (e, i) => u({ filters: { ...s.filters, [e]: i === L ? "" : i } }), me = (e) => u({ sort: e.key, direction: s.sort === e.key && s.direction === "asc" ? "desc" : "asc" }), de = (e) => {
+  } = Pe, { meta: i, rows: l } = t, [V, E] = z(i.search ?? ""), [p, v] = z([]), $ = t.visibleColumns !== void 0 && t.tableKey !== void 0, [b, ae] = z(t.visibleColumns), re = Te(t.tableKey ?? "commerce-table", $ ? { columns: t.visibleColumns } : null), ie = (e, s) => {
+    const a = t.columns.map((o) => o.key).filter((o) => o === e ? s : (b ?? []).includes(o));
+    a.length !== 0 && (ae(a), re.setColumns(a));
+  }, M = b ? t.columns.filter((e) => b.includes(e.key)) : t.columns, k = (t.bulkActions ?? []).length > 0 && t.bulkUrl !== void 0, I = l.data.map((e) => e.id).filter((e) => e !== void 0), P = t.filters ?? [], se = P.slice(0, Q), T = P.slice(Q), H = (e) => (i.filters?.[e] ?? "") !== "", F = T.filter((e) => H(e.key)).length, O = P.some((e) => H(e.key)) || !!i.search, u = (e) => {
+    v([]), D.get(window.location.pathname, fe(i, e), { preserveState: !0, preserveScroll: !0, replace: !0 });
+  }, oe = (e, s) => u({ filters: { ...i.filters, [e]: s === L ? "" : s } }), me = (e) => u({ sort: e.key, direction: i.sort === e.key && i.direction === "asc" ? "desc" : "asc" }), de = (e) => {
     e.confirm && !window.confirm(e.confirm) || D.post(t.bulkUrl, { action: e.key, ids: p }, { preserveScroll: !0, onSuccess: () => v([]) });
-  }, q = (e, i) => /* @__PURE__ */ n(A, { value: s.filters?.[e.key] || L, onValueChange: (r) => oe(e.key, r), children: [
-    /* @__PURE__ */ c(R, { className: i, "aria-label": e.label, children: /* @__PURE__ */ c(B, {}) }),
+  }, q = (e, s) => /* @__PURE__ */ n(A, { value: i.filters?.[e.key] || L, onValueChange: (a) => oe(e.key, a), children: [
+    /* @__PURE__ */ c(R, { className: s, "aria-label": e.label, children: /* @__PURE__ */ c(B, {}) }),
     /* @__PURE__ */ n(U, { children: [
       /* @__PURE__ */ n(S, { value: L, children: [
         e.label,
         ": all"
       ] }),
-      e.options.map((r) => /* @__PURE__ */ c(S, { value: r.value, children: r.label }, r.value))
+      e.options.filter((a) => a.value !== "").map((a) => /* @__PURE__ */ c(S, { value: a.value, children: a.label }, a.value))
     ] })
   ] }, e.key), he = M.length + (k ? 1 : 0);
   return /* @__PURE__ */ n("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-4", children: [
@@ -93,9 +93,9 @@ function ze(t) {
           }
         )
       ] }),
-      ie.map((e) => q(e, "cm:w-40")),
+      se.map((e) => q(e, "cm:w-40")),
       T.length > 0 && /* @__PURE__ */ n(te, { children: [
-        /* @__PURE__ */ c(ne, { asChild: !0, children: /* @__PURE__ */ n(a, { variant: "outline", children: [
+        /* @__PURE__ */ c(ne, { asChild: !0, children: /* @__PURE__ */ n(r, { variant: "outline", children: [
           /* @__PURE__ */ c(we, {}),
           " More filters",
           F > 0 ? ` (${F})` : ""
@@ -105,14 +105,14 @@ function ze(t) {
           q(e, "cm:w-full")
         ] }, e.key)) })
       ] }),
-      O && /* @__PURE__ */ n(a, { variant: "ghost", onClick: () => {
+      O && /* @__PURE__ */ n(r, { variant: "ghost", onClick: () => {
         E(""), u({ search: "", filters: {} });
       }, children: [
         /* @__PURE__ */ c(Me, {}),
         " Clear"
       ] }),
       $ && /* @__PURE__ */ n(Y, { children: [
-        /* @__PURE__ */ c(J, { asChild: !0, children: /* @__PURE__ */ n(a, { variant: "outline", className: "cm:ml-auto", children: [
+        /* @__PURE__ */ c(J, { asChild: !0, children: /* @__PURE__ */ n(r, { variant: "outline", className: "cm:ml-auto", children: [
           /* @__PURE__ */ c(ke, {}),
           " Columns"
         ] }) }),
@@ -122,8 +122,8 @@ function ze(t) {
             ce,
             {
               checked: (b ?? []).includes(e.key),
-              onSelect: (i) => i.preventDefault(),
-              onCheckedChange: (i) => se(e.key, i),
+              onSelect: (s) => s.preventDefault(),
+              onCheckedChange: (s) => ie(e.key, s),
               children: e.label
             },
             e.key
@@ -136,7 +136,7 @@ function ze(t) {
         p.length,
         " selected"
       ] }),
-      t.bulkActions.map((e) => /* @__PURE__ */ c(a, { type: "button", size: "sm", variant: e.variant === "destructive" ? "destructive" : "outline", onClick: () => de(e), children: e.label }, e.key))
+      t.bulkActions.map((e) => /* @__PURE__ */ c(r, { type: "button", size: "sm", variant: e.variant === "destructive" ? "destructive" : "outline", onClick: () => de(e), children: e.label }, e.key))
     ] }),
     /* @__PURE__ */ n(h, { className: "cm:gap-0 cm:overflow-hidden cm:py-0", children: [
       /* @__PURE__ */ c("div", { className: "cm:overflow-x-auto", children: /* @__PURE__ */ n(x, { children: [
@@ -149,7 +149,7 @@ function ze(t) {
               onCheckedChange: (e) => v(e ? I : [])
             }
           ) }),
-          M.map((e) => /* @__PURE__ */ c(j, { "aria-sort": s.sort === e.key ? s.direction === "asc" ? "ascending" : "descending" : void 0, children: e.sortable ? /* @__PURE__ */ n(
+          M.map((e) => /* @__PURE__ */ c(j, { "aria-sort": i.sort === e.key ? i.direction === "asc" ? "ascending" : "descending" : void 0, children: e.sortable ? /* @__PURE__ */ n(
             "button",
             {
               type: "button",
@@ -157,15 +157,15 @@ function ze(t) {
               className: "cm:-ml-2 cm:inline-flex cm:h-8 cm:items-center cm:gap-1 cm:rounded-md cm:px-2 cm:hover:bg-accent cm:hover:text-accent-foreground",
               children: [
                 e.label,
-                s.sort === e.key ? s.direction === "asc" ? /* @__PURE__ */ c(ye, { className: "cm:size-3" }) : /* @__PURE__ */ c(xe, { className: "cm:size-3" }) : /* @__PURE__ */ c(Ne, { className: "cm:size-3 cm:opacity-40" })
+                i.sort === e.key ? i.direction === "asc" ? /* @__PURE__ */ c(ye, { className: "cm:size-3" }) : /* @__PURE__ */ c(xe, { className: "cm:size-3" }) : /* @__PURE__ */ c(Ne, { className: "cm:size-3 cm:opacity-40" })
               ]
             }
           ) : e.label }, e.key))
         ] }) }),
         /* @__PURE__ */ n(X, { children: [
           l.data.length === 0 && /* @__PURE__ */ c(N, { className: "cm:hover:bg-transparent", children: /* @__PURE__ */ c(C, { colSpan: he, className: "cm:h-24 cm:text-center cm:text-muted-foreground", children: O ? "Nothing matches." : "Nothing here yet." }) }),
-          l.data.map((e, i) => {
-            const r = t.rowHref?.(e) ?? null, o = e.id, _ = t.onRowClick ? () => t.onRowClick(e) : r ? () => D.visit(r) : void 0;
+          l.data.map((e, s) => {
+            const a = t.rowHref?.(e) ?? null, o = e.id, _ = t.onRowClick ? () => t.onRowClick(e) : a ? () => D.visit(a) : void 0;
             return /* @__PURE__ */ n(
               N,
               {
@@ -185,11 +185,11 @@ function ze(t) {
                   ) }),
                   M.map((g, w) => {
                     const y = t.renderCell?.(e, g), K = y === void 0 ? ve(e[g.key]) : y;
-                    return /* @__PURE__ */ c(C, { className: "cm:whitespace-nowrap", children: r && w === 0 ? /* @__PURE__ */ c(Ie, { href: r, className: "cm:font-medium cm:underline-offset-4 cm:hover:underline", children: K }) : K }, g.key);
+                    return /* @__PURE__ */ c(C, { className: "cm:whitespace-nowrap", children: a && w === 0 ? /* @__PURE__ */ c(Ie, { href: a, className: "cm:font-medium cm:underline-offset-4 cm:hover:underline", children: K }) : K }, g.key);
                   })
                 ]
               },
-              String(o ?? i)
+              String(o ?? s)
             );
           })
         ] })
@@ -197,7 +197,7 @@ function ze(t) {
       /* @__PURE__ */ n("div", { className: "cm:flex cm:flex-wrap cm:items-center cm:justify-between cm:gap-4 cm:border-t cm:px-6 cm:py-3 cm:text-sm cm:text-muted-foreground", children: [
         /* @__PURE__ */ n("div", { className: "cm:flex cm:items-center cm:gap-4", children: [
           /* @__PURE__ */ c("span", { children: l.total === 0 ? "No rows" : `${l.from}–${l.to} of ${l.total}` }),
-          l.total > G[0] && /* @__PURE__ */ n(A, { value: String(s.perPage), onValueChange: (e) => u({ perPage: Number(e) }), children: [
+          l.total > G[0] && /* @__PURE__ */ n(A, { value: String(i.perPage), onValueChange: (e) => u({ perPage: Number(e) }), children: [
             /* @__PURE__ */ c(R, { className: "cm:h-8 cm:w-auto", "aria-label": "Rows per page", children: /* @__PURE__ */ c(B, {}) }),
             /* @__PURE__ */ c(U, { children: G.map((e) => /* @__PURE__ */ n(S, { value: String(e), children: [
               e,
@@ -213,7 +213,7 @@ function ze(t) {
             l.last_page
           ] }),
           /* @__PURE__ */ c(
-            a,
+            r,
             {
               type: "button",
               variant: "outline",
@@ -226,7 +226,7 @@ function ze(t) {
             }
           ),
           /* @__PURE__ */ c(
-            a,
+            r,
             {
               type: "button",
               variant: "outline",

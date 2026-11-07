@@ -61,3 +61,25 @@ export function numberValue(text: string): number | null {
 
     return Number.isFinite(n) ? n : null;
 }
+
+/** The panel's Select takes no empty values: "nothing chosen" and an option whose value is '' get their own. */
+export const SELECT_NONE = '__none';
+export const SELECT_EMPTY = '__empty';
+
+/** An option's value as the Select holds it. */
+export const toSelect = (value: string): string => (value === '' ? SELECT_EMPTY : value);
+
+/** The Select's value for a field's value: '' is an answer when an option says so ("None (1000)"), else nothing chosen. */
+export function selectValue(current: unknown, options: Option[]): string {
+    if (current === null || current === undefined || (current === '' && !options.some((o) => o.value === ''))) return SELECT_NONE;
+
+    return toSelect(String(current));
+}
+
+/** The field's value for what the Select chose: null for nothing, '' for the empty option, ids as numbers. */
+export function fromSelect(next: string, numeric: boolean): string | number | null {
+    if (next === SELECT_NONE) return null;
+    if (next === SELECT_EMPTY) return '';
+
+    return numeric ? Number(next) : next;
+}
