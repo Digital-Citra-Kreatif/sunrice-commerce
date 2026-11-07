@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { inertia, ui } from '../lib/sunrice';
+import { inertia, React, ui } from '../lib/sunrice';
 import { FieldRenderer } from '../components/FieldRenderer';
 import type { FieldDef } from '../lib/fields';
 
@@ -19,12 +19,21 @@ export interface SchemaFormProps {
  * forms: each section a card (titled ones fold away, remembered per
  * `storageKey`), fields side by side by their width. With `id`, the page
  * puts the submit button where it likes (`<Button type="submit" form={id}>`,
- * in its header); without, it sits under the form.
+ * in its header) and hears through `onProcessing` when a save starts and ends,
+ * to disable it; without, it sits under the form. A submit while a save is
+ * on its way is ignored, however it was made.
  */
-export function SchemaFormView({ form, id, storageKey, footer }: { form: SchemaFormProps; id?: string; storageKey?: string; footer?: ReactNode }) {
+export function SchemaFormView({ form, id, storageKey, footer, onProcessing }: { form: SchemaFormProps; id?: string; storageKey?: string; footer?: ReactNode; onProcessing?: (processing: boolean) => void }) {
     const { Button, Card, CardContent, CollapsibleCard, useUnsavedChanges } = ui as typeof ui & { useUnsavedChanges: (dirty: boolean, save?: () => void) => void };
     const { data, setData, errors, processing, isDirty, ...submit } = inertia.useForm({ values: form.values });
-    const save = () => submit[form.method](form.action, { preserveScroll: true });
+    // Set at once (processing follows only when the request starts), so two quick clicks send one save.
+    const sending = React.useRef(false);
+    const save = () => {
+        if (sending.current) return;
+        sending.current = true;
+        submit[form.method](form.action, { preserveScroll: true, onFinish: () => { sending.current = false; } });
+    };
+    React.useEffect(() => onProcessing?.(processing), [processing, onProcessing]);
     useUnsavedChanges(isDirty, save);
     const fields = form.fields as unknown as FieldDef[];
     const sections = form.sections?.length ? form.sections : [{ title: null, description: null, fields: fields.map((f) => f.handle) }];

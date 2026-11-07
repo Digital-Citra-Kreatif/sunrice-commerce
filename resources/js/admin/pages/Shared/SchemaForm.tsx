@@ -1,6 +1,6 @@
 import { SchemaFormView, type SchemaFormProps } from '../../components/SchemaFormView';
 import { PageHeader } from '../../components/PageHeader';
-import { adminUrl, inertia, ui, useBreadcrumbs } from '../../lib/sunrice';
+import { adminUrl, inertia, React, ui, useBreadcrumbs } from '../../lib/sunrice';
 import { useCommerceShared } from '../../lib/store';
 
 const FORM_ID = 'commerce-schema-form';
@@ -17,6 +17,7 @@ export default function SchemaForm({ title, description, form, breadcrumbs = [],
     const { Button } = ui;
     useCommerceShared();
     useBreadcrumbs([...breadcrumbs.map((b) => ({ ...b, href: b.href ? adminUrl(b.href) : undefined })), { label: title }]);
+    const [saving, setSaving] = React.useState(false);
     const back = [...breadcrumbs].reverse().find((b) => b.href && b.href !== 'commerce');
 
     return (
@@ -27,8 +28,8 @@ export default function SchemaForm({ title, description, form, breadcrumbs = [],
                     <Button type="button" variant="outline" className="cm:text-destructive"
                         onClick={() => window.confirm(deleteConfirm ?? 'Delete this?') && inertia.router.delete(adminUrl(deleteUrl))}>Delete</Button>
                 ) : undefined}
-                primary={<Button type="submit" form={FORM_ID}>{form.submitLabel}</Button>} />
-            <SchemaFormView form={form} id={FORM_ID} storageKey={`commerce:form:${form.action.replace(/\/\d+/g, "")}`} />
+                primary={<Button type="submit" form={FORM_ID} disabled={saving}>{form.submitLabel}</Button>} />
+            <SchemaFormView form={form} id={FORM_ID} onProcessing={setSaving} storageKey={`commerce:form:${form.action.replace(/\/\d+/g, "")}`} />
         </div>
     );
 }
