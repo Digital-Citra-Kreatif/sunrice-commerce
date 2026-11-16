@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Sunrice\Commerce\Cart\LineDetails;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
 
@@ -128,6 +129,18 @@ class OrderItem extends Model
     public function title(): string
     {
         return trim($this->name.($this->variant_title ? ' ('.$this->variant_title.')' : ''));
+    }
+
+    /**
+     * What the line's meta means, for people (see Commerce::describeLinesUsing()).
+     *
+     * @return list<string>
+     */
+    public function details(): array
+    {
+        $line = $this->meta['line'] ?? null;
+
+        return app(LineDetails::class)->for(is_array($line) ? $line : null);
     }
 
     /** Units still to ship. */

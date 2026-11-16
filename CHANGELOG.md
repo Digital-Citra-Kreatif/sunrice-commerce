@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Line details**: `Commerce::describeLinesUsing()` turns a line's meta into short lines shown under it in the cart, at checkout, on the order page, in emails, on documents and in the admin (`OrderItem::details()`).
+
 ## 0.2.0 (2026-11-07)
 
 **Upgrading from 0.1**: commerce now needs Sunrice 0.7. Run `composer require sunrice/commerce:^0.2 sunrice/admin:^0.7 sunrice/cms:^0.7 -W`, then `php artisan migrate` (the webhook tables) and `php artisan sunrice:assets`. Update the gateways at the same time: `sunrice/commerce-midtrans` and `-xendit` 0.1.1 and `sunrice/commerce-biteship` 0.1.0 accept commerce 0.2.

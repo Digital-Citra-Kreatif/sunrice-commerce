@@ -34,6 +34,7 @@
                                     <span class="commerce-cart__info">
                                         <a href="{{ $row['entry']?->url() }}">{{ ($row['entry']?->title ?? $row['entry']?->draft_title) }}</a>
                                         @if ($line->variant->title !== '')<span class="commerce-cart__variant">{{ $line->variant->title }}</span>@endif
+                                        @foreach (app(\Sunrice\Commerce\Cart\LineDetails::class)->for($line->meta) as $detail)<span class="commerce-cart__detail">{{ $detail }}</span>@endforeach
                                         @if ($line->priceSource['type'] === 'flash_sale')<span class="commerce-badge commerce-badge--sale">{{ $line->priceSource['label'] ?? '' }}</span>@endif
                                     </span>
                                 </td>

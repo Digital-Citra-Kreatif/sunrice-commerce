@@ -374,7 +374,9 @@
 .commerce-cart__info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .commerce-cart__info a { font-weight: 700; text-decoration: none; }
 .commerce-cart__info a:hover { text-decoration: underline; }
-.commerce-cart__variant { color: var(--commerce-muted); font-size: 13px; }
+.commerce-cart__variant, .commerce-cart__detail { color: var(--commerce-muted); font-size: 13px; }
+.commerce-cart__detail { display: block; }
+.commerce-summary__detail, .commerce-order__detail { display: block; color: var(--commerce-muted); }
 .commerce-cart__price del, .commerce-cart__total del { display: block; color: var(--commerce-muted); font-size: 12px; }
 .commerce-cart__total { font-weight: 800; text-align: right; white-space: nowrap; }
 .commerce-cart__qty form { display: flex; gap: 6px; align-items: center; }

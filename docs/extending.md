@@ -30,6 +30,7 @@ The workbench has three working references: `workbench/app/Commerce/FakeGateway.
 - [Pricing](#pricing): price candidates, discounts, shipping discounts, fees, stages
 - [Payments](#payments)
 - [Shipping](#shipping)
+- [Line details](#line-details): what a line's meta means
 - [Checkout](#checkout): fields, completions
 - [Orders](#orders): numbering, panels
 - [My Account pages](#my-account-pages)
@@ -212,6 +213,25 @@ types are cached for ten minutes per request.
 - `BooksShipments::book(Order, Shipment): BookingResult` — book a pickup and get the tracking
   number. Commerce doesn't call it yet: call it from your own admin action or listener
   (`ShipmentCreated`).
+
+## Line details
+
+Say what a line's meta means, in a few short lines shown under it in the cart, at checkout, on the
+order page, in emails, on invoices and in the admin's order page:
+
+```php
+Commerce::describeLinesUsing(function (array $meta): array {
+    if (! isset($meta['rental'])) {
+        return [];   // not ours
+    }
+
+    return [__('rental.line', ['from' => …, 'to' => …, 'branch' => …])];
+});
+```
+
+The closure gets a cart line's meta, or an order item's `meta.line`, and returns strings in the
+current language. A describer that throws is reported and skipped. `OrderItem::details()` and
+`LineDetails::for($meta)` read them.
 
 ## Checkout
 

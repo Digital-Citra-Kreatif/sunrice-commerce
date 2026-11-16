@@ -378,7 +378,7 @@ class OrdersController extends Controller
                 'payment_method_title' => $order->payment_method_title,
                 'customer_note' => $order->customer_note, 'dropship' => $order->dropship, 'fields' => $order->fields,
                 'items' => $order->items->whereNull('parent_id')->values()->map(fn (OrderItem $i) => [
-                    'id' => $i->id, 'name' => $i->name, 'variant_title' => $i->variant_title, 'sku' => $i->sku, 'options' => $i->options,
+                    'id' => $i->id, 'name' => $i->name, 'variant_title' => $i->variant_title, 'sku' => $i->sku, 'options' => $i->options, 'details' => $i->details(),
                     'quantity' => $i->quantity, 'fulfilled_quantity' => $i->fulfilled_quantity, 'refunded_quantity' => $i->refunded_quantity,
                     'unfulfilled' => $i->unfulfilled(), 'requires_shipping' => $i->requires_shipping,
                     'unit_price' => $i->unit_price, 'unit_price_formatted' => $f($i->unit_price),
