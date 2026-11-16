@@ -23,7 +23,9 @@ class UpdateCartItem
 
             return null;
         }
-        $availability = $this->catalog->check($item->variant->loadMissing('product'), $quantity, commerce_customer());
+        // Other lines of the variant (with other meta) count too.
+        $others = (int) $item->cart->items()->where('variant_id', $item->variant_id)->whereKeyNot($item->id)->sum('quantity');
+        $availability = $this->catalog->check($item->variant->loadMissing('product'), $others + $quantity, commerce_customer());
         if (! $availability->isOk()) {
             throw new CartException($availability->message(), (string) $availability->reason);
         }

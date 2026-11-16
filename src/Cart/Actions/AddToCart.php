@@ -16,7 +16,9 @@ use Sunrice\Commerce\Features\Features;
 
 /**
  * Adds a variant to the visitor's cart (or more of it), after checking it
- * can be bought. A new line is refused once the cart has commerce.cart.max_lines.
+ * can be bought. A line is a variant and its meta: the same variant with
+ * other meta is a new line, and the purchasability check counts every line
+ * of the variant. A new line is refused once the cart has commerce.cart.max_lines.
  */
 class AddToCart
 {
@@ -33,7 +35,8 @@ class AddToCart
             throw new CartException(__('commerce::storefront.availability.not_published'), 'not_published');
         }
         $cart = $this->carts->current(create: true);
-        $existing = $cart->items()->where('variant_id', $variant->id)->first();
+        $key = CartItem::lineKey($meta);
+        $existing = $cart->items()->where('variant_id', $variant->id)->where('line_key', $key)->first();
         $max = (int) config('commerce.cart.max_lines', 500);
         if ($existing === null && $max > 0 && $cart->items()->count() >= $max) {
             throw new CartException(__('commerce::storefront.cart.full', ['count' => $max]), 'cart_full');
@@ -44,13 +47,14 @@ class AddToCart
             $total = $variant->min_qty;
         }
 
-        $availability = $this->catalog->check($variant, $total, commerce_customer());
+        $others = (int) $cart->items()->where('variant_id', $variant->id)->where('line_key', '!=', $key)->sum('quantity');
+        $availability = $this->catalog->check($variant, $others + $total, commerce_customer());
         if (! $availability->isOk()) {
             throw new CartException($availability->message($this->title($variant)), (string) $availability->reason);
         }
 
-        $item = $existing ?? new CartItem(['cart_id' => $cart->id, 'variant_id' => $variant->id]);
-        $item->fill(['quantity' => $total, 'meta' => $meta !== [] ? $meta : $item->meta])->save();
+        $item = $existing ?? new CartItem(['cart_id' => $cart->id, 'variant_id' => $variant->id, 'meta' => $meta !== [] ? $meta : null]);
+        $item->fill(['quantity' => $total])->save();
         $cart->touchActivity();
         CartItemAdded::dispatch($item);
 
