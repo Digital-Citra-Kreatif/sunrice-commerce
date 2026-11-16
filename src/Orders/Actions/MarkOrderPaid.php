@@ -24,7 +24,7 @@ class MarkOrderPaid
     /** @throws DomainException */
     public function handle(Order $order, Actor $actor, ?string $reference = null, ?Carbon $paidAt = null, ?string $account = null): Payment
     {
-        if ($order->isQuote() || ! $order->isUnpaid() || $order->total <= 0) {
+        if ($order->isQuote() || (! $order->isUnpaid() && ! $order->isPartiallyPaid()) || $order->total <= 0) {
             throw new DomainException('This order has nothing left to pay.');
         }
         $payment = $order->payments()->whereIn('status', ['pending', 'awaiting_confirmation', 'failed', 'expired'])->latest('id')->first()

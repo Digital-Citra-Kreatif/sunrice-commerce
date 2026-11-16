@@ -21,7 +21,8 @@ export interface OrderData {
     dropship: { name: string | null; phone: string | null } | null; fields: Record<string, unknown> | null;
     items: OrderItemRow[];
     totals: { subtotal: string; discount: string | null; shipping: string | null; fees: string | null; tax: string | null; tax_included: boolean;
-        total: string; total_amount: number; paid: string; refunded: string | null; refundable: number };
+        total: string; total_amount: number; paid: string; refunded: string | null; refundable: number;
+        deposit: string | null; balance: string | null; balance_due_at: string | null };
     adjustments: Array<{ kind: string; label: string; code: string | null; source: string; amount: string; included: boolean }>;
     payments: Array<{ id: number; method: string; amount: string; status: string; reference: string | null; paid_at: string | null; expires_at: string | null; refunded: string | null }>;
     confirmations: Array<{ id: number; sender_name: string; sender_bank: string | null; amount: string; status: string; created_at: string | null; proof_url: string | null; can_review: boolean }>;

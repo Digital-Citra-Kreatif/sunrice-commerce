@@ -162,4 +162,16 @@ return [
         'intro' => 'A payment arrived for order :number after it was cancelled. Refund the customer or reinstate the order.',
         'action' => 'Open the order',
     ],
+    'balance_reminder' => [
+        'subject' => 'Balance due for :number',
+        'heading' => 'Your balance is due soon',
+        'intro' => 'The balance of :balance for order :number is due by :due_date.',
+        'action' => 'Pay the balance',
+    ],
+    'staff_balance_overdue' => [
+        'subject' => 'Balance overdue for :number',
+        'heading' => 'Balance overdue',
+        'intro' => 'The balance of :balance for order :number was due by :due_date and is not paid.',
+        'action' => 'Open the order',
+    ],
 ];

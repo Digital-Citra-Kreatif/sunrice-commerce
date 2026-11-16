@@ -36,7 +36,25 @@ final class CalculationState
     /** @var array<string, mixed> stages and providers may share data here */
     public array $data = [];
 
+    /**
+     * A deposit asked instead of the whole total, set by a calculation stage
+     * after the totals (priority above 90): amount (what is paid at checkout),
+     * balance_due_at (ISO 8601 date-time or null), label (shown to the
+     * customer, or null). Ignored unless 0 < amount < total.
+     *
+     * @var array{amount: int, balance_due_at: string|null, label: string|null}|null
+     */
+    public ?array $deposit = null;
+
     public function __construct(public PricingContext $ctx) {}
+
+    /** The deposit to ask, when one is set and is less than the total. */
+    public function depositDue(): ?int
+    {
+        $amount = (int) ($this->deposit['amount'] ?? 0);
+
+        return $amount > 0 && $amount < $this->totals['total'] ? $amount : null;
+    }
 
     public function notice(string $code, string $message, ?string $line = null, ?string $voucher = null): void
     {
@@ -79,7 +97,8 @@ final class CalculationState
 
     /**
      * A fingerprint of what the customer will pay: each line's variant,
-     * quantity and unit price, the adjustments, shipping, taxes and total.
+     * quantity and unit price, the adjustments, shipping, taxes, total and
+     * any deposit.
      * Checkout renders it; placing the order compares it.
      */
     public function hash(): string
@@ -88,7 +107,12 @@ final class CalculationState
         $adjustments = array_map(fn (Adjustment $a) => [$a->key, $a->type, $a->amount], array_values($this->adjustments));
         ksort($adjustments);
 
-        return hash('sha256', (string) json_encode([$lines, $adjustments, $this->shipping['rate']['id'] ?? null, $this->shipping['cost'], $this->totals]));
+        $parts = [$lines, $adjustments, $this->shipping['rate']['id'] ?? null, $this->shipping['cost'], $this->totals];
+        if ($this->depositDue() !== null) {
+            $parts[] = [$this->depositDue(), $this->deposit['balance_due_at'] ?? null];
+        }
+
+        return hash('sha256', (string) json_encode($parts));
     }
 
     /** @return array<string, mixed> */
@@ -100,6 +124,7 @@ final class CalculationState
             'adjustments' => array_map(fn (Adjustment $a) => $a->toArray(), array_values($this->adjustments)),
             'shipping' => $this->shipping,
             'totals' => $this->totals,
+            'deposit' => $this->depositDue() !== null ? $this->deposit : null,
             'notices' => $this->notices,
             'hash' => $this->hash(),
         ];
