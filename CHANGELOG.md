@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **A cart line is a variant and its meta.** `AddToCart::handle($variantId, $qty, $meta)` with other
+  meta adds another line of the same variant (a rental on other dates, say); the same meta adds to
+  its line. Lines without meta merge by variant as before. Stock and quantity rules count all of a
+  variant's lines, and signing in merges by variant and meta. Run `php artisan migrate`
+  (`commerce_cart_items.line_key`).
+
 ## 0.2.0 (2026-11-07)
 
 **Upgrading from 0.1**: commerce now needs Sunrice 0.7. Run `composer require sunrice/commerce:^0.2 sunrice/admin:^0.7 sunrice/cms:^0.7 -W`, then `php artisan migrate` (the webhook tables) and `php artisan sunrice:assets`. Update the gateways at the same time: `sunrice/commerce-midtrans` and `-xendit` 0.1.1 and `sunrice/commerce-biteship` 0.1.0 accept commerce 0.2.

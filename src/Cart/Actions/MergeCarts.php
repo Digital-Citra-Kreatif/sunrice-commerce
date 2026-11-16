@@ -12,8 +12,9 @@ use Sunrice\Commerce\Customers\Models\Customer;
 
 /**
  * At sign-in: the guest cart's lines move into the customer's active cart
- * (quantities added, clamped to what can be bought); the guest cart is
- * marked merged. Without a customer cart, the guest cart becomes theirs.
+ * (a line with the same variant and meta adds its quantity, clamped to what
+ * can be bought); the guest cart is marked merged. Without a customer
+ * cart, the guest cart becomes theirs.
  * New lines stop at commerce.cart.max_lines (quantities still add up);
  * $left counts the guest lines that didn't fit, for the sign-in to say so.
  */
@@ -37,7 +38,7 @@ class MergeCarts
             $max = (int) config('commerce.cart.max_lines', 500);
             $lines = $target->items()->count();
             foreach ($guest->items()->with('variant.product')->get() as $item) {
-                $existing = $target->items()->where('variant_id', $item->variant_id)->first();
+                $existing = $target->items()->where('variant_id', $item->variant_id)->where('line_key', $item->line_key)->first();
                 if ($existing === null && $max > 0 && $lines >= $max) {
                     $this->left++;
 

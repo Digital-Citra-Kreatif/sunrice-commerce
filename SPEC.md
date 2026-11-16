@@ -445,9 +445,11 @@ and totals are sums of lines.
 
 - **Storage**: each visitor has one cart, stored in the database and identified by a cookie holding
   a long random token. Signed-in customers keep their cart across devices.
-- **Signing in**: a guest cart merges into the customer's cart. Quantities are added together,
-  within stock and quantity rules.
-- **Lines** are a variant and a quantity. Adding a line checks the product is purchasable:
+- **Signing in**: a guest cart merges into the customer's cart. Quantities of the same line are
+  added together, within stock and quantity rules.
+- **Lines** are a variant, a quantity and optional meta set by an extension (a rental's dates, for
+  example). The same variant with other meta is another line; stock and quantity rules count every
+  line of the variant. Adding a line checks the product is purchasable:
   published, purchase mode cart, price visible, variant active, stock, quantity rules and flash sale
   limits.
 - **Mini cart**: a count and subtotal in the header, with a drawer or list loaded from a small JSON
