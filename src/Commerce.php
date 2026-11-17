@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Sunrice\Commerce;
 
 use Closure;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Builder;
 use Sunrice\Commerce\Analytics\Reports\Report;
 use Sunrice\Commerce\Analytics\Reports\Reports;
 use Sunrice\Commerce\Features\Feature;
@@ -227,6 +229,20 @@ class Commerce
     }
 
     // ---- Emails ---------------------------------------------------------------
+
+    /**
+     * Limit the orders a staff member sees in the admin: the closure narrows
+     * an orders query for the signed-in user (a branch's staff to their
+     * branch's orders, say). Applied to the orders list, export and bulk
+     * actions, the dashboard, a customer's orders and the payment
+     * confirmations; an order outside it is "not found" on its pages.
+     *
+     * @param  Closure(Builder<Orders\Models\Order>, Authenticatable): void  $scope
+     */
+    public function scopeAdminOrders(Closure $scope): void
+    {
+        app(Orders\AdminOrderScopes::class)->register($scope);
+    }
 
     /** An email of a package's own, listed in Settings → Emails and sent with Notifier::send(). */
     public function registerEmail(Notifications\EmailDefinition $email): void

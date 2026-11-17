@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Order scopes for staff**: `Commerce::scopeAdminOrders()` limits the orders a staff member sees in the admin (list, export, bulk actions, dashboard, customer page, payment confirmations); orders outside it are not found.
+
 - **A cart line is a variant and its meta.** `AddToCart::handle($variantId, $qty, $meta)` with other
   meta adds another line of the same variant (a rental on other dates, say); the same meta adds to
   its line. Lines without meta merge by variant as before. Stock and quantity rules count all of a

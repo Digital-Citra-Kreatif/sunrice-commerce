@@ -50,6 +50,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->scoped(Support\MoneyFormatter::class);
         $this->app->scoped(Webhooks\Webhooks::class);
         $this->app->singleton(Storefront\Slots::class);
+        $this->app->singleton(Orders\AdminOrderScopes::class);
         $this->app->singleton(Health\HealthRegistry::class);
         $this->app->singleton(Admin\Setup\SetupChecklist::class);
         $this->app->singleton(Admin\Dashboard\DashboardCards::class);
