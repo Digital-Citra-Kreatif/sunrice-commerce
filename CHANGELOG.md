@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Catalog filters**: `Commerce::registerCatalogFilter($key, $read, $apply)` adds a filter of an extension's to product listings, search and facet counts, read from the query string; `ProductQuery::filter($key, $value)` sets one in code.
+
 - **A cart line is a variant and its meta.** `AddToCart::handle($variantId, $qty, $meta)` with other
   meta adds another line of the same variant (a rental on other dates, say); the same meta adds to
   its line. Lines without meta merge by variant as before. Stock and quantity rules count all of a

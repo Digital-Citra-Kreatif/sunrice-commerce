@@ -31,6 +31,7 @@ The workbench has three working references: `workbench/app/Commerce/FakeGateway.
 - [Payments](#payments)
 - [Shipping](#shipping)
 - [Cart lines](#cart-lines): meta on a line
+- [Catalog filters](#catalog-filters): listings filtered your way
 - [Checkout](#checkout): fields, completions
 - [Orders](#orders): numbering, panels
 - [My Account pages](#my-account-pages)
@@ -230,6 +231,24 @@ app(AddToCart::class)->handle($variantId, 1, ['rental' => ['start' => '2026-12-0
 - Signing in merges a guest line into the line with the same variant and meta.
 - The meta reaches the calculation as `CalcLine->meta` and is kept on the order item as
   `meta.line`.
+
+## Catalog filters
+
+A filter of your own for product listings, search and their facet counts, read from the query
+string:
+
+```php
+Commerce::registerCatalogFilter('available',
+    fn (Request $request) => $request->filled('rent_from') ? [$request->query('rent_from'), $request->query('rent_to')] : null,
+    fn (Builder $products, mixed $value) => $products->whereHas('variants', …),
+);
+
+ProductQuery::make()->filter('available', ['2026-12-01', '2026-12-03']);   // in code
+```
+
+`$read` returns the filter's value, or null when the request doesn't set it. `$apply` narrows the
+products query (`Builder<Product>`). The value is part of `ProductQuery::state()`, so cached facet
+counts are kept per value.
 
 ## Checkout
 
