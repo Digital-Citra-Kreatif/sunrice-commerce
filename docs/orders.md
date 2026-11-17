@@ -121,6 +121,12 @@ Deadlines come from the payment method (24 hours by default; see
 [payments.md](payments.md#deadlines)). Orders without a payment deadline (cash on delivery,
 WhatsApp orders) never expire on their own.
 
+**Releases that didn't finish.** Cancelling gives back stock, flash sale quantities, voucher uses
+and what extensions reserved (`Orders\Listeners\ReleaseReservations`); each part runs once, and
+`meta.released.done` is set when all are back. If the release fails (a deadlock, an extension's
+error), `commerce:tick` runs it again for orders cancelled in the last 30 days without that flag
+(`Orders\ReleaseRetries`), so nothing stays held.
+
 ## Numbers
 
 `Orders\Numbering` gives order, quote and invoice numbers from a format and a reset rule. Each

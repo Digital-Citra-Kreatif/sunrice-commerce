@@ -176,6 +176,7 @@ final class BuiltinSections
                 'config' => ['collections' => Collection::query()->whereNotIn('handle', (array) config('commerce.catalog.collections', ['products']))->orderBy('title')->pluck('handle')->all()]],
             ['handle' => 'free_shipping_combines', 'type' => 'toggle', 'label' => 'A free-shipping code can be used with one other code', 'instructions' => 'Even when neither is marked combinable.'],
             ['handle' => 'customer_cancel', 'type' => 'toggle', 'label' => 'Customers can cancel unpaid orders'],
+            ['handle' => 'confirmation_reminder_hours', 'type' => 'number', 'label' => 'Remind staff of a payment confirmation not reviewed after (hours)', 'instructions' => 'Once, by the "Payment confirmation to verify" email. 0: no reminder.', 'config' => ['min' => 0, 'max' => 720], 'validation' => ['integer']],
             ['handle' => 'balance_reminder_days', 'type' => 'number', 'label' => 'Remind of an unpaid balance (days before it is due)', 'instructions' => 'For orders paid with a deposit. 0: no reminder.', 'config' => ['min' => 0, 'max' => 60], 'validation' => ['integer']],
             ['handle' => 'returns_days', 'type' => 'number', 'label' => 'Returns accepted for (days)', 'instructions' => 'After an order is completed, with the Returns module on. 0: none.', 'config' => ['min' => 0, 'max' => 365], 'validation' => ['integer']],
             ['handle' => 'order_number_format', 'type' => 'text', 'label' => 'Order number', 'required' => true, 'translatable' => false,

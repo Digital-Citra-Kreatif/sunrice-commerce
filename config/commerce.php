@@ -353,6 +353,7 @@ return [
             'free_shipping_combines' => true,
             'customer_cancel' => true,
             'balance_reminder_days' => 2,
+            'confirmation_reminder_hours' => 24,
             'returns_days' => 14,
             'order_number_format' => 'ORD-{Y}{m}{d}-{seq:4}',
             'order_number_reset' => 'daily',
