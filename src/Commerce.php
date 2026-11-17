@@ -7,6 +7,7 @@ namespace Sunrice\Commerce;
 use Closure;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Sunrice\Commerce\Analytics\Reports\Report;
 use Sunrice\Commerce\Analytics\Reports\Reports;
 use Sunrice\Commerce\Features\Feature;
@@ -242,6 +243,20 @@ class Commerce
     public function scopeAdminOrders(Closure $scope): void
     {
         app(Orders\AdminOrderScopes::class)->register($scope);
+    }
+
+    /**
+     * A catalog filter of an extension's: $read takes its value from the
+     * listing's query string (null when not set), $apply narrows the products
+     * query (Builder<Product>) to the products matching it. Listings, search
+     * and facet counts use it; ProductQuery::filter($key, $value) sets it in code.
+     *
+     * @param  Closure(Request): mixed  $read
+     * @param  Closure(Builder<Catalog\Models\Product>, mixed): void  $apply
+     */
+    public function registerCatalogFilter(string $key, Closure $read, Closure $apply): void
+    {
+        app(Catalog\CatalogFilters::class)->register($key, $read, $apply);
     }
 
     /**
