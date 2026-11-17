@@ -77,6 +77,7 @@ export default function OrderShow(props: OrderPageProps) {
                                                 {item.product_href ? <Link href={adminUrl(item.product_href)} className="cm:hover:underline">{item.name}</Link> : item.name}
                                                 {item.variant_title && <span className="cm:text-muted-foreground"> · {item.variant_title}</span>}
                                             </p>
+                                            {item.details.map((detail) => <p key={detail} className="cm:text-sm">{detail}</p>)}
                                             <p className="cm:text-xs cm:text-muted-foreground">
                                                 {item.sku && <>SKU {item.sku} · </>}{item.price_source.label}
                                                 {item.requires_shipping && order.fulfillment_status !== 'not_required' && <> · shipped {item.fulfilled_quantity}/{item.quantity}</>}

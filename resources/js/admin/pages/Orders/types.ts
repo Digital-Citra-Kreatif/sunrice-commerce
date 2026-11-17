@@ -1,5 +1,5 @@
 export interface OrderItemRow {
-    id: number; name: string; variant_title: string | null; sku: string | null; options: Record<string, string> | null;
+    id: number; name: string; variant_title: string | null; sku: string | null; options: Record<string, string> | null; details: string[];
     quantity: number; fulfilled_quantity: number; refunded_quantity: number; unfulfilled: number; requires_shipping: boolean;
     unit_price: number; unit_price_formatted: string; regular_unit_price: string | null; price_source: { type: string; label: string };
     subtotal: string; discount: string | null; total: string; product_href: string | null;
