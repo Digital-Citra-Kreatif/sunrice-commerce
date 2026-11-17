@@ -1241,7 +1241,8 @@ Deliberately not used:
   installments (more than a deposit and a balance). Deposits themselves are in: an extension asks
   for one, see Payments.
 - Exchanges, and refunds started from a return (they're recorded on the order).
-- Creating products from CSV (the import changes existing variants by SKU).
+- Creating products from CSV beyond one option per product (the import creates simple products and
+  products with one option, such as Size).
 - A headless/REST API (the MCP server and the Blade components are the interfaces); search engines
   (Scout).
 - e-Faktur/Coretax tax invoices and accounting integrations (separate packages).

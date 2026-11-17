@@ -13,6 +13,7 @@ use Inertia\Response;
 use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Support\Access;
 use Sunrice\Commerce\Catalog\Csv\ProductCsv;
+use Sunrice\Commerce\Catalog\Csv\ProductCsvCreator;
 use Sunrice\Commerce\Support\ActivityRecorder;
 use Sunrice\Commerce\Support\CsvExport;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -44,7 +45,7 @@ class ProductCsvController extends Controller
 
         return Inertia::render('Commerce/Products/Import', [
             'columns' => ProductCsv::COLUMNS, 'changeable' => ProductCsv::CHANGEABLE, 'maxRows' => ProductCsv::MAX_ROWS,
-            'canAdjustStock' => $request->user()->can('commerce.inventory.adjust'),
+            'canAdjustStock' => $request->user()->can('commerce.inventory.adjust'), 'canCreate' => $this->mayCreate($request),
             'preview' => null, 'token' => null,
         ]);
     }
@@ -52,20 +53,22 @@ class ProductCsvController extends Controller
     public function preview(Request $request, ProductCsv $csv): Response|RedirectResponse
     {
         abort_if($this->collections($request, 'update') === [], 403);
-        $request->validate(['file' => ['required', 'file', 'mimetypes:text/csv,text/plain,application/csv,application/vnd.ms-excel', 'max:5120']]);
+        $options = $request->validate(['file' => ['required', 'file', 'mimetypes:text/csv,text/plain,application/csv,application/vnd.ms-excel', 'max:5120'],
+            'create' => ['nullable', 'boolean'], 'publish' => ['nullable', 'boolean']]);
+        $create = (bool) ($options['create'] ?? false);
         $stream = fopen((string) $request->file('file')?->getRealPath(), 'r');
         abort_if($stream === false, 422);
-        $preview = $csv->preview($stream, $request->user());
+        $preview = $csv->preview($stream, $request->user(), $create);
         fclose($stream);
         if ($preview['error'] !== null) {
             return back()->withErrors(['file' => $preview['error']]);
         }
         $token = Str::random(40);
-        Cache::put(self::key($request, $token), $preview['rows'], now()->addHour());
+        Cache::put(self::key($request, $token), ['rows' => $preview['rows'], 'publish' => (bool) ($options['publish'] ?? false)], now()->addHour());
 
         return Inertia::render('Commerce/Products/Import', [
             'columns' => ProductCsv::COLUMNS, 'changeable' => ProductCsv::CHANGEABLE, 'maxRows' => ProductCsv::MAX_ROWS,
-            'canAdjustStock' => $request->user()->can('commerce.inventory.adjust'),
+            'canAdjustStock' => $request->user()->can('commerce.inventory.adjust'), 'canCreate' => $this->mayCreate($request),
             'preview' => $preview['rows'], 'token' => $token,
         ]);
     }
@@ -74,13 +77,28 @@ class ProductCsvController extends Controller
     {
         abort_if($this->collections($request, 'update') === [], 403);
         $data = $request->validate(['token' => ['required', 'string', 'size:40']]);
-        $rows = Cache::pull(self::key($request, $data['token']));
+        $preview = Cache::pull(self::key($request, $data['token']));
+        $rows = is_array($preview) ? ($preview['rows'] ?? null) : null;
         if (! is_array($rows)) {
             return redirect()->route('sunrice.admin.commerce.products.import')->withErrors(['file' => 'That preview has expired: upload the file again.']);
         }
         $count = $csv->apply($rows, $request->user());
+        $created = app(ProductCsvCreator::class)->create($rows, $request->user(), (bool) ($preview['publish'] ?? false));
+        $message = $count === 1 ? '1 variant updated.' : "{$count} variants updated.";
+        if ($created > 0) {
+            $message .= ' '.($created === 1 ? '1 product created.' : "{$created} products created.");
+        }
 
-        return redirect()->route('sunrice.admin.commerce.products')->with('success', $count === 1 ? '1 variant updated.' : "{$count} variants updated.");
+        return redirect()->route('sunrice.admin.commerce.products')->with('success', $message);
+    }
+
+    /** Whether the import may create products (the user may create entries in the main product collection). */
+    protected function mayCreate(Request $request): bool
+    {
+        $handle = (string) (config('commerce.catalog.collections', ['products'])[0] ?? 'products');
+        $collection = Collection::query()->where('handle', $handle)->first();
+
+        return $collection !== null && Access::entries($request->user(), 'create', $collection);
     }
 
     /** A preview belongs to the user who made it. */

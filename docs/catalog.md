@@ -609,6 +609,14 @@ It prints each failure and exits with an error code when any failed.
   above the price) before **Apply**; a cell the export wrote with a leading apostrophe (so a
   spreadsheet doesn't read `-2` as a formula) is read without it; the changes go into the
   product field's live value and its draft, as the bulk actions do. Up to 5,000 rows.
+- **Creating products by import**: with **Create products for SKUs no product has** ticked (for
+  users who may create products), a row whose SKU no product has and that names a `product` is a
+  new product. Rows with the same `product` are one product; `variant` names each one's option
+  value (S, M…) and `option` the option (Size by default); one row without a variant is a simple
+  product. `price` is required; `compare_at_price`, `cost`, `weight`, `stock` (a tracked variant's
+  starting stock) and `active` are used as for updates, and `category` files the product under a
+  category by its name or slug. New products are drafts (to add photos first) unless **Publish
+  new products** is ticked; a draft's SKUs reach the store when it's published.
 - **The Product data field** has tabs: General, Variants (variable products), Bundle (bundles),
   Inventory, Shipping (when it requires shipping), Bulk prices and Digital (when downloadable).
   Extensions add tabs with `api.registerProductTab()` (see

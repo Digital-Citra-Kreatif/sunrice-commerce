@@ -59,13 +59,18 @@ class ProductCsv
         }
     }
 
+    /** Columns a new product's rows may add (with $create): option names the variant column, category a product category. */
+    public const CREATE_COLUMNS = ['option', 'category'];
+
     /**
-     * What a CSV would change, row by row, without changing anything.
+     * What a CSV would change, row by row, without changing anything. With
+     * $create, a row whose SKU no product has and that names a product is a
+     * new product (or a variant of one): ProductCsvCreator.
      *
      * @param  resource  $stream
-     * @return array{rows: list<array{line: int, sku: string, product: string, changes: array<string, array{from: mixed, to: mixed}>, error: string|null}>, error: string|null}
+     * @return array{rows: list<array{line: int, sku: string, product: string, changes: array<string, array{from: mixed, to: mixed}>, create?: array<string, mixed>|null, error: string|null}>, error: string|null}
      */
-    public function preview($stream, Authorizable $user): array
+    public function preview($stream, Authorizable $user, bool $create = false): array
     {
         $header = fgetcsv($stream, escape: '');
         if ($header === false || $header === [null]) {
@@ -98,8 +103,20 @@ class ProductCsv
             $sku = trim((string) ($cells['sku'] ?? ''));
             $variant = $variants->get($sku);
             $entry = $variant !== null ? $entries->get($variant->product->entry_id) : null;
-            $row = ['line' => $n, 'sku' => $sku, 'product' => trim((string) $entry?->mainTranslation()?->title.($variant?->title ? ' — '.$variant->title : '')), 'changes' => [], 'error' => null];
+            $row = ['line' => $n, 'sku' => $sku, 'product' => trim((string) $entry?->mainTranslation()?->title.($variant?->title ? ' — '.$variant->title : '')), 'changes' => [], 'create' => null, 'error' => null];
             try {
+                if ($create && $variant === null && $sku !== '' && trim((string) ($cells['product'] ?? '')) !== '') {
+                    if (isset($seen[$sku])) {
+                        throw new \InvalidArgumentException("This SKU is on line {$seen[$sku]} too.");
+                    }
+                    $seen[$sku] = $n;
+                    $row['create'] = app(ProductCsvCreator::class)->row($cells, $user,
+                        fn (string $c, string $f, bool $zero) => $this->minor($c, $f, $zero), fn (string $c, string $f) => $this->whole($c, $f), fn (string $c) => $this->bool($c));
+                    $row['product'] = trim((string) $cells['product'].(trim((string) ($cells['variant'] ?? '')) !== '' ? ' — '.trim((string) $cells['variant']) : ''));
+                    $rows[] = $row;
+
+                    continue;
+                }
                 if ($variant === null || $entry === null || $variant->product->removed_at !== null) {
                     throw new \InvalidArgumentException($sku === '' ? 'No SKU.' : 'No product has this SKU.');
                 }
@@ -118,18 +135,18 @@ class ProductCsv
             $rows[] = $row;
         }
 
-        return ['rows' => $rows, 'error' => null];
+        return ['rows' => $create ? app(ProductCsvCreator::class)->check($rows) : $rows, 'error' => null];
     }
 
     /**
      * Apply a preview's rows without errors.
      *
-     * @param  list<array{sku: string, changes: array<string, array{from: mixed, to: mixed}>, error: string|null}>  $rows
+     * @param  list<array{sku: string, changes: array<string, array{from: mixed, to: mixed}>, create?: array<string, mixed>|null, error: string|null}>  $rows
      * @return int variants changed
      */
     public function apply(array $rows, Authorizable $user): int
     {
-        $rows = collect($rows)->filter(fn (array $r) => $r['error'] === null && $r['changes'] !== [])->keyBy('sku');
+        $rows = collect($rows)->filter(fn (array $r) => $r['error'] === null && $r['changes'] !== [] && ($r['create'] ?? null) === null)->keyBy('sku');
         if ($rows->isEmpty()) {
             return 0;
         }
