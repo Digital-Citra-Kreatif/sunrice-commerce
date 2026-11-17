@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Shipping origins**: `Commerce::shippingOriginUsing()` lets an extension quote a cart's rates from another address than the store's (a branch); the order keeps it, `Order::shippingOrigin()` returns it for carriers. `Address` gains `latitude` and `longitude`.
+
 - **A cart line is a variant and its meta.** `AddToCart::handle($variantId, $qty, $meta)` with other
   meta adds another line of the same variant (a rental on other dates, say); the same meta adds to
   its line. Lines without meta merge by variant as before. Stock and quantity rules count all of a

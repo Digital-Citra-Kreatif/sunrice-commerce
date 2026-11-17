@@ -242,6 +242,19 @@ class Commerce
         app(Cart\LineDetails::class)->register($describer);
     }
 
+    /**
+     * Where a cart ships from, when it isn't the store address: the closure
+     * gets the calculation and returns an Address (or its array), or null to
+     * leave it to the next resolver and then the store. Rates are quoted from
+     * it, and the order keeps it (Order::shippingOrigin()) for booking.
+     *
+     * @param  Closure(Pricing\CalculationState): (Support\Address|array<string, mixed>|null)  $resolver
+     */
+    public function shippingOriginUsing(Closure $resolver): void
+    {
+        app(Shipping\ShippingOrigins::class)->register($resolver);
+    }
+
     /** An email of a package's own, listed in Settings → Emails and sent with Notifier::send(). */
     public function registerEmail(Notifications\EmailDefinition $email): void
     {

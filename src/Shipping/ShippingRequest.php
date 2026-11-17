@@ -39,7 +39,7 @@ final class ShippingRequest
         $destination = $state->ctx->destination === null ? null : Address::fromArray($state->ctx->destination);
 
         return new self(
-            origin: Address::fromArray((array) $settings->get('general.address', [])),
+            origin: app(ShippingOrigins::class)->forState($state),
             destination: $destination,
             package: new Package($lines),
             subtotal: $subtotal,

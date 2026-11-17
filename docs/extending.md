@@ -32,6 +32,7 @@ The workbench has three working references: `workbench/app/Commerce/FakeGateway.
 - [Shipping](#shipping)
 - [Cart lines](#cart-lines): meta on a line
 - [Line details](#line-details): what a line's meta means
+- [Shipping origins](#shipping-origins): ship from a branch
 - [Checkout](#checkout): fields, completions
 - [Orders](#orders): numbering, panels
 - [My Account pages](#my-account-pages)
@@ -249,6 +250,26 @@ Commerce::describeLinesUsing(function (array $meta): array {
 The closure gets a cart line's meta, or an order item's `meta.line`, and returns strings in the
 current language. A describer that throws is reported and skipped. `OrderItem::details()` and
 `LineDetails::for($meta)` read them.
+
+## Shipping origins
+
+Rates are quoted from the store address (Settings → Store → General) unless an extension names
+another origin for the cart, such as the branch or warehouse that has the goods:
+
+```php
+Commerce::shippingOriginUsing(function (CalculationState $state): ?array {
+    $branch = …;   // from the lines' meta, say
+
+    return $branch ? ['name' => $branch->name, 'phone' => $branch->phone, 'line1' => $branch->address,
+        'postal_code' => $branch->postal_code, 'country' => 'ID', 'latitude' => $branch->lat, 'longitude' => $branch->lng] : null;
+});
+```
+
+The closure returns an `Address` (or its array), or null to leave it to the next resolver and then
+the store. `ShippingRequest::$origin` is that address. A delivered order placed with one keeps it
+in `meta.shipping_origin`, and `Order::shippingOrigin()` returns it (or the store address), so a
+carrier books the pickup from where the rate was quoted. `Address` has `latitude` and `longitude`
+for couriers that price by distance.
 
 ## Checkout
 
