@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Sunrice\Commerce;
 
 use Closure;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Sunrice\Commerce\Analytics\Reports\Report;
 use Sunrice\Commerce\Analytics\Reports\Reports;
 use Sunrice\Commerce\Features\Feature;
@@ -227,6 +230,34 @@ class Commerce
     }
 
     // ---- Emails ---------------------------------------------------------------
+
+    /**
+     * Limit the orders a staff member sees in the admin: the closure narrows
+     * an orders query for the signed-in user (a branch's staff to their
+     * branch's orders, say). Applied to the orders list, export and bulk
+     * actions, the dashboard, a customer's orders and the payment
+     * confirmations; an order outside it is "not found" on its pages.
+     *
+     * @param  Closure(Builder<Orders\Models\Order>, Authenticatable): void  $scope
+     */
+    public function scopeAdminOrders(Closure $scope): void
+    {
+        app(Orders\AdminOrderScopes::class)->register($scope);
+    }
+
+    /**
+     * A catalog filter of an extension's: $read takes its value from the
+     * listing's query string (null when not set), $apply narrows the products
+     * query (Builder<Product>) to the products matching it. Listings, search
+     * and facet counts use it; ProductQuery::filter($key, $value) sets it in code.
+     *
+     * @param  Closure(Request): mixed  $read
+     * @param  Closure(Builder<Catalog\Models\Product>, mixed): void  $apply
+     */
+    public function registerCatalogFilter(string $key, Closure $read, Closure $apply): void
+    {
+        app(Catalog\CatalogFilters::class)->register($key, $read, $apply);
+    }
 
     /**
      * Say what a line's meta means, in a few short lines shown under it in the

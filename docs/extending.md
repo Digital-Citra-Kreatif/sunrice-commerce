@@ -31,6 +31,7 @@ The workbench has three working references: `workbench/app/Commerce/FakeGateway.
 - [Payments](#payments)
 - [Shipping](#shipping)
 - [Cart lines](#cart-lines): meta on a line
+- [Catalog filters](#catalog-filters): listings filtered your way
 - [Line details](#line-details): what a line's meta means
 - [Shipping origins](#shipping-origins): ship from a branch
 - [Checkout](#checkout): fields, completions
@@ -270,6 +271,23 @@ the store. `ShippingRequest::$origin` is that address. A delivered order placed 
 in `meta.shipping_origin`, and `Order::shippingOrigin()` returns it (or the store address), so a
 carrier books the pickup from where the rate was quoted. `Address` has `latitude` and `longitude`
 for couriers that price by distance.
+## Catalog filters
+
+A filter of your own for product listings, search and their facet counts, read from the query
+string:
+
+```php
+Commerce::registerCatalogFilter('available',
+    fn (Request $request) => $request->filled('rent_from') ? [$request->query('rent_from'), $request->query('rent_to')] : null,
+    fn (Builder $products, mixed $value) => $products->whereHas('variants', …),
+);
+
+ProductQuery::make()->filter('available', ['2026-12-01', '2026-12-03']);   // in code
+```
+
+`$read` returns the filter's value, or null when the request doesn't set it. `$apply` narrows the
+products query (`Builder<Product>`). The value is part of `ProductQuery::state()`, so cached facet
+counts are kept per value.
 
 ## Checkout
 
@@ -296,6 +314,21 @@ Commerce::orderNumberUsing(fn (?Order $order) => 'TK-'.now()->format('ymd').'-'.
 // A panel on the admin order page: data here, component in the admin bundle.
 Commerce::registerOrderPanel('loyalty', 'Points', fn (Order $order) => ['earned' => …], 'commerce.orders.view');
 ```
+
+Limit which orders a staff member sees in the admin (a branch's staff, their branch's orders):
+
+```php
+Commerce::scopeAdminOrders(function (Builder $orders, Authenticatable $user): void {
+    if ($branch = BranchStaff::branchOf($user)) {
+        $orders->whereHas('items', …);   // narrow it as you need
+    }
+});
+```
+
+Every scope narrows the orders list and its export and bulk actions, the dashboard's recent orders,
+a customer's orders and the payment confirmations. An order outside it answers 404 on its own pages
+and actions (`Http\Middleware\ScopeAdminOrders`). Users no scope narrows see everything. Reports
+and the MCP tools aren't scoped: keep those permissions for staff who may see all orders.
 
 Change orders only through the actions (`Orders\Actions\*`) and `Orders\OrderStateMachine`, with an
 `Orders\Actor` (`Actor::system()`, `Actor::admin($user)`, `Actor::ai($user)`…): they validate, keep
