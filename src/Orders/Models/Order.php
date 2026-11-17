@@ -14,6 +14,7 @@ use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Orders\OrderStatus;
 use Sunrice\Commerce\Payments\Models\Payment;
 use Sunrice\Commerce\Payments\Models\PaymentConfirmation;
+use Sunrice\Commerce\Shipping\ShippingOrigins;
 use Sunrice\Commerce\Support\Address;
 
 /**
@@ -223,6 +224,17 @@ class Order extends Model
     public function shippingAddress(): ?Address
     {
         return $this->shipping_address === null ? null : Address::fromArray($this->shipping_address);
+    }
+
+    /**
+     * Where the order ships from: the origin an extension chose when it was
+     * placed (a branch), else the store address. Carriers book from here.
+     */
+    public function shippingOrigin(): Address
+    {
+        $origin = $this->meta('shipping_origin');
+
+        return is_array($origin) && $origin !== [] ? Address::fromArray($origin) : ShippingOrigins::store();
     }
 
     public function billingAddress(): ?Address

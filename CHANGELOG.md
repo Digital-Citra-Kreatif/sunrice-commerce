@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **Shipping origins**: `Commerce::shippingOriginUsing()` lets an extension quote a cart's rates from another address than the store's (a branch); the order keeps it, `Order::shippingOrigin()` returns it for carriers. `Address` gains `latitude` and `longitude`.
 - **Order scopes for staff**: `Commerce::scopeAdminOrders()` limits the orders a staff member sees in the admin (list, export, bulk actions, dashboard, customer page, payment confirmations); orders outside it are not found.
 - **Catalog filters**: `Commerce::registerCatalogFilter($key, $read, $apply)` adds a filter of an extension's to product listings, search and facet counts, read from the query string; `ProductQuery::filter($key, $value)` sets one in code.
 
