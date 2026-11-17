@@ -30,7 +30,8 @@ table) is on and the email is switched on.
 | `payment_confirmation_received` | Payment confirmation received | `manual_payments` | The customer submits "I have paid" |
 | `payment_rejected` | Payment confirmation rejected | `manual_payments` | Staff reject a confirmation: the reason and a link to confirm again |
 | `payment_failed` | Payment failed | `payments` | A pending order's payment fails (the order becomes Failed): a link to pay again or another way |
-| `payment_received` | Payment received | `orders` | The order is paid (not for orders with a zero total, which `order_received` covers) |
+| `payment_received` | Payment received | `orders` | The order is paid (not for orders with a zero total, which `order_received` covers), or its deposit is |
+| `balance_reminder` | Balance reminder | `payments` | The balance of an order paid with a deposit is due in `checkout.balance_reminder_days` days |
 | `order_shipped` | Order shipped | `shipping` | A shipment is added: courier and tracking link |
 | `order_completed` | Order completed | `orders` | The order is completed |
 | `order_cancelled` | Order cancelled | `orders` | The order is cancelled (by the customer, staff or the payment deadline), with the reason |
@@ -54,6 +55,7 @@ table) is on and the email is switched on.
 | `staff_new_order` | New order | `orders` | An order is placed |
 | `staff_payment_confirmation` | Payment confirmation to verify | `manual_payments` | A customer submits a payment confirmation (links to the confirmations page) |
 | `staff_order_cancelled` | Order cancelled | `orders` | An order is cancelled, with the reason and who cancelled it |
+| `staff_balance_overdue` | Balance overdue | `payments` | The balance of an order paid with a deposit passed its due date unpaid |
 | `staff_paid_after_cancel` | Payment for a cancelled order | `payments` | A gateway confirms a payment after the order was cancelled (its deadline passed): refund it or reinstate the order |
 | `staff_new_quote` | New quote request | `orders` | A quote request is placed |
 | `staff_low_stock` | Low stock | `inventory` | A variant reaches its low-stock level |
@@ -90,6 +92,7 @@ Leave a text empty to use the default. Texts can use placeholders:
 | `:number` | The order (or quote) number |
 | `:store` | The store name |
 | `:name` | The customer's name |
+| `:balance`, `:due_date` | For an order paid with a deposit: what is left to pay and when it is due |
 
 The account emails (`account_welcome`, `verify_email`, `login_code`, `password_reset`) keep their own
 layout: only the switch and the subject can be changed, and they have no preview or test.

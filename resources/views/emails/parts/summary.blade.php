@@ -16,4 +16,8 @@
 | {{ $a->label }} | | {{ $money->format($a->amount) }} |
 @endforeach
 | **{{ __('commerce::documents.total') }}** | | **{{ $money->format($order->total) }}** |
+@if ($order->deposit_total > 0 && $order->balanceDue() > 0)
+| {{ __('commerce::payments.paid_so_far') }} | | {{ $money->format($order->paid_total) }} |
+| {{ $order->balance_due_at ? __('commerce::payments.balance_due_by', ['date' => $order->balance_due_at->translatedFormat('j F Y')]) : __('commerce::payments.balance_later') }} | | {{ $money->format($order->balanceDue()) }} |
+@endif
 </x-mail::table>

@@ -458,6 +458,8 @@ are public properties.
 | `Orders\Events\OrderRefunded` | `Order $order, Refund $refund` |
 | `Orders\Events\ShipmentCreated`, `ShipmentDelivered` | `Order $order, Shipment $shipment` |
 | `Payments\Events\PaymentRecorded`, `PaymentSucceeded`, `PaymentFailed`, `PaymentExpired` | `Payment $payment, PaymentResult $result` |
+| `Orders\Events\DepositPaid` | `Order $order, Payment $payment` (the deposit; `OrderPaid` follows with the balance) |
+| `Orders\Events\BalanceOverdue` | `Order $order` (a deposit order's balance passed its due date unpaid; once) |
 | `Payments\Events\PaymentAfterCancellation` | `Payment $payment, PaymentResult $result, Order $order` (paid after the order was cancelled: no `OrderPaid`) |
 | `Payments\Events\PaymentConfirmationSubmitted`, `PaymentConfirmationApproved`, `PaymentConfirmationRejected` | `PaymentConfirmation $confirmation` |
 | `Reviews\Events\ReviewSubmitted` | `Review $review` (pending or approved, by the store's settings) |
