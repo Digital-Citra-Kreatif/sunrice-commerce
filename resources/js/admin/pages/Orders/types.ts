@@ -1,5 +1,5 @@
 export interface OrderItemRow {
-    id: number; name: string; variant_title: string | null; sku: string | null; options: Record<string, string> | null;
+    id: number; name: string; variant_title: string | null; sku: string | null; options: Record<string, string> | null; details: string[];
     quantity: number; fulfilled_quantity: number; refunded_quantity: number; unfulfilled: number; requires_shipping: boolean;
     unit_price: number; unit_price_formatted: string; regular_unit_price: string | null; price_source: { type: string; label: string };
     subtotal: string; discount: string | null; total: string; product_href: string | null;
@@ -21,7 +21,8 @@ export interface OrderData {
     dropship: { name: string | null; phone: string | null } | null; fields: Record<string, unknown> | null;
     items: OrderItemRow[];
     totals: { subtotal: string; discount: string | null; shipping: string | null; fees: string | null; tax: string | null; tax_included: boolean;
-        total: string; total_amount: number; paid: string; refunded: string | null; refundable: number };
+        total: string; total_amount: number; paid: string; refunded: string | null; refundable: number;
+        deposit: string | null; balance: string | null; balance_due_at: string | null };
     adjustments: Array<{ kind: string; label: string; code: string | null; source: string; amount: string; included: boolean }>;
     payments: Array<{ id: number; method: string; amount: string; status: string; reference: string | null; paid_at: string | null; expires_at: string | null; refunded: string | null }>;
     confirmations: Array<{ id: number; sender_name: string; sender_bank: string | null; amount: string; status: string; created_at: string | null; proof_url: string | null; can_review: boolean }>;

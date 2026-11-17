@@ -378,7 +378,7 @@ class OrdersController extends Controller
                 'payment_method_title' => $order->payment_method_title,
                 'customer_note' => $order->customer_note, 'dropship' => $order->dropship, 'fields' => $order->fields,
                 'items' => $order->items->whereNull('parent_id')->values()->map(fn (OrderItem $i) => [
-                    'id' => $i->id, 'name' => $i->name, 'variant_title' => $i->variant_title, 'sku' => $i->sku, 'options' => $i->options,
+                    'id' => $i->id, 'name' => $i->name, 'variant_title' => $i->variant_title, 'sku' => $i->sku, 'options' => $i->options, 'details' => $i->details(),
                     'quantity' => $i->quantity, 'fulfilled_quantity' => $i->fulfilled_quantity, 'refunded_quantity' => $i->refunded_quantity,
                     'unfulfilled' => $i->unfulfilled(), 'requires_shipping' => $i->requires_shipping,
                     'unit_price' => $i->unit_price, 'unit_price_formatted' => $f($i->unit_price),
@@ -393,6 +393,8 @@ class OrdersController extends Controller
                     'shipping' => $order->needsShipping() ? $f($order->shipping_total) : null, 'fees' => $order->fee_total > 0 ? $f($order->fee_total) : null,
                     'tax' => $order->tax_total > 0 ? $f($order->tax_total) : null, 'tax_included' => $order->prices_include_tax,
                     'total' => $f($order->total), 'total_amount' => $order->total, 'paid' => $f($order->paid_total), 'refunded' => $order->refunded_total > 0 ? $f($order->refunded_total) : null,
+                    'deposit' => $order->deposit_total > 0 ? $f($order->deposit_total) : null,
+                    'balance' => $order->isPartiallyPaid() ? $f($order->balanceDue()) : null, 'balance_due_at' => $order->balance_due_at?->toIso8601String(),
                     'refundable' => max(0, $order->paid_total - $order->refunded_total) + app(Loyalty::class)->refundable($order),
                 ],
                 'adjustments' => $order->adjustments->map(fn ($a) => ['kind' => $a->kind, 'label' => $a->label, 'code' => $a->code, 'source' => $a->source_type,

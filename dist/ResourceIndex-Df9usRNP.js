@@ -1,5 +1,5 @@
-import { i as n, u as c, a as s, b as t, j as u, c as l, P as m, d as o, S as h } from "./main-BZm25ssn.js";
-import { D as f } from "./DataTable-CAAmFJ_Q.js";
+import { i as n, u as c, a as s, b as t, j as u, c as l, P as m, d as o, S as h } from "./main-B57M45lP.js";
+import { D as f } from "./DataTable-05ZIuV6F.js";
 function U(e) {
   const { Button: i } = o, { Link: d } = n;
   return c(), s([{ label: "Shop", href: t("commerce") }, { label: e.title }]), /* @__PURE__ */ u("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6", children: [

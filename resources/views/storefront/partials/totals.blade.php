@@ -21,4 +21,8 @@
         <div class="commerce-totals__discount"><dt>{{ $adjustment->label }}</dt><dd>-{{ $money->format($adjustment->amount) }}</dd></div>
     @endforeach
     <div class="commerce-totals__total"><dt>{{ __('commerce::storefront.cart.total') }}</dt><dd>{{ $money->format($state->totals['total']) }}</dd></div>
+    @if (($deposit = $state->depositDue()) !== null)
+        <div class="commerce-totals__deposit"><dt>{{ $state->deposit['label'] ?? __('commerce::payments.deposit_now') }}</dt><dd>{{ $money->format($deposit) }}</dd></div>
+        <div class="commerce-totals__balance"><dt>{{ ($state->deposit['balance_due_at'] ?? null) ? __('commerce::payments.balance_due_by', ['date' => \Illuminate\Support\Carbon::parse($state->deposit['balance_due_at'])->translatedFormat('j F Y')]) : __('commerce::payments.balance_later') }}</dt><dd>{{ $money->format($state->totals['total'] - $deposit) }}</dd></div>
+    @endif
 </dl>

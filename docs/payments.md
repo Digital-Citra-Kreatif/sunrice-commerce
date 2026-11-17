@@ -13,6 +13,7 @@ Gateways come from extension packages.
 - [Cash on delivery](#cash-on-delivery)
 - [Fees](#fees)
 - [Deadlines](#deadlines)
+- [Deposits](#deposits)
 - [The pay page](#the-pay-page)
 - [Payment confirmations](#payment-confirmations)
 - [Marking an order paid](#marking-an-order-paid)
@@ -122,6 +123,51 @@ When an order is placed with a method, its `Payment` gets `expires_at` from `dea
   expired.
 - A rejected confirmation resumes the deadline, extended by the time it spent in review.
 
+## Deposits
+
+An order can be paid in two parts: a **deposit** at checkout, then the **balance** by a due date.
+Commerce has no deposit rule of its own. An extension asks for one from a calculation stage that
+runs after the totals (priority above 90) and sets `CalculationState::$deposit`:
+
+```php
+class RentalDeposit implements CalculationStage
+{
+    public function run(CalculationState $state): void
+    {
+        $state->deposit = [
+            'amount' => intdiv($state->totals['total'] * 30, 100), // paid at checkout
+            'balance_due_at' => '2026-12-08T00:00:00+07:00',        // or null
+            'label' => null,                                        // shown instead of "Pay now (deposit)"
+        ];
+    }
+}
+
+Commerce::registerCalculationStage(RentalDeposit::class, 95);
+```
+
+- The deposit counts only when it is more than 0 and less than the total
+  (`CalculationState::depositDue()`). It is part of the totals hash, and the cart and checkout
+  totals show it with the balance and its due date.
+- **Placing the order**: its payment is for the deposit (plus any unique code), with
+  `meta.part = deposit`. The order keeps `deposit_total` and `balance_due_at`. An unpaid deposit
+  expires like any payment and cancels the order.
+- **Deposit paid**: the order is **Partially paid** (`partially_paid`) and moves to Processing.
+  `paid_at` stays empty. `DepositPaid` fires and the customer gets "payment received", whose
+  summary shows what was paid and the balance. `OrderPaid` fires only once the total is paid.
+- **The balance** is paid on the pay page ("Pay the balance" on the order page): a new payment
+  for `total − paid_total` with the chosen method (`meta.part = balance`). Fees and unique codes
+  don't change once part is paid. If that payment expires, the order stays Partially paid and
+  open. Staff can also mark the order paid (`MarkOrderPaid` records the open payment, or the
+  balance).
+- **Reminders**: `commerce:tick` emails the customer `balance_reminder`
+  `checkout.balance_reminder_days` days before the due date (2 by default, 0 for none; Settings →
+  Checkout). Once the date passes unpaid, it records it on the timeline, emails staff
+  `staff_balance_overdue` and fires `BalanceOverdue`, once per order. Nothing is cancelled; staff
+  decide.
+- `Order::isPartiallyPaid()` and `Order::balanceDue()` read the state. While something is paid
+  and something is left, the payment status is Partially paid, whatever the balance payment is
+  doing. Refunds keep their own statuses.
+
 ## The pay page
 
 `/order/{key}/pay` (`commerce.order.pay`) lets the customer pay an unpaid order again or with
@@ -193,6 +239,7 @@ A `Payment` is one attempt to pay an order with a method:
 | --- | --- |
 | `pending` | Unpaid |
 | `awaiting_confirmation` | Awaiting confirmation |
+| `paid` (a deposit, the balance still due) | Partially paid |
 | `paid` | Paid |
 | `failed` | Failed |
 | `expired`, `cancelled` | Unpaid |

@@ -50,7 +50,22 @@
                     @endif
                 @endif
 
-                @if (($payment || ($payUrl ?? null)) && $order->isUnpaid() && $order->status !== $S::CANCELLED && $order->payment_method !== 'whatsapp')
+                @if ($order->isPartiallyPaid() && $order->status !== $S::CANCELLED)
+                    <div class="commerce-order__payment commerce-order__balance">
+                        <h2>{{ __('commerce::payments.pay_balance') }}</h2>
+                        <p>{{ $order->balance_due_at ? __('commerce::payments.balance_intro', ['amount' => $money->format($order->balanceDue()), 'date' => $order->balance_due_at->translatedFormat('j F Y')]) : __('commerce::payments.balance_intro_nodate', ['amount' => $money->format($order->balanceDue())]) }}</p>
+                        @if ($payment && in_array($payment->status, ['pending', 'awaiting_confirmation'], true))
+                            <p>{{ __('commerce::checkout.order.amount_due', ['amount' => $money->format($payment->amount)]) }}
+                                @if ($payment->expires_at) <strong class="commerce-order__deadline">{{ __('commerce::checkout.order.deadline', ['date' => $payment->expires_at->translatedFormat('j F Y H:i')]) }}</strong>@endif</p>
+                            @if ($instructionsView)
+                                @include($instructionsView, ['order' => $order, 'payment' => $payment])
+                            @endif
+                        @endif
+                        @if ($payUrl ?? null)
+                            <p><a href="{{ $payUrl }}" class="commerce-button">{{ __('commerce::payments.pay_balance') }}</a></p>
+                        @endif
+                    </div>
+                @elseif (($payment || ($payUrl ?? null)) && $order->isUnpaid() && $order->status !== $S::CANCELLED && $order->payment_method !== 'whatsapp')
                     <div class="commerce-order__payment">
                         <h2>{{ __('commerce::checkout.order.how_to_pay') }}</h2>
                         <p>{{ __('commerce::checkout.order.amount_due', ['amount' => $money->format($payment?->amount ?? $order->total)]) }}

@@ -632,6 +632,16 @@ set their own). While a payment confirmation awaits review, the deadline is paus
   - **Cash on delivery**: an optional extra fee, limited to chosen destinations and shipping
     methods. The order goes to Processing unpaid; staff mark it paid when the cash arrives.
 
+**Deposits**
+
+- An extension can ask for a deposit at checkout instead of the whole total, with a due date for
+  the balance (for example a rental: part now, the rest before the pickup day). The cart and
+  checkout show the deposit and the balance.
+- Once the deposit is paid, the order is Partially paid and is processed. The balance is paid on
+  the pay page with any available method, or marked paid by staff. Then the order is Paid.
+- The customer is reminded a set number of days before the balance is due (Settings → Checkout).
+  Staff are told when it passes unpaid. Nothing is cancelled automatically after the deposit.
+
 **Payment confirmation** (bank transfer and instructions methods)
 
 1. The customer submits a confirmation from the order page, from My Account, or from the public
@@ -1228,7 +1238,8 @@ Deliberately not used:
 - Subscriptions, memberships and gift cards; loyalty tiers and referral rewards.
 - Price-drop alerts.
 - Configurable bundles (customer-picked components), product add-ons and personalization fields,
-  deposits and installments.
+  installments (more than a deposit and a balance). Deposits themselves are in: an extension asks
+  for one, see Payments.
 - Exchanges, and refunds started from a return (they're recorded on the order).
 - Creating products from CSV (the import changes existing variants by SKU).
 - A headless/REST API (the MCP server and the Blade components are the interfaces); search engines
