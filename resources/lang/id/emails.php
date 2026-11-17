@@ -162,4 +162,16 @@ return [
         'intro' => 'Pembayaran untuk pesanan :number masuk setelah pesanan dibatalkan. Kembalikan dana pelanggan atau aktifkan kembali pesanan.',
         'action' => 'Buka pesanan',
     ],
+    'balance_reminder' => [
+        'subject' => 'Pelunasan pesanan :number',
+        'heading' => 'Pelunasan segera jatuh tempo',
+        'intro' => 'Pelunasan :balance untuk pesanan :number jatuh tempo :due_date.',
+        'action' => 'Bayar pelunasan',
+    ],
+    'staff_balance_overdue' => [
+        'subject' => 'Pelunasan :number lewat jatuh tempo',
+        'heading' => 'Pelunasan lewat jatuh tempo',
+        'intro' => 'Pelunasan :balance untuk pesanan :number jatuh tempo :due_date dan belum dibayar.',
+        'action' => 'Buka pesanan',
+    ],
 ];

@@ -4,6 +4,7 @@
 
 - **Shipping origins**: `Commerce::shippingOriginUsing()` lets an extension quote a cart's rates from another address than the store's (a branch); the order keeps it, `Order::shippingOrigin()` returns it for carriers. `Address` gains `latitude` and `longitude`.
 
+- **Deposits**: an extension's calculation stage can ask for a deposit (`CalculationState::$deposit`). The order is paid in two parts: the deposit at checkout, the balance on the pay page by `balance_due_at`. New payment status **Partially paid**, events `DepositPaid` and `BalanceOverdue`, emails `balance_reminder` and `staff_balance_overdue`, and the setting Checkout → "Remind of an unpaid balance". `OrderPaid` still fires once, when the total is paid. Run `php artisan migrate` (`commerce_orders.deposit_total`, `balance_due_at`). See [payments.md](docs/payments.md#deposits).
 - **A cart line is a variant and its meta.** `AddToCart::handle($variantId, $qty, $meta)` with other
   meta adds another line of the same variant (a rental on other dates, say); the same meta adds to
   its line. Lines without meta merge by variant as before. Stock and quantity rules count all of a

@@ -9,6 +9,7 @@ use Sunrice\Commerce\Customers\Events\AccountDeletionRequested;
 use Sunrice\Commerce\Digital\Events\DownloadsGranted;
 use Sunrice\Commerce\Inventory\Events\StockLow;
 use Sunrice\Commerce\Inventory\Events\StockOut;
+use Sunrice\Commerce\Orders\Events\DepositPaid;
 use Sunrice\Commerce\Orders\Events\OrderCancelled;
 use Sunrice\Commerce\Orders\Events\OrderCompleted;
 use Sunrice\Commerce\Orders\Events\OrderEdited;
@@ -47,6 +48,8 @@ class SendStoreEmails
                 $this->notifier->send('payment_received', $e->order);
             }
         });
+        // A deposit is a payment received too (the summary shows the balance and its due date).
+        $events->listen(DepositPaid::class, fn (DepositPaid $e) => $this->notifier->send('payment_received', $e->order));
         $events->listen(PaymentAfterCancellation::class, fn (PaymentAfterCancellation $e) => $this->notifier->send('staff_paid_after_cancel', $e->order));
         $events->listen(PaymentConfirmationSubmitted::class, function (PaymentConfirmationSubmitted $e): void {
             $this->notifier->send('payment_confirmation_received', $e->confirmation->order);

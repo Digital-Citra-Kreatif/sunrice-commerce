@@ -7,6 +7,7 @@ namespace Sunrice\Commerce\Checkout\Actions;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -57,6 +58,7 @@ use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Promotions\Vouchers\VoucherRedemptions;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Shipping\ShippingOrigins;
+use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Commerce\Support\Phone;
 use Sunrice\Commerce\Support\Staff;
 
@@ -302,9 +304,21 @@ class PlaceOrder
 
         if ($method !== null) {
             $deadline = $method->deadline($order);
+            // A deposit (set by a calculation stage) is paid now, the rest by balance_due_at.
+            $deposit = $state->depositDue();
+            if ($deposit !== null) {
+                $dueAt = isset($state->deposit['balance_due_at']) ? Carbon::parse((string) $state->deposit['balance_due_at']) : null;
+                $order->forceFill(['deposit_total' => $deposit + $uniqueCode, 'balance_due_at' => $dueAt])->save();
+                $money = app(MoneyFormatter::class);
+                $this->timeline->record($order, 'payment', Timeline::text('commerce::orders.timeline.deposit_asked', [
+                    'amount' => $money->format($order->deposit_total), 'balance' => $money->format($order->total - $order->deposit_total),
+                    'date' => $dueAt?->translatedFormat('j F Y') ?? '—',
+                ]), ['deposit' => $order->deposit_total], Actor::customer());
+            }
             Payment::query()->create([
                 'order_id' => $order->id, 'method' => $order->payment_method, 'method_title' => $order->payment_method_title,
-                'amount' => $order->total, 'currency' => $order->currency, 'status' => 'pending', 'expires_at' => $deadline,
+                'amount' => $deposit !== null ? $order->deposit_total : $order->total, 'currency' => $order->currency, 'status' => 'pending', 'expires_at' => $deadline,
+                'meta' => $deposit !== null ? ['part' => 'deposit'] : null,
             ]);
             $order->forceFill(['expires_at' => $deadline])->save();
         }
