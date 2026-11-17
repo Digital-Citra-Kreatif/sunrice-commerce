@@ -7,6 +7,7 @@
         @foreach ($order->items->whereNull('parent_id') as $item)
             <tr>
                 <td>{{ $item->title() }}
+                    @foreach ($item->details() as $detail)<br><span class="small muted">{{ $detail }}</span>@endforeach
                     @foreach ($item->children as $child)<br><span class="small muted">{{ $child->quantity }} × {{ $child->title() }}</span>@endforeach
                 </td>
                 <td>{{ $item->sku }}</td>

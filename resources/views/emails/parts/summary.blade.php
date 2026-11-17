@@ -3,7 +3,7 @@
 | {{ __('commerce::documents.item') }} | {{ __('commerce::documents.qty') }} | {{ __('commerce::documents.amount') }} |
 |:--|:-:|--:|
 @foreach ($order->items()->whereNull('parent_id')->get() as $item)
-| {{ $item->title() }} | {{ $item->quantity }} | {{ $money->format($item->subtotal) }} |
+| {{ $item->title() }}@foreach ($item->details() as $detail)<br>{{ $detail }}@endforeach | {{ $item->quantity }} | {{ $money->format($item->subtotal) }} |
 @endforeach
 @if ($order->discount_total > 0)
 | {{ __('commerce::documents.subtotal') }} | | {{ $money->format($order->subtotal) }} |
