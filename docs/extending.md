@@ -295,6 +295,21 @@ Commerce::orderNumberUsing(fn (?Order $order) => 'TK-'.now()->format('ymd').'-'.
 Commerce::registerOrderPanel('loyalty', 'Points', fn (Order $order) => ['earned' => …], 'commerce.orders.view');
 ```
 
+Limit which orders a staff member sees in the admin (a branch's staff, their branch's orders):
+
+```php
+Commerce::scopeAdminOrders(function (Builder $orders, Authenticatable $user): void {
+    if ($branch = BranchStaff::branchOf($user)) {
+        $orders->whereHas('items', …);   // narrow it as you need
+    }
+});
+```
+
+Every scope narrows the orders list and its export and bulk actions, the dashboard's recent orders,
+a customer's orders and the payment confirmations. An order outside it answers 404 on its own pages
+and actions (`Http\Middleware\ScopeAdminOrders`). Users no scope narrows see everything. Reports
+and the MCP tools aren't scoped: keep those permissions for staff who may see all orders.
+
 Change orders only through the actions (`Orders\Actions\*`) and `Orders\OrderStateMachine`, with an
 `Orders\Actor` (`Actor::system()`, `Actor::admin($user)`, `Actor::ai($user)`…): they validate, keep
 the timeline and dispatch the events.

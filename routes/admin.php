@@ -5,13 +5,14 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use Sunrice\Commerce\Admin\ShopNavigation;
 use Sunrice\Commerce\Http\Controllers\Admin;
+use Sunrice\Commerce\Http\Middleware\ScopeAdminOrders;
 
 /*
 | Shop admin pages, under Sunrice's admin path and middleware
 | (names sunrice.admin.commerce.*).
 */
 
-Route::prefix('commerce')->name('commerce.')->group(function (): void {
+Route::prefix('commerce')->name('commerce.')->middleware(ScopeAdminOrders::class)->group(function (): void {
     Route::get('/', Admin\DashboardController::class)->name('dashboard');
     Route::get('promotions', [ShopNavigation::class, 'promotions'])->name('promotions');
 
