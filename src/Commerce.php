@@ -244,6 +244,20 @@ class Commerce
         app(Orders\AdminOrderScopes::class)->register($scope);
     }
 
+    /**
+     * Say what a line's meta means, in a few short lines shown under it in the
+     * cart, at checkout, on the order page, in emails, documents and the admin.
+     * The closure gets the meta (a cart line's, or an order item's `meta.line`)
+     * and returns strings in the current language; return none for meta that
+     * isn't yours.
+     *
+     * @param  Closure(array<string, mixed>): iterable<mixed>  $describer
+     */
+    public function describeLinesUsing(Closure $describer): void
+    {
+        app(Cart\LineDetails::class)->register($describer);
+    }
+
     /** An email of a package's own, listed in Settings → Emails and sent with Notifier::send(). */
     public function registerEmail(Notifications\EmailDefinition $email): void
     {

@@ -31,6 +31,7 @@ The workbench has three working references: `workbench/app/Commerce/FakeGateway.
 - [Payments](#payments)
 - [Shipping](#shipping)
 - [Cart lines](#cart-lines): meta on a line
+- [Line details](#line-details): what a line's meta means
 - [Checkout](#checkout): fields, completions
 - [Orders](#orders): numbering, panels
 - [My Account pages](#my-account-pages)
@@ -230,6 +231,24 @@ app(AddToCart::class)->handle($variantId, 1, ['rental' => ['start' => '2026-12-0
 - Signing in merges a guest line into the line with the same variant and meta.
 - The meta reaches the calculation as `CalcLine->meta` and is kept on the order item as
   `meta.line`.
+## Line details
+
+Say what a line's meta means, in a few short lines shown under it in the cart, at checkout, on the
+order page, in emails, on invoices and in the admin's order page:
+
+```php
+Commerce::describeLinesUsing(function (array $meta): array {
+    if (! isset($meta['rental'])) {
+        return [];   // not ours
+    }
+
+    return [__('rental.line', ['from' => …, 'to' => …, 'branch' => …])];
+});
+```
+
+The closure gets a cart line's meta, or an order item's `meta.line`, and returns strings in the
+current language. A describer that throws is reported and skipped. `OrderItem::details()` and
+`LineDetails::for($meta)` read them.
 
 ## Checkout
 
@@ -454,6 +473,8 @@ are public properties.
 | `Orders\Events\OrderRefunded` | `Order $order, Refund $refund` |
 | `Orders\Events\ShipmentCreated`, `ShipmentDelivered` | `Order $order, Shipment $shipment` |
 | `Payments\Events\PaymentRecorded`, `PaymentSucceeded`, `PaymentFailed`, `PaymentExpired` | `Payment $payment, PaymentResult $result` |
+| `Orders\Events\DepositPaid` | `Order $order, Payment $payment` (the deposit; `OrderPaid` follows with the balance) |
+| `Orders\Events\BalanceOverdue` | `Order $order` (a deposit order's balance passed its due date unpaid; once) |
 | `Payments\Events\PaymentAfterCancellation` | `Payment $payment, PaymentResult $result, Order $order` (paid after the order was cancelled: no `OrderPaid`) |
 | `Payments\Events\PaymentConfirmationSubmitted`, `PaymentConfirmationApproved`, `PaymentConfirmationRejected` | `PaymentConfirmation $confirmation` |
 | `Reviews\Events\ReviewSubmitted` | `Review $review` (pending or approved, by the store's settings) |

@@ -35,4 +35,11 @@ return [
         'thanks' => 'Thank you! We will check your payment soon.',
         'captcha' => 'Please complete the captcha.',
     ],
+    'deposit_now' => 'Pay now (deposit)',
+    'balance_later' => 'Balance',
+    'balance_due_by' => 'Balance, due by :date',
+    'paid_so_far' => 'Paid',
+    'pay_balance' => 'Pay the balance',
+    'balance_intro' => 'Deposit received. The balance of :amount is due by :date.',
+    'balance_intro_nodate' => 'Deposit received. The balance of :amount is still due.',
 ];

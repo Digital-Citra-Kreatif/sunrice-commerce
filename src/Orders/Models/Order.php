@@ -52,6 +52,8 @@ use Sunrice\Commerce\Support\Address;
  * @property int $tax_total
  * @property int $total
  * @property int $paid_total
+ * @property int $deposit_total what was asked at checkout as a deposit; 0 when paid in full
+ * @property Carbon|null $balance_due_at
  * @property int $refunded_total
  * @property int $weight
  * @property string|null $customer_note
@@ -109,6 +111,8 @@ class Order extends Model
         'tax_total' => 'integer',
         'total' => 'integer',
         'paid_total' => 'integer',
+        'deposit_total' => 'integer',
+        'balance_due_at' => 'datetime',
         'refunded_total' => 'integer',
         'version' => 'integer',
     ];
@@ -187,6 +191,18 @@ class Order extends Model
     public function isPaid(): bool
     {
         return in_array($this->payment_status, [OrderStatus::PAID, OrderStatus::PARTIALLY_REFUNDED, OrderStatus::PAYMENT_REFUNDED], true);
+    }
+
+    /** A deposit was paid and the rest is still due. */
+    public function isPartiallyPaid(): bool
+    {
+        return $this->payment_status === OrderStatus::PARTIALLY_PAID;
+    }
+
+    /** What is left to pay: the total less what was paid (0 once paid in full). */
+    public function balanceDue(): int
+    {
+        return max(0, $this->total - $this->paid_total);
     }
 
     public function isUnpaid(): bool

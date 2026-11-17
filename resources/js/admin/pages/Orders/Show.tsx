@@ -77,6 +77,7 @@ export default function OrderShow(props: OrderPageProps) {
                                                 {item.product_href ? <Link href={adminUrl(item.product_href)} className="cm:hover:underline">{item.name}</Link> : item.name}
                                                 {item.variant_title && <span className="cm:text-muted-foreground"> · {item.variant_title}</span>}
                                             </p>
+                                            {item.details.map((detail) => <p key={detail} className="cm:text-sm">{detail}</p>)}
                                             <p className="cm:text-xs cm:text-muted-foreground">
                                                 {item.sku && <>SKU {item.sku} · </>}{item.price_source.label}
                                                 {item.requires_shipping && order.fulfillment_status !== 'not_required' && <> · shipped {item.fulfilled_quantity}/{item.quantity}</>}
@@ -102,6 +103,8 @@ export default function OrderShow(props: OrderPageProps) {
                                 <Row label="Total" value={order.totals.total} strong />
                                 {order.type === 'order' && <Row label="Paid" value={order.totals.paid} muted />}
                                 {order.totals.refunded && <Row label="Refunded" value={`−${order.totals.refunded}`} muted />}
+                                {order.totals.deposit && <Row label="Deposit asked" value={order.totals.deposit} muted />}
+                                {order.totals.balance && <Row label={order.totals.balance_due_at ? `Balance, due ${dateTime(order.totals.balance_due_at)}` : 'Balance'} value={order.totals.balance} />}
                             </dl>
                         </CardContent>
                     </Card>

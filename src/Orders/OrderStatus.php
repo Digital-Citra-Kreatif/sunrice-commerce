@@ -43,6 +43,9 @@ final class OrderStatus
 
     public const PAID = 'paid';
 
+    /** A deposit was paid; the balance is still due. */
+    public const PARTIALLY_PAID = 'partially_paid';
+
     public const PARTIALLY_REFUNDED = 'partially_refunded';
 
     public const PAYMENT_REFUNDED = 'refunded';
@@ -62,7 +65,7 @@ final class OrderStatus
 
     public const QUOTE_STATUSES = [self::REQUESTED, self::QUOTED, self::ACCEPTED, self::DECLINED, self::EXPIRED, self::CANCELLED];
 
-    public const PAYMENT_STATUSES = [self::UNPAID, self::AWAITING_CONFIRMATION, self::PAID, self::PARTIALLY_REFUNDED, self::PAYMENT_REFUNDED, self::PAYMENT_FAILED];
+    public const PAYMENT_STATUSES = [self::UNPAID, self::AWAITING_CONFIRMATION, self::PARTIALLY_PAID, self::PAID, self::PARTIALLY_REFUNDED, self::PAYMENT_REFUNDED, self::PAYMENT_FAILED];
 
     public const FULFILLMENT_STATUSES = [self::UNFULFILLED, self::PARTIALLY_SHIPPED, self::SHIPPED, self::NOT_REQUIRED];
 

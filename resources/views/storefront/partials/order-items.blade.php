@@ -5,6 +5,7 @@
         @foreach ($order->items->whereNull('parent_id') as $item)
             <tr>
                 <td>{{ $item->title() }}
+                    @foreach ($item->details() as $detail)<br><small class="commerce-order__detail">{{ $detail }}</small>@endforeach
                     @if ($item->children->isNotEmpty())
                         <ul class="commerce-order__components">@foreach ($item->children as $child)<li>{{ $child->quantity }} × {{ $child->title() }}</li>@endforeach</ul>
                     @endif

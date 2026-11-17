@@ -51,6 +51,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->scoped(Webhooks\Webhooks::class);
         $this->app->singleton(Storefront\Slots::class);
         $this->app->singleton(Orders\AdminOrderScopes::class);
+        $this->app->singleton(Cart\LineDetails::class);
         $this->app->singleton(Health\HealthRegistry::class);
         $this->app->singleton(Admin\Setup\SetupChecklist::class);
         $this->app->singleton(Admin\Dashboard\DashboardCards::class);
@@ -221,6 +222,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         Event::listen(Orders\Events\OrderPaid::class, Orders\Listeners\RecordSalesCount::class);
         Event::listen(Orders\Events\OrderRefunded::class, Orders\Listeners\RecordSalesCount::class);
         $this->app->make(Commerce::class)->onTick('order expiry', fn () => (new Orders\Expiry)());
+        $this->app->make(Commerce::class)->onTick('balances', fn () => commerce_feature('payments') ? (new Orders\Balances)() : 0);
         $this->app->make(Commerce::class)->onTick('shipment tracking', fn () => $this->app->make(Shipping\ShipmentTracker::class)());
         RateLimiter::for('commerce-confirm', fn (Request $request) => Limit::perHour(10)->by((string) $request->input('order').'|'.$request->ip()));
         // Personal data with a shelf life: IP addresses (and user agents) on orders, downloads and confirmations.
