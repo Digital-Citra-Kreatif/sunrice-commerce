@@ -224,6 +224,8 @@ class CommerceServiceProvider extends PackageServiceProvider
         Event::listen(Orders\Events\OrderPaid::class, Orders\Listeners\RecordSalesCount::class);
         Event::listen(Orders\Events\OrderRefunded::class, Orders\Listeners\RecordSalesCount::class);
         $this->app->make(Commerce::class)->onTick('order expiry', fn () => (new Orders\Expiry)());
+        $this->app->make(Commerce::class)->onTick('release retries', fn () => (new Orders\ReleaseRetries)());
+        $this->app->make(Commerce::class)->onTick('confirmation reminders', fn () => commerce_feature('manual_payments') ? (new Payments\ConfirmationReminders)() : 0);
         $this->app->make(Commerce::class)->onTick('balances', fn () => commerce_feature('payments') ? (new Orders\Balances)() : 0);
         $this->app->make(Commerce::class)->onTick('shipment tracking', fn () => $this->app->make(Shipping\ShipmentTracker::class)());
         RateLimiter::for('commerce-confirm', fn (Request $request) => Limit::perHour(10)->by((string) $request->input('order').'|'.$request->ip()));

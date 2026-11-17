@@ -120,7 +120,9 @@ When an order is placed with a method, its `Payment` gets `expires_at` from `dea
   order and releases its stock, sale quantities and voucher uses (see
   [orders.md](orders.md#expiry-of-unpaid-orders)).
 - While a payment confirmation awaits review, the payment is `awaiting_confirmation` and is not
-  expired.
+  expired: the customer has paid, as far as anyone knows. After `checkout.confirmation_reminder_hours`
+  (24 by default; Settings → Checkout; 0 for never), `commerce:tick` sends staff the "payment
+  confirmation to verify" email again, once, and notes it on the timeline.
 - A rejected confirmation resumes the deadline, extended by the time it spent in review.
 
 ## Deposits

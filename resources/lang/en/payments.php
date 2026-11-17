@@ -42,4 +42,5 @@ return [
     'pay_balance' => 'Pay the balance',
     'balance_intro' => 'Deposit received. The balance of :amount is due by :date.',
     'balance_intro_nodate' => 'Deposit received. The balance of :amount is still due.',
+    'confirmation_waiting' => 'Payment confirmation still waiting for review after :hours hours: staff reminded',
 ];

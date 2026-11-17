@@ -27,6 +27,7 @@ use Sunrice\Commerce\Orders\Models\Order;
  * @property string $status submitted | approved | rejected
  * @property int|null $reviewed_by
  * @property Carbon|null $reviewed_at
+ * @property Carbon|null $reminded_at
  * @property string|null $review_note
  * @property string|null $ip_address
  * @property Carbon|null $created_at
@@ -39,7 +40,7 @@ class PaymentConfirmation extends Model
 
     protected $guarded = [];
 
-    protected $casts = ['destination' => 'array', 'transferred_at' => 'date', 'reviewed_at' => 'datetime', 'amount' => 'integer'];
+    protected $casts = ['destination' => 'array', 'transferred_at' => 'date', 'reviewed_at' => 'datetime', 'reminded_at' => 'datetime', 'amount' => 'integer'];
 
     /** @return BelongsTo<Order, $this> */
     public function order(): BelongsTo

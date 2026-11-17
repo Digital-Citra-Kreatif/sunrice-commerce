@@ -42,4 +42,5 @@ return [
     'pay_balance' => 'Bayar pelunasan',
     'balance_intro' => 'DP sudah diterima. Pelunasan :amount paling lambat :date.',
     'balance_intro_nodate' => 'DP sudah diterima. Pelunasan :amount belum dibayar.',
+    'confirmation_waiting' => 'Konfirmasi pembayaran belum diperiksa setelah :hours jam: staf diingatkan',
 ];
