@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **A cart line is a variant and its meta.** `AddToCart::handle($variantId, $qty, $meta)` with other
+  meta adds another line of the same variant (a rental on other dates, say); the same meta adds to
+  its line. Lines without meta merge by variant as before. Stock and quantity rules count all of a
+  variant's lines, and signing in merges by variant and meta. Run `php artisan migrate`
+  (`commerce_cart_items.line_key`).
 - **Line details**: `Commerce::describeLinesUsing()` turns a line's meta into short lines shown under it in the cart, at checkout, on the order page, in emails, on documents and in the admin (`OrderItem::details()`).
 
 ## 0.2.0 (2026-11-07)

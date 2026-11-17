@@ -30,6 +30,7 @@ The workbench has three working references: `workbench/app/Commerce/FakeGateway.
 - [Pricing](#pricing): price candidates, discounts, shipping discounts, fees, stages
 - [Payments](#payments)
 - [Shipping](#shipping)
+- [Cart lines](#cart-lines): meta on a line
 - [Line details](#line-details): what a line's meta means
 - [Checkout](#checkout): fields, completions
 - [Orders](#orders): numbering, panels
@@ -214,6 +215,22 @@ types are cached for ten minutes per request.
   number. Commerce doesn't call it yet: call it from your own admin action or listener
   (`ShipmentCreated`).
 
+## Cart lines
+
+A cart line is a variant **and its meta**. A package can add a line with meta (a rental's dates, an
+engraving) through `AddToCart`:
+
+```php
+app(AddToCart::class)->handle($variantId, 1, ['rental' => ['start' => '2026-12-01', 'end' => '2026-12-03']]);
+```
+
+- The same variant with the same meta (keys in any order) adds to that line; with other meta it's a
+  new line. Lines without meta merge by variant, as before. `CartItem::lineKey($meta)` is the hash
+  that tells them apart (`line_key`, `''` without meta).
+- Stock and quantity rules count every line of the variant together.
+- Signing in merges a guest line into the line with the same variant and meta.
+- The meta reaches the calculation as `CalcLine->meta` and is kept on the order item as
+  `meta.line`.
 ## Line details
 
 Say what a line's meta means, in a few short lines shown under it in the cart, at checkout, on the
