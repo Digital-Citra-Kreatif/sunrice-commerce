@@ -41,9 +41,9 @@ class Reviews extends Component
 
     public ?HtmlString $captcha = null;
 
-    public function __construct(Entry|EntryTranslation $entry)
+    public function __construct(Entry|EntryTranslation $entry, ?Product $projectedProduct = null)
     {
-        $this->product = Product::query()->where('entry_id', LiveEntries::id($entry))->first();
+        $this->product = $projectedProduct ?? Product::query()->where('entry_id', LiveEntries::id($entry))->first();
         if (! $this->shouldRender() || $this->product === null) {
             return;
         }

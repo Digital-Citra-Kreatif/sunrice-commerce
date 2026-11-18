@@ -20,9 +20,9 @@ class CompareButton extends Component
 
     public bool $added;
 
-    public function __construct(Entry|EntryTranslation $entry)
+    public function __construct(Entry|EntryTranslation $entry, ?Product $projectedProduct = null)
     {
-        $this->productId = Product::query()->where('entry_id', LiveEntries::id($entry))->value('id');
+        $this->productId = $projectedProduct->id ?? Product::query()->where('entry_id', LiveEntries::id($entry))->value('id');
         $this->added = $this->productId !== null && app(CompareList::class)->has($this->productId);
     }
 

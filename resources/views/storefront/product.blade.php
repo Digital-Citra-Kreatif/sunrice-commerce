@@ -12,6 +12,7 @@
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
 @php($product = commerce_product($entry))
+@php($projectedProduct = $product && ! \Sunrice\Commerce\Catalog\LiveEntries::previewing($product->entry) ? $product->product : null)
 
 @push('head')
     @if ($product)
@@ -72,8 +73,8 @@
             <x-commerce::product :entry="$entry" />
             <x-commerce::slot name="product.after_add_to_cart" :entry="$entry" />
             <div class="commerce-product__actions">
-                <x-commerce::wishlist-button :entry="$entry" />
-                <x-commerce::compare-button :entry="$entry" />
+                <x-commerce::wishlist-button :entry="$entry" :projected-product="$projectedProduct" />
+                <x-commerce::compare-button :entry="$entry" :projected-product="$projectedProduct" />
             </div>
             @if ($product)
                 @include($L::view('partials.product-extras'))
@@ -114,7 +115,7 @@
                 @include($L::view('partials.inquiry-form'))
             </section>
         @endif
-        <x-commerce::reviews :entry="$entry" />
+        <x-commerce::reviews :entry="$entry" :projected-product="$projectedProduct" />
         @foreach (['upsells' => __('commerce::storefront.theme.upsells'), 'related_products' => __('commerce::storefront.product.related')] as $field => $heading)
             @php($items = collect(commerce_values($entry)[$field] ?? [])->filter())
             @if ($items->isNotEmpty())
