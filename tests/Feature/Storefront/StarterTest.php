@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Env;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
@@ -23,6 +24,7 @@ use Sunrice\Commerce\Regions\RegionImporter;
 use Sunrice\Commerce\Reviews\Models\Review;
 use Sunrice\Commerce\Storefront\Templates;
 use Workbench\App\Models\User;
+use Workbench\Database\Seeders\LoadTestSeeder;
 
 /*
  * The starter theme (commerce:install --starter) and its demo store
@@ -68,6 +70,31 @@ it('seeds the starter store once, however often it runs', function () {
         ->and(User::query()->where('email', StarterStoreSeeder::CUSTOMER_EMAIL)->exists())->toBeTrue()
         ->and($first[10])->toBe(5)->and(Review::query()->whereNotNull('order_id')->count())->toBe(2)
         ->and(Product::query()->where('rating_count', '>', 0)->count())->toBe(4);
+});
+
+it('fills the load test fixtures on top of the starter store and can be rerun', function () {
+    starterStore();
+    $sizes = ['LOADTEST_PRODUCTS' => '6', 'LOADTEST_CUSTOMERS' => '3', 'LOADTEST_ORDERS' => '2'];
+    $env = Env::getRepository();
+    $previous = array_map(fn (string $key) => $env->get($key), array_keys($sizes));
+    foreach ($sizes as $key => $value) {
+        $env->set($key, $value);
+    }
+
+    $counts = fn () => [Product::query()->count(), Customer::query()->count(), Order::query()->count()];
+    [$products, $customers, $orders] = $counts();
+    try {
+        app(LoadTestSeeder::class)->run();
+        // The starter's demo user already has a customer record.
+        expect($counts())->toBe([$products + 6, $customers + 2, $orders + 2]);
+
+        app(LoadTestSeeder::class)->run();
+        expect($counts())->toBe([$products + 6, $customers + 2, $orders + 2]);
+    } finally {
+        foreach (array_combine(array_keys($sizes), $previous) as $key => $value) {
+            $value === null ? $env->clear($key) : $env->set($key, $value);
+        }
+    }
 });
 
 it('renders every starter page with the demo data', function () {

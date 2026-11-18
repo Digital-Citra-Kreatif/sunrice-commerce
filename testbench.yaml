@@ -37,6 +37,7 @@ workbench:
         --seed: true
         --seeder: Workbench\Database\Seeders\DatabaseSeeder
   assets:
+    - sunrice-admin-assets
     - sunrice-cms-assets
     - commerce-assets
 
