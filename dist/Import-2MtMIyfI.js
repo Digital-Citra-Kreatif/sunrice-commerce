@@ -1,12 +1,27 @@
-import { i as N, a as k, b as l, j as t, c, P as y, d as v } from "./main-Copg5bmt.js";
-import { I as C } from "./InputError-DXGDl4oq.js";
-const d = (r) => r === null || r === "" ? "—" : typeof r == "boolean" ? r ? "yes" : "no" : String(r);
-function P(r) {
-  const { Button: o, Input: g, Label: f } = v, { useForm: b, router: w, Link: x } = N;
+import { i as w, a as k, b as l, j as t, c, P as y, d as v } from "./main-DazQ07mz.js";
+import { I as C } from "./InputError-Qx9GkfJR.js";
+const h = (r) => r === null || r === "" ? "—" : typeof r == "boolean" ? r ? "yes" : "no" : String(r);
+function I(r) {
+  const { Button: o, Input: g, Label: f } = v, { useForm: b, router: N, Link: x } = w;
   k([{ label: "Shop", href: l("commerce") }, { label: "Products", href: l("commerce/products") }, { label: "Import" }]);
-  const a = b({ file: null, create: !1, publish: !1 }), i = r.preview ?? [], n = i.filter((e) => e.error === null && e.create), m = new Set(n.map((e) => e.create.product.toLowerCase())).size, s = i.filter((e) => e.error === null && (Object.keys(e.changes).length > 0 || e.create)), h = i.filter((e) => e.error !== null);
+  const a = b({ file: null, create: !1, publish: !1 }), i = r.preview ?? [], s = i.filter((e) => e.error === null && e.create), d = new Set(s.map((e) => e.create.product.toLowerCase())).size, n = i.filter((e) => e.error === null && (Object.keys(e.changes).length > 0 || e.create)), p = i.filter((e) => e.error !== null);
   return /* @__PURE__ */ t("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6 cm:max-w-5xl", children: [
     /* @__PURE__ */ c(y, { title: "Import products", description: "Change prices, stock and more from a CSV: rows are matched by SKU, and blank cells keep the value." }),
+    r.result && /* @__PURE__ */ t("section", { className: "cm:grid cm:gap-2 cm:rounded-lg cm:border cm:p-4", "aria-labelledby": "import-result-title", children: [
+      /* @__PURE__ */ c("h2", { id: "import-result-title", className: "cm:font-semibold", children: "Import results" }),
+      /* @__PURE__ */ t("p", { className: "cm:text-sm", children: [
+        r.result.summary,
+        " Some changes were skipped."
+      ] }),
+      /* @__PURE__ */ c("ul", { className: "cm:list-disc cm:space-y-1 cm:pl-5 cm:text-sm", children: r.result.skipped.map((e, m) => /* @__PURE__ */ t("li", { children: [
+        "Line ",
+        e.line,
+        " · ",
+        /* @__PURE__ */ c("strong", { children: e.sku }),
+        " · ",
+        e.reason
+      ] }, m)) })
+    ] }),
     /* @__PURE__ */ t("form", { className: "cm:grid cm:max-w-xl cm:gap-3", onSubmit: (e) => {
       e.preventDefault(), a.post(l("commerce/products/import"), { forceFormData: !0 });
     }, children: [
@@ -57,11 +72,11 @@ function P(r) {
     ] }),
     r.preview !== null && /* @__PURE__ */ t("section", { className: "cm:grid cm:gap-3", "aria-labelledby": "preview-title", children: [
       /* @__PURE__ */ t("h2", { id: "preview-title", className: "cm:text-lg cm:font-semibold", children: [
-        s.length - n.length,
+        n.length - s.length,
         " ",
-        s.length - n.length === 1 ? "variant changes" : "variants change",
-        m > 0 ? `, ${m} new ${m === 1 ? "product" : "products"} (${n.length} ${n.length === 1 ? "variant" : "variants"})` : "",
-        h.length > 0 ? `, ${h.length} rows can't be used` : ""
+        n.length - s.length === 1 ? "variant changes" : "variants change",
+        d > 0 ? `, ${d} new ${d === 1 ? "product" : "products"} (${s.length} ${s.length === 1 ? "variant" : "variants"})` : "",
+        p.length > 0 ? `, ${p.length} rows can't be used` : ""
       ] }),
       /* @__PURE__ */ c("div", { className: "cm:overflow-x-auto cm:rounded-lg cm:border", children: /* @__PURE__ */ t("table", { className: "cm:w-full cm:text-sm", children: [
         /* @__PURE__ */ c("thead", { children: /* @__PURE__ */ t("tr", { className: "cm:border-b cm:text-left", children: [
@@ -77,23 +92,23 @@ function P(r) {
           /* @__PURE__ */ c("td", { className: "cm:p-2", children: e.error !== null ? /* @__PURE__ */ c("span", { className: "cm:text-destructive", children: e.error }) : e.create ? /* @__PURE__ */ t("span", { children: [
             /* @__PURE__ */ c("strong", { children: "New" }),
             " · price ",
-            d(e.create.price),
+            h(e.create.price),
             e.create.stock !== null ? ` · stock ${e.create.stock}` : ""
-          ] }) : /* @__PURE__ */ c("ul", { children: Object.entries(e.changes).map(([p, u]) => /* @__PURE__ */ t("li", { children: [
-            p,
+          ] }) : /* @__PURE__ */ c("ul", { children: Object.entries(e.changes).map(([m, u]) => /* @__PURE__ */ t("li", { children: [
+            m,
             ": ",
-            d(u.from),
+            h(u.from),
             " → ",
-            /* @__PURE__ */ c("strong", { children: d(u.to) })
-          ] }, p)) }) })
+            /* @__PURE__ */ c("strong", { children: h(u.to) })
+          ] }, m)) }) })
         ] }, e.line)) })
       ] }) }),
       /* @__PURE__ */ t("div", { className: "cm:flex cm:gap-2", children: [
-        /* @__PURE__ */ t(o, { type: "button", disabled: s.length === 0, onClick: () => w.post(l("commerce/products/import/apply"), { token: r.token }), children: [
+        /* @__PURE__ */ t(o, { type: "button", disabled: n.length === 0, onClick: () => N.post(l("commerce/products/import/apply"), { token: r.token }), children: [
           "Apply ",
-          s.length,
+          n.length,
           " ",
-          s.length === 1 ? "change" : "changes"
+          n.length === 1 ? "change" : "changes"
         ] }),
         /* @__PURE__ */ c(o, { asChild: !0, variant: "outline", children: /* @__PURE__ */ c(x, { href: l("commerce/products"), children: "Cancel" }) })
       ] })
@@ -101,5 +116,5 @@ function P(r) {
   ] });
 }
 export {
-  P as default
+  I as default
 };

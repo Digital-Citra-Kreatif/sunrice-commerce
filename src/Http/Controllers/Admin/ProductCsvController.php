@@ -43,7 +43,10 @@ class ProductCsvController extends Controller
     {
         abort_if($this->collections($request, 'update') === [], 403);
 
+        $report = $request->query('report');
+
         return Inertia::render('Commerce/Products/Import', [
+            'result' => is_string($report) && preg_match('/^[a-zA-Z0-9]{40}$/D', $report) ? Cache::get(self::key($request, $report).':result') : null,
             'columns' => ProductCsv::COLUMNS, 'changeable' => ProductCsv::CHANGEABLE, 'maxRows' => ProductCsv::MAX_ROWS,
             'canAdjustStock' => $request->user()->can('commerce.inventory.adjust'), 'canCreate' => $this->mayCreate($request),
             'preview' => null, 'token' => null,
@@ -77,16 +80,24 @@ class ProductCsvController extends Controller
     {
         abort_if($this->collections($request, 'update') === [], 403);
         $data = $request->validate(['token' => ['required', 'string', 'size:40']]);
-        $preview = Cache::pull(self::key($request, $data['token']));
+        $key = self::key($request, $data['token']);
+        $preview = Cache::lock($key.':apply', 10)->get(fn () => Cache::pull($key));
         $rows = is_array($preview) ? ($preview['rows'] ?? null) : null;
         if (! is_array($rows)) {
             return redirect()->route('sunrice.admin.commerce.products.import')->withErrors(['file' => 'That preview has expired: upload the file again.']);
         }
-        $count = $csv->apply($rows, $request->user());
+        $result = $csv->applyWithReport($rows, $request->user());
+        $count = $result['updated'];
         $created = app(ProductCsvCreator::class)->create($rows, $request->user(), (bool) ($preview['publish'] ?? false));
         $message = $count === 1 ? '1 variant updated.' : "{$count} variants updated.";
         if ($created > 0) {
             $message .= ' '.($created === 1 ? '1 product created.' : "{$created} products created.");
+        }
+
+        if ($result['skipped'] !== []) {
+            Cache::put($key.':result', ['summary' => $message, 'skipped' => $result['skipped']], now()->addHour());
+
+            return redirect()->route('sunrice.admin.commerce.products.import', ['report' => $data['token']]);
         }
 
         return redirect()->route('sunrice.admin.commerce.products')->with('success', $message);

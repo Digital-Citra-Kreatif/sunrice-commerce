@@ -4,12 +4,13 @@ import { InputError } from '../../components/InputError';
 
 interface Change { from: string | number | boolean | null; to: string | number | boolean | null }
 interface NewProduct { product: string; variant: string; option: string; price: number; stock: number | null; category: number | null }
+interface ImportResult { summary: string; skipped: { line: number; sku: string; reason: string }[] }
 interface PreviewRow { line: number; sku: string; product: string; changes: Record<string, Change>; create?: NewProduct | null; error: string | null }
 
 const show = (value: Change['from']) => (value === null || value === '' ? '—' : typeof value === 'boolean' ? (value ? 'yes' : 'no') : String(value));
 
 /** Shop → Products → Import: upload a CSV, see what it changes, apply. */
-export default function ProductsImport(props: { columns: string[]; changeable: string[]; maxRows: number; canAdjustStock: boolean; canCreate?: boolean; preview: PreviewRow[] | null; token: string | null }) {
+export default function ProductsImport(props: { columns: string[]; changeable: string[]; maxRows: number; canAdjustStock: boolean; canCreate?: boolean; preview: PreviewRow[] | null; token: string | null; result?: ImportResult | null }) {
     const { Button, Input, Label } = ui;
     const { useForm, router, Link } = inertia;
     useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Products', href: adminUrl('commerce/products') }, { label: 'Import' }]);
@@ -23,6 +24,17 @@ export default function ProductsImport(props: { columns: string[]; changeable: s
     return (
         <div className="cm:flex cm:min-w-0 cm:flex-col cm:gap-6 cm:max-w-5xl">
             <PageHeader title="Import products" description="Change prices, stock and more from a CSV: rows are matched by SKU, and blank cells keep the value." />
+            {props.result && (
+                <section className="cm:grid cm:gap-2 cm:rounded-lg cm:border cm:p-4" aria-labelledby="import-result-title">
+                    <h2 id="import-result-title" className="cm:font-semibold">Import results</h2>
+                    <p className="cm:text-sm">{props.result.summary} Some changes were skipped.</p>
+                    <ul className="cm:list-disc cm:space-y-1 cm:pl-5 cm:text-sm">
+                        {props.result.skipped.map((row, index) => (
+                            <li key={index}>Line {row.line} · <strong>{row.sku}</strong> · {row.reason}</li>
+                        ))}
+                    </ul>
+                </section>
+            )}
             <form className="cm:grid cm:max-w-xl cm:gap-3" onSubmit={(e) => { e.preventDefault(); upload.post(adminUrl('commerce/products/import'), { forceFormData: true }); }}>
                 <Label htmlFor="import-file">CSV file</Label>
                 <Input id="import-file" type="file" accept=".csv,text/csv" aria-describedby="import-help"

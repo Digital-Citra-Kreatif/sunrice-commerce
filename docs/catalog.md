@@ -609,6 +609,9 @@ It prints each failure and exits with an error code when any failed.
   above the price) before **Apply**; a cell the export wrote with a leading apostrophe (so a
   spreadsheet doesn't read `-2` as a formula) is read without it; the changes go into the
   product field's live value and its draft, as the bulk actions do. Up to 5,000 rows.
+  Apply compares the current values with the preview under a database lock. If a regular order,
+  stock adjustment, or another edit changes a value after the preview, the affected row is skipped
+  and the import page explains which SKU needs a fresh preview.
 - **Creating products by import**: with **Create products for SKUs no product has** ticked (for
   users who may create products), a row whose SKU no product has and that names a `product` is a
   new product. Rows with the same `product` are one product; `variant` names each one's option

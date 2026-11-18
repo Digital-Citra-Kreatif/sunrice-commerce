@@ -8,6 +8,7 @@ use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\Models\StockMovement;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Catalog\ProductProjector;
+use Sunrice\Commerce\Contracts\Inventory;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 
 beforeEach(function () {
@@ -48,6 +49,48 @@ it('previews the changes a CSV makes, then applies them', function () {
         ->and(StockMovement::query()->latest('id')->first())->reason->toBe('import');
 
     $this->post('/admin/commerce/products/import/apply', ['token' => $page->viewData('page')['props']['token']])->assertSessionHasErrors('file');
+});
+
+it('skips a stale stock row after a reservation and keeps changes to other variants', function () {
+    actingAsUserWith(["cms.entries.{$this->collection}.update", 'commerce.inventory.adjust']);
+    $this->mug->update(['stock_quantity' => 1]);
+    publishProduct(['variants' => [['id' => 'other', 'sku' => 'OTHER', 'price' => 30000]]], title: 'Other');
+    $token = $this->post('/admin/commerce/products/import', [
+        'file' => csvUpload("sku,price,stock\nMUG,45000,12\nOTHER,25000,\n"),
+    ])->viewData('page')['props']['token'];
+
+    app(Inventory::class)->reserve([[$this->mug, 1]]);
+
+    $report = "/admin/commerce/products/import?report={$token}";
+    $this->post('/admin/commerce/products/import/apply', ['token' => $token])->assertRedirect($report);
+    $this->get($report)->assertInertia(fn ($page) => $page
+        ->where('result.summary', '1 variant updated.')
+        ->where('result.skipped.0.line', 2)
+        ->where('result.skipped.0.sku', 'MUG')
+        ->where('result.skipped.0.reason', 'The stock changed since preview. Preview the file again.'));
+    expect($this->mug->fresh())->price->toBe(50000)->stock_quantity->toBe(0)
+        ->and(Variant::query()->where('sku', 'OTHER')->firstOrFail()->price)->toBe(25000)
+        ->and(StockMovement::query()->where('variant_id', $this->mug->id)->where('reason', 'import')->exists())->toBeFalse();
+
+    actingAsUserWith(["cms.entries.{$this->collection}.update"], 'other@example.com');
+    $this->get($report)->assertInertia(fn ($page) => $page->where('result', null));
+});
+
+it('rechecks the compare-at price when a different field changed after preview', function () {
+    actingAsUserWith(["cms.entries.{$this->collection}.update"]);
+    $this->mug->update(['compare_at_price' => 70000]);
+    $token = $this->post('/admin/commerce/products/import', [
+        'file' => csvUpload("sku,price\nMUG,65000\n"),
+    ])->viewData('page')['props']['token'];
+
+    $this->mug->update(['compare_at_price' => 60000]);
+
+    $report = "/admin/commerce/products/import?report={$token}";
+    $this->post('/admin/commerce/products/import/apply', ['token' => $token])->assertRedirect($report);
+    $this->get($report)->assertInertia(fn ($page) => $page
+        ->where('result.summary', '0 variants updated.')
+        ->where('result.skipped.0.reason', 'The compare-at price must be above the current price. Preview the file again.'));
+    expect($this->mug->fresh())->price->toBe(50000)->compare_at_price->toBe(60000);
 });
 
 it('refuses bad values and stock changes without the permission', function () {
@@ -109,7 +152,11 @@ it('checks the stock permission again when a preview is applied', function () {
 
     $user->roles->first()->revokePermissionTo('commerce.inventory.adjust');
     app(PermissionRegistrar::class)->forgetCachedPermissions();
-    $this->actingAs($user->fresh(), 'web')->post('/admin/commerce/products/import/apply', ['token' => $token])->assertRedirect('/admin/commerce/products');
+    $report = "/admin/commerce/products/import?report={$token}";
+    $this->actingAs($user->fresh(), 'web')->post('/admin/commerce/products/import/apply', ['token' => $token])->assertRedirect($report);
+    $this->get($report)->assertInertia(fn ($page) => $page
+        ->where('result.summary', '1 variant updated.')
+        ->where('result.skipped.0.reason', 'Stock was skipped because inventory is off or you no longer have permission.'));
 
     expect($this->mug->fresh())->price->toBe(45000)->stock_quantity->toBe(5);
 });
