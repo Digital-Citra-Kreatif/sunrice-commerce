@@ -376,8 +376,10 @@ attributes:
 - **Checkout refresh** (`[data-commerce-checkout]`): on every change (except password, notes and
   terms) it posts the form to `/checkout/refresh` and replaces the shipping rates, payment methods
   and summary. It shows and hides the parts behind toggles (billing address, dropship), hides
-  the shipping address for pickup rates, fills the address from a saved one, and hides the "Update
-  shipping" button that works without it.
+  the shipping address for pickup rates, fills the address from a saved one, and provides a status message near the submit button. It keeps
+  the latest selection when requests overlap and offers a retry or the regular "Update shipping"
+  form when refreshing fails. Theme overrides can include the `data-commerce-checkout-status`
+  and `data-commerce-checkout-retry` elements from the default checkout template.
 - **Copy buttons** (`[data-commerce-copy-button]`): copy the `data-commerce-copy` value next to them
   (amounts, account numbers) to the clipboard.
 - **Gallery**: when the variant picker picks a variant with its own image, that image replaces the

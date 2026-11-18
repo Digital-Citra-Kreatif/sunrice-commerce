@@ -30,6 +30,19 @@ it('shows the sections and the rates for the saved address', function () {
     expect($cart->fresh()->checkout['started_at'])->not->toBeNull();
 });
 
+it('labels the total as estimated until a shipping method is selected', function () {
+    cartWith([[$this->mug, 1]]);
+
+    $this->get('/checkout')->assertOk()
+        ->assertSee('Estimasi total')
+        ->assertSee('Pilih metode pengiriman')
+        ->assertSee('data-commerce-checkout-status', false);
+
+    $result = $this->withCredentials()->postJson('/checkout/refresh', checkoutInput())->assertOk()->json();
+
+    expect($result['summary'])->toContain('Rp60.000')->not->toContain('Estimasi total');
+});
+
 it('refreshes rates and totals as JSON when the address changes', function () {
     cartWith([[$this->mug, 1]]);
     $input = checkoutInput(['shipping_rate' => null]);

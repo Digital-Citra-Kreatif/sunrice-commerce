@@ -171,6 +171,12 @@
                 @include($L::view('partials.field-error'), ['name' => 'terms'])
             @endif
             <x-commerce::slot name="checkout.before_submit" />
+            <p role="status" class="commerce-checkout__status" data-commerce-checkout-status
+                data-updating="{{ __('commerce::checkout.refresh.updating') }}"
+                data-updated="{{ __('commerce::checkout.refresh.updated') }}"
+                data-failed="{{ __('commerce::checkout.refresh.failed') }}"
+                data-submitting="{{ __('commerce::checkout.refresh.submitting') }}"></p>
+            <button type="button" class="commerce-button commerce-button--secondary" data-commerce-checkout-retry hidden>{{ __('commerce::checkout.refresh.retry') }}</button>
             <button type="submit" name="action" value="place" class="commerce-button commerce-button--accent commerce-button--block commerce-checkout__submit">{{ $submitLabel }}</button>
             </div>
             </div>

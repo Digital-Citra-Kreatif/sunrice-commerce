@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Checkout labels totals as estimated before shipping is selected, preserves the latest selections while refreshing, and offers a retry if the refresh fails.
+
 - **The product import can create products**: tick "Create products for SKUs no product has" and rows with new SKUs and a `product` title become products (rows with the same title one product with variants by `variant`, named by `option`; `category` by name or slug), as drafts or published.
 - **Nothing stays held after a cancellation**: if giving back a cancelled order's stock, sale quantities, vouchers or extension reservations fails, `commerce:tick` tries again (30 days). **Confirmations waiting for review** are sent to staff again after `checkout.confirmation_reminder_hours` (24). Run `php artisan migrate` (`commerce_payment_confirmations.reminded_at`).
 

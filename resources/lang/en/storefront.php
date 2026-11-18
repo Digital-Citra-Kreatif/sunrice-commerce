@@ -99,6 +99,7 @@ return [
         'tax_included' => 'Includes :amount tax',
         'fee' => 'Fees',
         'total' => 'Total',
+        'estimated_total' => 'Estimated total',
         'items' => '{1} :count item|[2,*] :count items',
         'cross_sells' => 'You may also need',
         'view_cart' => 'View cart',

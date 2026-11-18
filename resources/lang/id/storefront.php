@@ -99,6 +99,7 @@ return [
         'tax_included' => 'Termasuk pajak :amount',
         'fee' => 'Biaya',
         'total' => 'Total',
+        'estimated_total' => 'Estimasi total',
         'items' => '{1} :count barang|[2,*] :count barang',
         'cross_sells' => 'Mungkin Anda juga perlu',
         'view_cart' => 'Lihat keranjang',

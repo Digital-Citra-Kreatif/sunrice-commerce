@@ -65,31 +65,120 @@
             var address = form.querySelector('[data-commerce-shipping-address]');
             if (address) address.hidden = !!(rate && rate.dataset.pickup === '1');
         }
-        var timer = null;
+        var timer;
+        var revision = 0;
+        var refreshing = false;
+        var pending = false;
+        var failed = false;
+        var submitting = false;
+        var update = form.querySelector('[data-commerce-update]');
+        var submit = form.querySelector('button[name=action][value=place]');
+        var status = form.querySelector('[data-commerce-checkout-status]');
+        var retry = form.querySelector('[data-commerce-checkout-retry]');
+
+        function showStatus(message) {
+            if (status) status.textContent = status.dataset[message] || '';
+            if (retry) retry.hidden = !failed;
+            if (submit) submit.setAttribute('aria-disabled', String(pending || failed || submitting));
+        }
+
+        function replaceFragment(selector, html) {
+            var el = form.querySelector(selector);
+            if (!el || typeof html !== 'string' || el.outerHTML === html) return;
+
+            var focused = el.contains(document.activeElement) ? document.activeElement : null;
+            var details = el.querySelector('details[open]');
+            el.outerHTML = html;
+            var replacement = form.querySelector(selector);
+            if (!replacement) return;
+
+            if (details && replacement.querySelector('details')) replacement.querySelector('details').open = true;
+            if (focused && focused.matches('summary')) replacement.querySelector('summary')?.focus({ preventScroll: true });
+            if (focused && focused.type === 'radio') {
+                var radios = Array.from(replacement.querySelectorAll('input[type=radio]'));
+                var next = radios.find(function (radio) { return radio.value === focused.value; }) || radios[0];
+                if (next) next.focus({ preventScroll: true });
+                else submit?.focus({ preventScroll: true });
+            }
+        }
+
         function refresh() {
             clearTimeout(timer);
-            timer = setTimeout(function () {
-                var data = new FormData(form);
-                data.delete('password');
-                fetch(form.dataset.refresh, {
-                    method: 'POST',
-                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
-                    body: data,
-                    credentials: 'same-origin',
-                })
-                    .then(function (response) { return response.json(); })
-                    .then(function (json) {
-                        [['[data-commerce-rates]', json.rates_html], ['[data-commerce-payments]', json.payments_html], ['[data-commerce-summary]', json.summary]].forEach(function (pair) {
-                            var el = form.querySelector(pair[0]);
-                            if (el && typeof pair[1] === 'string') el.outerHTML = pair[1];
-                        });
-                        var hash = form.querySelector('[data-commerce-hash]');
-                        if (hash) hash.value = json.hash;
-                        syncToggles();
-                    })
-                    .catch(function () { /* the "Update shipping" button still works */ });
-            }, 300);
+            revision++;
+            pending = true;
+            failed = false;
+            showStatus('updating');
+            timer = setTimeout(sendRefresh, 300);
         }
+
+        function sendRefresh() {
+            clearTimeout(timer);
+            if (refreshing) return;
+
+            refreshing = true;
+            var sent = revision;
+            var data = new FormData(form);
+            data.delete('password');
+            fetch(form.dataset.refresh, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
+                body: data,
+                signal: AbortSignal.timeout(12000),
+                credentials: 'same-origin',
+            })
+                .then(function (response) {
+                    if (!response.ok) throw new Error('Checkout refresh failed');
+                    return response.json();
+                })
+                .then(function (json) {
+                    if (sent !== revision) return;
+                    if (typeof json.hash !== 'string' || !json.hash) throw new Error('Checkout total is missing');
+
+                    replaceFragment('[data-commerce-rates]', json.rates_html);
+                    replaceFragment('[data-commerce-payments]', json.payments_html);
+                    replaceFragment('[data-commerce-summary]', json.summary);
+                    var hash = form.querySelector('[data-commerce-hash]');
+                    if (hash) hash.value = json.hash;
+                    syncToggles();
+                })
+                .catch(function () {
+                    if (sent === revision) failed = true;
+                })
+                .finally(function () {
+                    refreshing = false;
+                    if (sent !== revision) {
+                        sendRefresh();
+                        return;
+                    }
+
+                    pending = false;
+                    if (update) update.hidden = !failed;
+                    showStatus(failed ? 'failed' : 'updated');
+                });
+        }
+
+        form.addEventListener('submit', function (event) {
+            if (event.submitter === update && update) {
+                if (pending || submitting) event.preventDefault();
+                return;
+            }
+            if (pending || (failed && (retry || update)) || submitting) {
+                event.preventDefault();
+                return;
+            }
+
+            submitting = true;
+            showStatus('submitting');
+        });
+        if (retry) retry.addEventListener('click', function () {
+            refresh();
+            if (submit) submit.focus({ preventScroll: true });
+        });
+        window.addEventListener('pageshow', function (event) {
+            if (!event.persisted) return;
+            submitting = false;
+            showStatus(pending ? 'updating' : failed ? 'failed' : '');
+        });
         form.addEventListener('change', function (event) {
             var t = event.target;
             if (t.matches('[data-commerce-saved-address]') && t.selectedOptions[0] && t.selectedOptions[0].dataset.address) {
@@ -107,7 +196,6 @@
             if (t.name === 'password' || t.name === 'notes' || t.name === 'terms') return;
             refresh();
         });
-        var update = form.querySelector('[data-commerce-update]');
         if (update) update.hidden = true;
         syncToggles();
     });
