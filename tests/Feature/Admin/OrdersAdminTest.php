@@ -36,6 +36,9 @@ it('lists, searches and filters orders for staff who may view them', function ()
         ->and(array_column(orderRows($this, '?filters[shipping_method]=flat'), 'number'))->toBe(['ORD-A'])
         ->and(array_column(orderRows($this, '?filters[date]=30d'), 'number'))->toBe(['Q-1 (quote)', 'ORD-A']);
 
+    $this->get('/admin/commerce/orders')->assertOk()->assertInertia(fn ($page) => $page
+        ->where('mobileBadgeColumns', ['status', 'payment', 'fulfillment']));
+
     $this->get("/admin/commerce/orders/{$a->id}")->assertOk()->assertInertia(fn ($page) => $page->component('Commerce/Orders/Show')
         ->where('order.number', 'ORD-A')->where('can.edit', false)->where('can.cancel', false));
     $this->post("/admin/commerce/orders/{$a->id}/transition", ['to' => 'completed'])->assertForbidden();

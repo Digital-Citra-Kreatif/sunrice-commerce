@@ -253,24 +253,24 @@ function cr(e) {
     t.registerPageLoader(n, r);
 }
 const sr = {
-  "Commerce/Confirmations/Index": () => import("./Index-WQoMLDli.js"),
-  "Commerce/Customers/Show": () => import("./Show-C6Pn_YQr.js"),
-  "Commerce/Dashboard": () => import("./Dashboard-BfDlTpTX.js"),
-  "Commerce/Inventory/Index": () => import("./Index-CDzAqX3j.js"),
-  "Commerce/Marketing/Editor": () => import("./Editor-BEzJ5jzJ.js"),
-  "Commerce/Marketing/Report": () => import("./Report-CiljobMJ.js"),
-  "Commerce/Orders/Editor": () => import("./Editor-C5kvS32a.js"),
-  "Commerce/Orders/Show": () => import("./Show-HDBKhjOu.js"),
-  "Commerce/Products/Index": () => import("./Index-J4PWpXTB.js"),
-  "Commerce/Products/Import": () => import("./Import-DwMwOoTA.js"),
-  "Commerce/Reports/Show": () => import("./Show-CN0wWdAQ.js"),
-  "Commerce/Settings/Section": () => import("./Section-BJ3S4Nbp.js"),
-  "Commerce/Settings/Emails": () => import("./Emails-D6pHROa3.js"),
-  "Commerce/Settings/Features": () => import("./Features-B94W8DqF.js"),
-  "Commerce/Settings/Payments": () => import("./Payments-CngSAwdl.js"),
-  "Commerce/Settings/Shipping": () => import("./Shipping-DyWaCAgO.js"),
-  "Commerce/Shared/SchemaForm": () => import("./SchemaForm-DFyZtJpq.js"),
-  "Commerce/Shared/ResourceIndex": () => import("./ResourceIndex-BQJ-n5_w.js")
+  "Commerce/Confirmations/Index": () => import("./Index-4W4pTo4F.js"),
+  "Commerce/Customers/Show": () => import("./Show-BioqHbsG.js"),
+  "Commerce/Dashboard": () => import("./Dashboard-BDMhwJRg.js"),
+  "Commerce/Inventory/Index": () => import("./Index-Dx91Ae44.js"),
+  "Commerce/Marketing/Editor": () => import("./Editor-YVC0ieBV.js"),
+  "Commerce/Marketing/Report": () => import("./Report-CTaPw1tU.js"),
+  "Commerce/Orders/Editor": () => import("./Editor-d7pfrBES.js"),
+  "Commerce/Orders/Show": () => import("./Show-BktgJ-27.js"),
+  "Commerce/Products/Index": () => import("./Index-q0_Nuphn.js"),
+  "Commerce/Products/Import": () => import("./Import-959hpjWb.js"),
+  "Commerce/Reports/Show": () => import("./Show-Cn9z3fkl.js"),
+  "Commerce/Settings/Section": () => import("./Section-Di7h5luk.js"),
+  "Commerce/Settings/Emails": () => import("./Emails-Bfh3SGlN.js"),
+  "Commerce/Settings/Features": () => import("./Features-CdN1JWEO.js"),
+  "Commerce/Settings/Payments": () => import("./Payments-CQWjOHN4.js"),
+  "Commerce/Settings/Shipping": () => import("./Shipping-4xvPs8-H.js"),
+  "Commerce/Shared/SchemaForm": () => import("./SchemaForm-uuefQQDh.js"),
+  "Commerce/Shared/ResourceIndex": () => import("./ResourceIndex-BvG_pDW1.js")
 };
 function or() {
   cr(sr);
@@ -522,7 +522,7 @@ function xe({ field: e, value: t, onChange: n, id: r }) {
     ] })
   ] });
 }
-const hr = P.lazy(() => import("./ProductEditor-CKQnIive.js")), fr = (e) => P.createElement(P.Suspense, { fallback: null }, P.createElement(hr, e)), br = {
+const hr = P.lazy(() => import("./ProductEditor-CkZWcWWX.js")), fr = (e) => P.createElement(P.Suspense, { fallback: null }, P.createElement(hr, e)), br = {
   commerce_money: fe,
   commerce_datetime_range: pe,
   commerce_region: Ce,
@@ -532,7 +532,7 @@ const hr = P.lazy(() => import("./ProductEditor-CKQnIive.js")), fr = (e) => P.cr
 function yr() {
   (window.SunriceCmsQueue ??= []).push((e) => Object.entries(br).forEach(([t, n]) => e.registerFieldInput(t, n)));
 }
-const Sr = P.lazy(() => import("./ChartImpl-BYj009LO.js"));
+const Sr = P.lazy(() => import("./ChartImpl-DaEwlztR.js"));
 function vr(e) {
   const t = /* @__PURE__ */ c("div", { className: "cm:animate-pulse cm:rounded-md cm:bg-muted", style: { height: e.height ?? 260 } });
   return /* @__PURE__ */ c(P.Suspense, { fallback: t, children: /* @__PURE__ */ c(Sr, { ...e }) });
@@ -979,20 +979,20 @@ _r();
 yr();
 or();
 export {
-  yt as A,
-  ut as B,
+  ze as A,
+  yt as B,
   vr as C,
-  K as D,
+  ut as D,
   Cr as E,
   ar as F,
-  nt as G,
-  ot as H,
-  lt as I,
-  dt as J,
+  K as G,
+  nt as H,
+  ot as I,
+  lt as J,
   Ir as K,
-  Je as L,
+  dt as L,
   ge as M,
-  Ie as N,
+  Je as N,
   _e as O,
   Te as P,
   Le as Q,
@@ -1017,14 +1017,14 @@ export {
   Pr as n,
   Er as o,
   Q as p,
-  er as q,
-  Qe as r,
-  Ge as s,
+  Ie as q,
+  er as r,
+  Qe as s,
   Lr as t,
   he as u,
-  xr as v,
-  qe as w,
-  rt as x,
-  We as y,
-  ze as z
+  Ge as v,
+  xr as w,
+  qe as x,
+  rt as y,
+  We as z
 };

@@ -27,6 +27,7 @@ export interface DataTableProps {
     bulkActions?: BulkAction[];
     bulkUrl?: string;
     visibleColumns?: string[];
+    mobileBadgeColumns?: string[];
     searchPlaceholder?: string;
     rowHref?: (row: any) => string | null; // eslint-disable-line @typescript-eslint/no-explicit-any
     onRowClick?: (row: any) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -64,6 +65,7 @@ export function DataTable(props: DataTableProps) {
         void preferences.setColumns(next);
     };
     const columns = shown ? props.columns.filter((c) => shown.includes(c.key)) : props.columns;
+    const mobileBadges = columns.filter((column) => column.type === 'badge' && props.mobileBadgeColumns?.includes(column.key));
     const bulk = (props.bulkActions ?? []).length > 0 && props.bulkUrl !== undefined;
     const ids = rows.data.map((r) => r.id).filter((id): id is number | string => id !== undefined);
     const filters = props.filters ?? [];
@@ -204,6 +206,13 @@ export function DataTable(props: DataTableProps) {
                                             return (
                                                 <TableCell key={column.key} className="cm:whitespace-nowrap">
                                                     {href && i === 0 ? <Link href={href} className="cm:font-medium cm:underline-offset-4 cm:hover:underline">{content}</Link> : content}
+                                                    {i === 0 && mobileBadges.some((badge) => badge.key !== column.key && row[badge.key] != null) && (
+                                                        <div aria-hidden="true" data-mobile-badges className="cm:mt-1 cm:flex cm:max-w-48 cm:flex-wrap cm:gap-1 cm:md:hidden">
+                                                            {mobileBadges.map((badge) => badge.key !== column.key && row[badge.key] != null && (
+                                                                <React.Fragment key={badge.key}>{props.renderCell?.(row, badge) ?? cellText(row[badge.key])}</React.Fragment>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </TableCell>
                                             );
                                         })}

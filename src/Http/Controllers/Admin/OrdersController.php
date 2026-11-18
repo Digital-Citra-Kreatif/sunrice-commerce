@@ -79,6 +79,7 @@ class OrdersController extends Controller
             ...$this->tableProps(self::TABLE, $table, $columns, $rows->through(fn (Model $o) => $o instanceof Order ? $this->row($o, $money) : []),
                 $this->filters(), $this->bulkActions($request)),
             'visibleColumns' => $saved['columns'] ?? ['number', 'date', 'customer', 'status', 'payment', 'fulfillment', 'total'],
+            'mobileBadgeColumns' => ['status', 'payment', 'fulfillment'],
             'bulkUrl' => route('sunrice.admin.commerce.orders.bulk', [], false),
             'exportUrl' => $request->user()->can('commerce.orders.export') ? route('sunrice.admin.commerce.orders.export', [], false) : null,
             'searchPlaceholder' => 'Number, name, email, phone or SKU…',
