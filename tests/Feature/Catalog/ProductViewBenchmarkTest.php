@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\DB;
-use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Cart\CartView;
+use Sunrice\Commerce\Catalog\LiveEntries;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
@@ -70,9 +70,12 @@ function benchmark(Closure $run, int $times = 5): array
 }
 
 it('times building views for 24 products with 100 variants each, and a 200-line cart', function () {
-    $entries = Entry::query()->whereIn('id', Variant::query()->where('sku', 'like', 'B%')->join('commerce_products', 'commerce_products.id', '=', 'commerce_variants.product_id')->select('commerce_products.entry_id'))->get();
+    $entryIds = Variant::query()->where('sku', 'like', 'B%')
+        ->join('commerce_products', 'commerce_products.id', '=', 'commerce_variants.product_id')
+        ->distinct()->pluck('commerce_products.entry_id')->all();
+    $entries = LiveEntries::shown('products', $entryIds);
     expect($entries)->toHaveCount(24);
-    $cart = cartWith(Variant::query()->where('sku', 'like', 'B%')->orderBy('id')->get()->groupBy('product_id')
+    $cart = cartWith(Variant::query()->where('sku', 'like', 'B%')->where('stock_quantity', '>', 0)->orderBy('id')->get()->groupBy('product_id')
         ->flatMap(fn ($variants) => $variants->take(9))->take(200)->map(fn ($v) => [$v, 1])->values()->all());
     expect($cart->items()->count())->toBe(200);
 
