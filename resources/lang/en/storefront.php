@@ -102,6 +102,7 @@ return [
         'estimated_total' => 'Estimated total',
         'items' => '{1} :count item|[2,*] :count items',
         'cross_sells' => 'You may also need',
+        'add_unconfirmed' => 'We couldn’t confirm the item was added. Check your cart before adding it again.',
         'view_cart' => 'View cart',
     ],
     'wishlist' => [

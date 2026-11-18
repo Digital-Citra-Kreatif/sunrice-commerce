@@ -31,26 +31,59 @@
         setTimeout(function () { el.remove(); }, 4000);
     }
 
+    // A failed response may arrive after the server already added the item.
+    var activeAdds = new WeakSet();
     document.addEventListener('submit', function (event) {
         var form = event.target.closest('[data-commerce-add]');
-        if (!form || !form.dataset.commerceCartApi || event.submitter && event.submitter.name === 'buy_now') return;
+        if (!form || !form.dataset.commerceCartApi) return;
+        if (activeAdds.has(form)) {
+            event.preventDefault();
+            return;
+        }
+        if (event.submitter && event.submitter.name === 'buy_now') return;
+
         event.preventDefault();
-        var data = new FormData(form);
-        var button = form.querySelector('button[type=submit]');
-        if (button) button.disabled = true;
+        activeAdds.add(form);
+        var button = event.submitter || form.querySelector('button[type=submit]');
+        if (button) button.setAttribute('aria-disabled', 'true');
         fetch(form.dataset.commerceCartApi, {
             method: 'POST',
             headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
-            body: data,
+            body: new FormData(form),
             credentials: 'same-origin',
+            signal: AbortSignal.timeout(12000),
         })
-            .then(function (response) { return response.json().then(function (json) { return { ok: response.ok, json: json }; }); })
-            .then(function (result) {
-                if (result.json.cart) updateMiniCart(result.json.cart);
-                toast(result.json.message || '', !result.ok);
+            .then(function (response) {
+                if (response.status >= 500) throw new Error('Cart result is unknown');
+                return response.json().then(function (json) {
+                    if (!json || typeof json.message !== 'string' || (response.ok && !Number.isInteger(json.cart?.count))) {
+                        throw new Error('Unexpected cart response');
+                    }
+                    return { ok: response.ok, json: json };
+                });
             })
-            .catch(function () { form.submit(); })
-            .finally(function () { if (button) button.disabled = false; });
+            .then(function (result) {
+                activeAdds.delete(form);
+                if (button) button.removeAttribute('aria-disabled');
+                if (Number.isInteger(result.json.cart?.count)) updateMiniCart(result.json.cart);
+                toast(result.json.message, !result.ok);
+            })
+            .catch(function () {
+                var recovery = form.querySelector('[data-commerce-add-recovery]');
+                if (recovery) {
+                    recovery.hidden = false;
+                    if (form.contains(document.activeElement)) recovery.querySelector('a')?.focus();
+                } else {
+                    // Older published templates still get a safe recovery path.
+                    var cart = document.querySelector('[data-commerce-mini-cart]');
+                    if (cart && cart.href) window.location.assign(cart.href);
+                    else {
+                        activeAdds.delete(form);
+                        if (button) button.removeAttribute('aria-disabled');
+                        toast('Check your cart before trying again.', true);
+                    }
+                }
+            });
     });
 
     // Checkout: show/hide toggled parts, and refresh rates, payments and totals on change.

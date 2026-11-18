@@ -372,7 +372,9 @@ attributes:
 
 - **Add to cart** (`[data-commerce-add]`): posts the form to the cart API and stays on the page,
   updates every `[data-commerce-cart-count]` and shows a toast. A submit button named `buy_now` still
-  posts normally. On a network error the form posts normally.
+  posts normally. If the API response cannot confirm what happened, Commerce does not resend the
+  request. The `partials.add-recovery` notice provides a link to check the cart. Include it in
+  published overrides of the add-to-cart form for the same inline recovery.
 - **Checkout refresh** (`[data-commerce-checkout]`): on every change (except password, notes and
   terms) it posts the form to `/checkout/refresh` and replaces the shipping rates, payment methods
   and summary. It shows and hides the parts behind toggles (billing address, dropship), hides

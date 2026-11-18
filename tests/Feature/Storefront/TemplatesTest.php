@@ -68,6 +68,14 @@ it('publishes the starter theme with the templates', function () {
     }
 });
 
+it('renders a cart recovery link for an unconfirmed add-to-cart request', function () {
+    checkoutStore();
+
+    $this->get('/products/mug')->assertOk()
+        ->assertSee('data-commerce-add-recovery hidden', false)
+        ->assertSee(trans('commerce::storefront.cart.add_unconfirmed'));
+});
+
 it('buys a variable product with plain form posts, no JavaScript', function () {
     $this->withoutMiddleware(ValidateCsrfToken::class);
     config(['honeypot.enabled' => false]);

@@ -47,6 +47,9 @@
             @elseif ($product->price['signIn'] && Route::has('commerce.account.login'))
                 <a class="commerce-add__button" href="{{ commerce_url('commerce.account.login') }}">{{ __('commerce::storefront.cta.sign_in_for_price') }}</a>
             @endif
+            @if (Route::has('commerce.cart'))
+                @include(\Sunrice\Commerce\Storefront\Layout::view('partials.add-recovery'))
+            @endif
         </form>
     @else
         @if ($product->isVariable())

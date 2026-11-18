@@ -102,6 +102,7 @@ return [
         'estimated_total' => 'Estimasi total',
         'items' => '{1} :count barang|[2,*] :count barang',
         'cross_sells' => 'Mungkin Anda juga perlu',
+        'add_unconfirmed' => 'Kami belum bisa memastikan barang sudah masuk. Periksa keranjang sebelum menambahkan lagi.',
         'view_cart' => 'Lihat keranjang',
     ],
     'wishlist' => [

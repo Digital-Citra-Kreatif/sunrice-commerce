@@ -28,6 +28,7 @@
                                 <input type="hidden" name="variant" value="{{ $view->defaultVariant()?->id }}">
                                 <input type="hidden" name="quantity" value="{{ $view->defaultVariant()?->min_qty ?? 1 }}">
                                 <button type="submit" class="commerce-button commerce-button--primary commerce-button--block">{{ $view->cta['label'] }}</button>
+                                @include(\Sunrice\Commerce\Storefront\Layout::view('partials.add-recovery'))
                             </form>
                         @elseif ($view?->purchasable)
                             <a class="commerce-button commerce-button--secondary commerce-button--block" href="{{ $entry->url() }}">{{ __('commerce::storefront.theme.choose_options') }}</a>
