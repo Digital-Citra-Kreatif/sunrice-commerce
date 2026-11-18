@@ -6,7 +6,9 @@ use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Orders\Models\Order;
+use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Commerce\Taxes\TaxRate;
 
 beforeEach(function () {
     $this->withoutMiddleware(ValidateCsrfToken::class);
@@ -58,6 +60,51 @@ it('refreshes rates and totals as JSON when the address changes', function () {
 
     // Without JavaScript: "Update shipping" saves and comes back.
     $this->post('/checkout', [...$input, 'action' => 'update'])->assertRedirect('/checkout#shipping');
+});
+
+it('clears unchecked flags when refreshing a full checkout form and keeps them for partial requests', function () {
+    app(ToggleFeature::class)->handle('taxes', true);
+    app(StoreSettings::class)->saveSection('taxes', ['prices_include_tax' => false, 'based_on' => 'billing']);
+    TaxRate::query()->create(['name' => 'PPN', 'rate' => 1100, 'tax_class' => 'standard']);
+    TaxRate::query()->create(['name' => 'PPN', 'rate' => 1200, 'tax_class' => 'standard', 'country' => 'US']);
+    $cart = cartWith([[$this->mug, 1]]);
+    $cart->update(['checkout' => checkoutInput()]);
+    $input = checkoutInput(['billing_address' => [
+        'name' => 'Rina', 'phone' => '202 555 0100', 'country' => 'US', 'state' => 'DC',
+        'city' => 'Washington', 'line1' => '100 Example Street', 'postal_code' => '20001',
+    ]]);
+    unset($input['billing_same']);
+
+    $this->withCredentials()->postJson('/checkout/refresh', $input)
+        ->assertOk()->assertJsonPath('totals.tax.amount', 6600);
+    $refresh = $this->withCredentials()->postJson('/checkout/refresh', [...$input, '_form' => 'checkout'])
+        ->assertOk()->assertJsonPath('totals.tax.amount', 7200);
+    expect($cart->fresh()->checkout['billing_same'])->toBeFalse();
+
+    $this->post('/checkout', [...$input, 'action' => 'place', 'totals_hash' => $refresh->json('hash')])
+        ->assertRedirect()->assertSessionDoesntHaveErrors();
+    expect(Order::query()->sole()->billing_address['country'])->toBe('US');
+});
+
+it('keeps a hidden payment step for a free cart and supplies methods once shipping adds a charge', function () {
+    cartWith([[$this->mug, 1]]);
+    Voucher::query()->create(['name' => 'Free product', 'code' => 'FREE', 'type' => 'percent', 'value' => 10000]);
+    $this->post('/cart/vouchers', ['code' => 'FREE'])->assertRedirect()->assertSessionHas('commerce.success');
+    $free = $this->get('/checkout')->assertOk()
+        ->assertSee('data-commerce-payments', false)
+        ->assertDontSee('name="payment_method"', false);
+    expect($free->getContent())->toMatch('/data-commerce-payment-step\s+hidden/')
+        ->toMatch('/data-commerce-payment-section\s+hidden/');
+
+    $input = checkoutInput(['payment_method' => null]);
+    $refresh = $this->withCredentials()->postJson('/checkout/refresh', [...$input, '_form' => 'checkout'])
+        ->assertOk()->assertJsonPath('totals.total.amount', 10000);
+    expect($refresh->json('payments_html'))->toContain('data-commerce-payments', 'test_transfer');
+
+    $this->post('/checkout', [...$input, 'action' => 'update'])->assertRedirect('/checkout#shipping');
+    $paid = $this->get('/checkout')->assertOk()->assertSee('name="payment_method" value="test_transfer"', false);
+    expect($paid->getContent())->not->toMatch('/data-commerce-payment-step\s+hidden/')
+        ->not->toMatch('/data-commerce-payment-section\s+hidden/');
 });
 
 it('validates Indonesian addresses and the chosen rate', function () {

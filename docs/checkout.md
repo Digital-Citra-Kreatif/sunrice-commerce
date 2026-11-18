@@ -163,10 +163,14 @@ The order keeps the address as a snapshot, codes and names together. See [region
     address and stores the location in `meta.pickup`.
 - **Payment** is chosen in Online store mode when the total is more than zero. The method must be
   available for the order (active, its module on, its rules met); see [payments.md](payments.md).
-  The chosen method's fee is part of the totals.
+  The chosen method's fee is part of the totals. If a free cart gains a shipping charge, the
+  checkout reveals the payment choice during the refresh without reloading the page.
 - Orders with nothing to ship (digital products) skip both the address and shipping.
 
 Vouchers are applied from the summary; see [pricing.md](pricing.md).
+
+The storefront sends `_form=checkout` with a full form refresh so unchecked boxes are cleared.
+A partial refresh without this marker keeps values that the request omits.
 
 ## The totals hash
 

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Checkout totals follow the billing address when the shopper unchecks the shared address. Payment methods appear if shipping makes a free cart payable.
+
 - Checkout labels totals as estimated before shipping is selected, preserves the latest selections while refreshing, and offers a retry if the refresh fails.
 
 - **The product import can create products**: tick "Create products for SKUs no product has" and rows with new SKUs and a `product` title become products (rows with the same title one product with variants by `variant`, named by `option`; `category` by name or slug), as drafts or published.

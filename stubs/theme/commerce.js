@@ -108,6 +108,8 @@
         var submit = form.querySelector('button[name=action][value=place]');
         var status = form.querySelector('[data-commerce-checkout-status]');
         var retry = form.querySelector('[data-commerce-checkout-retry]');
+        var paymentSection = form.querySelector('[data-commerce-payment-section]');
+        var paymentStep = form.closest('.commerce-checkout-page')?.querySelector('[data-commerce-payment-step]');
 
         function showStatus(message) {
             if (status) status.textContent = status.dataset[message] || '';
@@ -152,6 +154,7 @@
             var sent = revision;
             var data = new FormData(form);
             data.delete('password');
+            data.set('_form', 'checkout');
             fetch(form.dataset.refresh, {
                 method: 'POST',
                 headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
@@ -170,6 +173,18 @@
                     replaceFragment('[data-commerce-rates]', json.rates_html);
                     replaceFragment('[data-commerce-payments]', json.payments_html);
                     replaceFragment('[data-commerce-summary]', json.summary);
+                    if (typeof json.totals?.total?.amount === 'number') {
+                        var paymentNeeded = json.totals.total.amount > 0;
+                        if (paymentSection) paymentSection.hidden = !paymentNeeded;
+                        if (paymentStep) paymentStep.hidden = !paymentNeeded;
+                        // A sole method can become selected when the rates or total change.
+                        // Confirm its fee before allowing the order to be placed.
+                        var selectedPayment = form.querySelector('[data-commerce-payments] input[name=payment_method]:checked');
+                        if (paymentNeeded && selectedPayment && selectedPayment.value !== data.get('payment_method')) {
+                            revision++;
+                            return;
+                        }
+                    }
                     var hash = form.querySelector('[data-commerce-hash]');
                     if (hash) hash.value = json.hash;
                     syncToggles();

@@ -14,7 +14,9 @@
             <li><a href="{{ commerce_url('commerce.cart') }}">{{ __('commerce::storefront.cart.title') }}</a></li>
             <li aria-current="step"><a href="#contact">{{ __('commerce::checkout.sections.contact') }}</a></li>
             @if ($needsAddress)<li><a href="#shipping">{{ __('commerce::checkout.sections.shipping') }}</a></li>@endif
-            @if ($mode->payment() && $state->totals['total'] > 0)<li><a href="#payment">{{ __('commerce::checkout.sections.payment') }}</a></li>@endif
+            @if ($mode->payment())
+                <li data-commerce-payment-step @if ($state->totals['total'] <= 0) hidden @endif><a href="#payment">{{ __('commerce::checkout.sections.payment') }}</a></li>
+            @endif
         </ol>
         @include($L::view('partials.messages'))
         @if (session('commerce.changes'))
@@ -114,11 +116,13 @@
                 <input type="hidden" name="billing_same" value="1">
             @endif
 
-            @if ($mode->payment() && $state->totals['total'] > 0)
-                <fieldset class="commerce-checkout__section" id="payment">
+            @if ($mode->payment())
+                <fieldset class="commerce-checkout__section" id="payment" data-commerce-payment-section @if ($state->totals['total'] <= 0) hidden @endif>
                     <legend>{{ __('commerce::checkout.sections.payment') }}</legend>
                     @include($L::view('partials.payment-methods'))
                 </fieldset>
+            @endif
+            @if ($mode->payment() && $state->totals['total'] > 0)
                 <x-commerce::slot name="checkout.after_payment" :state="$state" />
             @endif
 
