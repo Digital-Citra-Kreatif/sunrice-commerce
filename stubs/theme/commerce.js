@@ -216,14 +216,18 @@
             var t = event.target;
             if (t.matches('[data-commerce-saved-address]') && t.selectedOptions[0] && t.selectedOptions[0].dataset.address) {
                 var address = JSON.parse(t.selectedOptions[0].dataset.address);
-                Object.keys(address).forEach(function (key) {
-                    var input = form.querySelector('[name="shipping_address[' + key + ']"]');
-                    if (!input || address[key] === null) return;
-                    if (input.tagName === 'SELECT' && !Array.prototype.some.call(input.options, function (o) { return o.value === address[key]; })) {
-                        input.add(new Option(address[key + ''] || address[key], address[key], true, true));
+                form.querySelectorAll('[name^="shipping_address["]').forEach(function (input) {
+                    var key = input.name.slice('shipping_address['.length, -1);
+                    var value = String(address[key] ?? '');
+                    if (input.hasAttribute('data-commerce-region')) {
+                        input.length = 1;
+                        input.dataset.value = '';
+                        if (value) input.add(new Option(address[input.dataset.commerceRegion] || value, value));
                     }
-                    input.value = address[key];
+                    input.value = value;
                 });
+                // Update visibility and reload this region chain before the form is read.
+                form.querySelector('[name="shipping_address[country]"]')?.dispatchEvent(new Event('change'));
             }
             syncToggles();
             if (t.name === 'password' || t.name === 'notes' || t.name === 'terms') return;
