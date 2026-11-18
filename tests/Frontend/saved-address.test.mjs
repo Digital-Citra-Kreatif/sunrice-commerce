@@ -57,6 +57,7 @@ function storefront() {
         },
     };
     const form = {
+        closest: () => null,
         addEventListener(type, callback) { if (type === 'change') this.change = callback; },
         querySelector: (selector) => selector === '[name="shipping_address[country]"]' ? fields.country : null,
         querySelectorAll: (selector) => selector === '[name^="shipping_address["]' ? Object.values(fields) : [],
