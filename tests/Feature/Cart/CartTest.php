@@ -114,6 +114,23 @@ it('serves the cart as JSON', function () {
     $this->withCookies(['commerce_cart' => $token])->getJson('/commerce/api/cart')->assertJsonPath('cart.lines.0.quantity', 1);
 });
 
+it('updates quantities and applies and removes vouchers on the cart API', function () {
+    $this->withoutMiddleware(ValidateCsrfToken::class);
+    Voucher::query()->create(['name' => 'Hemat', 'code' => 'HEMAT', 'type' => 'percent', 'value' => 1000]);
+    $cart = cartWith([[$this->mug, 1]]);
+    $item = $cart->items()->sole();
+    $this->withCredentials()->withCookies(['commerce_cart' => $cart->token]);
+
+    $this->patchJson("/commerce/api/cart/items/{$item->id}", ['quantity' => 2])
+        ->assertOk()->assertJsonPath('cart.count', 2)->assertJsonPath('cart.totals.total.amount', 100000);
+    $this->postJson('/commerce/api/cart/vouchers', ['code' => 'HEMAT'])
+        ->assertOk()->assertJsonPath('cart.codes', ['HEMAT'])->assertJsonPath('cart.totals.total.amount', 90000);
+    $this->deleteJson('/commerce/api/cart/vouchers/HEMAT')
+        ->assertOk()->assertJsonPath('cart.codes', [])->assertJsonPath('cart.totals.total.amount', 100000);
+    $this->deleteJson("/commerce/api/cart/items/{$item->id}")
+        ->assertOk()->assertJsonPath('cart.count', 0)->assertJsonPath('cart.lines', []);
+});
+
 it('needs CSRF on cart forms', function () {
     $this->withMiddleware(ValidateCsrfToken::class);
     $this->app->instance('env', 'production');

@@ -41,6 +41,17 @@ it('shows customers only their own orders, linked guest orders after verificatio
     $this->get("/account/orders/{$other->id}")->assertNotFound();
 });
 
+it('lists only the signed-in customer’s quotes in My Account', function () {
+    $mine = makeOrder(['type' => 'quote', 'status' => 'requested', 'number' => null, 'quote_number' => 'QUOTE-MINE', 'user_id' => $this->user->id]);
+    $other = makeOrder(['type' => 'quote', 'status' => 'requested', 'number' => null, 'quote_number' => 'QUOTE-OTHER']);
+    $order = makeOrder(['number' => 'ORDER-MINE', 'user_id' => $this->user->id]);
+
+    Auth::guard('commerce')->login($this->user);
+
+    $this->get('/account/quotes')->assertOk()->assertSee($mine->quote_number)->assertDontSee($other->quote_number)->assertDontSee($order->number);
+    $this->get('/account/orders')->assertOk()->assertSee($order->number)->assertDontSee($mine->quote_number);
+});
+
 it('buys again what is still available', function () {
     $tea = Variant::factory()->create(['product_id' => $this->mug->product_id, 'sku' => 'TEA', 'price' => 20000, 'uid' => 'tea']);
     $cart = cartWith([[$this->mug, 1], [$tea, 2]]);
