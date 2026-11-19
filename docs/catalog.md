@@ -535,6 +535,14 @@ on cards and the product page, and a page at `/wishlist`.
 
 Both pages are `noindex`.
 
+## Continue shopping
+
+In Settings → Store → Catalog, **Continue shopping** sets one destination for Compare, Wishlist,
+Cart and order confirmation. **Automatic** uses the first available catalog listing in the
+shopper’s language. Without one, it uses that language’s homepage. **Choose a page** can point to
+a CMS page or collection listing. If the chosen page becomes unavailable, the button uses
+the automatic destination.
+
 ## Reviews
 
 **Reviews** (`reviews` module, on by default): verified buyers rate a product from 1 to 5 stars and

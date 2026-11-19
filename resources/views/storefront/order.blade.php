@@ -148,6 +148,6 @@
             </aside>
         </div>
         <x-commerce::slot name="order.after" />
-        <p class="commerce-order__continue"><a class="commerce-button commerce-button--primary" href="{{ url(\Sunrice\Cms\Support\Locales::prefix(app()->getLocale()) ?: '/') }}">{{ __('commerce::storefront.cart.continue') }}</a></p>
+        <p class="commerce-order__continue"><a class="commerce-button commerce-button--primary" href="{{ app(\Sunrice\Commerce\Storefront\ShoppingDestination::class)->url() }}">{{ __('commerce::storefront.cart.continue') }}</a></p>
     </section>
 @endsection
