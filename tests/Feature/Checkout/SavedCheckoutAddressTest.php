@@ -8,6 +8,52 @@ use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Orders\Models\Order;
 use Workbench\App\Models\User;
 
+it('saves and selects an opted-in address immediately without placing an order', function () {
+    $this->withoutMiddleware(ValidateCsrfToken::class);
+    $mug = checkoutStore();
+    $user = User::query()->create(['name' => 'Rina', 'email' => 'rina@example.com', 'password' => 'secret-pass', 'email_verified_at' => now()]);
+    $this->actingAs($user, 'commerce');
+    $customer = Customer::forUser($user);
+    $cart = cartWith([[$mug, 1]]);
+    $input = [
+        'action' => 'apply_address',
+        'save_address' => true,
+        'shipping_address' => [...checkoutInput()['shipping_address'], 'line1' => 'Jl. Sarijadi No. 2'],
+    ];
+
+    $this->get('/checkout')->assertOk()->assertSee('name="save_address" value="1" checked', false);
+    $invalid = array_replace_recursive($input, ['shipping_address' => ['district_code' => '32.75.01']]);
+    $this->withCredentials()->postJson('/checkout/refresh', $invalid)
+        ->assertUnprocessable()->assertJsonValidationErrors('address.district_code');
+    $this->withCredentials()->postJson('/checkout/refresh', [...$input, 'save_address' => false])
+        ->assertOk()->assertJsonPath('saved_address', null);
+    expect($customer->addresses()->count())->toBe(0);
+
+    $response = $this->withCredentials()->postJson('/checkout/refresh', $input)->assertOk();
+    $address = $customer->addresses()->sole();
+    $response->assertJsonPath('saved_address.id', $address->id)
+        ->assertJsonPath('saved_address.address.city_code', '32.73');
+    expect($address->label)->toBe('Jl. Sarijadi No. 2')
+        ->and($cart->fresh()->checkout)->toMatchArray(['address_id' => $address->id, 'save_address' => false])
+        ->and(Order::query()->count())->toBe(0);
+
+    $this->withCredentials()->postJson('/checkout/refresh', $input)->assertOk()->assertJsonPath('saved_address.id', $address->id);
+    expect($customer->addresses()->count())->toBe(1);
+    $this->get('/checkout')->assertOk()->assertSee('value="'.$address->id.'" data-address=', false);
+    $this->get('/account/addresses')->assertOk()->assertSee('Jl. Sarijadi No. 2');
+});
+
+it('requires a signed-in customer before saving an address to an account', function () {
+    $this->withoutMiddleware(ValidateCsrfToken::class);
+    cartWith([[checkoutStore(), 1]]);
+
+    $this->withCredentials()->postJson('/checkout/refresh', [
+        'action' => 'apply_address',
+        'save_address' => true,
+        'shipping_address' => checkoutInput()['shipping_address'],
+    ])->assertForbidden();
+});
+
 it('renders the saved address with canonical region codes and saves a sparse replacement', function () {
     $this->withoutMiddleware(ValidateCsrfToken::class);
     $mug = checkoutStore();

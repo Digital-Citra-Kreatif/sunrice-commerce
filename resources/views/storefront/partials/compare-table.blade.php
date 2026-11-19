@@ -1,0 +1,57 @@
+{{-- $entries, $fields, $specLabels and $specValues. --}}
+@php($views = $entries->mapWithKeys(fn ($e) => [$e->entry_id => commerce_product($e)]))
+<div class="commerce-compare__scroll">
+    <table class="commerce-compare__table">
+        <thead>
+            <tr>
+                <td></td>
+                @foreach ($entries as $entry)
+                    <th scope="col">
+                        @php($image = collect((commerce_values($entry)['gallery'] ?? null) ?? [])->first())
+                        <a class="commerce-compare__product" href="{{ $entry->url() }}">
+                            @if (is_object($image))<img src="{{ $image->url() }}" alt="" width="200" height="250" loading="lazy">@endif
+                            <span>{{ $entry->title }}</span>
+                        </a>
+                        <x-commerce::compare-button :entry="$entry" />
+                    </th>
+                @endforeach
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row">{{ __('commerce::storefront.listing.price') }}</th>
+                @foreach ($entries as $entry)
+                    <td>@if ($views[$entry->entry_id])@include(\Sunrice\Commerce\Storefront\Layout::view('partials.price'), ['product' => $views[$entry->entry_id]])@endif</td>
+                @endforeach
+            </tr>
+            @foreach ($fields as $field)
+                <tr>
+                    <th scope="row">{{ __('commerce::storefront.compare.fields.'.$field) }}</th>
+                    @foreach ($entries as $entry)
+                        @php($view = $views[$entry->entry_id])
+                        @php($variant = $view?->defaultVariant())
+                        <td>{{ match ($field) {
+                            'sku' => $view?->isVariable() ? '—' : ($variant?->sku ?? '—'),
+                            'stock' => $view?->stock['message'] ?? '—',
+                            'weight' => $variant?->weight ? number_format($variant->weight / 1000, 2, ',', '.').' kg' : '—',
+                            'dimensions' => $variant?->length ? ($variant->length / 10).' × '.($variant->width / 10).' × '.($variant->height / 10).' cm' : '—',
+                            'excerpt' => (string) ((commerce_values($entry)['excerpt'] ?? null) ?? '—'),
+                            'brand', 'categories' => $entry->terms->filter(fn ($t) => $t->taxonomy?->handle === config($field === 'brand' ? 'commerce.catalog.brand_taxonomy' : 'commerce.catalog.category_taxonomy'))
+                                ->map(fn ($t) => $t->title())->implode(', ') ?: '—',
+                            'attributes' => collect($view?->options ?? [])->map(fn ($o) => $o['name'].': '.collect($o['values'])->pluck('label')->implode(', '))->implode('; ') ?: '—',
+                            default => '—',
+                        } }}</td>
+                    @endforeach
+                </tr>
+            @endforeach
+            @foreach ($specLabels as $label)
+                <tr>
+                    <th scope="row">{{ $label }}</th>
+                    @foreach ($entries as $entry)
+                        <td>{{ $specValues[$entry->entry_id][mb_strtolower($label)] ?? '—' }}</td>
+                    @endforeach
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>

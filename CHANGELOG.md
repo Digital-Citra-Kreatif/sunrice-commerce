@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Share the empty cart message and Continue shopping link with the cart drawer, and hide its checkout actions when empty.
+
+- Make checkout, cart, product, account, and order sections individually overridable and load an optional app CSS skin.
+- Select the first available delivery option when checkout has no valid delivery selection, keeping store pickup explicit.
+- List payment confirmations in the standard admin table and reuse the review dialog in order detail.
+- Put available order status changes in a visible action in the order header.
+
+- Let apps override the bulk pricing presentation through its own Blade partial.
+
+- Use icon-only catalog view links and offer a separate Blade override for the table columns.
+
 - Keep Apply visible while catalog filters scroll, and offer a paginated table beside the grid view.
 - Make Store settings sections visible in a vertical menu and open the Shop overview for shop managers.
 - Identify saved bundle components that can no longer be sold and withhold incomplete price totals.

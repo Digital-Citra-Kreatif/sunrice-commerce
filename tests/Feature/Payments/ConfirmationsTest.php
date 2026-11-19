@@ -53,9 +53,19 @@ it('submits, pauses the deadline, and approving pays the order', function () {
     $this->artisan('commerce:tick');
     expect($this->order->fresh()->status)->toBe('pending');
 
-    actingAsUserWith(['commerce.payments.verify']);
-    $this->get('/admin/commerce/confirmations')->assertOk()->assertInertia(fn ($p) => $p->where('confirmations.0.id', $confirmation->id));
-    $this->post("/admin/commerce/confirmations/{$confirmation->id}/approve")->assertSessionHas('success');
+    actingAsUserWith(['commerce.orders.view', 'commerce.payments.verify']);
+    $orderUrl = "/admin/commerce/orders/{$this->order->id}";
+    $this->get('/admin/commerce/confirmations?search='.urlencode($this->order->number))->assertOk()
+        ->assertInertia(fn ($p) => $p->where('rows.data.0.id', $confirmation->id)->where('rows.total', 1)->where('meta.filters.status', 'submitted'));
+    $this->get('/admin/commerce/confirmations?search=unmatched')->assertOk()
+        ->assertInertia(fn ($p) => $p->where('rows.total', 0));
+    $this->get($orderUrl)->assertOk()->assertInertia(fn ($p) => $p
+        ->where('order.confirmations.0.review.id', $confirmation->id)
+        ->where('order.confirmations.0.review.expected', 'Rp60.000')
+        ->where('order.confirmations.0.review.proof_is_pdf', true));
+    $this->from($orderUrl)->post("/admin/commerce/confirmations/{$confirmation->id}/approve")->assertRedirect($orderUrl)->assertSessionHas('success');
+    $this->get('/admin/commerce/confirmations?status=approved')->assertOk()
+        ->assertInertia(fn ($p) => $p->where('rows.data.0.status', 'approved')->where('meta.filters.status', 'approved'));
     $order = $this->order->fresh();
     expect([$order->status, $order->payment_status, $order->paid_total])->toBe(['processing', 'paid', $order->total])
         ->and($confirmation->fresh()->status)->toBe('approved');
@@ -93,6 +103,8 @@ it('keeps proofs private and lets only verifiers see them', function () {
     $this->get('/storage/'.$confirmation->proof_path)->assertNotFound();
 
     actingAsUserWith(['commerce.orders.view']);
+    $this->get("/admin/commerce/orders/{$this->order->id}")->assertOk()->assertInertia(fn ($p) => $p
+        ->where('order.confirmations.0.review', null)->where('order.confirmations.0.proof_url', null));
     $this->get("/admin/commerce/confirmations/{$confirmation->id}/proof")->assertForbidden();
     $this->post("/admin/commerce/confirmations/{$confirmation->id}/approve")->assertForbidden();
     actingAsUserWith(['commerce.payments.verify'], 'verifier@example.com');

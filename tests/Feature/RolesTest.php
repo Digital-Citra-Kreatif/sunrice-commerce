@@ -37,6 +37,8 @@ it('seeds a Shop Manager who can open the admin and a Customer who can not', fun
         ->and($customer->can('sunrice.access'))->toBeFalse()
         ->and(Role::findByName('administrator')->hasPermissionTo('commerce.settings.features'))->toBeTrue();
 
-    $this->actingAs($manager)->get('/admin')->assertOk();
+    $dashboard = route('sunrice.admin.commerce.dashboard');
+    $this->actingAs($manager)->get('/admin')->assertRedirect($dashboard);
+    $this->get($dashboard)->assertOk();
     $this->actingAs($customer)->get('/admin')->assertForbidden();
 });

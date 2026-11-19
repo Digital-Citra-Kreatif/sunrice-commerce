@@ -40,6 +40,7 @@ return [
         'use_saved' => 'Gunakan alamat tersimpan',
         'choose_saved' => 'Pilih alamat tersimpan yang masih tersedia.',
         'incomplete' => 'Lengkapi bagian alamat yang wajib diisi.',
+        'save_failed' => 'Alamat belum bisa disimpan. Silakan coba lagi.',
     ],
     'save_address' => 'Simpan alamat ini ke akun saya',
     'billing_same' => 'Alamat penagihan sama',
@@ -61,6 +62,7 @@ return [
     'marketing' => 'Kirimi saya kabar dan promo lewat email',
     'terms' => 'Saya menyetujui :link',
     'terms_link' => 'syarat dan ketentuan',
+    'close_terms' => 'Tutup',
     'voucher_link' => 'Punya voucher? Masukkan di keranjang',
     'voucher' => [
         'title' => 'Pakai kupon',
@@ -117,6 +119,7 @@ return [
         'invite' => 'Ingin memantau semua pesanan di satu tempat?',
         'cancel' => 'Batalkan pesanan',
         'cancel_confirm' => 'Batalkan pesanan ini?',
+        'keep' => 'Pertahankan pesanan',
         'cancelled' => 'Pesanan Anda sudah dibatalkan.',
         'cannot_cancel' => 'Pesanan ini tidak bisa dibatalkan lagi.',
         'create_account' => 'Buat akun',

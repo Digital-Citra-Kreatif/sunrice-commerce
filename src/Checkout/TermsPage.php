@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Checkout;
 
 use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Settings\StoreSettings;
 
 /**
@@ -16,12 +17,17 @@ final class TermsPage
 {
     public static function url(): ?string
     {
+        return self::entry()?->url();
+    }
+
+    public static function entry(): ?EntryTranslation
+    {
         $page = app(StoreSettings::class)->get('checkout.terms_page');
         if (! $page) {
             return null;
         }
         $entry = Entry::query()->with('translations', 'collection')->find(is_array($page) ? ($page[0] ?? null) : $page);
 
-        return $entry?->shownIn()?->url();
+        return $entry?->shownIn();
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Role;
+use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Customers\Models\Address;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Customers\Notifications\VerifyCustomerEmail;
@@ -208,7 +209,9 @@ it('combines customer order search, status and an inclusive date range', functio
         ->assertSee('ORD-MATCH')->assertDontSee('ORD-MATCH-OLD')->assertDontSee('ORD-MATCH-NEW')
         ->assertDontSee('ORD-MATCH-PENDING')->assertDontSee('ORD-MATCH-QUOTE')->assertDontSee('ORD-MATCH-OTHER')
         ->assertSee('Reset filter')
-        ->assertSee('commerce-order-filters__dates"  open', false);
+        ->assertSee('name="date_from" value="2026-04-01"', false)
+        ->assertSee('name="date_to" value="2026-04-30"', false)
+        ->assertDontSee('commerce-order-filters__dates', false);
     $this->get('/account/orders?q=lookbook%20100%25')->assertOk()->assertSee('ORD-MATCH')->assertDontSee('ORD-MATCH-OTHER');
     $this->get('/account/orders?q=%25%25')->assertOk()->assertSee('Tidak ada pesanan yang cocok.');
     $this->get('/account/orders?date_to=2026-04-30')->assertOk()->assertSee('ORD-MATCH-OLD')->assertDontSee('ORD-MATCH-NEW');
@@ -217,6 +220,36 @@ it('combines customer order search, status and an inclusive date range', functio
         ->assertSee('Tanggal akhir harus sama dengan atau setelah tanggal mulai.');
     $this->get('/account/orders?status%5B%5D=completed&date_to=2026-02-30')->assertOk()
         ->assertSee('Pilih status pesanan dari daftar.')->assertSee('Masukkan tanggal akhir yang valid.');
+});
+
+it('filters the customer’s orders by product category and its descendants', function () {
+    $clothing = term('product_categories', 'Pakaian');
+    $shirts = term('product_categories', 'Kaos', $clothing);
+    $shoes = term('product_categories', 'Sepatu');
+    $private = term('product_categories', 'Kategori Lain');
+    $owner = ['user_id' => $this->user->id, 'customer_id' => $this->customer->id];
+    foreach ([
+        [$shirts, 'ORD-SHIRT', $owner],
+        [$clothing, 'ORD-CLOTH', $owner],
+        [$shoes, 'ORD-SHOES', $owner],
+        [$private, 'ORD-OTHER', []],
+    ] as [$category, $number, $attributes]) {
+        $entry = publishProduct(['variants' => [['price' => 50000, 'sku' => $number]]], title: $number);
+        $entry->terms()->attach($category);
+        $reference = $number === 'ORD-SHIRT'
+            ? ['product_id' => Product::query()->where('entry_id', $entry->id)->value('id')]
+            : ['entry_id' => $entry->id];
+        makeOrder([...$attributes, 'number' => $number, 'status' => 'completed'])
+            ->items()->create([...$reference, 'name' => $number, 'quantity' => 1]);
+    }
+
+    $this->get("/account/orders?status=completed&category={$clothing->id}")->assertOk()
+        ->assertSee('Pakaian › Kaos')->assertSee('ORD-SHIRT')->assertSee('ORD-CLOTH')
+        ->assertDontSee('ORD-SHOES')->assertDontSee('ORD-OTHER')->assertDontSee('Kategori Lain');
+    $this->get("/account/orders?category={$shirts->id}")->assertOk()
+        ->assertSee('ORD-SHIRT')->assertDontSee('ORD-CLOTH')->assertDontSee('ORD-SHOES');
+    $this->get("/account/orders?category={$private->id}")->assertOk()
+        ->assertSee('Pilih kategori produk dari daftar.')->assertDontSee('ORD-OTHER');
 });
 
 it('keeps order filters across pages and paginates ten results at a time', function () {

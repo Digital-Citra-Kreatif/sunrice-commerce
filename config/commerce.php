@@ -87,6 +87,7 @@ return [
             'webhooks' => 'commerce/webhooks',
         ],
         'layout' => 'cms.layout',
+        'skin' => null, // Optional public-relative CSS file, loaded after the theme stylesheet.
     ],
 
     /*

@@ -97,6 +97,19 @@ it('needs the inventory permission and module', function () {
     $this->get('/admin/commerce/inventory')->assertNotFound();
 });
 
+it('links to the product editor only when staff can edit the entry', function () {
+    $entry = publishProduct(['variants' => [['price' => 1000, 'sku' => 'TEST-EDIT']]], title: 'Stock product');
+    actingAsUserWith(['commerce.inventory.view']);
+    $this->get('/admin/commerce/inventory?q=TEST-EDIT')->assertOk()->assertInertia(fn ($p) => $p
+        ->where('rows.data.0.edit_url', null));
+
+    actingAsUserWith(['commerce.inventory.view', 'cms.entries.products.view', 'cms.entries.products.update'], 'editor@example.test');
+    $url = "/admin/cms/collections/products/entries/{$entry->id}/edit";
+    $this->get('/admin/commerce/inventory?q=TEST-EDIT')->assertOk()->assertInertia(fn ($p) => $p
+        ->where('rows.data.0.edit_url', $url)->where('can.adjust', false));
+    $this->get($url)->assertOk();
+});
+
 it('refuses to adjust a variant whose stock is not tracked', function () {
     publishProduct(['variants' => [['id' => 'free', 'sku' => 'FREE', 'price' => 1000, 'track_stock' => false]]], title: 'Untracked');
     $variant = Variant::query()->where('sku', 'FREE')->firstOrFail();

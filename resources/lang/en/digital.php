@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 return [
     'title' => 'Downloads',
+    'file' => 'File',
+    'remaining_heading' => 'Downloads left',
+    'expiry_heading' => 'Expires',
+    'unlimited' => 'Unlimited',
+    'no_expiry' => 'No expiry',
     'download' => 'Download',
     'revoked' => 'This download is no longer available.',
     'expired' => 'This download link has expired.',

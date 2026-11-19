@@ -15,6 +15,7 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Sunrice\Admin\Preferences\Preferences;
+use Sunrice\Commerce\Admin\PaymentConfirmationDetails;
 use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Admin\Tables\Column;
 use Sunrice\Commerce\Admin\Tables\TableQuery;
@@ -351,8 +352,9 @@ class OrdersController extends Controller
     public function show(Request $request, Order $order, MoneyFormatter $money, OrderStateMachine $states, Couriers $couriers): Response
     {
         $this->guard();
-        $order->load(['items.children', 'adjustments', 'events', 'payments', 'confirmations', 'shipments', 'refunds', 'documents', 'customer']);
+        $order->load(['items.children', 'adjustments', 'events', 'payments', 'confirmations.payment', 'shipments', 'refunds', 'documents', 'customer']);
         $user = $request->user();
+        $canVerify = commerce_feature('manual_payments') && $user->can('commerce.payments.verify');
         $statuses = $order->isQuote() ? OrderStatus::QUOTE_STATUSES : OrderStatus::ORDER_STATUSES;
         $f = fn (int $amount) => $money->format($amount);
 
@@ -406,8 +408,9 @@ class OrdersController extends Controller
                     'refunded' => $p->refunded_amount > 0 ? $f($p->refunded_amount) : null])->values()->all(),
                 'confirmations' => $order->confirmations->map(fn ($c) => ['id' => $c->id, 'sender_name' => $c->sender_name, 'sender_bank' => $c->sender_bank,
                     'amount' => $f($c->amount), 'status' => $c->status, 'created_at' => $c->created_at?->toIso8601String(),
-                    'proof_url' => $c->proof_path !== null && $user->can('commerce.payments.verify') ? route('sunrice.admin.commerce.confirmations.proof', $c, false) : null,
-                    'can_review' => $c->status === 'submitted' && $user->can('commerce.payments.verify')])->values()->all(),
+                    'proof_url' => $c->proof_path !== null && $canVerify ? route('sunrice.admin.commerce.confirmations.proof', $c, false) : null,
+                    'can_review' => $c->status === 'submitted' && $canVerify,
+                    'review' => $c->status === 'submitted' && $canVerify ? PaymentConfirmationDetails::make($c, $order, $money) : null])->values()->all(),
                 'shipments' => $order->shipments->map(fn ($s) => ['id' => $s->id, 'courier' => $s->courier_name ?? $s->courier, 'service' => $s->service,
                     'tracking_number' => $s->tracking_number, 'tracking_url' => $s->tracking_url, 'status' => $s->status,
                     'shipped_at' => $s->shipped_at?->toIso8601String(), 'delivered_at' => $s->delivered_at?->toIso8601String(),

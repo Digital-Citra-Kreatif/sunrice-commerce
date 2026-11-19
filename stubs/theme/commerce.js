@@ -13,6 +13,23 @@
         return input ? input.value : '';
     }
 
+    function dismissOnBackdrop(dialog) {
+        var pressedOnBackdrop = false;
+        function isBackdrop(event) {
+            if (event.target !== dialog) return false;
+            var bounds = dialog.getBoundingClientRect();
+            return event.clientX < bounds.left || event.clientX > bounds.right
+                || event.clientY < bounds.top || event.clientY > bounds.bottom;
+        }
+        dialog.addEventListener('pointerdown', function (event) {
+            pressedOnBackdrop = isBackdrop(event);
+        });
+        dialog.addEventListener('click', function (event) {
+            if (pressedOnBackdrop && isBackdrop(event)) dialog.close();
+            pressedOnBackdrop = false;
+        });
+    }
+
     function updateMiniCart(cart) {
         document.querySelectorAll('[data-commerce-cart-count]').forEach(function (el) {
             el.textContent = cart.count;
@@ -186,51 +203,48 @@
     });
 
     // Leaving the list pages as regular forms lets the server render removed rows and empty states.
-    var collectionForms = Array.from(document.querySelectorAll('[data-commerce-collection]')).filter(function (form) {
-        return !form.closest('.commerce-wishlist, .commerce-compare');
-    });
     var updatingCollection = false;
-    collectionForms.forEach(function (form) {
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-            if (updatingCollection) return;
+    document.addEventListener('submit', function (event) {
+        var form = event.target.closest('[data-commerce-collection]');
+        if (!form || form.closest('.commerce-wishlist, .commerce-compare')) return;
+        event.preventDefault();
+        if (updatingCollection) return;
 
-            var button = form.querySelector('button[type=submit]');
-            var method = form.querySelector('[name=_method]');
-            var selecting = method.disabled;
-            updatingCollection = true;
-            button.setAttribute('aria-disabled', 'true');
-            fetch(form.action, {
-                method: 'POST',
-                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
-                body: new FormData(form),
-                credentials: 'same-origin',
-                signal: AbortSignal.timeout(12000),
-            })
-                .then(function (response) {
-                    if (response.status >= 500) throw new Error('Collection result is unknown');
-                    return response.json().then(function (json) {
-                        if (typeof json?.message !== 'string' || (response.ok && !Number.isInteger(json.count))) {
-                            throw new Error('Unexpected collection response');
-                        }
-                        if (response.ok) {
-                            collectionForms.forEach(function (peer) {
-                                if (peer.dataset.commerceCollection !== form.dataset.commerceCollection || peer.dataset.productId !== form.dataset.productId) return;
-                                peer.action = selecting ? peer.dataset.removeUrl : peer.dataset.addUrl;
-                                peer.querySelector('[name=_method]').disabled = !selecting;
-                                peer.querySelector('button[type=submit]').setAttribute('aria-pressed', String(selecting));
-                                peer.querySelector('[data-commerce-collection-label]').textContent = selecting ? peer.dataset.removeLabel : peer.dataset.addLabel;
-                            });
-                        }
-                        toast(json.message, !response.ok, response.ok ? form : null);
-                    });
-                })
-                .catch(function () { toast(form.dataset.unconfirmed, true); })
-                .finally(function () {
-                    updatingCollection = false;
-                    button.removeAttribute('aria-disabled');
+        var button = form.querySelector('button[type=submit]');
+        var method = form.querySelector('[name=_method]');
+        var selecting = method.disabled;
+        updatingCollection = true;
+        button.setAttribute('aria-disabled', 'true');
+        fetch(form.action, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
+            body: new FormData(form),
+            credentials: 'same-origin',
+            signal: AbortSignal.timeout(12000),
+        })
+            .then(function (response) {
+                if (response.status >= 500) throw new Error('Collection result is unknown');
+                return response.json().then(function (json) {
+                    if (typeof json?.message !== 'string' || (response.ok && !Number.isInteger(json.count))) {
+                        throw new Error('Unexpected collection response');
+                    }
+                    if (response.ok) {
+                        document.querySelectorAll('[data-commerce-collection]').forEach(function (peer) {
+                            if (peer.dataset.commerceCollection !== form.dataset.commerceCollection || peer.dataset.productId !== form.dataset.productId) return;
+                            peer.action = selecting ? peer.dataset.removeUrl : peer.dataset.addUrl;
+                            peer.querySelector('[name=_method]').disabled = !selecting;
+                            peer.querySelector('button[type=submit]').setAttribute('aria-pressed', String(selecting));
+                            peer.querySelector('[data-commerce-collection-label]').textContent = selecting ? peer.dataset.removeLabel : peer.dataset.addLabel;
+                        });
+                    }
+                    toast(json.message, !response.ok, response.ok && form.isConnected ? form : null);
                 });
-        });
+            })
+            .catch(function () { toast(form.dataset.unconfirmed, true); })
+            .finally(function () {
+                updatingCollection = false;
+                button.removeAttribute('aria-disabled');
+            });
     });
 
     document.querySelectorAll('[data-commerce-cart]').forEach(function (cart) {
@@ -270,6 +284,19 @@
         });
     });
 
+    document.querySelectorAll('[data-commerce-order-cancel]').forEach(function (form) {
+        var dialog = form.querySelector('[data-commerce-order-cancel-dialog]');
+        var opener = form.querySelector('[data-commerce-open-order-cancel]');
+        if (!opener || typeof dialog?.showModal !== 'function') return;
+        var fallback = form.querySelector('[data-commerce-order-cancel-fallback]');
+        if (fallback) fallback.hidden = true;
+        opener.hidden = false;
+        opener.addEventListener('click', function () { dialog.showModal(); });
+        dialog.querySelector('[data-commerce-keep-order]')?.addEventListener('click', function () { dialog.close(); });
+        dialog.addEventListener('close', function () { opener.focus({ preventScroll: true }); });
+        dismissOnBackdrop(dialog);
+    });
+
     // Checkout: show/hide toggled parts, and refresh rates, payments and totals on change.
     document.querySelectorAll('[data-commerce-checkout]').forEach(function (form) {
         function syncToggles() {
@@ -305,9 +332,24 @@
         var update = form.querySelector('[data-commerce-update]');
         var submit = form.querySelector('button[name=action][value=place]');
         var status = form.querySelector('[data-commerce-checkout-status]');
+        var submitLabel = submit?.querySelector('[data-commerce-place-label]') || submit;
+        var defaultSubmitLabel = submitLabel?.textContent;
+        var processingLabel = submit?.dataset.processingLabel || status?.dataset.submitting;
         var voucherRequest = null;
+        var addressRequest = null;
         var paymentSection = form.querySelector('[data-commerce-payment-section]');
         var paymentStep = form.closest('.commerce-checkout-page')?.querySelector('[data-commerce-payment-step]');
+        var termsLink = form.querySelector('[data-commerce-open-terms]');
+        var termsDialog = form.closest('.commerce-checkout-page')?.querySelector('[data-commerce-terms-dialog]');
+        if (termsLink && typeof termsDialog?.showModal === 'function') {
+            termsLink.addEventListener('click', function (event) {
+                if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+                event.preventDefault();
+                termsDialog.showModal();
+            });
+            dismissOnBackdrop(termsDialog);
+            termsDialog.addEventListener('close', function () { termsLink.focus({ preventScroll: true }); });
+        }
 
         function fillShippingAddress(address, fields) {
             fields.forEach(function (input) {
@@ -331,12 +373,15 @@
 
             var fields = Array.from(editor.querySelectorAll('[name^="shipping_address["]'));
             var saved = form.querySelector('[data-commerce-saved-address]');
+            var picker = form.querySelector('[data-commerce-saved-address-picker]');
             var newAddressOption = saved?.querySelector('option[value=""]');
             var save = editor.querySelector('[name=save_address]');
             var card = form.querySelector('[data-commerce-address-card]');
             var summary = card.querySelector('[data-commerce-address-summary]');
             var open = card.querySelector('[data-commerce-open-address]');
             var error = dialog.querySelector('[data-commerce-address-dialog-error]');
+            var applyButton = dialog.querySelector('[data-commerce-apply-address]');
+            var cancel = dialog.querySelector('[data-commerce-cancel-address]');
             // Keep the draft outside the checkout form so a refresh only sees the applied address.
             var committed = document.createElement('div');
             committed.hidden = true;
@@ -379,7 +424,7 @@
                 var recipient = [activeId ? '' : activeAddress.name, activeAddress.phone].filter(Boolean).join(' · ');
                 var street = [activeAddress.line1, activeAddress.line2, locality,
                     activeAddress.country === 'ID' ? '' : activeAddress.countryLabel].filter(Boolean).join(', ');
-                summary.textContent = [saved ? '' : title, recipient, street].filter(Boolean).join('\n');
+                summary.textContent = [saved && !picker?.hidden ? '' : title, recipient, street].filter(Boolean).join('\n');
                 summary.hidden = !activeAddress.line1;
                 open.textContent = summary.hidden || activeId ? open.dataset.addLabel : open.dataset.changeLabel;
             }
@@ -391,7 +436,7 @@
                     phone: activeAddress.phone || form.elements.phone?.value,
                 } : activeAddress;
                 fillShippingAddress(draft, fields);
-                if (save) save.checked = draft === activeAddress && shouldSave;
+                if (save) save.checked = draft !== activeAddress || !activeAddress.line1 || shouldSave;
                 error.hidden = true;
                 dialog.showModal();
             }
@@ -401,9 +446,12 @@
             card.hidden = false;
             apply();
             open.addEventListener('click', function () { showEditor(true); });
-            dialog.querySelector('[data-commerce-cancel-address]').addEventListener('click', function () { dialog.close(); });
+            cancel.addEventListener('click', function () { dialog.close(); });
+            dialog.addEventListener('cancel', function (event) {
+                if (applyButton.disabled) event.preventDefault();
+            });
             dialog.addEventListener('close', function () { open.focus({ preventScroll: true }); });
-            dialog.querySelector('[data-commerce-apply-address]').addEventListener('click', function () {
+            applyButton.addEventListener('click', function () {
                 var country = editor.querySelector('[data-commerce-country]').value;
                 var missing = fields.find(function (field) {
                     var key = field.name.slice('shipping_address['.length, -1);
@@ -415,7 +463,37 @@
                 });
                 error.hidden = !missing;
                 if (missing) {
+                    error.textContent = error.dataset.incomplete || '';
                     missing.focus();
+                    return;
+                }
+                if (save?.checked && saved) {
+                    applyButton.disabled = cancel.disabled = true;
+                    addressRequest = {
+                        values: fields.map(function (field) { return [field.name, field.disabled ? '' : field.value]; }),
+                        finish: function (result, message) {
+                            applyButton.disabled = cancel.disabled = false;
+                            if (!result) {
+                                error.textContent = message || error.dataset.saveFailed || '';
+                                error.hidden = false;
+                                return;
+                            }
+                            var id = String(result.id);
+                            var option = Array.from(saved.options).find(function (item) { return item.value === id; });
+                            if (!option) {
+                                option = new Option(result.title, id);
+                                saved.add(option);
+                            }
+                            option.dataset.address = JSON.stringify(result.address);
+                            if (picker) picker.hidden = false;
+                            saved.value = id;
+                            fillShippingAddress(result.address, fields);
+                            save.checked = false;
+                            apply();
+                            dialog.close();
+                        },
+                    };
+                    refresh();
                     return;
                 }
                 if (saved) saved.value = '';
@@ -442,7 +520,11 @@
 
         function showStatus(message) {
             if (status) status.textContent = status.dataset[message] || '';
-            if (submit) submit.setAttribute('aria-disabled', String(pending || failed || submitting));
+            if (submit) {
+                submit.disabled = submitting;
+                submit.setAttribute('aria-disabled', String(pending || failed || submitting));
+                if (processingLabel) submitLabel.textContent = submitting ? processingLabel : defaultSubmitLabel;
+            }
         }
 
         function replaceFragment(selector, html) {
@@ -483,13 +565,22 @@
 
             refreshing = true;
             var sent = revision;
-            var voucher = voucherRequest;
-            voucherRequest = null;
+            var address = addressRequest;
+            var addressError;
+            addressRequest = null;
+            var voucher = address ? null : voucherRequest;
+            if (!address) voucherRequest = null;
             var data = new FormData(form);
             data.delete('password');
             var captchaField = form.querySelector('[data-commerce-captcha]')?.dataset.commerceCaptcha;
             if (captchaField) data.delete(captchaField);
             data.set('_form', 'checkout');
+            if (address) {
+                data.set('action', 'apply_address');
+                data.set('save_address', '1');
+                data.set('address_id', '');
+                address.values.forEach(function (field) { data.set(field[0], field[1]); });
+            }
             if (voucher) {
                 data.set(voucher.name, voucher.value);
                 if (voucher.code !== null) data.set('voucher_code', voucher.code);
@@ -502,10 +593,21 @@
                 credentials: 'same-origin',
             })
                 .then(function (response) {
+                    if (address && response.status === 422) {
+                        return response.json().then(function (json) {
+                            addressError = json.message;
+                            throw new Error('Address validation failed');
+                        });
+                    }
                     if (!response.ok) throw new Error('Checkout refresh failed');
                     return response.json();
                 })
                 .then(function (json) {
+                    if (address) {
+                        if (!json.saved_address || typeof json.hash !== 'string' || !json.hash) throw new Error('Checkout refresh failed');
+                        address.finish(json.saved_address);
+                        address = null;
+                    }
                     if (voucher) replaceFragment('[data-commerce-checkout-vouchers]', json.vouchers_html);
                     if (sent !== revision) return;
                     if (typeof json.hash !== 'string' || !json.hash) throw new Error('Checkout total is missing');
@@ -529,11 +631,15 @@
                     syncToggles();
                 })
                 .catch(function () {
+                    if (address) {
+                        address.finish(null, addressError);
+                        return;
+                    }
                     if (sent === revision) failed = true;
                 })
                 .finally(function () {
                     refreshing = false;
-                    if (sent !== revision) {
+                    if (sent !== revision || voucherRequest || addressRequest) {
                         sendRefresh();
                         return;
                     }
@@ -567,8 +673,14 @@
                 event.preventDefault();
                 return;
             }
-            submitting = true;
-            showStatus('submitting');
+            if (submit && !event.defaultPrevented && (!event.submitter || event.submitter === submit)) {
+                submitting = true;
+                showStatus('');
+            }
+        });
+        form.addEventListener('formdata', function (event) {
+            // A disabled button is omitted from the browser's POST body.
+            if (submitting && submit) event.formData.set(submit.name, submit.value);
         });
         form.addEventListener('keydown', function (event) {
             if (event.key !== 'Enter' || event.target.name !== 'voucher_code') return;
@@ -582,6 +694,7 @@
             showStatus(pending ? 'updating' : failed ? 'failed' : '');
         });
         form.addEventListener('change', function (event) {
+            if (submitting) return;
             var t = event.target;
             if (t.matches('[data-commerce-saved-address]')) {
                 var option = t.selectedOptions[0];
@@ -622,33 +735,42 @@
             .then(function (json) {
                 var cart = json.cart || json;
                 body.textContent = '';
-                var list = document.createElement('ul');
-                list.className = 'commerce-drawer__lines';
-                (cart.lines || []).slice(0, shown).forEach(function (line) {
-                    var li = document.createElement('li');
-                    var a = document.createElement('a');
-                    a.href = line.url || '#';
-                    a.textContent = line.quantity + ' × ' + line.title;
-                    var price = document.createElement('span');
-                    price.textContent = line.total.formatted;
-                    li.appendChild(a);
-                    li.appendChild(price);
-                    list.appendChild(li);
-                });
-                body.appendChild(list);
-                var more = (cart.line_count || 0) - list.children.length;
-                if (more > 0) {
-                    var rest = document.createElement('a');
-                    rest.className = 'commerce-drawer__more';
-                    rest.href = link.href;
-                    rest.textContent = (drawer.dataset.commerceDrawerMore || '+:count').replace(':count', more);
-                    body.appendChild(rest);
-                }
-                if (cart.totals) {
-                    var total = document.createElement('p');
-                    total.className = 'commerce-drawer__total';
-                    total.textContent = cart.totals.total.formatted;
-                    body.appendChild(total);
+                var empty = cart.count === 0;
+                var footer = drawer.querySelector('[data-commerce-drawer-footer], .commerce-drawer__footer');
+                if (footer) footer.hidden = empty;
+                if (empty) {
+                    var template = drawer.querySelector('[data-commerce-drawer-empty]');
+                    if (!template) throw new Error('Cart empty state unavailable');
+                    body.appendChild(template.content.cloneNode(true));
+                } else {
+                    var list = document.createElement('ul');
+                    list.className = 'commerce-drawer__lines';
+                    (cart.lines || []).slice(0, shown).forEach(function (line) {
+                        var li = document.createElement('li');
+                        var a = document.createElement('a');
+                        a.href = line.url || '#';
+                        a.textContent = line.quantity + ' × ' + line.title;
+                        var price = document.createElement('span');
+                        price.textContent = line.total.formatted;
+                        li.appendChild(a);
+                        li.appendChild(price);
+                        list.appendChild(li);
+                    });
+                    body.appendChild(list);
+                    var more = (cart.line_count || 0) - list.children.length;
+                    if (more > 0) {
+                        var rest = document.createElement('a');
+                        rest.className = 'commerce-drawer__more';
+                        rest.href = link.href;
+                        rest.textContent = (drawer.dataset.commerceDrawerMore || '+:count').replace(':count', more);
+                        body.appendChild(rest);
+                    }
+                    if (cart.totals) {
+                        var total = document.createElement('p');
+                        total.className = 'commerce-drawer__total';
+                        total.textContent = cart.totals.total.formatted;
+                        body.appendChild(total);
+                    }
                 }
                 drawer.showModal();
                 var close = drawer.querySelector('[data-commerce-drawer-close]');
@@ -737,7 +859,9 @@
         button.hidden = false;
         var filters = panel(aside, button, 'commerce-filters-backdrop');
         button.addEventListener('click', filters.open);
-        aside.querySelectorAll('[data-commerce-filters-close]').forEach(function (b) { b.addEventListener('click', filters.close); });
+        aside.addEventListener('click', function (event) {
+            if (event.target.closest('[data-commerce-filters-close]')) filters.close();
+        });
 
         // Before the sticky sidebar reaches the header, its starting position can be lower on the page.
         var desktop = window.matchMedia('(min-width: 1024px)');
@@ -759,6 +883,128 @@
         window.addEventListener('resize', scheduleFit);
         window.addEventListener('scroll', scheduleFit, { passive: true });
         document.fonts?.ready.then(scheduleFit);
+
+        var results = listing.querySelector('[data-commerce-listing-results]');
+        var status = listing.querySelector('[data-commerce-listing-status]');
+        if (!results || !status) return;
+        var pending;
+        var renderedUrl = window.location.href;
+        var appliedFilters;
+
+        function filterParams(form) {
+            var params = new URLSearchParams();
+            new FormData(form).forEach(function (value, name) {
+                if (value !== '' && !(name === 'sort' && value === 'featured')) params.append(name, value);
+            });
+            return params;
+        }
+
+        function syncApply() {
+            var form = aside.querySelector('[data-commerce-filters]');
+            var apply = form?.querySelector('[data-commerce-filters-apply]');
+            if (apply) apply.disabled = filterParams(form).toString() === appliedFilters;
+        }
+
+        function rememberFilters() {
+            var form = aside.querySelector('[data-commerce-filters]');
+            appliedFilters = form && filterParams(form).toString();
+            syncApply();
+        }
+
+        rememberFilters();
+        aside.addEventListener('input', function (event) {
+            var option = event.target;
+            if (option.matches('input[name="category[]"]:checked')) {
+                for (var branch = option.closest('.commerce-filters__branch'); branch; branch = branch.parentElement.closest('.commerce-filters__branch')) {
+                    var parent = branch.parentElement.querySelector(':scope > label [data-commerce-filter-parent]');
+                    if (parent) parent.checked = false;
+                }
+                if (option.hasAttribute('data-commerce-filter-parent')) {
+                    var group = option.closest('.commerce-filters__parent').querySelector(':scope > .commerce-filters__branch');
+                    group.open = true;
+                    group.querySelectorAll('input[name="category[]"]:checked')
+                        .forEach(function (child) { child.checked = false; });
+                }
+            }
+            syncApply();
+        });
+        aside.addEventListener('change', syncApply);
+        window.addEventListener('pageshow', syncApply);
+
+        function showLoading(loading) {
+            results.setAttribute('aria-busy', String(loading));
+            status.textContent = loading ? status.dataset.loading : '';
+        }
+
+        async function navigate(url, source) {
+            pending?.abort();
+            if (url.href === renderedUrl) {
+                showLoading(false);
+                return;
+            }
+
+            var request = new AbortController();
+            pending = request;
+            showLoading(true);
+            try {
+                var response = await fetch(url, {
+                    headers: { Accept: 'text/html' },
+                    signal: AbortSignal.any([request.signal, AbortSignal.timeout(12000)]),
+                });
+                if (!response.ok || response.redirected) throw new Error('Listing unavailable');
+                var html = new DOMParser().parseFromString(await response.text(), 'text/html');
+                if (request.signal.aborted) return;
+                var nextListing = html.querySelector('[data-commerce-listing]');
+                var nextAside = nextListing?.querySelector('[data-commerce-filter-panel]');
+                var nextResults = nextListing?.querySelector('[data-commerce-listing-results]');
+                var nextButton = nextResults?.querySelector('[data-commerce-filters-open]');
+                if (!nextAside || !nextButton) throw new Error('Listing fragment unavailable');
+
+                var focusInListing = listing.contains(document.activeElement);
+                var drawerOpen = aside.classList.contains('is-open');
+                filters.close();
+                nextButton.replaceWith(button);
+                aside.replaceChildren(...nextAside.childNodes);
+                results.replaceChildren(...nextResults.childNodes);
+                rememberFilters();
+                if (source !== 'history') window.history.pushState(null, '', url);
+                renderedUrl = url.href;
+                if (source === 'page') listing.scrollIntoView({ block: 'start' });
+                if (source !== 'history' || focusInListing) {
+                    var focus = source === 'view' ? results.querySelector('.commerce-listing__views [aria-current]')
+                        : drawerOpen ? button : results;
+                    (focus || results).focus({ preventScroll: true });
+                }
+                scheduleFit();
+                showLoading(false);
+                status.textContent = results.querySelector('.commerce-products__count, .commerce-products .commerce-empty__title')?.textContent.trim() || '';
+            } catch {
+                if (request.signal.aborted) return;
+                if (source === 'history') window.location.reload();
+                else window.location.assign(url);
+            }
+        }
+
+        listing.addEventListener('submit', function (event) {
+            var form = event.target.closest('[data-commerce-filters]');
+            if (!form) return;
+            var url = new URL(form.action);
+            event.preventDefault();
+            var params = filterParams(form).toString();
+            if (params === appliedFilters) return;
+            url.search = params;
+            navigate(url, 'filter');
+        });
+        listing.addEventListener('click', function (event) {
+            if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+            var link = event.target.closest('.commerce-listing__views a, .commerce-pages a, .commerce-chips a, .commerce-filters__foot a, .commerce-products .commerce-empty a');
+            if (!link || link.target || link.hasAttribute('download')) return;
+            var url = new URL(link.href);
+            if (url.origin !== window.location.origin || url.pathname !== window.location.pathname) return;
+            event.preventDefault();
+            navigate(url, link.closest('.commerce-listing__views') ? 'view' : link.closest('.commerce-pages') ? 'page' : 'filter');
+        });
+        window.addEventListener('popstate', function () { navigate(new URL(window.location.href), 'history'); });
     });
 
     // Use the original form to submit from the floating controls on product pages.

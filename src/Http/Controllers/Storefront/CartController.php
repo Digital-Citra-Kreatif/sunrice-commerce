@@ -8,6 +8,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\ValidationException;
 use Sunrice\Commerce\Cart\Actions\AddToCart;
 use Sunrice\Commerce\Cart\Actions\ApplyVoucher;
 use Sunrice\Commerce\Cart\Actions\RemoveCartItem;
@@ -54,16 +55,21 @@ class CartController
 
     public function update(Request $request, int $item, UpdateCartItem $update): RedirectResponse
     {
-        $data = $request->validate(['quantity' => ['required', 'integer', 'min:1', 'max:100000']], [
-            'quantity.min' => __('commerce::storefront.cart.quantity_positive'),
-        ]);
+        $cart = $this->cartUrl($request);
+        try {
+            $data = $request->validate(['quantity' => ['required', 'integer', 'min:1', 'max:100000']], [
+                'quantity.min' => __('commerce::storefront.cart.quantity_positive'),
+            ]);
+        } catch (ValidationException $e) {
+            throw $e->redirectTo($cart);
+        }
 
-        return $this->attempt(fn () => $update->handle($item, (int) $data['quantity']), __('commerce::storefront.cart.updated'));
+        return $this->attempt(fn () => $update->handle($item, (int) $data['quantity']), __('commerce::storefront.cart.updated'), $cart);
     }
 
-    public function remove(int $item, RemoveCartItem $remove): RedirectResponse
+    public function remove(Request $request, int $item, RemoveCartItem $remove): RedirectResponse
     {
-        return $this->attempt(fn () => $remove->handle($item), __('commerce::storefront.cart.removed'));
+        return $this->attempt(fn () => $remove->handle($item), __('commerce::storefront.cart.removed'), $this->cartUrl($request));
     }
 
     /** Pay with loyalty points, or not (signed-in customers). */
@@ -83,18 +89,33 @@ class CartController
     {
         $remove->handle($code);
 
-        return back()->with('commerce.success', __('commerce::storefront.cart.voucher_removed'));
+        return redirect($this->cartUrl())->with('commerce.success', __('commerce::storefront.cart.voucher_removed'));
     }
 
     /** @param  string|\Closure(mixed): string  $success */
-    protected function attempt(\Closure $action, string|\Closure $success): RedirectResponse
+    protected function attempt(\Closure $action, string|\Closure $success, ?string $destination = null): RedirectResponse
     {
+        $redirect = redirect($destination ?? $this->cartUrl());
         try {
             $result = $action();
         } catch (CartException $e) {
-            return back()->with('commerce.error', $e->getMessage());
+            return $redirect->with('commerce.error', $e->getMessage());
         }
 
-        return back()->with('commerce.success', is_string($success) ? $success : $success($result));
+        return $redirect->with('commerce.success', is_string($success) ? $success : $success($result));
+    }
+
+    protected function cartUrl(?Request $request = null): string
+    {
+        $cart = StorefrontRoutes::url('commerce.cart');
+        $page = $request?->integer('page') ?? 0;
+        $referer = $request?->headers->get('referer', '') ?? '';
+        if ($page === 0 && parse_url($referer, PHP_URL_PATH) === parse_url($cart, PHP_URL_PATH)) {
+            // Older cart templates carry the page in the referrer rather than a form field.
+            parse_str((string) parse_url($referer, PHP_URL_QUERY), $query);
+            $page = filter_var($query['page'] ?? 1, FILTER_VALIDATE_INT) ?: 1;
+        }
+
+        return $page > 1 ? StorefrontRoutes::url('commerce.cart', ['page' => $page]) : $cart;
     }
 }

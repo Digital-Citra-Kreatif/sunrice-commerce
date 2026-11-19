@@ -217,9 +217,11 @@ records the payment as **Awaiting confirmation**, which pauses its deadline. The
 emailed "payment confirmation received"; staff get "payment confirmation to verify" (the
 addresses in the email's settings and users with its roles, Shop Manager by default).
 
-**2. Staff review** in Shop → Payments to verify (`commerce.payments.verify`): the confirmations
-waiting, oldest first, with the proof beside the expected amount and the order. Approved and
-rejected ones can be listed too.
+**2. Staff review** is available in **Shop → Payments to verify** and from **Review** in the
+order's Payments section. Both open the same dialog for staff with
+`commerce.payments.verify`. The dialog shows the sent and expected amounts, transfer details
+and any proof. The list supports searching by order number or sender, sorting and pagination.
+Use the status tabs to see waiting, approved and rejected confirmations.
 
 | Action | `Payments\Actions\ReviewPaymentConfirmation` | Result |
 | --- | --- | --- |

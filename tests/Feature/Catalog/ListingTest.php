@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Dom\HTMLDocument;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -91,12 +92,29 @@ it('distinguishes categories with the same name even when their ancestors are mi
     $menCoats = term('product_categories', 'Coats', $outerwear);
     $menCoats->translations()->update(['slug' => 'men-coats']);
     $womenCoats = term('product_categories', 'Coats', $women);
+    $shoes = term('product_categories', 'Shoes', $men);
     listed('Raincoat', 100000, [$menCoats]);
     listed('Trench coat', 200000, [$womenCoats]);
+    listed('Leather shoes', 200000, [$shoes]);
 
-    $this->get('/products')->assertOk()
-        ->assertSeeText('Men › Outerwear › Coats (1)')
-        ->assertSeeText('Women › Coats (1)');
+    $listing = $this->get('/products')->assertOk()
+        ->assertSee('aria-label="Men › Outerwear › Coats (1)"', false)
+        ->assertSee('aria-label="Women › Coats (1)"', false);
+    $document = HTMLDocument::createFromString($listing->getContent(), LIBXML_NOERROR);
+    expect($document->querySelectorAll('.commerce-filters__branch details.commerce-filters__branch'))->toHaveCount(1);
+    expect($document->querySelector('input[data-commerce-filter-parent][value="'.$men->id.'"]'))->not->toBeNull();
+
+    $parent = $this->get("/products?category[]={$men->id}")->assertOk()
+        ->assertSeeText('Raincoat')->assertSeeText('Leather shoes')->assertDontSee('Trench coat');
+    $document = HTMLDocument::createFromString($parent->getContent(), LIBXML_NOERROR);
+    expect($document->querySelectorAll('input[name="category[]"][checked]'))->toHaveCount(1)
+        ->and($document->querySelector('input[name="category[]"][checked]')?->getAttribute('value'))->toBe((string) $men->id)
+        ->and($document->querySelector('.commerce-chip')?->textContent)->toContain('Men');
+
+    $selected = $this->get("/products?category[]={$menCoats->id}")->assertOk()
+        ->assertSeeText('Raincoat')->assertDontSee('Trench coat')->assertDontSee('Leather shoes');
+    $document = HTMLDocument::createFromString($selected->getContent(), LIBXML_NOERROR);
+    expect($document->querySelectorAll('.commerce-filters__branch[open]'))->toHaveCount(2);
 });
 
 it('drops price filters and sorts when prices are hidden', function () {
@@ -115,13 +133,21 @@ it('renders the shop, brand and category pages', function () {
 });
 
 it('offers a table view that keeps the search and selected category when switching layouts', function () {
+    app(ToggleFeature::class)->handle('taxes', true);
+    app(Features::class)->flush();
+    app(StoreSettings::class)->saveSection('taxes', ['display_prices' => 'incl']);
+
     $category = $this->shirts->id;
     $this->get("/products?view=table&q=Kaos&category[]={$category}")->assertOk()
         ->assertSee('class="commerce-product-table"', false)
         ->assertSee('name="view" value="table"', false)
+        ->assertSee('aria-label="Tabel"', false)
+        ->assertSee('Menampilkan 1–2 dari 2 produk')
+        ->assertDontSee('class="commerce-price__tax"', false)
         ->assertSee('Kaos Biru')->assertDontSee('Tas Kanvas');
     $this->get("/products?q=Kaos&category[]={$category}")->assertOk()
         ->assertSee('class="commerce-grid"', false)
+        ->assertSee('class="commerce-price__tax"', false)
         ->assertSee('&amp;view=table', false);
 });
 

@@ -7,6 +7,7 @@
     drawer on small screens (data-commerce-filters); without, a plain form.
 --}}
 @php
+    $L = \Sunrice\Commerce\Storefront\Layout::class;
     $termIds = collect($facets['terms'])->flatten(1)->pluck('id')->all();
     $termData = $termIds === [] ? collect() : \Sunrice\Cms\Models\Term::query()->with('translations')->whereIn('id', $termIds)->get()->keyBy('id');
     $swatchOf = fn (int $id) => ($hex = $termData->get($id)?->translations->first()?->data['swatch'] ?? null) && preg_match('/^#[0-9a-fA-F]{3,8}$/', (string) $hex) ? $hex : null;
@@ -42,18 +43,12 @@
             @continue($without !== '' && $param($taxonomy) === $without)
             @php
                 $name = $param($taxonomy);
-                $isSwatches = collect($terms)->contains(fn ($t) => $swatchOf($t['id']) !== null);
-                $isBoxes = ! $isSwatches && str_starts_with($name, 'attr[');
+                $models = $termData->only(array_column($terms, 'id'));
+                $nested = $models->contains(fn ($term) => $term->parent_id !== null);
+                $isSwatches = ! $nested && collect($terms)->contains(fn ($t) => $swatchOf($t['id']) !== null);
+                $isBoxes = ! $nested && ! $isSwatches && str_starts_with($name, 'attr[');
                 if ($isBoxes) {
                     $terms = collect($terms)->sortBy(fn ($t) => [$termData->get($t['id'])?->sort_order ?? 0, $t['id']])->values()->all();
-                }
-                if ($name === 'category') {
-                    $labels = $categoryLabels($termData->only(array_column($terms, 'id')));
-                    $terms = collect($terms)->map(function ($term) use ($labels) {
-                        $term['name'] = $labels[$term['id']] ?? $term['name'];
-
-                        return $term;
-                    })->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)->all();
                 }
                 $title = in_array($name, ['category', 'brand', 'tag'], true) ? __('commerce::storefront.theme.facet_'.$name) : ($titles[$taxonomy] ?? $taxonomy);
                 $open = collect($terms)->contains('selected', true) || $loop->index < 3;
@@ -62,16 +57,13 @@
                 <summary>{{ $title }}</summary>
                 <fieldset @class(['commerce-filters__options', 'commerce-filters__options--swatches' => $isSwatches, 'commerce-filters__options--boxes' => $isBoxes])>
                     <legend class="commerce-visually-hidden">{{ $title }}</legend>
-                    @foreach ($terms as $term)
-                        <label class="commerce-filters__option">
-                            <input type="checkbox" name="{{ $name }}[]" value="{{ $term['id'] }}" @checked($term['selected'])>
-                            @if ($isSwatches)
-                                <span class="commerce-swatch" style="--swatch: {{ $swatchOf($term['id']) ?? 'transparent' }}" aria-hidden="true"></span>
-                            @endif
-                            <span class="commerce-filters__name">{{ $term['name'] }}</span>
-                            <span class="commerce-filters__count">({{ $term['count'] }})</span>
-                        </label>
-                    @endforeach
+                    @if ($nested)
+                        @include($L::view('partials.filter-tree'), ['nodes' => $categoryTree($models, $terms), 'parentPath' => ''])
+                    @else
+                        @foreach ($terms as $term)
+                            @include($L::view('partials.filter-option'), ['label' => $term['name'], 'path' => null])
+                        @endforeach
+                    @endif
                 </fieldset>
             </details>
         @endforeach
@@ -99,8 +91,8 @@
         </fieldset>
     </div>
     <div class="commerce-filters__foot">
-        <button type="submit" class="commerce-button commerce-button--primary">{{ __('commerce::storefront.listing.apply') }}</button>
-        @if (count(request()->except(['page', 'q', 'view'])) > 0)
+        <button type="submit" class="commerce-button commerce-button--primary" data-commerce-filters-apply>{{ __('commerce::storefront.listing.apply') }}</button>
+        @if ($selectedCount > 0 || request('sort', 'featured') !== 'featured')
             <a class="commerce-link commerce-link--action" href="{{ url()->query(url()->current(), request()->only(['q', 'view'])) }}">{{ __('commerce::storefront.listing.reset') }}</a>
         @endif
     </div>

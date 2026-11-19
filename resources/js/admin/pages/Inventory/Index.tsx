@@ -1,10 +1,11 @@
 import { React, adminUrl, fetchJson, inertia, ui, useBreadcrumbs } from '../../lib/sunrice';
 import { DataTable, type DataTableProps } from '../../components/DataTable';
+import { PencilIcon } from '../../components/Icons';
 import { PageHeader } from '../../components/PageHeader';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useCommerceShared } from '../../lib/store';
 
-interface Row { id: number; product_title: string; entry_id: number; sku: string | null; track_stock: boolean; stock_quantity: number | null; backorders: string; status: string; low: boolean }
+interface Row { id: number; product_title: string; edit_url: string | null; sku: string | null; track_stock: boolean; stock_quantity: number | null; backorders: string; status: string; low: boolean }
 interface Movement { id: number; delta: number; quantity_after: number | null; reason: string; note: string | null; user: string | null; at: string; reference: { type: string; id: number } | null }
 
 const statusTone: Record<string, string> = { in_stock: 'ok', out_of_stock: 'error', backorder: 'warning' };
@@ -72,6 +73,8 @@ function AdjustDialog({ row, reasons, onClose }: { row: Row; reasons: string[]; 
 }
 
 export default function InventoryIndex(props: DataTableProps & { can: { adjust: boolean }; reasons: string[] }) {
+    const { Button } = ui;
+    const { Link } = inertia;
     const [adjusting, setAdjusting] = React.useState<Row | null>(null);
     useCommerceShared();
     useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Inventory' }]);
@@ -84,6 +87,14 @@ export default function InventoryIndex(props: DataTableProps & { can: { adjust: 
                 searchPlaceholder="Search products or SKUs…"
                 onRowClick={props.can.adjust ? (row: Row) => setAdjusting(row) : undefined}
                 renderCell={(row: Row, column: { key: string }) => {
+                    if (column.key === 'product_title' && row.edit_url) return (
+                        <span className="cm:inline-flex cm:items-center cm:gap-2">
+                            {row.product_title}
+                            <Button asChild variant="ghost" size="icon" className="cm:size-8 cm:shrink-0">
+                                <Link href={row.edit_url} title="Edit product" aria-label={`Edit product ${row.product_title}`}><PencilIcon /></Link>
+                            </Button>
+                        </span>
+                    );
                     if (column.key === 'status') return <StatusBadge tone={row.low ? 'warning' : statusTone[row.status]}>{row.low ? 'Low' : row.status.replace(/_/g, ' ')}</StatusBadge>;
                     if (column.key === 'stock_quantity') return row.track_stock ? row.stock_quantity : <span className="cm:text-muted-foreground">—</span>;
                     return undefined;

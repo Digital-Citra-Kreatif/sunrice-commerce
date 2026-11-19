@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Auth;
 use Sunrice\Cms\Actions\Entries\CreateTranslation;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Product;
@@ -60,6 +61,20 @@ it('renders collection shortcuts and accepts both add and remove in AJAX form po
         ->assertOk()->assertJsonPath('message', 'Ditambahkan ke perbandingan.')->assertJsonPath('count', 1);
     $this->post("/compare/items/{$this->mugId}", ['_method' => 'DELETE'], ['Accept' => 'application/json'])
         ->assertOk()->assertJsonPath('count', 0);
+});
+
+it('shows the account profile name on its shared wishlist without exposing the email', function () {
+    $user = User::query()->create(['name' => 'Dewi Lestari', 'email' => 'wishlist-owner@example.test', 'password' => 'secret-pass']);
+    $this->actingAs($user, 'commerce');
+    $this->post('/wishlist/items', ['product' => $this->mugId])->assertSessionHas('commerce.success');
+    $this->get('/wishlist')->assertSee('wishlist dan nama profil Anda');
+    $this->post('/wishlist/share', ['on' => 1])->assertSessionHas('commerce.success');
+    $token = Wishlist::query()->sole()->share_token;
+
+    Auth::guard('commerce')->logout();
+    $this->get("/wishlist/shared/{$token}")->assertOk()->assertSee('Wishlist · Dewi Lestari')
+        ->assertSee('Mug')->assertDontSee($user->email)
+        ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
 });
 
 it('merges a guest wishlist into the customer\'s', function () {

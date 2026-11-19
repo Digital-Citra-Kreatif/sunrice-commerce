@@ -21,6 +21,7 @@ use Sunrice\Commerce\Orders\Actions\CancelOrderByCustomer;
 use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\InvalidTransition;
 use Sunrice\Commerce\Orders\Models\Order;
+use Sunrice\Commerce\Orders\OrderCategoryFilter;
 use Sunrice\Commerce\Orders\OrderStatus;
 use Sunrice\Commerce\Returns\Actions\RequestReturn;
 use Sunrice\Commerce\Returns\Models\ReturnRequest;
@@ -39,24 +40,28 @@ class OrdersController
         return app(CurrentCustomer::class);
     }
 
-    public function index(Request $request, AccountController $account): View
+    public function index(Request $request, AccountController $account, OrderCategoryFilter $categories): View
     {
-        $input = Arr::only($request->query(), ['q', 'status', 'date_from', 'date_to']);
+        $orders = $this->customerOrders('order');
+        $options = $categories->options($orders);
+        $input = Arr::only($request->query(), ['q', 'status', 'category', 'date_from', 'date_to']);
         $validator = Validator::make($input, [
             'q' => ['nullable', 'string', 'max:120'],
             'status' => ['nullable', Rule::in(OrderStatus::ORDER_STATUSES)],
+            'category' => ['nullable', 'integer', Rule::in(array_keys($options))],
             'date_from' => ['nullable', 'date_format:Y-m-d'],
             'date_to' => ['nullable', 'date_format:Y-m-d', Rule::when($request->filled('date_from'), 'after_or_equal:date_from')],
         ], [
             'q.string' => __('commerce::account.orders.filters.invalid_search'),
             'q.max' => __('commerce::account.orders.filters.invalid_search'),
             'status.in' => __('commerce::account.orders.filters.invalid_status'),
+            'category.integer' => __('commerce::account.orders.filters.invalid_category'),
+            'category.in' => __('commerce::account.orders.filters.invalid_category'),
             'date_from.date_format' => __('commerce::account.orders.filters.invalid_from'),
             'date_to.date_format' => __('commerce::account.orders.filters.invalid_to'),
             'date_to.after_or_equal' => __('commerce::account.orders.filters.invalid_range'),
         ]);
         $filters = array_filter($validator->valid(), fn (mixed $value): bool => $value !== null && $value !== '');
-        $orders = $this->customerOrders('order');
         if (isset($filters['q'])) {
             $like = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], mb_strtolower($filters['q'])).'%';
             $orders->where(fn (Builder $query) => $query
@@ -66,6 +71,9 @@ class OrdersController
         }
         if (isset($filters['status'])) {
             $orders->where('status', $filters['status']);
+        }
+        if (isset($filters['category'])) {
+            $categories->apply($orders, $options[$filters['category']]['terms']);
         }
         if (isset($filters['date_from'])) {
             $orders->where('placed_at', '>=', Day::bounds($filters['date_from'])[0]);
@@ -78,6 +86,7 @@ class OrdersController
             'orders' => $orders->paginate(10)->appends($filters),
             'type' => 'order',
             'orderFilters' => array_filter($input, 'is_string'),
+            'orderCategories' => array_map(fn (array $option): string => $option['label'], $options),
             'orderFilterErrors' => $validator->errors(),
             'filtersActive' => $filters !== [],
         ]);

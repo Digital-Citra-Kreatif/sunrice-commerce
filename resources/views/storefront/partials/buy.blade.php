@@ -3,9 +3,13 @@
 @if ($product->isVariable() && isset($errors) && $errors->hasAny(['variant', 'email']))
     @php($default = $product->product->variants->first(fn ($variant) => $variant->active && $variant->id === (int) old('variant')) ?? $default)
 @endif
+@php($variantPrice = $product->isVariable() && ! $product->price['hidden'] && $default ? collect($product->variants)->firstWhere('id', $default->id) : null)
+@if ($product->price['isRange'] && ! request()->filled('variant') && ! old('variant'))
+    @php($variantPrice = null)
+@endif
 <div class="commerce-buy" data-commerce-product="{{ $product->id() }}">
     @include(\Sunrice\Commerce\Storefront\Layout::view('partials.badges'))
-    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.price'))
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.price'), ['variantPrice' => $variantPrice, 'updateVariantPrice' => $product->isVariable()])
     @if ($product->flashSale)
         <div class="commerce-flash" data-commerce-flash>
             <strong>{{ $product->flashSale['badge'] ?: $product->flashSale['name'] }}</strong>
@@ -20,19 +24,7 @@
     @endif
 
     @if ($product->tiers !== [])
-        <div class="commerce-quantity-offer">
-            <table class="commerce-tiers" data-commerce-tiers>
-                <caption>{{ __('commerce::storefront.price.tiers') }}</caption>
-                <tbody>
-                    @foreach ($product->tiers as $tier)
-                        <tr>
-                            <th scope="row">{{ __('commerce::storefront.price.tier_row', ['qty' => $tier['min_qty']]) }}</th>
-                            <td><strong>{{ $tier['price'] ?? '-'.$tier['label'] }}</strong>@if (isset($tier['price'])) <span>{{ __('commerce::storefront.price.tier_unit') }}</span>@endif</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+        @include(\Sunrice\Commerce\Storefront\Layout::view('partials.bulk-pricing'), ['tiers' => $product->tiers])
     @endif
 
     @if ($product->cta['type'] === 'cart')
@@ -44,19 +36,7 @@
             @if ($product->isVariable())
                 @include(\Sunrice\Commerce\Storefront\Layout::view('partials.variant-picker'))
             @endif
-            <div class="commerce-add__controls" data-commerce-buy-controls>
-                <label class="commerce-add__qty">
-                    <span>{{ __('commerce::storefront.product.quantity') }}</span>
-                    <span class="commerce-stepper" data-commerce-stepper>
-                        <input type="number" name="quantity" value="{{ $default?->minOrderQuantity() ?? 1 }}" min="{{ $default?->minOrderQuantity() ?? 1 }}" step="{{ $default?->qty_step ?? 1 }}" @if ($default?->maxOrderQuantity()) max="{{ $default->maxOrderQuantity() }}" @endif inputmode="numeric" required aria-label="{{ __('commerce::storefront.product.quantity') }}">
-                    </span>
-                </label>
-                @if ($action !== null && $product->canAddToCart() && commerce_feature('cart'))
-                    <button type="submit" class="commerce-add__button">{{ $product->cta['label'] }}</button>
-                @elseif ($product->price['signIn'] && Route::has('commerce.account.login'))
-                    <a class="commerce-add__button" href="{{ commerce_url('commerce.account.login') }}">{{ __('commerce::storefront.cta.sign_in_for_price') }}</a>
-                @endif
-            </div>
+            @include(\Sunrice\Commerce\Storefront\Layout::view('product.buy-controls'))
             @if (Route::has('commerce.cart'))
                 @include(\Sunrice\Commerce\Storefront\Layout::view('partials.add-recovery'))
             @endif

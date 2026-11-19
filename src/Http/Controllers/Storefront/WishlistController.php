@@ -12,6 +12,7 @@ use Illuminate\Support\Collection;
 use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Cart\CartException;
 use Sunrice\Commerce\Catalog\ProductQuery;
+use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 use Sunrice\Commerce\Wishlist\Wishlist;
@@ -36,9 +37,11 @@ class WishlistController
     public function shared(string $token): View
     {
         $wishlist = Wishlist::query()->where('share_token', $token)->where('is_shared', true)->firstOrFail();
+        $owner = $wishlist->customer_id === null ? null : Customer::query()->whereKey($wishlist->customer_id)->value('name');
 
         return view(Layout::view('wishlist'), ['wishlist' => $wishlist, 'products' => $this->products($wishlist), 'shareUrl' => null,
-            'seoTitle' => __('commerce::storefront.wishlist.title'), 'readOnly' => true]);
+            'seoTitle' => __('commerce::storefront.wishlist.title'), 'readOnly' => true,
+            'ownerName' => is_string($owner) ? trim($owner) : '']);
     }
 
     public function add(Request $request, WishlistManager $wishlists): RedirectResponse|JsonResponse

@@ -22,3 +22,4 @@ export const ArrowUpDownIcon = (p: IconProps) => <Icon {...p}><path d="m21 16-4 
 export const ChevronLeftIcon = (p: IconProps) => <Icon {...p}><path d="m15 18-6-6 6-6" /></Icon>;
 export const ChevronRightIcon = (p: IconProps) => <Icon {...p}><path d="m9 18 6-6-6-6" /></Icon>;
 export const XIcon = (p: IconProps) => <Icon {...p}><path d="M18 6 6 18M6 6l12 12" /></Icon>;
+export const PencilIcon = (p: IconProps) => <Icon {...p}><path d="m14 6 4 4M4 20l4-.8L20 7l-4-4L4 15z" /></Icon>;

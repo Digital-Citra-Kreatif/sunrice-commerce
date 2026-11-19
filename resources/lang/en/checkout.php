@@ -40,6 +40,7 @@ return [
         'use_saved' => 'Use saved address',
         'choose_saved' => 'Choose a saved address that is still available.',
         'incomplete' => 'Complete the required address fields.',
+        'save_failed' => 'We couldn’t save the address. Try again.',
     ],
     'save_address' => 'Save this address to my account',
     'billing_same' => 'Billing address is the same',
@@ -61,6 +62,7 @@ return [
     'marketing' => 'Email me news and offers',
     'terms' => 'I agree to the :link',
     'terms_link' => 'terms and conditions',
+    'close_terms' => 'Close',
     'voucher_link' => 'Have a voucher? Add it in the cart',
     'voucher' => [
         'title' => 'Apply a voucher',
@@ -117,6 +119,7 @@ return [
         'invite' => 'Want to follow your orders in one place?',
         'cancel' => 'Cancel order',
         'cancel_confirm' => 'Cancel this order?',
+        'keep' => 'Keep order',
         'cancelled' => 'Your order was cancelled.',
         'cannot_cancel' => 'This order can no longer be cancelled.',
         'create_account' => 'Create an account',

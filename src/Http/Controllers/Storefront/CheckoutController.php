@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Sunrice\Admin\Security\Captcha;
+use Sunrice\Cms\Support\HtmlSanitizer;
 use Sunrice\Commerce\Cart\Actions\ApplyVoucher;
 use Sunrice\Commerce\Cart\Actions\RemoveVoucher;
 use Sunrice\Commerce\Cart\Actions\UpdateCheckoutData;
@@ -27,6 +28,8 @@ use Sunrice\Commerce\Checkout\CheckoutRefused;
 use Sunrice\Commerce\Checkout\CheckoutValidator;
 use Sunrice\Commerce\Checkout\Events\CheckoutStarted;
 use Sunrice\Commerce\Checkout\TermsPage;
+use Sunrice\Commerce\Customers\Actions\SaveAddress;
+use Sunrice\Commerce\Customers\Models\Address;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Orders\OrderAccess;
 use Sunrice\Commerce\Payments\Contracts\PaymentMethod;
@@ -82,11 +85,19 @@ class CheckoutController
             app(UpdateCheckoutData::class)->handle($cart, ['started_at' => now()->toIso8601String()]);
             CheckoutStarted::dispatch($cart);
         }
-        [$data, $view] = $this->resolvePaymentSelection($cart, $data);
+        [$data, $view] = $this->resolveSelections($cart, $data);
         $view->acknowledgePrices();
+        $terms = TermsPage::entry();
+        $values = $terms?->values() ?? [];
+        $intro = is_string($values['intro'] ?? null) ? $values['intro'] : '';
+        $body = is_string($values['body'] ?? null) ? HtmlSanitizer::sanitize($values['body']) : '';
 
         return view(Layout::view('checkout'), [
             ...$this->viewData($cart, $data, $view),
+            'termsUrl' => $terms?->url(),
+            'termsContent' => $terms !== null && (filled($intro) || filled($body))
+                ? ['title' => $terms->title, 'locale' => $terms->locale, 'intro' => $intro, 'body' => $body]
+                : null,
             'seoTitle' => __('commerce::checkout.title'),
             'captcha' => app(Captcha::class)->widget(app()->getLocale()),
         ]);
@@ -146,9 +157,21 @@ class CheckoutController
         $cart = $this->carts()->current();
         abort_if($cart === null, 404);
         $data = $this->postedData($request, $cart);
+        $address = null;
+        if ($request->input('action') === 'apply_address' && $request->boolean('save_address')) {
+            $user = commerce_customer();
+            abort_if($user === null, 403);
+
+            $address = app(SaveAddress::class)->fromCheckout(Customer::forUser($user), $data);
+            $data = $data->merge([
+                'address_id' => $address->id,
+                'shipping_address' => $address->toAddress(),
+                'save_address' => false,
+            ]);
+        }
         $update->handle($cart, $data->toArray());
 
-        return $this->checkoutResponse($cart, $data);
+        return $this->checkoutResponse($cart, $data, savedAddress: $address);
     }
 
     public function voucher(Request $request, UpdateCheckoutData $update, ApplyVoucher $apply, RemoveVoucher $remove): JsonResponse|RedirectResponse
@@ -187,13 +210,18 @@ class CheckoutController
     }
 
     /** @param  array<string, string>  $voucherFeedback */
-    private function checkoutResponse(Cart $cart, CheckoutData $data, array $voucherFeedback = []): JsonResponse
+    private function checkoutResponse(Cart $cart, CheckoutData $data, array $voucherFeedback = [], ?Address $savedAddress = null): JsonResponse
     {
-        [$data, $view] = $this->resolvePaymentSelection($cart, $data);
+        [$data, $view] = $this->resolveSelections($cart, $data);
         $props = $this->viewData($cart, $data, $view);
         $money = app(MoneyFormatter::class);
 
         return response()->json([
+            'saved_address' => $savedAddress === null ? null : [
+                'id' => $savedAddress->id,
+                'title' => ($savedAddress->label ?: $savedAddress->line1).' · '.$savedAddress->name,
+                'address' => $savedAddress->toAddress(),
+            ],
             'rates' => array_map(fn (array $r) => [...$r, 'cost_formatted' => $money->format((int) $r['cost'])], $view->state->shipping['rates']),
             'selected_rate' => $view->state->shipping['rate']['id'] ?? null,
             'payment_methods' => $props['paymentMethods'],
@@ -204,7 +232,7 @@ class CheckoutController
             'rates_html' => view(Layout::view('partials.shipping-methods'), $props)->render(),
             'payments_html' => view(Layout::view('partials.payment-methods'), $props)->render(),
             'vouchers_html' => $voucherFeedback === [] ? null : view(Layout::view('partials.checkout-vouchers'), [...$props, ...$voucherFeedback])->render(),
-            'summary' => '<aside class="commerce-checkout__summary" id="summary" data-commerce-summary>'.view(Layout::view('partials.checkout-summary'), $props)->render().'</aside>',
+            'summary' => view(Layout::view('checkout.summary'), $props)->render(),
         ]);
     }
 
@@ -243,9 +271,18 @@ class CheckoutController
     }
 
     /** @return array{CheckoutData, CartView} */
-    private function resolvePaymentSelection(Cart $cart, CheckoutData $data): array
+    private function resolveSelections(Cart $cart, CheckoutData $data): array
     {
         $view = CartView::for($cart, $data->context());
+        if ($this->mode()->requiresRate() && $view->state->shipping['needed'] && $view->state->shipping['rate'] === null) {
+            // Pickup changes the required contact and address fields. Leave it as an explicit choice.
+            $delivery = array_find($view->state->shipping['rates'], fn (array $rate): bool => ! str_starts_with($rate['id'], 'pickup:'));
+            $rate = $delivery['id'] ?? null;
+            if ($rate !== $data->shippingRate()) {
+                $data = $data->merge(['shipping_rate' => $rate]);
+                $view = CartView::for($cart, $data->context());
+            }
+        }
         $available = $this->availablePayments($view->state);
         $selected = $data->paymentMethod();
         if ($selected === null || ! isset($available[$selected])) {
@@ -294,7 +331,6 @@ class CheckoutController
                 && $this->settings()->get('checkout.create_account', 'offer') !== 'never',
             'accountRequired' => $user === null && $validator->createsAccount($data->merge(['create_account' => true])) && $this->settings()->get('checkout.create_account') === 'always',
             'extraFields' => app(CheckoutFields::class)->for($data, $state),
-            'termsUrl' => TermsPage::url(),
             'submitLabel' => __('commerce::checkout.submit.'.$this->mode()->completion()),
         ];
     }

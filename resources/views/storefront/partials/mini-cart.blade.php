@@ -17,7 +17,10 @@
             <button type="button" class="commerce-drawer__close" data-commerce-drawer-close aria-label="{{ __('commerce::storefront.cart.close') }}">@include(\Sunrice\Commerce\Storefront\Layout::view('partials.icon'), ['name' => 'close'])</button>
         </div>
         <div class="commerce-drawer__body" data-commerce-drawer-body aria-live="polite"></div>
-        <div class="commerce-drawer__footer">
+        <template data-commerce-drawer-empty>
+            @include(\Sunrice\Commerce\Storefront\Layout::view('cart.empty'))
+        </template>
+        <div class="commerce-drawer__footer" data-commerce-drawer-footer hidden>
             @php($hasCheckout = \Illuminate\Support\Facades\Route::has('commerce.checkout') && commerce_feature('checkout'))
             <div class="commerce-drawer__actions">
                 <a @class(['commerce-link commerce-link--action' => $hasCheckout, 'commerce-button commerce-button--secondary' => ! $hasCheckout]) href="{{ commerce_url('commerce.cart') }}">{{ __('commerce::storefront.cart.view') }}</a>

@@ -220,6 +220,27 @@ it('lets staff see and adjust points, never below zero, and forgets them on anon
     $this->get('/admin/commerce/loyalty')->assertNotFound();
 });
 
+it('shows traceable points history with the balance after each movement across filters', function () {
+    $this->customer->update(['loyalty_points' => 100]);
+    $order = makeOrder(['customer_id' => $this->customer->id]);
+    $expiresAt = now()->addWeek();
+    app(Wallet::class)->credit($this->customer, 4000, 'earn', $order, expiresAt: $expiresAt);
+    actingAsUserWith(['commerce.loyalty.manage', 'commerce.orders.view'], 'history@example.com');
+    $page = "/admin/commerce/loyalty/{$this->customer->id}";
+    $this->put($page, ['values' => ['points' => -500, 'note' => 'Corrected a duplicate bonus']])->assertSessionHasNoErrors();
+
+    $this->get($page)->assertOk()->assertInertia(fn ($p) => $p->component('Commerce/Loyalty/Show')
+        ->where('balance', 3600)
+        ->where('history.rows.data.0.points', -500)
+        ->where('history.rows.data.0.balance_after', 3600)
+        ->where('history.rows.data.0.actor', 'Staff')
+        ->where('history.rows.data.0.note', 'Corrected a duplicate bonus')
+        ->where('history.rows.data.1.order_url', "/admin/commerce/orders/{$order->id}")
+        ->where('history.rows.data.1.expires_at', $expiresAt->toIso8601String()));
+    $this->get($page.'?filters[kind]=earn')->assertOk()->assertInertia(fn ($p) => $p
+        ->where('history.rows.total', 1)->where('history.rows.data.0.balance_after', 4100));
+});
+
 it('earns on prices without the tax they include, and less what was refunded before completion', function () {
     $order = makeOrder(['customer_id' => $this->customer->id, 'user_id' => $this->user->id, 'status' => OrderStatus::PROCESSING, 'payment_status' => OrderStatus::PAID,
         'prices_include_tax' => true, 'subtotal' => 110000, 'total' => 110000, 'paid_total' => 110000, 'paid_at' => now()]);

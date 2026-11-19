@@ -8,6 +8,7 @@ const pages: Record<string, () => Promise<unknown>> = {
     'Commerce/Customers/Show': () => import('./Customers/Show'),
     'Commerce/Dashboard': () => import('./Dashboard'),
     'Commerce/Inventory/Index': () => import('./Inventory/Index'),
+    'Commerce/Loyalty/Show': () => import('./Loyalty/Show'),
     'Commerce/Marketing/Editor': () => import('./Marketing/Editor'),
     'Commerce/Marketing/Report': () => import('./Marketing/Report'),
     'Commerce/Orders/Editor': () => import('./Orders/Editor'),

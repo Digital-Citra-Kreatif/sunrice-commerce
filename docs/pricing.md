@@ -335,7 +335,9 @@ full with points is placed as paid. Orders keep the points as an adjustment of k
   spent).
 
 **Staff** with `commerce.loyalty.manage` see balances in Shop → Customers → Loyalty points, open a
-customer's history, and add or take points with a note (never below zero). Expired points leave the
+customer's history, and add or take points with a note (never below zero). The paginated history
+shows each movement's timestamp, point change, resulting balance, order, source, expiry and note.
+Filter it by activity or search the notes. Expired points leave the
 wallets in `commerce:prune` ("loyalty points"). Every change goes through `Loyalty\Wallet`
 (`credit()`, `debit()`), with the customer row locked, so a balance always matches its ledger
 (`commerce_loyalty_transactions`).

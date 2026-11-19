@@ -7,12 +7,14 @@
             <span class="commerce-price__hidden">{{ __('commerce::storefront.cta.price_on_request') }}</span>
         @endif
     @else
-        @if ($product->price['compareFormatted'])
-            <del class="commerce-price__compare" data-commerce-compare>{{ $product->price['compareFormatted'] }}</del>
+        @php($compare = isset($variantPrice) ? $variantPrice['compare_at'] : $product->price['compareFormatted'])
+        @if ($compare || ($updateVariantPrice ?? false))
+            <del class="commerce-price__compare" data-commerce-compare @unless ($compare) hidden @endunless>{{ $compare }}</del>
         @endif
-        <span class="commerce-price__amount" data-commerce-amount>{{ $product->price['formatted'] }}</span>
-        @if ($product->price['taxSuffix'] ?? null)
-            <small class="commerce-price__tax">{{ $product->price['taxSuffix'] }}</small>
+        <span class="commerce-price__amount" data-commerce-amount>{{ $variantPrice['price_formatted'] ?? $product->price['formatted'] }}</span>
+        @php($taxSuffix = $product->price['taxSuffix'] ?? null)
+        @if ($taxSuffix && (! ($hideIncludedTax ?? false) || $taxSuffix !== __('commerce::storefront.price.incl_tax')))
+            <small class="commerce-price__tax">{{ $taxSuffix }}</small>
         @endif
     @endif
 </div>

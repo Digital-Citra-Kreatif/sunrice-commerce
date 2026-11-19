@@ -13,7 +13,13 @@ test('checkout reveals the payment step and confirms the auto-selected fee befor
     const hash = { value: 'free' };
     const update = { hidden: false };
     const voucherCode = { value: 'HEMAT' };
-    const button = { setAttribute(_name, value) { this.disabled = value === 'true'; } };
+    const label = { textContent: 'Place order' };
+    const status = { dataset: {}, textContent: '' };
+    const button = {
+        name: 'action', value: 'place', dataset: { processingLabel: 'Placing your order…' },
+        querySelector: () => label,
+        setAttribute(_name, value) { this.ariaDisabled = value === 'true'; },
+    };
     const methods = {
         outerHTML: 'empty',
         contains: () => false,
@@ -23,6 +29,7 @@ test('checkout reveals the payment step and confirms the auto-selected fee befor
         '[data-commerce-payment-section]': payment,
         '[data-commerce-hash]': hash,
         '[data-commerce-update]': update,
+        '[data-commerce-checkout-status]': status,
         '[data-commerce-captcha]': { dataset: { commerceCaptcha: 'cf-turnstile-response' } },
         '[data-commerce-payments]': methods,
         'button[name=action][value=place]': button,
@@ -45,7 +52,7 @@ test('checkout reveals the payment step and confirms the auto-selected fee befor
             querySelectorAll: (selector) => selector === '[data-commerce-checkout]' ? [form] : [],
             documentElement: { classList: { add() {} } },
         },
-        window: { addEventListener() {} },
+        window: { addEventListener: (name, listener) => listeners.set(name, listener) },
         setTimeout, clearTimeout, AbortSignal,
         FormData: class {
             constructor() {
@@ -84,7 +91,7 @@ test('checkout reveals the payment step and confirms the auto-selected fee befor
     assert.equal(payment.hidden, false);
     assert.equal(step.hidden, false);
     assert.equal(requests[1].body.get('payment_method'), 'transfer');
-    assert.equal(button.disabled, true);
+    assert.equal(button.ariaDisabled, true);
     assert.equal(hash.value, 'free');
 
     reply(requests[1], 12000, 'shipping-and-fee', 'transfer');
@@ -136,4 +143,20 @@ test('checkout reveals the payment step and confirms the auto-selected fee befor
     assert.equal(update.hidden, false);
     assert.equal(submit(button), true);
     assert.equal(submit(update), false);
+
+    refresh();
+    await waitFor(7);
+    reply(requests[6], 12000, 'ready', 'transfer', 'transfer');
+    await settle();
+    assert.equal(submit(button), false);
+    assert.equal(button.disabled, true);
+    assert.equal(label.textContent, 'Placing your order…');
+    assert.equal(status.textContent, '');
+    const formData = new Map();
+    listeners.get('formdata')({ formData });
+    assert.equal(formData.get('action'), 'place');
+    assert.equal(submit(button), true);
+    listeners.get('pageshow')({ persisted: true });
+    assert.equal(button.disabled, false);
+    assert.equal(label.textContent, 'Place order');
 });

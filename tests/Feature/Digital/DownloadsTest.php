@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Dom\HTMLDocument;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
@@ -95,7 +96,9 @@ it('lists downloads in My Account and lets staff manage grants', function () {
     $user = User::query()->create(['name' => 'Rina', 'email' => 'rina@example.com', 'password' => bcrypt('x'), 'email_verified_at' => now()]);
     app(LinkGuestOrders::class)->handle($user);
     Auth::guard('commerce')->login($user);
-    $this->get('/account/downloads')->assertOk()->assertSee('E-book')->assertSee(DownloadGrant::query()->sole()->token);
+    $downloads = $this->get('/account/downloads')->assertOk()->assertSee('E-book')->assertSee(DownloadGrant::query()->sole()->token);
+    $document = HTMLDocument::createFromString($downloads->getContent(), LIBXML_NOERROR);
+    expect($document->querySelector('table.commerce-account__orders .commerce-downloads__action:last-child a'))->not->toBeNull();
 
     $grant = DownloadGrant::query()->sole();
     actingAsUserWith(['commerce.orders.view', 'commerce.orders.edit']);

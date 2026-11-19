@@ -1,6 +1,7 @@
 import { React, adminUrl, inertia, ui, useBreadcrumbs } from '../../lib/sunrice';
 import { api } from '../../lib/api';
 import { PageHeader } from '../../components/PageHeader';
+import { PaymentConfirmationDialog } from '../../components/PaymentConfirmationDialog';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useCommerceShared } from '../../lib/store';
 import { ShipmentDialog, RefundDialog } from './dialogs';
@@ -16,7 +17,8 @@ const tone = (status: string) => ({
 
 export default function OrderShow(props: OrderPageProps) {
     const { order, transitions, can, panels } = props;
-    const { Card, CardContent, CardHeader, CardTitle, Button, Textarea, Label, Checkbox, Input, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } = ui;
+    const { Card, CardContent, CardHeader, CardTitle, Button, Textarea, Label, Checkbox, Input, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription,
+        DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } = ui;
     const { Link, router } = inertia;
     useCommerceShared();
     useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Orders', href: adminUrl('commerce/orders') }, { label: order.number }]);
@@ -29,6 +31,7 @@ export default function OrderShow(props: OrderPageProps) {
     const note = inertia.useForm({ message: '', customer: false });
     const paid = inertia.useForm({ reference: '', paid_at: '', account: '' });
     const registry = api.orderPanels();
+    const availableTransitions = transitions.filter((item) => item.permission && item.allowed);
 
     const go = (to: string, why?: string) => router.post(adminUrl(`${base}/transition`), { to, reason: why ?? null }, { preserveScroll: true, onFinish: () => setTransition(null) });
 
@@ -39,11 +42,27 @@ export default function OrderShow(props: OrderPageProps) {
                 description={<>Placed {dateTime(order.placed_at)} · {order.channel}{order.trashed ? ' · in the trash' : ''}</>}
                 back={{ href: adminUrl('commerce/orders'), label: 'Back to orders' }}
                 actions={<>
+                    {availableTransitions.length > 0 && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild><Button type="button" variant="outline">Change status</Button></DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                {availableTransitions.map((item) => (
+                                    <DropdownMenuItem key={item.to} variant={item.to === 'cancelled' ? 'destructive' : 'default'} onSelect={() => {
+                                        if (item.to === 'cancelled' || item.to === 'on_hold') {
+                                            setReason('');
+                                            setTransition(item);
+                                        } else {
+                                            go(item.to);
+                                        }
+                                    }}>
+                                        {item.to === 'cancelled' ? 'Cancel order…' : item.to === 'on_hold' ? 'Put on hold…' : `Mark ${item.label.toLowerCase()}`}
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
                     {can.mark_paid && <Button variant="outline" onClick={() => setPaying(true)}>Mark paid</Button>}
                     {can.shipments && order.items.some((i) => i.unfulfilled > 0) && <Button variant="outline" onClick={() => setShipping(true)}>Add shipment</Button>}
-                    {transitions.filter((t) => t.permission && t.allowed && t.to !== 'cancelled' && t.to !== 'on_hold').map((t) => (
-                        <Button key={t.to} variant="outline" onClick={() => go(t.to)}>Mark {t.label.toLowerCase()}</Button>
-                    ))}
                 </>}
                 primary={can.respond_quote ? <Button asChild><Link href={adminUrl(`${base}/quote`)}>{order.status === 'quoted' ? 'Edit quote' : 'Send a quote'}</Link></Button> : undefined}
                 menu={[
@@ -51,8 +70,6 @@ export default function OrderShow(props: OrderPageProps) {
                     ...(can.edit_items ? [{ label: 'Edit items', href: adminUrl(`${base}/edit`) }] : []),
                     ...(can.refund ? [{ label: 'Refund…', onSelect: () => setRefunding(true) }] : []),
                     ...(can.send_link ? [{ label: 'Send payment link', onSelect: () => router.post(adminUrl(`${base}/payment-link`), {}, { preserveScroll: true }) }] : []),
-                    ...transitions.filter((t) => t.permission && t.allowed && (t.to === 'cancelled' || t.to === 'on_hold'))
-                        .map((t) => ({ label: t.to === 'cancelled' ? 'Cancel order…' : 'Put on hold…', onSelect: () => setTransition(t), group: 'Status' })),
                     ...(can.delete && !order.trashed ? [{ label: 'Move to trash', destructive: true, group: 'Delete', onSelect: () => { if (window.confirm('Move this order to the trash?')) router.delete(adminUrl(base)); } }] : []),
                     ...(can.delete && order.trashed ? [{ label: 'Restore', group: 'Delete', onSelect: () => router.post(adminUrl(`${base}/restore`)) }] : []),
                     ...(can.force_delete ? [{ label: 'Delete for good', destructive: true, group: 'Delete', onSelect: () => { if (window.confirm('Delete this order for good? This can\'t be undone.')) router.delete(adminUrl(`${base}/force`)); } }] : []),
@@ -126,7 +143,7 @@ export default function OrderShow(props: OrderPageProps) {
                                             {c.proof_url && <> · <a href={c.proof_url} target="_blank" rel="noreferrer" className="cm:underline">proof</a></>}</span>
                                         <span className="cm:flex cm:items-center cm:gap-2">
                                             <StatusBadge tone={c.status === 'approved' ? 'ok' : c.status === 'rejected' ? 'error' : 'warning'}>{c.status}</StatusBadge>
-                                            {c.can_review && <Button size="sm" asChild><Link href={adminUrl('commerce/confirmations')}>Review</Link></Button>}
+                                            {c.review && <PaymentConfirmationDialog confirmation={c.review} />}
                                         </span>
                                     </div>
                                 ))}

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 use Dom\HTMLDocument;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Sunrice\Cms\Actions\Entries\CreateEntry;
+use Sunrice\Cms\Actions\Entries\PublishEntry;
+use Sunrice\Cms\Models\Blueprint;
+use Sunrice\Cms\Models\Collection;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Orders\Models\Order;
@@ -19,6 +23,25 @@ beforeEach(function () {
 
 it('sends an empty cart back to the cart page', function () {
     $this->get('/checkout')->assertRedirect('/cart');
+});
+
+it('renders published terms in a checkout dialog with a normal page link as fallback', function () {
+    cartWith([[$this->mug, 1]]);
+    Blueprint::query()->create(['handle' => 'legal', 'title' => 'Legal', 'fields' => [
+        ['handle' => 'body', 'type' => 'rich_text', 'label' => 'Body'],
+    ]]);
+    $pages = Collection::query()->create(['handle' => 'legal', 'title' => 'Legal', 'blueprint' => 'legal', 'route' => '/legal/{slug}']);
+    $terms = app(CreateEntry::class)->handle($pages, [
+        'title' => 'Store terms', 'slug' => 'terms', 'data' => ['body' => '<p>Published payment terms.</p>'],
+    ]);
+    app(PublishEntry::class)->handle($terms->fresh());
+    app(StoreSettings::class)->saveSection('checkout', ['terms_page' => $terms->entry_id]);
+
+    $page = $this->get('/checkout')->assertOk();
+    $document = HTMLDocument::createFromString($page->getContent(), LIBXML_NOERROR);
+    expect($document->querySelector('[data-commerce-open-terms]')?->getAttribute('href'))->toEndWith('/legal/terms')
+        ->and($document->querySelector('#checkout-terms-dialog')?->textContent)->toContain('Published payment terms.')
+        ->and($document->querySelector('input[name=terms][required]'))->not->toBeNull();
 });
 
 it('shows the sections and the rates for the saved address', function () {
@@ -85,7 +108,8 @@ it('refreshes rates and totals as JSON when the address changes', function () {
 
     $json = $this->withCredentials()->postJson('/checkout/refresh', ['shipping_address' => $input['shipping_address']])->assertOk()->json();
     expect(array_column($json['rates'], 'label'))->toBe(['Reguler'])
-        ->and($json['totals']['shipping']['amount'])->toBe(0)
+        ->and($json['selected_rate'])->toBe(checkoutInput()['shipping_rate'])
+        ->and($json['totals']['shipping']['amount'])->toBe(10000)
         ->and($json['rates_html'])->toContain('Reguler');
 
     $rate = checkoutInput()['shipping_rate'];
@@ -94,6 +118,27 @@ it('refreshes rates and totals as JSON when the address changes', function () {
 
     // Without JavaScript: "Update total" saves and comes back.
     $this->post('/checkout', [...$input, 'action' => 'update'])->assertRedirect('/checkout#shipping');
+});
+
+it('preselects the first delivery rate on the page and keeps an explicit choice during refresh', function () {
+    $cart = cartWith([[$this->mug, 1]]);
+    $input = checkoutInput(['shipping_rate' => null]);
+    $cart->update(['checkout' => $input]);
+    $zone = ShippingMethod::query()->where('type', 'flat')->firstOrFail()->zone;
+    $express = $zone->methods()->create(['type' => 'flat', 'title' => ['id' => 'Ekspres'], 'position' => 1,
+        'active' => true, 'settings' => ['cost' => 25000]]);
+    $pickup = $zone->methods()->create(['type' => 'pickup', 'title' => ['id' => 'Ambil di toko'], 'position' => 2,
+        'active' => true, 'settings' => ['locations' => [['name' => 'Bandung', 'address' => 'Jl. Dago']]]]);
+    $regular = checkoutInput()['shipping_rate'];
+    $document = HTMLDocument::createFromString($this->get('/checkout')->assertOk()->assertSee('Rp60.000')->getContent(), LIBXML_NOERROR);
+    expect($document->querySelector('[name=shipping_rate][checked]')?->getAttribute('value'))->toBe($regular);
+
+    $this->withCredentials()->postJson('/checkout/refresh', ['shipping_rate' => "flat:{$express->id}:default"])
+        ->assertOk()->assertJsonPath('selected_rate', "flat:{$express->id}:default")->assertJsonPath('totals.total.amount', 75000);
+    $this->postJson('/checkout/refresh', ['shipping_rate' => 'flat:999999:default'])
+        ->assertOk()->assertJsonPath('selected_rate', $regular)->assertJsonPath('totals.total.amount', 60000);
+    $this->postJson('/checkout/refresh', ['shipping_address' => null, 'shipping_rate' => null])
+        ->assertOk()->assertJsonPath('selected_rate', null)->assertJsonPath('rates.0.id', "pickup:{$pickup->id}:loc0");
 });
 
 it('keeps the selected address and courier rates available while pickup is selected', function () {
