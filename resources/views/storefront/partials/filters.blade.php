@@ -25,6 +25,9 @@
         @if (request()->filled('q'))
             <input type="hidden" name="q" value="{{ request('q') }}">
         @endif
+        @if (request('view') === 'table')
+            <input type="hidden" name="view" value="table">
+        @endif
         <label class="commerce-filters__sort">
             <span>{{ __('commerce::storefront.listing.sort') }}</span>
             <select name="sort">
@@ -97,8 +100,8 @@
     </div>
     <div class="commerce-filters__foot">
         <button type="submit" class="commerce-button commerce-button--primary">{{ __('commerce::storefront.listing.apply') }}</button>
-        @if (count(request()->except(['page', 'q'])) > 0)
-            <a class="commerce-link commerce-link--action" href="{{ url()->current() }}{{ request()->filled('q') ? '?q='.urlencode(request('q')) : '' }}">{{ __('commerce::storefront.listing.reset') }}</a>
+        @if (count(request()->except(['page', 'q', 'view'])) > 0)
+            <a class="commerce-link commerce-link--action" href="{{ url()->query(url()->current(), request()->only(['q', 'view'])) }}">{{ __('commerce::storefront.listing.reset') }}</a>
         @endif
     </div>
 </form>

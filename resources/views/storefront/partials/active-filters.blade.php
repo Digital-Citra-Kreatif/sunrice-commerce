@@ -50,6 +50,6 @@
         @foreach ($chips as $chip)
             <li><a class="commerce-chip" href="{{ $chip['url'] }}">{{ $chip['label'] }} <span aria-hidden="true">×</span><span class="commerce-visually-hidden">{{ __('commerce::storefront.cart.remove') }}</span></a></li>
         @endforeach
-        <li><a class="commerce-chips__clear" href="{{ url()->current() }}{{ request()->filled('q') ? '?q='.urlencode(request('q')) : '' }}">{{ __('commerce::storefront.listing.reset') }}</a></li>
+        <li><a class="commerce-chips__clear" href="{{ url()->query(url()->current(), request()->only(['q', 'view'])) }}">{{ __('commerce::storefront.listing.reset') }}</a></li>
     </ul>
 @endif

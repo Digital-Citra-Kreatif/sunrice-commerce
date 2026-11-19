@@ -33,6 +33,10 @@ return [
         'send_inquiry' => 'Kirim',
     ],
     'listing' => [
+        'view' => 'Tampilan produk',
+        'grid' => 'Grid',
+        'table' => 'Tabel',
+        'product_column' => 'Produk',
         'shop' => 'Belanja',
         'brands' => 'Merek',
         'search' => 'Cari produk',

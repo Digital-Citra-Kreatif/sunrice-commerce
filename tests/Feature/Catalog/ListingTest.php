@@ -114,6 +114,17 @@ it('renders the shop, brand and category pages', function () {
     $this->get('/brands')->assertOk()->assertSee('Acme')->assertSee('Nusa');
 });
 
+it('offers a table view that keeps the search and selected category when switching layouts', function () {
+    $category = $this->shirts->id;
+    $this->get("/products?view=table&q=Kaos&category[]={$category}")->assertOk()
+        ->assertSee('class="commerce-product-table"', false)
+        ->assertSee('name="view" value="table"', false)
+        ->assertSee('Kaos Biru')->assertDontSee('Tas Kanvas');
+    $this->get("/products?q=Kaos&category[]={$category}")->assertOk()
+        ->assertSee('class="commerce-grid"', false)
+        ->assertSee('&amp;view=table', false);
+});
+
 it('hides brand pages, the index and the brand filter with Brands off', function () {
     app(ToggleFeature::class)->handle('brands', false);
     app(Features::class)->flush();

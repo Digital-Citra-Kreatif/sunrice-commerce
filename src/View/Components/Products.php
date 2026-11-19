@@ -36,6 +36,7 @@ class Products extends Component
         public bool $paginate = true,
         public bool $filters = false,
         ?ProductQuery $query = null,
+        public bool $table = false,
     ) {
         $this->query = $query ?? ($paginate ? ProductQuery::fromRequest(request()) : ProductQuery::make());
         if ($category !== null) {
