@@ -20,8 +20,18 @@
             </button>
             @include($L::view('partials.active-filters'), ['query' => $query, 'without' => $without])
             <nav class="commerce-listing__views" aria-label="{{ __('commerce::storefront.listing.view') }}">
-                <a href="{{ url()->query(url()->current(), $params) }}" @unless ($table) aria-current="true" @endunless>{{ __('commerce::storefront.listing.grid') }}</a>
-                <a href="{{ url()->query(url()->current(), [...$params, 'view' => 'table']) }}" @if ($table) aria-current="true" @endif>{{ __('commerce::storefront.listing.table') }}</a>
+                <a href="{{ url()->query(url()->current(), $params) }}" aria-label="{{ __('commerce::storefront.listing.grid') }}"
+                    title="{{ __('commerce::storefront.listing.grid') }}" @unless ($table) aria-current="true" @endunless>
+                    <svg class="commerce-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" focusable="false">
+                        <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/>
+                    </svg>
+                </a>
+                <a href="{{ url()->query(url()->current(), [...$params, 'view' => 'table']) }}" aria-label="{{ __('commerce::storefront.listing.table') }}"
+                    title="{{ __('commerce::storefront.listing.table') }}" @if ($table) aria-current="true" @endif>
+                    <svg class="commerce-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" focusable="false">
+                        <path d="M4 5h16v14H4zM4 10h16M4 15h16M10 5v14"/>
+                    </svg>
+                </a>
             </nav>
         </div>
         <x-commerce::products :query="$query" :table="$table" />

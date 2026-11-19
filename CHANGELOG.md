@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Use icon-only catalog view links and offer a separate Blade override for the table columns.
+
 - Keep Apply visible while catalog filters scroll, and offer a paginated table beside the grid view.
 - Make Store settings sections visible in a vertical menu and open the Shop overview for shop managers.
 - Identify saved bundle components that can no longer be sold and withhold incomplete price totals.

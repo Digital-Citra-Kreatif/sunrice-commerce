@@ -306,6 +306,7 @@ both itself when you leave them out, so extension pages can extend it directly.
 | `partials.header-links` | — Account, wishlist, comparison and mini cart links for your header. |
 | `partials.buy` | `$product` (ProductView). The body of `<x-commerce::product>`. |
 | `partials.price` | `$product`. The body of `<x-commerce::price>`. |
+| `partials.product-table` | `$products`: the current page of product entries. Override `resources/views/commerce/partials/product-table.blade.php` to customize the column headings and cells. Filters, sorting and pagination are handled by the listing. |
 | `partials.badges` | `$product`: sale, new, stock and featured badges. |
 | `partials.stock` | `$product`: "In stock", "Only 3 left"… |
 | `partials.variant-picker` | `$product`: one radio group per option. |

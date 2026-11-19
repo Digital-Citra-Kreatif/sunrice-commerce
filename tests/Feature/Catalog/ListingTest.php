@@ -115,13 +115,20 @@ it('renders the shop, brand and category pages', function () {
 });
 
 it('offers a table view that keeps the search and selected category when switching layouts', function () {
+    app(ToggleFeature::class)->handle('taxes', true);
+    app(Features::class)->flush();
+    app(StoreSettings::class)->saveSection('taxes', ['display_prices' => 'incl']);
+
     $category = $this->shirts->id;
     $this->get("/products?view=table&q=Kaos&category[]={$category}")->assertOk()
         ->assertSee('class="commerce-product-table"', false)
         ->assertSee('name="view" value="table"', false)
+        ->assertSee('aria-label="Tabel"', false)
+        ->assertDontSee('class="commerce-price__tax"', false)
         ->assertSee('Kaos Biru')->assertDontSee('Tas Kanvas');
     $this->get("/products?q=Kaos&category[]={$category}")->assertOk()
         ->assertSee('class="commerce-grid"', false)
+        ->assertSee('class="commerce-price__tax"', false)
         ->assertSee('&amp;view=table', false);
 });
 

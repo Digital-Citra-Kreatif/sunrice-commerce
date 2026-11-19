@@ -337,7 +337,8 @@
 .commerce-listing__toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
 .commerce-listing__toolbar:empty { display: none; }
 .commerce-listing__views { display: flex; flex-wrap: wrap; gap: 4px; margin-inline-start: auto; }
-.commerce-listing__views a { display: inline-flex; align-items: center; min-height: 40px; padding: 6px 12px; text-decoration: none; font-size: 13px; font-weight: 700; }
+.commerce-listing__views a { display: grid; place-items: center; width: 44px; height: 44px; }
+.commerce-listing__views .commerce-icon { width: 20px; height: 20px; }
 .commerce-listing__views a:hover, .commerce-listing__views a[aria-current] { background: var(--commerce-surface); }
 .commerce-listing__views a[aria-current] { box-shadow: inset 0 -2px var(--commerce-fg); }
 .commerce-product-table { width: 100%; border-collapse: collapse; font-size: 14px; }
