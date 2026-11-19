@@ -17,6 +17,7 @@ use Sunrice\Cms\Fields\FieldTypes;
 use Sunrice\Commerce\Admin\Dashboard\StoreCard;
 use Sunrice\Commerce\Admin\ShopNavigation;
 use Sunrice\Commerce\Http\Controllers\Admin\SettingsController;
+use Sunrice\Commerce\Http\Middleware\MarkProductNavigation;
 use Sunrice\Commerce\Mcp\StoreTools;
 use Sunrice\Commerce\Permissions\CommercePermissions;
 use Sunrice\Commerce\Settings\StoreSettings;
@@ -52,6 +53,7 @@ final class CommercePlugin extends BasePlugin
             $panel->permissions(Permission::make($name, $label, $group));
         }
         $panel->navigation(...ShopNavigation::items());
+        $panel->middleware([MarkProductNavigation::class]);
         $panel->navigationUsing(fn (): array => ShopNavigation::attributeItems());
         // Products and their taxonomies are listed under Shop → Products, so not again under Content and Taxonomies.
         app(ContentNavigation::class)->listElsewhere(collections: ShopNavigation::collections(...), taxonomies: ShopNavigation::taxonomies(...));

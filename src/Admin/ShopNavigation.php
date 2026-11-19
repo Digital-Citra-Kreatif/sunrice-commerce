@@ -48,6 +48,29 @@ final class ShopNavigation
             ->visible(fn (Authorizable $user): bool => self::allows($user, $permission, $feature));
     }
 
+    /**
+     * The admin sidebar chooses the longest matching path. Keep the Products link on
+     * the shop list while marking it active in the CMS product entry editor.
+     *
+     * @param  list<array{group: string|null, items: list<array{key: string, label: string, url: string, icon: string, children: list<array{key: string, label: string, url: string, icon: string}>, matches?: list<string>}>}>  $navigation
+     * @return list<array{group: string|null, items: list<array{key: string, label: string, url: string, icon: string, children: list<array{key: string, label: string, url: string, icon: string}>, matches?: list<string>}>}>
+     */
+    public static function withProductEditorPaths(array $navigation): array
+    {
+        $paths = array_map(fn (string $handle): string => "cms/collections/{$handle}/entries", self::collections());
+        foreach ($navigation as $groupIndex => $group) {
+            foreach ($group['items'] as $itemIndex => $item) {
+                if ($item['key'] === 'commerce-products') {
+                    $navigation[$groupIndex]['items'][$itemIndex]['matches'] = $paths;
+
+                    return $navigation;
+                }
+            }
+        }
+
+        return $navigation;
+    }
+
     public static function allows(Authorizable $user, string $permission, ?string $feature = null): bool
     {
         return ($feature === null || app(Features::class)->active($feature)) && $user->can($permission);

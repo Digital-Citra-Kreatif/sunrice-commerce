@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia;
 use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
+use Sunrice\Commerce\Catalog\CallToAction;
+use Sunrice\Commerce\Catalog\Catalog;
 use Sunrice\Commerce\Catalog\Models\DownloadFile;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Http\Controllers\Admin\TargetLabels;
@@ -37,7 +41,46 @@ it('creates, drafts and publishes a variable product through the entry editor', 
 
     $this->getJson("/admin/commerce/api/products/{$entry->id}")->assertOk()
         ->assertJsonPath('data.sync_status', 'ok')
-        ->assertJsonPath('data.variants.var1.stock_quantity', 5);
+        ->assertJsonPath('data.variants.var1.stock_quantity', 5)
+        ->assertJsonPath('data.stock_adjustment.reasons.0', 'manual');
+
+    $this->get("/admin/cms/collections/products/entries/{$entry->id}/edit")->assertOk()
+        ->assertInertia(function (AssertableInertia $page) {
+            $shop = collect($page->toArray()['props']['navigation'])->firstWhere('group', 'Shop');
+            $products = collect($shop['items'])->firstWhere('key', 'commerce-products');
+
+            expect($products['url'])->toBe('commerce/products')
+                ->and($products['matches'])->toBe(['cms/collections/products/entries']);
+        });
+});
+
+it('inherits storefront button settings across store, category, brand and product', function () {
+    $category = Taxonomy::query()->where('handle', config('commerce.catalog.category_taxonomy'))->firstOrFail()->terms()->create();
+    $brand = Taxonomy::query()->where('handle', config('commerce.catalog.brand_taxonomy'))->firstOrFail()->terms()->create();
+    $plain = publishProduct(['variants' => [['id' => 'plain', 'price' => 50000]]], title: 'Plain');
+    $categoryOnly = publishProduct(['variants' => [['id' => 'category', 'price' => 50000]]], title: 'Category only');
+    $both = publishProduct(['variants' => [['id' => 'both', 'price' => 50000]]], title: 'Both');
+    $explicit = publishProduct(['purchase_mode' => 'cart', 'variants' => [['id' => 'explicit', 'price' => 50000]]], title: 'Explicit');
+    $categoryOnly->terms()->attach($category->id);
+    $both->terms()->attach([$category->id, $brand->id]);
+    $explicit->terms()->attach([$category->id, $brand->id]);
+
+    $this->put('/admin/commerce/settings/catalog', ['values' => [
+        'default_purchase_mode' => 'cart',
+        'category_defaults' => [['term' => (string) $category->id, 'purchase_mode' => 'inquiry']],
+        'brand_defaults' => [['term' => (string) $brand->id, 'purchase_mode' => 'none']],
+    ]])->assertSessionHasNoErrors();
+
+    $projected = fn (Entry $entry) => Product::query()->where('entry_id', $entry->id)->firstOrFail();
+    foreach ([[$plain, 'cart'], [$categoryOnly, 'inquiry'], [$both, 'none'], [$explicit, 'cart']] as [$entry, $type]) {
+        $product = $projected($entry);
+        expect(app(CallToAction::class)->for($product)['type'])->toBe($type)
+            ->and(app(Catalog::class)->check($product->variants()->firstOrFail(), 1)->isOk())->toBe($type === 'cart');
+    }
+
+    $this->getJson("/admin/commerce/api/products/{$both->id}")->assertOk()
+        ->assertJsonPath('purchase_default.without_links.type', 'none')
+        ->assertJsonPath('purchase_default.without_links.source', 'brand');
 });
 
 it('refuses an invalid product value with a readable message', function () {

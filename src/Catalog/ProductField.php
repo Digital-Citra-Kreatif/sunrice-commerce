@@ -102,6 +102,7 @@ class ProductField extends FieldType
             'max_options' => (int) config('commerce.catalog.max_options', 3),
             'max_variants' => (int) config('commerce.catalog.max_variants', 100),
             'link_presets' => ProductValue::LINK_PRESETS,
+            'purchase_default' => app(ProductDefaults::class)->purchasePreview(),
             // With their terms, for the variant options built from them.
             'attribute_taxonomies' => Taxonomy::query()
                 ->whereIn('handle', (array) app(StoreSettings::class)->get('catalog.attribute_taxonomies', []))

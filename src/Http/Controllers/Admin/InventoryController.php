@@ -87,7 +87,7 @@ class InventoryController extends Controller
         ]);
     }
 
-    public function adjust(Request $request, Variant $variant, AdjustStock $adjust): RedirectResponse
+    public function adjust(Request $request, Variant $variant, AdjustStock $adjust): RedirectResponse|JsonResponse
     {
         $this->authorizeFeature('inventory');
         $this->authorize('commerce.inventory.adjust');
@@ -98,6 +98,10 @@ class InventoryController extends Controller
             'note' => ['nullable', 'string', 'max:255'],
         ]);
         $variant = $adjust->handle($variant, (int) $data['quantity'], $data['mode'] === 'set', $data['reason'], $data['note'] ?? null, (int) $request->user()->getAuthIdentifier());
+
+        if ($request->expectsJson()) {
+            return response()->json(['stock_quantity' => $variant->stock_quantity]);
+        }
 
         return back()->with('success', 'Stock is now '.$variant->stock_quantity.'.');
     }

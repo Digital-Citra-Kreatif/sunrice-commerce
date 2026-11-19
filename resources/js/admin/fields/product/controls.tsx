@@ -7,7 +7,7 @@ export function Row({ label, hint, children, htmlFor, className }: { label: stri
     const { Label } = ui;
 
     return (
-        <div className={cn('cm:grid cm:gap-1.5', className)}>
+        <div className={cn('cm:grid cm:content-start cm:gap-1.5', className)}>
             <Label htmlFor={htmlFor}>{label}</Label>
             {children}
             {hint && <p className="cm:text-xs cm:text-muted-foreground">{hint}</p>}
@@ -18,7 +18,7 @@ export function Row({ label, hint, children, htmlFor, className }: { label: stri
 export function Grid({ children, cols = 3 }: { children: React.ReactNode; cols?: 2 | 3 | 4 }) {
     const classes = { 2: 'cm:sm:grid-cols-2', 3: 'cm:sm:grid-cols-2 cm:lg:grid-cols-3', 4: 'cm:sm:grid-cols-2 cm:lg:grid-cols-4' };
 
-    return <div className={cn('cm:grid cm:gap-4', classes[cols])}>{children}</div>;
+    return <div className={cn('cm:grid cm:items-start cm:gap-4', classes[cols])}>{children}</div>;
 }
 
 export function NumberInput({ id, value, onChange, min = 0, placeholder }: { id?: string; value: number | null; onChange: (v: number | null) => void; min?: number; placeholder?: string }) {
@@ -55,7 +55,7 @@ export function Toggle({ id, label, checked, onChange, hint }: { id: string; lab
     );
 }
 
-export const selectClass = 'cm:h-9 cm:w-full cm:rounded-md cm:border cm:border-border cm:bg-background cm:px-3 cm:text-sm';
+export const selectClass = 'cm:h-10 cm:w-full cm:rounded-md cm:border cm:border-border cm:bg-background cm:px-3 cm:text-sm';
 
 export function NativeSelect<T extends string>({ id, value, onChange, options }: { id?: string; value: T; onChange: (v: T) => void; options: Array<[T, string]> }) {
     return (

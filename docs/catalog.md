@@ -221,8 +221,8 @@ follow the chosen variant.
 
 | Purchase mode | Button |
 | --- | --- |
-| `default` | Add to cart in modes with a cart; otherwise the store's call to action |
-| `cart` | The same as `default` |
+| `default` | Use the first applicable rule in Brand, Category, or Store settings |
+| `cart` | Add to cart when available, otherwise use the store's Catalog-mode call to action |
 | `inquiry` | The inquiry form |
 | `whatsapp` | A WhatsApp chat about the product |
 | `external` | Links to other shops (`external_links`); the store's call to action when the product has no links |
@@ -231,6 +231,16 @@ follow the chosen variant.
 Modes with a cart are Online store, Quotation and WhatsApp order, while the Cart module is active
 (see [features.md](features.md#selling-modes)). So in Online store mode one product can show "Ask
 for a price" (inquiry) or "Buy on Tokopedia" (external) instead of Add to cart.
+
+Set the store default and the category and brand rules in **Settings → Store → Catalog →
+Product button defaults**. An explicit product choice wins, then an assigned brand, then an assigned
+category, then the store default. When several assigned terms have rules in the same scope, the
+first matching rule in that list wins. The editor shows the inherited action and its source using
+the saved draft classifications. The storefront and cart use published classifications.
+
+The default store selection follows the selling mode. Choosing **Links to other shops** still
+uses each product's own links. An inherited rule can choose the button type, and the product
+editor exposes the links when that type requires them.
 
 The store's call to action is Settings → Store → Catalog → **Call to action in Catalog mode**
 (`catalog.call_to_action`): `inquiry` (default), `whatsapp`, `external` or `none`. `external` uses

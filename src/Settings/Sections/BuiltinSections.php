@@ -9,7 +9,9 @@ use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\Term;
 use Sunrice\Commerce\Admin\SchemaForm;
+use Sunrice\Commerce\Catalog\ProductDefaults;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Settings\SettingsRegistry;
 use Sunrice\Commerce\Settings\SettingsSection;
@@ -41,7 +43,7 @@ final class BuiltinSections
     }
 
     /**
-     * @param  array<string, string>  $labels
+     * @param  array<int|string, string>  $labels
      * @return array<int, array{value: string, label: string}>
      */
     protected static function options(array $labels): array
@@ -127,7 +129,12 @@ final class BuiltinSections
                 'everyone' => 'Everyone', 'signed_in' => 'Signed-in customers', 'roles' => 'Customers with certain roles', 'nobody' => 'Nobody (prices on request)',
             ])]],
             ['handle' => 'price_visibility_roles', 'type' => 'select', 'label' => 'Roles that see prices', 'config' => ['options' => $roles, 'multiple' => true]],
-            ['handle' => 'call_to_action', 'type' => 'select', 'label' => 'Call to action in Catalog mode', 'instructions' => 'Products can override it.', 'config' => ['options' => self::options([
+            ['handle' => 'default_purchase_mode', 'section' => 'Product button defaults', 'type' => 'select', 'label' => 'Default storefront button',
+                'instructions' => 'Category rules can override the store. Brand rules take priority over category rules. A product can override both.',
+                'config' => ['options' => self::options(ProductDefaults::MODES)]],
+            self::purchaseDefaults('category', 'Category'),
+            self::purchaseDefaults('brand', 'Brand'),
+            ['handle' => 'call_to_action', 'type' => 'select', 'label' => 'Call to action in Catalog mode', 'instructions' => 'Used by Follow selling mode in Catalog mode and when the cart is unavailable.', 'config' => ['options' => self::options([
                 'inquiry' => 'Inquiry form', 'whatsapp' => 'Ask on WhatsApp', 'external' => 'Links to other shops (set per product)', 'none' => 'None',
             ])]],
             ['handle' => 'show_stock', 'type' => 'select', 'label' => 'Show stock', 'config' => ['options' => self::options([
@@ -150,6 +157,24 @@ final class BuiltinSections
             ['handle' => 'reviews_approval', 'type' => 'select', 'label' => 'Reviews show', 'config' => ['options' => self::options([
                 'manual' => 'Once approved in Shop → Reviews', 'buyers' => 'At once from buyers, others once approved', 'none' => 'At once',
             ])]],
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private static function purchaseDefaults(string $scope, string $label): array
+    {
+        $taxonomy = Taxonomy::query()->where('handle', config("commerce.catalog.{$scope}_taxonomy"))->first();
+        $terms = $taxonomy?->terms()->with('translations')->get()->sortBy(fn (Term $term) => $term->title())
+            ->mapWithKeys(fn (Term $term) => [$term->id => $term->title()])->all() ?? [];
+
+        return [
+            'handle' => "{$scope}_defaults", 'section' => 'Product button defaults', 'type' => 'repeater', 'label' => "{$label} rules",
+            'instructions' => 'The first matching rule in this list wins. Reorder rules to set their priority.',
+            'config' => ['max' => 200, 'fields' => [
+                ['handle' => 'term', 'type' => 'select', 'label' => $label, 'width' => 50, 'required' => true, 'config' => ['options' => self::options($terms)]],
+                ['handle' => 'purchase_mode', 'type' => 'select', 'label' => 'Storefront button', 'width' => 50, 'required' => true,
+                    'config' => ['options' => self::options(array_diff_key(ProductDefaults::MODES, ['default' => true]))]],
+            ]],
         ];
     }
 

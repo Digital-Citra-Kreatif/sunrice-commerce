@@ -326,6 +326,9 @@ return [
         'catalog' => [
             'price_visibility' => 'everyone',
             'price_visibility_roles' => [],
+            'default_purchase_mode' => 'default',
+            'category_defaults' => [],
+            'brand_defaults' => [],
             'call_to_action' => 'inquiry',
             'show_stock' => 'low',
             'low_stock_threshold' => 5,

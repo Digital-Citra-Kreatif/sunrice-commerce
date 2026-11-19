@@ -10,7 +10,7 @@ import { GeneralTab } from './GeneralTab';
 import { InventoryTab } from './InventoryTab';
 import { PricingTab } from './PricingTab';
 import { ShippingTab } from './ShippingTab';
-import { emptyVariant, type EditorConfig, type LiveProduct, type ProductValue, type TabProps, type Variant } from './types';
+import { emptyVariant, type EditorConfig, type LiveProduct, type ProductValue, type PurchaseDefaults, type TabProps, type Variant } from './types';
 import { VariantsTab } from './VariantsTab';
 
 function withDefaults(value: Partial<ProductValue> | null | undefined): ProductValue {
@@ -32,11 +32,15 @@ export default function ProductEditor({ field, value: raw, onChange, errors, id 
     const value = withDefaults(raw);
     const { props } = inertia.usePage<{ entry?: { id: number } | null }>();
     const entryId = props.entry?.id ?? null;
+    const [savedPurchaseDefault, setSavedPurchaseDefault] = React.useState<PurchaseDefaults>();
     const [live, setLive] = React.useState<LiveProduct | null>(null);
 
     React.useEffect(() => {
         if (!entryId) return;
-        fetchJson<{ data: LiveProduct | null }>(adminUrl(`commerce/api/products/${entryId}`)).then((r) => setLive(r.data)).catch(() => undefined);
+        const request = new AbortController();
+        fetchJson<{ data: LiveProduct | null; purchase_default?: PurchaseDefaults }>(adminUrl(`commerce/api/products/${entryId}`), { signal: request.signal })
+            .then((result) => { if (!request.signal.aborted) { setLive(result.data); setSavedPurchaseDefault(result.purchase_default); } }).catch(() => undefined);
+        return () => request.abort();
     }, [entryId, props.entry]); // refetch after saves (new page props)
 
     const update = (patch: Partial<ProductValue>) => {
@@ -55,7 +59,7 @@ export default function ProductEditor({ field, value: raw, onChange, errors, id 
     if (value.type === 'bundle') tabs.push({ key: 'bundle', label: 'Bundle', render: (p) => <BundleTab {...p} /> });
     if (value.type !== 'variable' && (config.features?.inventory ?? true)) tabs.push({ key: 'inventory', label: 'Inventory', render: (p) => <InventoryTab {...p} /> });
     if (value.requires_shipping) tabs.push({ key: 'shipping', label: 'Shipping', render: (p) => <ShippingTab {...p} /> });
-    if (config.features?.pricing_rules !== false || value.tiers.length > 0) tabs.push({ key: 'pricing', label: 'Bulk prices', render: (p) => <PricingTab {...p} /> });
+    if (config.features?.pricing_rules !== false || value.tiers.length > 0) tabs.push({ key: 'pricing', label: 'Bulk pricing', render: (p) => <PricingTab {...p} /> });
     if (value.downloadable) tabs.push({ key: 'digital', label: 'Digital', render: (p) => <DigitalTab {...p} /> });
     for (const [key, Tab] of Object.entries(api.productTabs())) {
         tabs.push({ key: `ext-${key}`, label: (Tab as { label?: string }).label ?? key, render: (p) => <Tab {...p} /> });
@@ -64,7 +68,15 @@ export default function ProductEditor({ field, value: raw, onChange, errors, id 
     const [current, setCurrent] = React.useState('general');
     const active = tabs.find((t) => t.key === current) ?? tabs[0];
     const error = errors?.[''];
-    const tabProps: TabProps = { value, update, updateVariant, config, live, entryId, path: id };
+    const updateLiveStock: TabProps['updateLiveStock'] = (key, variantId, quantity) => {
+        setLive((product) => {
+            const variant = product?.variants[key];
+            if (!product || !variant || variant.id !== variantId) return product;
+
+            return { ...product, variants: { ...product.variants, [key]: { ...variant, stock_quantity: quantity } } };
+        });
+    };
+    const tabProps: TabProps = { value, update, updateVariant, config, live, purchaseDefault: savedPurchaseDefault ?? config.purchase_default, updateLiveStock, entryId, path: id };
 
     return (
         <div className="cm:grid cm:gap-4 cm:rounded-lg cm:border cm:p-4">

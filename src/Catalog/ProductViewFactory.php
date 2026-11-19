@@ -147,6 +147,7 @@ class ProductViewFactory
                 $variant->setRelation('product', $product);
             }
         }
+        app(ProductDefaults::class)->preload($products->pluck('entry_id')->map(fn ($id) => (int) $id)->values()->all());
         $bundles = $products->filter(fn (Product $p) => $p->isBundle())->values();
         if ($bundles->isNotEmpty()) {
             $bundles->load('bundleItems.variant.product');

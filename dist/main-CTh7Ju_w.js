@@ -1,13 +1,13 @@
-const oe = { symbol: "Rp", position: "left", space: !1, thousands: ".", decimal: ",", decimals: 0 };
-let G = oe;
+const ae = { symbol: "Rp", position: "left", space: !1, thousands: ".", decimal: ",", decimals: 0 };
+let X = ae;
 function Ee(e) {
-  G = { ...oe, ...e ?? {} };
+  X = { ...ae, ...e ?? {} };
 }
-function ae(e, t = G) {
+function ie(e, t = X) {
   const n = e < 0, r = Math.abs(Math.round(e)), o = 10 ** t.decimals, l = Math.floor(r / o).toString().replace(/\B(?=(\d{3})+(?!\d))/g, t.thousands), a = t.decimals > 0 ? t.decimal + String(r % o).padStart(t.decimals, "0") : "", i = l + a, m = t.space ? " " : "", h = t.position === "left" ? `${t.symbol}${m}${i}` : `${i}${m}${t.symbol}`;
   return n ? `-${h}` : h;
 }
-function ie(e, t = G) {
+function le(e, t = X) {
   let n = e.replace(t.symbol, "").replace(/\s/g, "");
   const r = n.startsWith("-");
   n = n.replace(/^-/, "").split(t.thousands).join("");
@@ -17,60 +17,60 @@ function ie(e, t = G) {
   const a = Number(o || "0") * 10 ** t.decimals + Number(l.padEnd(t.decimals, "0").slice(0, t.decimals) || "0");
   return r ? -a : a;
 }
-const F = {
+const R = {
   orderPanels: {},
   dashboardWidgets: {},
   settingsSections: {},
   productTabs: {}
-}, U = {
+}, q = {
   version: 1,
   registerOrderPanel: (e, t) => {
-    F.orderPanels[e] = t;
+    R.orderPanels[e] = t;
   },
   registerDashboardWidget: (e, t) => {
-    F.dashboardWidgets[e] = t;
+    R.dashboardWidgets[e] = t;
   },
   registerSettingsSection: (e, t) => {
-    F.settingsSections[e] = t;
+    R.settingsSections[e] = t;
   },
   registerProductTab: (e, t) => {
-    F.productTabs[e] = t;
+    R.productTabs[e] = t;
   },
-  orderPanels: () => F.orderPanels,
-  dashboardWidgets: () => F.dashboardWidgets,
-  settingsSections: () => F.settingsSections,
-  productTabs: () => F.productTabs,
-  formatMoney: ae,
-  parseMoney: ie,
+  orderPanels: () => R.orderPanels,
+  dashboardWidgets: () => R.dashboardWidgets,
+  settingsSections: () => R.settingsSections,
+  productTabs: () => R.productTabs,
+  formatMoney: ie,
+  parseMoney: le,
   components: {}
 };
 function Pe() {
-  window.SunriceCommerce = U;
+  window.SunriceCommerce = q;
   const e = window.SunriceCommerceQueue ?? [];
   (() => {
     for (; e.length > 0; ) {
       const n = e.shift();
       try {
-        n?.(U);
+        n?.(q);
       } catch (r) {
         console.error("SunriceCommerceQueue call failed", r);
       }
     }
-  })(), e.push = ((...n) => (n.forEach((r) => r(U)), e.length)), window.SunriceCommerceQueue = e;
+  })(), e.push = ((...n) => (n.forEach((r) => r(q)), e.length)), window.SunriceCommerceQueue = e;
 }
 const u = globalThis.Sunrice?.modules?.react;
 if (!u)
   throw new Error("[commerce] This script needs the Sunrice admin panel (window.Sunrice.modules is missing).");
-const De = u.Activity, _e = u.Children, Le = u.Component, Ie = u.Fragment, Me = u.Profiler, Fe = u.PureComponent, Re = u.StrictMode, Ae = u.Suspense, He = u.ViewTransition, je = u.act, Oe = u.addTransitionType, Ve = u.cache, Be = u.cacheSignal, Ue = u.captureOwnerStack, ze = u.cloneElement, We = u.createContext, qe = u.createElement, Ke = u.createRef, Ge = u.forwardRef, Qe = u.isValidElement, Xe = u.lazy, Je = u.memo, Ye = u.startTransition, Ze = u.unstable_useCacheRefresh, et = u.use, tt = u.useActionState, nt = u.useCallback, rt = u.useContext, ct = u.useDebugValue, st = u.useDeferredValue, ot = u.useEffect, at = u.useEffectEvent, it = u.useId, lt = u.useImperativeHandle, mt = u.useInsertionEffect, dt = u.useLayoutEffect, ut = u.useMemo, pt = u.useOptimistic, gt = u.useReducer, K = u.useRef, Q = u.useState, ht = u.useSyncExternalStore, ft = u.useTransition, bt = u.version, yt = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const _e = u.Activity, De = u.Children, Le = u.Component, Ie = u.Fragment, Me = u.Profiler, Fe = u.PureComponent, Ae = u.StrictMode, Re = u.Suspense, He = u.ViewTransition, je = u.act, Oe = u.addTransitionType, Ve = u.cache, Be = u.cacheSignal, Ue = u.captureOwnerStack, ze = u.cloneElement, We = u.createContext, qe = u.createElement, Ke = u.createRef, Ge = u.forwardRef, Qe = u.isValidElement, Xe = u.lazy, Je = u.memo, Ye = u.startTransition, Ze = u.unstable_useCacheRefresh, et = u.use, tt = u.useActionState, nt = u.useCallback, rt = u.useContext, ct = u.useDebugValue, st = u.useDeferredValue, ot = u.useEffect, at = u.useEffectEvent, it = u.useId, lt = u.useImperativeHandle, mt = u.useInsertionEffect, dt = u.useLayoutEffect, ut = u.useMemo, pt = u.useOptimistic, gt = u.useReducer, Q = u.useRef, J = u.useState, ht = u.useSyncExternalStore, ft = u.useTransition, bt = u.version, yt = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  Activity: De,
-  Children: _e,
+  Activity: _e,
+  Children: De,
   Component: Le,
   Fragment: Ie,
   Profiler: Me,
   PureComponent: Fe,
-  StrictMode: Re,
-  Suspense: Ae,
+  StrictMode: Ae,
+  Suspense: Re,
   ViewTransition: He,
   act: je,
   addTransitionType: Oe,
@@ -103,40 +103,40 @@ const De = u.Activity, _e = u.Children, Le = u.Component, Ie = u.Fragment, Me = 
   useMemo: ut,
   useOptimistic: pt,
   useReducer: gt,
-  useRef: K,
-  useState: Q,
+  useRef: Q,
+  useState: J,
   useSyncExternalStore: ht,
   useTransition: ft,
   version: bt
-}, Symbol.toStringTag, { value: "Module" })), N = globalThis.Sunrice?.modules?.["@inertiajs/react"];
-if (!N)
+}, Symbol.toStringTag, { value: "Module" })), w = globalThis.Sunrice?.modules?.["@inertiajs/react"];
+if (!w)
   throw new Error("[commerce] This script needs the Sunrice admin panel (window.Sunrice.modules is missing).");
-N.App;
-N.Deferred;
-N.Form;
-const St = N.Head;
-N.InfiniteScroll;
-const vt = N.Link;
-N.WhenMounted;
-N.WhenVisible;
-N.config;
-N.createInertiaApp;
-N.http;
-N.progress;
-N.resetLayoutProps;
-const Ct = N.router;
-N.setLayoutProps;
-const xt = N.useForm;
-N.useFormContext;
-N.useHttp;
-const wt = N.usePage;
-N.usePoll;
-N.usePrefetch;
-N.useRemember;
+w.App;
+w.Deferred;
+w.Form;
+const St = w.Head;
+w.InfiniteScroll;
+const vt = w.Link;
+w.WhenMounted;
+w.WhenVisible;
+w.config;
+w.createInertiaApp;
+w.http;
+w.progress;
+w.resetLayoutProps;
+const Ct = w.router;
+w.setLayoutProps;
+const xt = w.useForm;
+w.useFormContext;
+w.useHttp;
+const wt = w.usePage;
+w.usePoll;
+w.usePrefetch;
+w.useRemember;
 const s = globalThis.Sunrice?.modules?.["@imajiner/admin-sdk/ui"];
 if (!s)
   throw new Error("[commerce] This script needs the Sunrice admin panel (window.Sunrice.modules is missing).");
-const Tt = s.Badge, Nt = s.Button, kt = s.Card, $t = s.CardContent, Et = s.CardDescription, Pt = s.CardFooter, Dt = s.CardHeader, _t = s.cardSummary, Lt = s.CardTitle, It = s.Checkbox, Mt = s.CodeEditor, Ft = s.CollapsibleCard, Rt = s.CollapsibleCardGroup, At = s.Command, Ht = s.CommandEmpty, jt = s.CommandGroup, Ot = s.CommandInput, Vt = s.CommandItem, Bt = s.CommandList, Ut = s.CommandSeparator, zt = s.DatePicker, Wt = s.DeveloperHelp, qt = s.Dialog, Kt = s.DialogContent, Gt = s.DialogDescription, Qt = s.DialogFooter, Xt = s.DialogHeader, Jt = s.DialogTitle, Yt = s.DialogTrigger, Zt = s.DropdownMenu, en = s.DropdownMenuCheckboxItem, tn = s.DropdownMenuContent, nn = s.DropdownMenuItem, rn = s.DropdownMenuLabel, cn = s.DropdownMenuSeparator, sn = s.DropdownMenuTrigger, on = s.FormSections, an = s.Input, ln = s.KeptEditsNotice, mn = s.Label, dn = s.LanguageTabs, un = s.LinkAttributes, pn = s.LinkSourcePicker, gn = s.MediaPickerInput, hn = s.moveItem, fn = s.PageHeader, bn = s.Popover, yn = s.PopoverAnchor, Sn = s.PopoverContent, vn = s.PopoverTrigger, Cn = s.registerCommandSource, xn = s.RichTextEditor, wn = s.Select, Tn = s.SelectContent, Nn = s.SelectItem, kn = s.SelectTrigger, $n = s.SelectValue, En = s.Separator, Pn = s.SettingsLayout, Dn = s.SettingsNav, _n = s.Skeleton, Ln = s.SortableHandle, In = s.SortableList, Mn = s.Switch, Fn = s.Table, Rn = s.TableBody, An = s.TableCell, Hn = s.TableHead, jn = s.TableHeader, On = s.TableRow, Vn = s.Tabs, Bn = s.TabsContent, Un = s.TabsList, zn = s.TabsTrigger, Wn = s.Textarea, qn = s.Tooltip, Kn = s.TooltipContent, Gn = s.TooltipTrigger, Qn = s.toast, Xn = s.TrashBanner, Jn = s.TrashHint, Yn = s.TrashTitle, le = s.useBreadcrumbs, Zn = s.useEditLock, er = s.useTablePreferences, tr = s.useUnsavedChanges, nr = s.ViewingNotice, me = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const Tt = s.Badge, Nt = s.Button, kt = s.Card, $t = s.CardContent, Et = s.CardDescription, Pt = s.CardFooter, _t = s.CardHeader, Dt = s.cardSummary, Lt = s.CardTitle, It = s.Checkbox, Mt = s.CodeEditor, Ft = s.CollapsibleCard, At = s.CollapsibleCardGroup, Rt = s.Command, Ht = s.CommandEmpty, jt = s.CommandGroup, Ot = s.CommandInput, Vt = s.CommandItem, Bt = s.CommandList, Ut = s.CommandSeparator, zt = s.DatePicker, Wt = s.DeveloperHelp, qt = s.Dialog, Kt = s.DialogContent, Gt = s.DialogDescription, Qt = s.DialogFooter, Xt = s.DialogHeader, Jt = s.DialogTitle, Yt = s.DialogTrigger, Zt = s.DropdownMenu, en = s.DropdownMenuCheckboxItem, tn = s.DropdownMenuContent, nn = s.DropdownMenuItem, rn = s.DropdownMenuLabel, cn = s.DropdownMenuSeparator, sn = s.DropdownMenuTrigger, on = s.FormSections, an = s.Input, ln = s.KeptEditsNotice, mn = s.Label, dn = s.LanguageTabs, un = s.LinkAttributes, pn = s.LinkSourcePicker, gn = s.MediaPickerInput, hn = s.moveItem, fn = s.PageHeader, bn = s.Popover, yn = s.PopoverAnchor, Sn = s.PopoverContent, vn = s.PopoverTrigger, Cn = s.registerCommandSource, xn = s.RichTextEditor, wn = s.Select, Tn = s.SelectContent, Nn = s.SelectItem, kn = s.SelectTrigger, $n = s.SelectValue, En = s.Separator, Pn = s.SettingsLayout, _n = s.SettingsNav, Dn = s.Skeleton, Ln = s.SortableHandle, In = s.SortableList, Mn = s.Switch, Fn = s.Table, An = s.TableBody, Rn = s.TableCell, Hn = s.TableHead, jn = s.TableHeader, On = s.TableRow, Vn = s.Tabs, Bn = s.TabsContent, Un = s.TabsList, zn = s.TabsTrigger, Wn = s.Textarea, qn = s.Tooltip, Kn = s.TooltipContent, Gn = s.TooltipTrigger, Qn = s.toast, Xn = s.TrashBanner, Jn = s.TrashHint, Yn = s.TrashTitle, me = s.useBreadcrumbs, Zn = s.useEditLock, er = s.useTablePreferences, tr = s.useUnsavedChanges, nr = s.ViewingNotice, de = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   Badge: Tt,
   Button: Nt,
@@ -144,13 +144,13 @@ const Tt = s.Badge, Nt = s.Button, kt = s.Card, $t = s.CardContent, Et = s.CardD
   CardContent: $t,
   CardDescription: Et,
   CardFooter: Pt,
-  CardHeader: Dt,
+  CardHeader: _t,
   CardTitle: Lt,
   Checkbox: It,
   CodeEditor: Mt,
   CollapsibleCard: Ft,
-  CollapsibleCardGroup: Rt,
-  Command: At,
+  CollapsibleCardGroup: At,
+  Command: Rt,
   CommandEmpty: Ht,
   CommandGroup: jt,
   CommandInput: Ot,
@@ -194,14 +194,14 @@ const Tt = s.Badge, Nt = s.Button, kt = s.Card, $t = s.CardContent, Et = s.CardD
   SelectValue: $n,
   Separator: En,
   SettingsLayout: Pn,
-  SettingsNav: Dn,
-  Skeleton: _n,
+  SettingsNav: _n,
+  Skeleton: Dn,
   SortableHandle: Ln,
   SortableList: In,
   Switch: Mn,
   Table: Fn,
-  TableBody: Rn,
-  TableCell: An,
+  TableBody: An,
+  TableCell: Rn,
   TableHead: Hn,
   TableHeader: jn,
   TableRow: On,
@@ -217,25 +217,25 @@ const Tt = s.Badge, Nt = s.Button, kt = s.Card, $t = s.CardContent, Et = s.CardD
   TrashHint: Jn,
   TrashTitle: Yn,
   ViewingNotice: nr,
-  cardSummary: _t,
+  cardSummary: Dt,
   moveItem: hn,
   registerCommandSource: Cn,
   toast: Qn,
-  useBreadcrumbs: le,
+  useBreadcrumbs: me,
   useEditLock: Zn,
   useTablePreferences: er,
   useUnsavedChanges: tr
-}, Symbol.toStringTag, { value: "Module" })), Y = 3, de = () => window.Sunrice, P = yt, M = me, j = {
+}, Symbol.toStringTag, { value: "Module" })), Z = 3, ue = () => window.Sunrice, P = yt, F = de, O = {
   router: Ct,
   Link: vt,
   Head: St,
   usePage: wt,
   useForm: xt
-}, Lr = M.toast, rr = le;
-function z(e = "") {
-  return e.startsWith("/") ? e : de().adminUrl(e);
+}, Lr = F.toast, rr = me;
+function K(e = "") {
+  return e.startsWith("/") ? e : ue().adminUrl(e);
 }
-async function ue(e, t = {}) {
+async function pe(e, t = {}) {
   const n = document.querySelector('meta[name="csrf-token"]')?.content, r = await fetch(e, {
     credentials: "same-origin",
     ...t,
@@ -246,52 +246,52 @@ async function ue(e, t = {}) {
   return await r.json();
 }
 function cr(e) {
-  const t = de();
-  if (t.version !== Y)
-    throw new Error(`[commerce] This bundle was built for admin runtime ${Y}, but the panel runs ${t.version}. Update sunrice/commerce.`);
+  const t = ue();
+  if (t.version !== Z)
+    throw new Error(`[commerce] This bundle was built for admin runtime ${Z}, but the panel runs ${t.version}. Update sunrice/commerce.`);
   for (const [n, r] of Object.entries(e))
     t.registerPageLoader(n, r);
 }
 const sr = {
-  "Commerce/Confirmations/Index": () => import("./Index-DyU5oBaC.js"),
-  "Commerce/Customers/Show": () => import("./Show-CQfSFcNm.js"),
-  "Commerce/Dashboard": () => import("./Dashboard-BTPCF2N1.js"),
-  "Commerce/Inventory/Index": () => import("./Index-BOcbfcSY.js"),
-  "Commerce/Marketing/Editor": () => import("./Editor-DxAGSZop.js"),
-  "Commerce/Marketing/Report": () => import("./Report-leENEQ8y.js"),
-  "Commerce/Orders/Editor": () => import("./Editor-DBk7-GJR.js"),
-  "Commerce/Orders/Show": () => import("./Show-C_jjn7qp.js"),
-  "Commerce/Products/Index": () => import("./Index-olwjLnbU.js"),
-  "Commerce/Products/Import": () => import("./Import-2MtMIyfI.js"),
-  "Commerce/Reports/Show": () => import("./Show-CP8LBk_a.js"),
-  "Commerce/Settings/Section": () => import("./Section-BVkDpJwJ.js"),
-  "Commerce/Settings/Emails": () => import("./Emails-DxkPXFAO.js"),
-  "Commerce/Settings/Features": () => import("./Features-B2c2rM9C.js"),
-  "Commerce/Settings/Payments": () => import("./Payments-BJqp_db_.js"),
-  "Commerce/Settings/Shipping": () => import("./Shipping-R4GjjpQC.js"),
-  "Commerce/Shared/SchemaForm": () => import("./SchemaForm-CoMpMNfT.js"),
-  "Commerce/Shared/ResourceIndex": () => import("./ResourceIndex-CwlY5sNx.js")
+  "Commerce/Confirmations/Index": () => import("./Index-BERAyM1P.js"),
+  "Commerce/Customers/Show": () => import("./Show-BPc3mITQ.js"),
+  "Commerce/Dashboard": () => import("./Dashboard-D5EvIzWE.js"),
+  "Commerce/Inventory/Index": () => import("./Index-CUq8iP8T.js"),
+  "Commerce/Marketing/Editor": () => import("./Editor-CmFftVwc.js"),
+  "Commerce/Marketing/Report": () => import("./Report-DUSErjND.js"),
+  "Commerce/Orders/Editor": () => import("./Editor-GuTkj_zz.js"),
+  "Commerce/Orders/Show": () => import("./Show-C6S_bFGG.js"),
+  "Commerce/Products/Index": () => import("./Index-DNA6Qknf.js"),
+  "Commerce/Products/Import": () => import("./Import-DaSJIMDP.js"),
+  "Commerce/Reports/Show": () => import("./Show-B-ToGvCI.js"),
+  "Commerce/Settings/Section": () => import("./Section-Frzsscd2.js"),
+  "Commerce/Settings/Emails": () => import("./Emails-Bk17suKi.js"),
+  "Commerce/Settings/Features": () => import("./Features-BIipJsxx.js"),
+  "Commerce/Settings/Payments": () => import("./Payments-DvTEp0O3.js"),
+  "Commerce/Settings/Shipping": () => import("./Shipping-DQxLUZh2.js"),
+  "Commerce/Shared/SchemaForm": () => import("./SchemaForm-DO1560mJ.js"),
+  "Commerce/Shared/ResourceIndex": () => import("./ResourceIndex-1DMKjFNp.js")
 };
 function or() {
   cr(sr);
 }
-const V = globalThis.Sunrice?.modules?.["react/jsx-runtime"];
-if (!V)
+const B = globalThis.Sunrice?.modules?.["react/jsx-runtime"];
+if (!B)
   throw new Error("[commerce] This script needs the Sunrice admin panel (window.Sunrice.modules is missing).");
-const ar = V.Fragment, c = V.jsx, p = V.jsxs;
-V.jsx;
-function Z(e) {
+const ar = B.Fragment, c = B.jsx, p = B.jsxs;
+B.jsx;
+function ee(e) {
   if (!e) return "";
   const t = new Date(e);
   if (Number.isNaN(t.getTime())) return "";
   const n = (r) => String(r).padStart(2, "0");
   return `${t.getFullYear()}-${n(t.getMonth() + 1)}-${n(t.getDate())}T${n(t.getHours())}:${n(t.getMinutes())}`;
 }
-function ee(e) {
+function te(e) {
   return e ? new Date(e).toISOString() : null;
 }
-function pe({ value: e, onChange: t, id: n }) {
-  const { Input: r, Label: o } = M, l = { start: e?.start ?? null, end: e?.end ?? null };
+function ge({ value: e, onChange: t, id: n }) {
+  const { Input: r, Label: o } = F, l = { start: e?.start ?? null, end: e?.end ?? null };
   return /* @__PURE__ */ p("div", { className: "cm:grid cm:gap-3 cm:sm:grid-cols-2", children: [
     /* @__PURE__ */ p("div", { className: "cm:grid cm:gap-1", children: [
       /* @__PURE__ */ c(o, { htmlFor: `${n}-start`, children: "Starts" }),
@@ -300,8 +300,8 @@ function pe({ value: e, onChange: t, id: n }) {
         {
           id: `${n}-start`,
           type: "datetime-local",
-          value: Z(l.start),
-          onChange: (a) => t({ ...l, start: ee(a.target.value) })
+          value: ee(l.start),
+          onChange: (a) => t({ ...l, start: te(a.target.value) })
         }
       )
     ] }),
@@ -312,14 +312,14 @@ function pe({ value: e, onChange: t, id: n }) {
         {
           id: `${n}-end`,
           type: "datetime-local",
-          value: Z(l.end),
-          onChange: (a) => t({ ...l, end: ee(a.target.value) })
+          value: ee(l.end),
+          onChange: (a) => t({ ...l, end: te(a.target.value) })
         }
       )
     ] })
   ] });
 }
-function ge({
+function he({
   value: e,
   onChange: t,
   id: n,
@@ -327,10 +327,10 @@ function ge({
   allowNull: o = !0,
   invalid: l
 }) {
-  const { Input: a } = M, i = (S) => S == null ? "" : ae(S).replace(/^[^\d-]+|[^\d]+$/g, ""), [m, h] = P.useState(i(e)), [E, x] = P.useState(!1);
+  const { Input: a } = F, i = (v) => v == null ? "" : ie(v).replace(/^[^\d-]+|[^\d]+$/g, ""), [m, h] = P.useState(i(e)), [$, x] = P.useState(!1);
   return P.useEffect(() => {
-    E || h(i(e));
-  }, [e, E]), /* @__PURE__ */ c(
+    $ || h(i(e));
+  }, [e, $]), /* @__PURE__ */ c(
     a,
     {
       id: n,
@@ -339,10 +339,10 @@ function ge({
       placeholder: r,
       "aria-invalid": l || void 0,
       onFocus: () => x(!0),
-      onChange: (S) => {
-        h(S.target.value);
-        const f = S.target.value.trim() === "" ? o ? null : 0 : ie(S.target.value);
-        (f !== null || S.target.value.trim() === "") && t(f);
+      onChange: (v) => {
+        h(v.target.value);
+        const f = v.target.value.trim() === "" ? o ? null : 0 : le(v.target.value);
+        (f !== null || v.target.value.trim() === "") && t(f);
       },
       onBlur: () => {
         x(!1), h(i(e));
@@ -350,13 +350,13 @@ function ge({
     }
   );
 }
-function he() {
-  const { props: e } = j.usePage(), t = e.commerce ?? {};
+function fe() {
+  const { props: e } = O.usePage(), t = e.commerce ?? {};
   return Ee(t.currency), t;
 }
-function fe({ field: e, value: t, onChange: n, errors: r, id: o }) {
-  return he(), /* @__PURE__ */ c(
-    ge,
+function be({ field: e, value: t, onChange: n, errors: r, id: o }) {
+  return fe(), /* @__PURE__ */ c(
+    he,
     {
       id: o,
       value: t,
@@ -366,19 +366,19 @@ function fe({ field: e, value: t, onChange: n, errors: r, id: o }) {
     }
   );
 }
-const te = (e) => e === !0 ? "true" : e === !1 ? "false" : e == null || typeof e == "object" ? "" : String(e);
-function be(e, t) {
+const ne = (e) => e === !0 ? "true" : e === !1 ? "false" : e == null || typeof e == "object" ? "" : String(e);
+function ye(e, t) {
   const n = e.condition;
   if (!n) return !0;
   const r = "rules" in n ? n.rules : [n];
   if (r.length === 0) return !0;
   const o = r.map((l) => {
-    const a = t?.[l.field], i = a != null && a !== "" && a !== !1 && !(Array.isArray(a) && a.length === 0), m = (Array.isArray(a) ? a : [a]).map(te).includes(te(l.value));
+    const a = t?.[l.field], i = a != null && a !== "" && a !== !1 && !(Array.isArray(a) && a.length === 0), m = (Array.isArray(a) ? a : [a]).map(ne).includes(ne(l.value));
     return l.operator === "equals" ? m : l.operator === "not_equals" ? !m : l.operator === "filled" ? i : !i;
   });
   return "rules" in n && n.match === "any" ? o.includes(!0) : !o.includes(!1);
 }
-function ye(e) {
+function Se(e) {
   const t = e.config?.options;
   return Array.isArray(t) ? t.map((n) => typeof n == "object" && n !== null ? { value: String(n.value), label: String(n.label ?? n.value) } : { value: String(n), label: String(n) }) : [];
 }
@@ -393,48 +393,48 @@ function lr(e) {
   const t = Number(e);
   return Number.isFinite(t) ? t : null;
 }
-const A = "__none", Se = "__empty", ve = (e) => e === "" ? Se : e;
+const H = "__none", ve = "__empty", Ce = (e) => e === "" ? ve : e;
 function mr(e, t) {
-  return e == null || e === "" && !t.some((n) => n.value === "") ? A : ve(String(e));
+  return e == null || e === "" && !t.some((n) => n.value === "") ? H : Ce(String(e));
 }
 function dr(e, t) {
-  return e === A ? null : e === Se ? "" : t ? Number(e) : e;
+  return e === H ? null : e === ve ? "" : t ? Number(e) : e;
 }
 const ur = /* @__PURE__ */ new Set(["toggle", "password", "secret", "commerce_region", "commerce_targets", "entries", "terms", "media", "asset"]);
-function X(e, t) {
-  return !t || typeof t != "object" || Array.isArray(t) ? [] : e.filter((n) => be(n, t) && !ur.has(n.type) && !n.config?.secret).flatMap((n) => {
+function Y(e, t) {
+  return !t || typeof t != "object" || Array.isArray(t) ? [] : e.filter((n) => ye(n, t) && !ur.has(n.type) && !n.config?.secret).flatMap((n) => {
     const r = t[n.handle];
-    if (n.type === "group") return X(n.fields ?? [], r);
+    if (n.type === "group") return Y(n.fields ?? [], r);
     if (n.type === "select") {
-      const o = ye(n), l = (a) => o.find((i) => i.value === String(a))?.label ?? a;
+      const o = Se(n), l = (a) => o.find((i) => i.value === String(a))?.label ?? a;
       return [Array.isArray(r) ? r.map(l).join(", ") : r == null ? r : l(r)];
     }
     return [r];
   });
 }
-const ne = [
+const re = [
   { key: "province_code", label: "Province" },
   { key: "city_code", label: "City / regency" },
   { key: "district_code", label: "District" },
   { key: "village_code", label: "Village" }
-], pr = { province: 1, city: 2, district: 3, village: 4 }, B = /* @__PURE__ */ new Map();
+], pr = { province: 1, city: 2, district: 3, village: 4 }, W = /* @__PURE__ */ new Map();
 function gr(e, t) {
   const n = t ? `${e}?parent=${encodeURIComponent(t)}` : e;
-  return B.has(n) || B.set(n, ue(n).then((r) => r.data).catch(() => (B.delete(n), []))), B.get(n);
+  return W.has(n) || W.set(n, pe(n).then((r) => r.data).catch(() => (W.delete(n), []))), W.get(n);
 }
-function Ce({ field: e, value: t, onChange: n, id: r }) {
-  const { Label: o, Select: l, SelectTrigger: a, SelectValue: i, SelectContent: m, SelectItem: h } = M, E = e.config ?? {}, x = String(E.api ?? ""), S = pr[E.depth ?? "district"] ?? 3, f = E.country_options ?? [], b = { country: "ID", province_code: null, city_code: null, district_code: null, village_code: null, ...t ?? {} }, _ = ne.slice(0, S), [d, g] = P.useState({}), k = [null, b.province_code, b.city_code, b.district_code];
+function xe({ field: e, value: t, onChange: n, id: r }) {
+  const { Label: o, Select: l, SelectTrigger: a, SelectValue: i, SelectContent: m, SelectItem: h } = F, $ = e.config ?? {}, x = String($.api ?? ""), v = pr[$.depth ?? "district"] ?? 3, f = $.country_options ?? [], b = { country: "ID", province_code: null, city_code: null, district_code: null, village_code: null, ...t ?? {} }, L = re.slice(0, v), [d, g] = P.useState({}), N = [null, b.province_code, b.city_code, b.district_code];
   P.useEffect(() => {
-    b.country !== "ID" || !x || _.forEach((y, C) => {
-      const T = k[C];
-      C > 0 && !T || gr(x, T).then((v) => g((w) => ({ ...w, [y.key]: v })));
+    b.country !== "ID" || !x || L.forEach((y, C) => {
+      const k = N[C];
+      C > 0 && !k || gr(x, k).then((S) => g((T) => ({ ...T, [y.key]: S })));
     });
   }, [x, b.country, b.province_code, b.city_code, b.district_code]);
   const D = (y, C) => {
-    const T = { ...b };
-    T[_[y].key] = C || null, ne.slice(y + 1).forEach((v) => {
-      T[v.key] = null;
-    }), n(T);
+    const k = { ...b };
+    k[L[y].key] = C || null, re.slice(y + 1).forEach((S) => {
+      k[S.key] = null;
+    }), n(k);
   };
   return /* @__PURE__ */ p("div", { className: "cm:grid cm:gap-x-5 cm:gap-y-4 cm:sm:grid-cols-2", children: [
     f.length > 0 && /* @__PURE__ */ p("div", { className: "cm:grid cm:gap-1.5", children: [
@@ -451,19 +451,19 @@ function Ce({ field: e, value: t, onChange: n, id: r }) {
         }
       )
     ] }),
-    b.country === "ID" && _.map((y, C) => /* @__PURE__ */ p("div", { className: "cm:grid cm:gap-1.5", children: [
+    b.country === "ID" && L.map((y, C) => /* @__PURE__ */ p("div", { className: "cm:grid cm:gap-1.5", children: [
       /* @__PURE__ */ c(o, { htmlFor: `${r}-${y.key}`, children: y.label }),
       /* @__PURE__ */ p(
         l,
         {
-          value: b[y.key] ?? A,
-          disabled: C > 0 && !k[C],
-          onValueChange: (T) => D(C, T === A ? "" : T),
+          value: b[y.key] ?? H,
+          disabled: C > 0 && !N[C],
+          onValueChange: (k) => D(C, k === H ? "" : k),
           children: [
             /* @__PURE__ */ c(a, { id: `${r}-${y.key}`, className: "cm:w-full", children: /* @__PURE__ */ c(i, { placeholder: "Choose…" }) }),
             /* @__PURE__ */ p(m, { children: [
-              /* @__PURE__ */ c(h, { value: A, children: "Choose…" }),
-              (d[y.key] ?? []).map((T) => /* @__PURE__ */ c(h, { value: T.code, children: T.name }, T.code))
+              /* @__PURE__ */ c(h, { value: H, children: "Choose…" }),
+              (d[y.key] ?? []).map((k) => /* @__PURE__ */ c(h, { value: k.code, children: k.name }, k.code))
             ] })
           ]
         }
@@ -471,20 +471,20 @@ function Ce({ field: e, value: t, onChange: n, id: r }) {
     ] }, y.key))
   ] });
 }
-function xe({ field: e, value: t, onChange: n, id: r }) {
-  const { Input: o, Badge: l } = M, a = e.config ?? {}, i = Array.isArray(t) ? t : [], [m, h] = P.useState(""), [E, x] = P.useState([]), [S, f] = P.useState(!1);
+function we({ field: e, value: t, onChange: n, id: r }) {
+  const { Input: o, Badge: l } = F, a = e.config ?? {}, i = Array.isArray(t) ? t : [], [m, h] = P.useState(""), [$, x] = P.useState([]), [v, f] = P.useState(!1);
   P.useEffect(() => {
-    if (!S) return;
+    if (!v) return;
     const d = new URLSearchParams({ q: m });
-    (a.types ?? []).forEach((k) => d.append("types[]", k)), (a.taxonomies ?? []).forEach((k) => d.append("taxonomies[]", k));
-    const g = setTimeout(() => ue(`${a.api}?${d}`).then((k) => x(k.data)).catch(() => x([])), 200);
+    (a.types ?? []).forEach((N) => d.append("types[]", N)), (a.taxonomies ?? []).forEach((N) => d.append("taxonomies[]", N));
+    const g = setTimeout(() => pe(`${a.api}?${d}`).then((N) => x(N.data)).catch(() => x([])), 200);
     return () => clearTimeout(g);
-  }, [m, S]);
-  const b = (d) => i.some((g) => g.type === d.type && g.id === d.id), _ = { product: "Product", variant: "Variant", term: "Category/brand" };
+  }, [m, v]);
+  const b = (d) => i.some((g) => g.type === d.type && g.id === d.id), L = { product: "Product", variant: "Variant", term: "Category/brand" };
   return /* @__PURE__ */ p("div", { className: "cm:grid cm:gap-2", children: [
     i.length > 0 && /* @__PURE__ */ c("div", { className: "cm:flex cm:flex-wrap cm:gap-1.5", children: i.map((d) => /* @__PURE__ */ p(l, { variant: "secondary", className: "cm:gap-1", children: [
       /* @__PURE__ */ p("span", { className: "cm:text-muted-foreground", children: [
-        _[d.type],
+        L[d.type],
         ":"
       ] }),
       " ",
@@ -497,13 +497,13 @@ function xe({ field: e, value: t, onChange: n, id: r }) {
         {
           id: r,
           value: m,
-          placeholder: "Search products, SKUs, categories, brands…",
+          placeholder: a.types && a.types.every((d) => d !== "term") ? "Search products, variants or SKUs…" : "Search products, SKUs, categories, brands…",
           onFocus: () => f(!0),
           onBlur: () => setTimeout(() => f(!1), 150),
           onChange: (d) => h(d.target.value)
         }
       ),
-      S && E.length > 0 && /* @__PURE__ */ c("ul", { className: "cm:absolute cm:z-20 cm:mt-1 cm:max-h-72 cm:w-full cm:overflow-auto cm:rounded-md cm:border cm:bg-background cm:shadow", children: E.map((d) => /* @__PURE__ */ c("li", { children: /* @__PURE__ */ p(
+      v && $.length > 0 && /* @__PURE__ */ c("ul", { className: "cm:absolute cm:z-20 cm:mt-1 cm:max-h-72 cm:w-full cm:overflow-auto cm:rounded-md cm:border cm:bg-background cm:shadow", children: $.map((d) => /* @__PURE__ */ c("li", { children: /* @__PURE__ */ p(
         "button",
         {
           type: "button",
@@ -522,17 +522,17 @@ function xe({ field: e, value: t, onChange: n, id: r }) {
     ] })
   ] });
 }
-const hr = P.lazy(() => import("./ProductEditor-Bs8prVMp.js")), fr = (e) => P.createElement(P.Suspense, { fallback: null }, P.createElement(hr, e)), br = {
-  commerce_money: fe,
-  commerce_datetime_range: pe,
-  commerce_region: Ce,
-  commerce_targets: xe,
+const hr = P.lazy(() => import("./ProductEditor-DS-eAWzz.js")), fr = (e) => P.createElement(P.Suspense, { fallback: null }, P.createElement(hr, e)), br = {
+  commerce_money: be,
+  commerce_datetime_range: ge,
+  commerce_region: xe,
+  commerce_targets: we,
   commerce_product: fr
 };
 function yr() {
   (window.SunriceCmsQueue ??= []).push((e) => Object.entries(br).forEach(([t, n]) => e.registerFieldInput(t, n)));
 }
-const Sr = P.lazy(() => import("./ChartImpl-D9C4NgIi.js"));
+const Sr = P.lazy(() => import("./ChartImpl-x60PxwBV.js"));
 function vr(e) {
   const t = /* @__PURE__ */ c("div", { className: "cm:animate-pulse cm:rounded-md cm:bg-muted", style: { height: e.height ?? 260 } });
   return /* @__PURE__ */ c(P.Suspense, { fallback: t, children: /* @__PURE__ */ c(Sr, { ...e }) });
@@ -544,24 +544,24 @@ function Cr({ title: e, description: t, action: n }) {
     n && /* @__PURE__ */ c("div", { className: "cm:mt-2", children: n })
   ] });
 }
-function we(e) {
+function Te(e) {
   var t, n, r = "";
   if (typeof e == "string" || typeof e == "number") r += e;
   else if (typeof e == "object") if (Array.isArray(e)) {
     var o = e.length;
-    for (t = 0; t < o; t++) e[t] && (n = we(e[t])) && (r && (r += " "), r += n);
+    for (t = 0; t < o; t++) e[t] && (n = Te(e[t])) && (r && (r += " "), r += n);
   } else for (n in e) e[n] && (r && (r += " "), r += n);
   return r;
 }
 function xr() {
-  for (var e, t, n = 0, r = "", o = arguments.length; n < o; n++) (e = arguments[n]) && (t = we(e)) && (r && (r += " "), r += t);
+  for (var e, t, n = 0, r = "", o = arguments.length; n < o; n++) (e = arguments[n]) && (t = Te(e)) && (r && (r += " "), r += t);
   return r;
 }
-function H(...e) {
+function j(...e) {
   return xr(e);
 }
 function Ir() {
-  const { Card: e, CardContent: t } = M;
+  const { Card: e, CardContent: t } = F;
   return /* @__PURE__ */ c(e, { "aria-hidden": "true", children: /* @__PURE__ */ p(t, { className: "cm:grid cm:gap-1 cm:pt-6", children: [
     /* @__PURE__ */ c("span", { className: "cm:my-0.5 cm:h-4 cm:w-24 cm:animate-pulse cm:rounded cm:bg-muted" }),
     /* @__PURE__ */ c("span", { className: "cm:my-1 cm:h-6 cm:w-20 cm:animate-pulse cm:rounded cm:bg-muted" }),
@@ -569,13 +569,13 @@ function Ir() {
   ] }) });
 }
 function wr({ kpi: e }) {
-  const { Card: t, CardContent: n } = M, { Link: r } = j, o = e.change ?? null, l = /* @__PURE__ */ p(n, { className: "cm:grid cm:gap-1 cm:pt-6", children: [
+  const { Card: t, CardContent: n } = F, { Link: r } = O, o = e.change ?? null, l = /* @__PURE__ */ p(n, { className: "cm:grid cm:gap-1 cm:pt-6", children: [
     /* @__PURE__ */ c("span", { className: "cm:text-sm cm:text-muted-foreground", children: e.label }),
     /* @__PURE__ */ c("span", { className: "cm:text-2xl cm:font-semibold cm:tabular-nums", children: e.value }),
     o !== null && /* @__PURE__ */ p(
       "span",
       {
-        className: H("cm:text-xs cm:font-medium", o > 0 ? "cm:text-emerald-600" : o < 0 ? "cm:text-red-600" : "cm:text-muted-foreground"),
+        className: j("cm:text-xs cm:font-medium", o > 0 ? "cm:text-emerald-600" : o < 0 ? "cm:text-red-600" : "cm:text-muted-foreground"),
         title: "Compared with the previous period",
         children: [
           /* @__PURE__ */ c("span", { "aria-hidden": !0, children: o > 0 ? "▲" : o < 0 ? "▼" : "•" }),
@@ -591,22 +591,22 @@ function wr({ kpi: e }) {
     ),
     e.hint && /* @__PURE__ */ c("span", { className: "cm:text-xs cm:text-muted-foreground", children: e.hint })
   ] });
-  return /* @__PURE__ */ c(t, { children: e.href ? /* @__PURE__ */ c(r, { href: z(e.href), className: "cm:block", children: l }) : l });
+  return /* @__PURE__ */ c(t, { children: e.href ? /* @__PURE__ */ c(r, { href: K(e.href), className: "cm:block", children: l }) : l });
 }
-function Te({ title: e, description: t, actions: n, primary: r, menu: o, back: l, children: a }) {
-  const { Head: i } = j, { PageHeader: m } = M;
+function Ne({ title: e, description: t, actions: n, primary: r, menu: o, back: l, children: a }) {
+  const { Head: i } = O, { PageHeader: m } = F;
   return /* @__PURE__ */ p(ar, { children: [
     /* @__PURE__ */ c(i, { title: e }),
     /* @__PURE__ */ c(m, { title: e, description: t, actions: n, primary: r, menu: o?.length ? o : void 0, back: l, children: a })
   ] });
 }
-const O = me, Tr = {
+const V = de, Tr = {
   // eslint-disable-line @typescript-eslint/no-explicit-any
-  commerce_money: fe,
-  commerce_datetime_range: pe,
-  commerce_region: Ce,
-  commerce_targets: xe
-}, re = {
+  commerce_money: be,
+  commerce_datetime_range: ge,
+  commerce_region: xe,
+  commerce_targets: we
+}, ce = {
   25: "cm:md:col-span-3",
   33: "cm:md:col-span-4",
   50: "cm:md:col-span-6",
@@ -614,11 +614,11 @@ const O = me, Tr = {
   75: "cm:md:col-span-9",
   100: "cm:md:col-span-12"
 };
-function W({ fields: e, values: t, onChange: n, errors: r = {}, pathPrefix: o = "values", section: l }) {
+function G({ fields: e, values: t, onChange: n, errors: r = {}, pathPrefix: o = "values", section: l }) {
   const a = e, i = r;
-  return /* @__PURE__ */ c("div", { className: "cm:grid cm:grid-cols-1 cm:gap-x-5 cm:gap-y-6 cm:md:grid-cols-12", children: a.filter((m) => be(m, t ?? {})).map((m) => /* @__PURE__ */ c("div", { className: H(
+  return /* @__PURE__ */ c("div", { className: "cm:grid cm:grid-cols-1 cm:gap-x-5 cm:gap-y-6 cm:md:grid-cols-12", children: a.filter((m) => ye(m, t ?? {})).map((m) => /* @__PURE__ */ c("div", { className: j(
     "cm:min-w-0",
-    re[m.width ?? 100] ?? re[100],
+    ce[m.width ?? 100] ?? ce[100],
     // A switch beside an input sits level with the input, not its label.
     m.type === "toggle" && (m.width ?? 100) < 100 && "cm:md:self-end cm:md:pb-2.5"
   ), children: /* @__PURE__ */ c(
@@ -634,7 +634,7 @@ function W({ fields: e, values: t, onChange: n, errors: r = {}, pathPrefix: o = 
   ) }, m.handle)) });
 }
 function Nr({ field: e, value: t, onChange: n, path: r, errors: o, hideLabel: l = !1 }) {
-  const { Label: a } = O, i = r.replace(/[^A-Za-z0-9_-]+/g, "-"), m = o[r], h = e.instructions ? `${i}-help` : void 0, E = [h, m ? `${i}-error` : void 0].filter(Boolean).join(" ") || void 0, x = e.label ?? e.handle, S = e.type === "toggle";
+  const { Label: a } = V, i = r.replace(/[^A-Za-z0-9_-]+/g, "-"), m = o[r], h = e.instructions ? `${i}-help` : void 0, $ = [h, m ? `${i}-error` : void 0].filter(Boolean).join(" ") || void 0, x = e.label ?? e.handle, v = e.type === "toggle";
   return e.type === "group" || e.type === "commerce_region" ? /* @__PURE__ */ p("div", { role: "group", "aria-labelledby": l ? void 0 : `${i}-label`, "aria-label": l ? x : void 0, className: "cm:grid cm:gap-4", "data-field": e.handle, children: [
     !l && /* @__PURE__ */ p("div", { className: "cm:grid cm:gap-1", children: [
       /* @__PURE__ */ p("div", { className: "cm:flex cm:items-center cm:gap-3", children: [
@@ -643,23 +643,23 @@ function Nr({ field: e, value: t, onChange: n, path: r, errors: o, hideLabel: l 
       ] }),
       h && /* @__PURE__ */ c("p", { id: h, className: "cm:text-sm cm:text-muted-foreground", children: e.instructions })
     ] }),
-    /* @__PURE__ */ c(ce, { field: e, value: t, onChange: n, id: i, path: r, errors: o, describedBy: E, label: x }),
+    /* @__PURE__ */ c(se, { field: e, value: t, onChange: n, id: i, path: r, errors: o, describedBy: $, label: x }),
     l && h && /* @__PURE__ */ c("p", { id: h, className: "cm:text-sm cm:text-muted-foreground", children: e.instructions }),
     m && /* @__PURE__ */ c("p", { id: `${i}-error`, className: "cm:text-sm cm:text-destructive", children: m })
   ] }) : /* @__PURE__ */ p("div", { className: "cm:grid cm:gap-1.5", "data-field": e.handle, children: [
-    !S && /* @__PURE__ */ p(a, { htmlFor: e.type === "repeater" ? void 0 : i, id: `${i}-label`, className: l ? "cm:sr-only" : void 0, children: [
+    !v && /* @__PURE__ */ p(a, { htmlFor: e.type === "repeater" ? void 0 : i, id: `${i}-label`, className: l ? "cm:sr-only" : void 0, children: [
       x,
       e.required && /* @__PURE__ */ c("span", { className: "cm:text-destructive", children: " *" })
     ] }),
-    /* @__PURE__ */ c(ce, { field: e, value: t, onChange: n, id: i, path: r, errors: o, describedBy: E, label: x }),
+    /* @__PURE__ */ c(se, { field: e, value: t, onChange: n, id: i, path: r, errors: o, describedBy: $, label: x }),
     h && /* @__PURE__ */ c("p", { id: h, className: "cm:text-sm cm:text-muted-foreground", children: e.instructions }),
     m && /* @__PURE__ */ c("p", { id: `${i}-error`, className: "cm:text-sm cm:text-destructive", children: m })
   ] });
 }
-function ce({ field: e, value: t, onChange: n, id: r, path: o, errors: l, describedBy: a, label: i }) {
-  const { Input: m, Textarea: h, Switch: E, Label: x, MediaPickerInput: S, RichTextEditor: f, Checkbox: b, Select: _, SelectTrigger: d, SelectValue: g, SelectContent: k, SelectItem: D } = O, y = l[o] !== void 0, C = e.config ?? {}, T = Tr[e.type];
-  if (T)
-    return /* @__PURE__ */ c(T, { field: e, value: t, onChange: n, errors: ir(l, o), id: r, describedBy: a });
+function se({ field: e, value: t, onChange: n, id: r, path: o, errors: l, describedBy: a, label: i }) {
+  const { Input: m, Textarea: h, Switch: $, Label: x, MediaPickerInput: v, RichTextEditor: f, Checkbox: b, Select: L, SelectTrigger: d, SelectValue: g, SelectContent: N, SelectItem: D } = V, y = l[o] !== void 0, C = e.config ?? {}, k = Tr[e.type];
+  if (k)
+    return /* @__PURE__ */ c(k, { field: e, value: t, onChange: n, errors: ir(l, o), id: r, describedBy: a });
   switch (e.type) {
     case "textarea":
       return /* @__PURE__ */ c(
@@ -670,7 +670,7 @@ function ce({ field: e, value: t, onChange: n, id: r, path: o, errors: l, descri
           value: typeof t == "string" ? t : "",
           "aria-invalid": y,
           "aria-describedby": a,
-          onChange: (v) => n(v.target.value)
+          onChange: (S) => n(S.target.value)
         }
       );
     case "number":
@@ -686,7 +686,7 @@ function ce({ field: e, value: t, onChange: n, id: r, path: o, errors: l, descri
           min: C.min,
           max: C.max,
           step: C.step ?? "any",
-          onChange: (v) => n(lr(v.target.value))
+          onChange: (S) => n(lr(S.target.value))
         }
       );
     case "date":
@@ -698,41 +698,41 @@ function ce({ field: e, value: t, onChange: n, id: r, path: o, errors: l, descri
           value: typeof t == "string" ? t : "",
           "aria-invalid": y,
           "aria-describedby": a,
-          onChange: (v) => n(v.target.value || null)
+          onChange: (S) => n(S.target.value || null)
         }
       );
     case "toggle":
       return /* @__PURE__ */ p("div", { className: "cm:flex cm:items-center cm:gap-3", children: [
-        /* @__PURE__ */ c(E, { id: r, checked: t === !0, "aria-describedby": a, onCheckedChange: (v) => n(v) }),
+        /* @__PURE__ */ c($, { id: r, checked: t === !0, "aria-describedby": a, onCheckedChange: (S) => n(S) }),
         /* @__PURE__ */ c(x, { htmlFor: r, children: i })
       ] });
     case "select":
     case "entries":
     case "terms": {
-      const v = ye(e), w = e.type !== "select";
+      const S = Se(e), T = e.type !== "select";
       if (C.multiple === !0) {
-        const I = (Array.isArray(t) ? t : []).map(String), ke = (R, q) => {
-          const J = q ? [...I, R] : I.filter(($e) => $e !== R);
-          n(w ? J.map(Number) : J);
+        const I = (Array.isArray(t) ? t : []).map(String), U = (E, M) => {
+          const z = M ? [...I, E] : I.filter(($e) => $e !== E);
+          n(T ? z.map(Number) : z);
         };
-        return /* @__PURE__ */ c("div", { role: "group", "aria-labelledby": `${r}-label`, "aria-describedby": a, className: "cm:grid cm:gap-2 cm:sm:grid-cols-2", children: v.map((R) => /* @__PURE__ */ p("label", { className: "cm:flex cm:items-center cm:gap-2 cm:text-sm", children: [
-          /* @__PURE__ */ c(b, { checked: I.includes(R.value), onCheckedChange: (q) => ke(R.value, q === !0) }),
-          R.label
-        ] }, R.value)) });
+        return /* @__PURE__ */ c("div", { role: "group", "aria-labelledby": `${r}-label`, "aria-describedby": a, className: "cm:grid cm:gap-2 cm:sm:grid-cols-2", children: S.map((E) => /* @__PURE__ */ p("label", { className: "cm:flex cm:items-center cm:gap-2 cm:text-sm", children: [
+          /* @__PURE__ */ c(b, { checked: I.includes(E.value), onCheckedChange: (M) => U(E.value, M === !0) }),
+          E.label
+        ] }, E.value)) });
       }
-      const L = Array.isArray(t) ? t[0] : t, $ = mr(L, v);
-      return /* @__PURE__ */ p(_, { value: $, onValueChange: (I) => n(dr(I, w)), children: [
+      const A = Array.isArray(t) ? t[0] : t, _ = mr(A, S);
+      return /* @__PURE__ */ p(L, { value: _, onValueChange: (I) => n(dr(I, T)), children: [
         /* @__PURE__ */ c(d, { id: r, className: "cm:w-full", "aria-invalid": y, "aria-describedby": a, children: /* @__PURE__ */ c(g, { placeholder: "—" }) }),
-        /* @__PURE__ */ p(k, { children: [
-          (!e.required || $ === A) && /* @__PURE__ */ c(D, { value: A, children: "—" }),
-          v.map((I) => /* @__PURE__ */ c(D, { value: ve(I.value), children: I.label }, I.value))
+        /* @__PURE__ */ p(N, { children: [
+          (!e.required || _ === H) && /* @__PURE__ */ c(D, { value: H, children: "—" }),
+          S.map((I) => /* @__PURE__ */ c(D, { value: Ce(I.value), children: I.label }, I.value))
         ] })
       ] });
     }
     case "media":
     case "asset":
       return /* @__PURE__ */ c(
-        S,
+        v,
         {
           id: r,
           value: t ?? null,
@@ -740,7 +740,7 @@ function ce({ field: e, value: t, onChange: n, id: r, path: o, errors: l, descri
           max: C.max,
           invalid: y,
           types: Array.isArray(C.types) ? C.types : C.image_only ? ["image"] : void 0,
-          onChange: (v) => n(v)
+          onChange: (S) => n(S)
         }
       );
     case "rich_text":
@@ -751,11 +751,11 @@ function ce({ field: e, value: t, onChange: n, id: r, path: o, errors: l, descri
           value: typeof t == "string" ? t : "",
           invalid: y,
           labelledBy: `${r}-label`,
-          onChange: (v) => n(v ?? "")
+          onChange: (S) => n(S ?? "")
         }
       );
     case "group":
-      return C.per_language === !0 ? /* @__PURE__ */ c($r, { field: e, value: t, onChange: n, path: o, errors: l }) : /* @__PURE__ */ c(W, { fields: e.fields ?? [], values: t ?? {}, errors: l, pathPrefix: o, onChange: (v) => n(v) });
+      return C.per_language === !0 ? /* @__PURE__ */ c($r, { field: e, value: t, onChange: n, path: o, errors: l }) : /* @__PURE__ */ c(G, { fields: e.fields ?? [], values: t ?? {}, errors: l, pathPrefix: o, onChange: (S) => n(S) });
     case "repeater":
       return /* @__PURE__ */ c(kr, { field: e, value: t, onChange: n, path: o, errors: l, label: i });
     default:
@@ -768,42 +768,42 @@ function ce({ field: e, value: t, onChange: n, id: r, path: o, errors: l, descri
           "aria-describedby": a,
           maxLength: void 0,
           placeholder: C.placeholder,
-          onChange: (v) => n(v.target.value)
+          onChange: (S) => n(S.target.value)
         }
       );
   }
 }
 function kr({ field: e, value: t, onChange: n, path: r, errors: o, label: l }) {
-  const { Button: a } = O, i = Array.isArray(t) ? t : [], m = K([]), h = K(0);
+  const { Button: a } = V, i = Array.isArray(t) ? t : [], m = Q([]), h = Q(0);
   for (; m.current.length < i.length; ) m.current.push(h.current++);
   m.current.length = i.length;
-  const [E, x] = Q(() => /* @__PURE__ */ new Set()), S = (d, g) => {
+  const [$, x] = J(() => /* @__PURE__ */ new Set()), v = (d, g) => {
     m.current = g, n(d);
-  }, f = () => Object.fromEntries((e.fields ?? []).map((d) => [d.handle, d.type === "toggle" ? !1 : null])), b = typeof e.config?.max == "number" ? e.config.max : null, _ = (d, g) => d.map((k, D) => D === g - 1 ? d[g] : D === g ? d[g - 1] : k);
+  }, f = () => Object.fromEntries((e.fields ?? []).map((d) => [d.handle, d.type === "toggle" ? !1 : null])), b = typeof e.config?.max == "number" ? e.config.max : null, L = (d, g) => d.map((N, D) => D === g - 1 ? d[g] : D === g ? d[g - 1] : N);
   return /* @__PURE__ */ p("div", { className: "cm:grid cm:gap-2", children: [
     i.map((d, g) => {
-      const k = m.current[g], D = `${r}.${g}`, y = Object.keys(o).some((L) => L === D || L.startsWith(`${D}.`)), C = O.cardSummary(X(e.fields ?? [], d)), T = y || E.has(k) || C === "", v = () => x((L) => {
-        const $ = new Set(L);
-        return T ? $.delete(k) : $.add(k), $;
-      }), w = `${D.replace(/[^A-Za-z0-9_-]+/g, "-")}-row`;
-      return /* @__PURE__ */ p("div", { className: H("cm:rounded-lg cm:border cm:bg-card", y && "cm:border-destructive/50"), children: [
+      const N = m.current[g], D = `${r}.${g}`, y = Object.keys(o).some((E) => E === D || E.startsWith(`${D}.`)), C = e.config?.summary_targets, k = typeof C == "string" ? d[C] : null, S = Array.isArray(k) ? k.flatMap((E) => typeof E?.label == "string" && E.label ? [E.label] : []) : [], A = (S.length > 1 ? `${S[0]} +${S.length - 1}` : S[0]) ?? V.cardSummary(Y(e.fields ?? [], d)), _ = y || $.has(N) || A === "", I = () => x((E) => {
+        const M = new Set(E);
+        return _ ? M.delete(N) : M.add(N), M;
+      }), U = `${D.replace(/[^A-Za-z0-9_-]+/g, "-")}-row`;
+      return /* @__PURE__ */ p("div", { className: j("cm:rounded-lg cm:border cm:bg-card", y && "cm:border-destructive/50"), children: [
         /* @__PURE__ */ p("div", { className: "cm:flex cm:items-center cm:gap-1 cm:pr-2", children: [
           /* @__PURE__ */ p(
             "button",
             {
               type: "button",
-              "aria-expanded": T,
-              "aria-controls": w,
-              onClick: v,
-              disabled: y || C === "",
+              "aria-expanded": _,
+              "aria-controls": U,
+              onClick: I,
+              disabled: y || A === "",
               className: "cm:flex cm:min-w-0 cm:flex-1 cm:items-center cm:gap-2 cm:rounded-lg cm:px-3 cm:py-2.5 cm:text-left cm:text-sm cm:disabled:cursor-default cm:focus-visible:ring-2 cm:focus-visible:ring-ring cm:focus-visible:outline-none",
               children: [
-                /* @__PURE__ */ c("svg", { "aria-hidden": "true", viewBox: "0 0 24 24", className: H("cm:size-4 cm:shrink-0 cm:text-muted-foreground cm:transition-transform", !T && "cm:-rotate-90"), fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ c("path", { d: "m6 9 6 6 6-6" }) }),
+                /* @__PURE__ */ c("svg", { "aria-hidden": "true", viewBox: "0 0 24 24", className: j("cm:size-4 cm:shrink-0 cm:text-muted-foreground cm:transition-transform", !_ && "cm:-rotate-90"), fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ c("path", { d: "m6 9 6 6 6-6" }) }),
                 /* @__PURE__ */ p("span", { className: "cm:shrink-0 cm:tabular-nums cm:text-muted-foreground", children: [
                   g + 1,
                   "."
                 ] }),
-                /* @__PURE__ */ c("span", { className: "cm:truncate cm:font-medium", children: C || `New ${l.toLowerCase()}` })
+                /* @__PURE__ */ c("span", { className: "cm:truncate cm:font-medium", children: A || `New ${l.toLowerCase()}` })
               ]
             }
           ),
@@ -815,7 +815,7 @@ function kr({ field: e, value: t, onChange: n, path: r, errors: o, label: l }) {
               variant: "ghost",
               disabled: g === 0,
               "aria-label": `Move ${g + 1} up`,
-              onClick: () => S(_(i, g), _(m.current, g)),
+              onClick: () => v(L(i, g), L(m.current, g)),
               children: "Move up"
             }
           ),
@@ -826,22 +826,22 @@ function kr({ field: e, value: t, onChange: n, path: r, errors: o, label: l }) {
               size: "sm",
               variant: "ghost",
               "aria-label": `Remove ${g + 1}`,
-              onClick: () => S(i.filter((L, $) => $ !== g), m.current.filter((L, $) => $ !== g)),
+              onClick: () => v(i.filter((E, M) => M !== g), m.current.filter((E, M) => M !== g)),
               children: "Remove"
             }
           )
         ] }),
-        /* @__PURE__ */ c("div", { id: w, hidden: !T, className: "cm:border-t cm:p-4", children: /* @__PURE__ */ c(
-          W,
+        /* @__PURE__ */ c("div", { id: U, hidden: !_, className: "cm:border-t cm:p-4", children: /* @__PURE__ */ c(
+          G,
           {
             fields: e.fields ?? [],
             values: d,
             errors: o,
             pathPrefix: D,
-            onChange: (L) => S(i.map(($, I) => I === g ? L : $), m.current)
+            onChange: (E) => v(i.map((M, z) => z === g ? E : M), m.current)
           }
         ) })
-      ] }, k);
+      ] }, N);
     }),
     /* @__PURE__ */ c("div", { children: /* @__PURE__ */ p(
       a,
@@ -852,7 +852,7 @@ function kr({ field: e, value: t, onChange: n, path: r, errors: o, label: l }) {
         disabled: b !== null && i.length >= b,
         onClick: () => {
           const d = h.current++;
-          x((g) => new Set(g).add(d)), S([...i, f()], [...m.current, d]);
+          x((g) => new Set(g).add(d)), v([...i, f()], [...m.current, d]);
         },
         children: [
           "Add ",
@@ -863,24 +863,24 @@ function kr({ field: e, value: t, onChange: n, path: r, errors: o, label: l }) {
   ] });
 }
 function $r({ field: e, value: t, onChange: n, path: r, errors: o }) {
-  const { LanguageTabs: l } = O, a = t ?? {}, i = e.fields ?? [], m = String(e.config?.main ?? i[0]?.handle ?? ""), h = (f) => Object.keys(o).some((b) => b === `${r}.${f}` || b.startsWith(`${r}.${f}.`)), [E, x] = Q(() => i.find((f) => h(f.handle))?.handle ?? m), S = (f) => a[f] === null || a[f] === void 0 || a[f] === "";
+  const { LanguageTabs: l } = V, a = t ?? {}, i = e.fields ?? [], m = String(e.config?.main ?? i[0]?.handle ?? ""), h = (f) => Object.keys(o).some((b) => b === `${r}.${f}` || b.startsWith(`${r}.${f}.`)), [$, x] = J(() => i.find((f) => h(f.handle))?.handle ?? m), v = (f) => a[f] === null || a[f] === void 0 || a[f] === "";
   return /* @__PURE__ */ c(
     l,
     {
-      value: E,
+      value: $,
       onValueChange: x,
       label: e.label,
       languages: i.map((f) => ({
         code: f.handle,
         name: f.label,
         main: f.handle === m,
-        missing: f.handle !== m && S(f.handle),
+        missing: f.handle !== m && v(f.handle),
         status: h(f.handle) ? { tone: "warning", label: "Has an error" } : void 0
       })),
       children: (f) => (
         // The tab names the language, so its field doesn't.
         /* @__PURE__ */ c(
-          W,
+          G,
           {
             fields: i.filter((b) => b.handle === f),
             values: a,
@@ -895,53 +895,53 @@ function $r({ field: e, value: t, onChange: n, path: r, errors: o }) {
   );
 }
 function Er({ form: e, id: t, storageKey: n, footer: r, onProcessing: o }) {
-  const { Button: l, Card: a, CardContent: i, CollapsibleCard: m, CollapsibleCardGroup: h, useUnsavedChanges: E } = M, x = M.cardSummary, { data: S, setData: f, errors: b, processing: _, isDirty: d, ...g } = j.useForm({ values: e.values }), k = P.useRef(!1), D = () => {
-    k.current || (k.current = !0, g[e.method](e.action, { preserveScroll: !0, onFinish: () => {
-      k.current = !1;
+  const { Button: l, Card: a, CardContent: i, CollapsibleCard: m, CollapsibleCardGroup: h, useUnsavedChanges: $ } = F, x = F.cardSummary, { data: v, setData: f, errors: b, processing: L, isDirty: d, ...g } = O.useForm({ values: e.values }), N = P.useRef(!1), D = () => {
+    N.current || (N.current = !0, g[e.method](e.action, { preserveScroll: !0, onFinish: () => {
+      N.current = !1;
     } }));
   };
-  P.useEffect(() => o?.(_), [_, o]), E(d, D);
-  const y = e.fields, C = e.sections?.length ? e.sections : [{ title: null, description: null, fields: y.map((w) => w.handle) }], T = Object.keys(b), v = (w, L = null) => /* @__PURE__ */ c(
-    W,
+  P.useEffect(() => o?.(L), [L, o]), $(d, D);
+  const y = e.fields, C = e.sections?.length ? e.sections : [{ title: null, description: null, fields: y.map((T) => T.handle) }], k = Object.keys(b), S = (T, A = null) => /* @__PURE__ */ c(
+    G,
     {
-      fields: y.filter(($) => w.includes($.handle)),
-      values: S.values,
+      fields: y.filter((_) => T.includes(_.handle)),
+      values: v.values,
       errors: b,
       pathPrefix: "values",
-      section: L,
-      onChange: ($) => f("values", $)
+      section: A,
+      onChange: (_) => f("values", _)
     }
   );
-  return /* @__PURE__ */ p("form", { id: t, className: "cm:flex cm:flex-col cm:gap-6", onSubmit: (w) => {
-    w.preventDefault(), D();
+  return /* @__PURE__ */ p("form", { id: t, className: "cm:flex cm:flex-col cm:gap-6", onSubmit: (T) => {
+    T.preventDefault(), D();
   }, children: [
     b.section && /* @__PURE__ */ c("div", { role: "alert", className: "cm:rounded-md cm:border cm:border-destructive/40 cm:bg-destructive/5 cm:px-3 cm:py-2 cm:text-sm cm:text-destructive", children: b.section }),
-    /* @__PURE__ */ c(h, { className: "cm:gap-6", children: C.map((w, L) => w.title === null ? /* @__PURE__ */ c(a, { children: /* @__PURE__ */ c(i, { children: v(w.fields) }) }, `untitled-${L}`) : /* @__PURE__ */ c(
+    /* @__PURE__ */ c(h, { className: "cm:gap-6", children: C.map((T, A) => T.title === null ? /* @__PURE__ */ c(a, { children: /* @__PURE__ */ c(i, { children: S(T.fields) }) }, `untitled-${A}`) : /* @__PURE__ */ c(
       m,
       {
-        title: w.title,
-        description: w.description ?? void 0,
-        summary: x(X(y.filter(($) => w.fields.includes($.handle)), S.values)) || void 0,
-        storageKey: n ? `${n}:${w.title}` : void 0,
-        hasErrors: w.fields.some(($) => T.some((I) => I === `values.${$}` || I.startsWith(`values.${$}.`))),
-        children: v(w.fields, w.title)
+        title: T.title,
+        description: T.description ?? void 0,
+        summary: x(Y(y.filter((_) => T.fields.includes(_.handle)), v.values)) || void 0,
+        storageKey: n ? `${n}:${T.title}` : void 0,
+        hasErrors: T.fields.some((_) => k.some((I) => I === `values.${_}` || I.startsWith(`values.${_}.`))),
+        children: S(T.fields, T.title)
       },
-      w.title
+      T.title
     )) }),
     (t === void 0 || r) && /* @__PURE__ */ p("div", { className: "cm:flex cm:items-center cm:gap-3", children: [
-      t === void 0 && /* @__PURE__ */ c(l, { type: "submit", disabled: _, children: e.submitLabel }),
+      t === void 0 && /* @__PURE__ */ c(l, { type: "submit", disabled: L, children: e.submitLabel }),
       r
     ] })
   ] });
 }
-function Ne({ items: e, current: t, label: n = "Sections" }) {
-  const { Link: r } = j;
+function ke({ items: e, current: t, label: n = "Sections" }) {
+  const { Link: r } = O;
   return /* @__PURE__ */ c("nav", { "aria-label": n, className: "cm:-mb-2 cm:flex cm:gap-1 cm:overflow-x-auto cm:border-b", children: e.map((o) => /* @__PURE__ */ c(
     r,
     {
-      href: z(o.href),
+      href: K(o.href),
       "aria-current": o.key === t ? "page" : void 0,
-      className: H(
+      className: j(
         "cm:-mb-px cm:whitespace-nowrap cm:border-b-2 cm:border-transparent cm:px-3 cm:pb-2.5 cm:pt-1 cm:text-sm cm:text-muted-foreground cm:transition-colors cm:hover:text-foreground",
         o.key === t && "cm:border-foreground cm:font-medium cm:text-foreground"
       ),
@@ -951,16 +951,16 @@ function Ne({ items: e, current: t, label: n = "Sections" }) {
   )) });
 }
 function Pr({ sections: e, current: t, title: n, description: r, primary: o, children: l }) {
-  const { SettingsLayout: a } = M;
-  he();
-  const i = j.usePage().props.commerce?.settingsNav ?? [];
-  return rr([{ label: "Settings", href: z("settings") }, { label: "Store", href: z("commerce/settings") }, { label: n }]), /* @__PURE__ */ c("div", { children: /* @__PURE__ */ c(a, { items: i, current: "commerce-settings", children: /* @__PURE__ */ p("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6", children: [
-    /* @__PURE__ */ c(Te, { title: n, description: r, primary: o }),
-    /* @__PURE__ */ c(Ne, { items: e, current: t, label: "Store settings" }),
+  const { SettingsLayout: a } = F;
+  fe();
+  const i = O.usePage().props.commerce?.settingsNav ?? [];
+  return rr([{ label: "Settings", href: K("settings") }, { label: "Store", href: K("commerce/settings") }, { label: n }]), /* @__PURE__ */ c("div", { children: /* @__PURE__ */ c(a, { items: i, current: "commerce-settings", children: /* @__PURE__ */ p("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6", children: [
+    /* @__PURE__ */ c(Ne, { title: n, description: r, primary: o }),
+    /* @__PURE__ */ c(ke, { items: e, current: t, label: "Store settings" }),
     l
   ] }) }) });
 }
-const se = {
+const oe = {
   ok: "cm:bg-emerald-500/10 cm:text-emerald-700 cm:dark:text-emerald-400",
   success: "cm:bg-emerald-500/10 cm:text-emerald-700 cm:dark:text-emerald-400",
   warning: "cm:bg-amber-500/10 cm:text-amber-700 cm:dark:text-amber-400",
@@ -968,14 +968,14 @@ const se = {
   info: "cm:bg-sky-500/10 cm:text-sky-700 cm:dark:text-sky-400",
   neutral: "cm:bg-muted cm:text-muted-foreground"
 };
-function Dr({ tone: e = "neutral", children: t }) {
-  return /* @__PURE__ */ c("span", { className: H("cm:inline-flex cm:items-center cm:rounded-full cm:px-2 cm:py-0.5 cm:text-xs cm:font-medium", se[e] ?? se.neutral), children: t });
+function _r({ tone: e = "neutral", children: t }) {
+  return /* @__PURE__ */ c("span", { className: j("cm:inline-flex cm:items-center cm:rounded-full cm:px-2 cm:py-0.5 cm:text-xs cm:font-medium", oe[e] ?? oe.neutral), children: t });
 }
-function _r() {
-  Object.assign(U.components, { Chart: vr, EmptyState: Cr, KpiCard: wr, MoneyInput: ge, PageHeader: Te, SchemaFormView: Er, SectionNav: Ne, SettingsLayout: Pr, StatusBadge: Dr });
+function Dr() {
+  Object.assign(q.components, { Chart: vr, EmptyState: Cr, KpiCard: wr, MoneyInput: he, PageHeader: Ne, SchemaFormView: Er, SectionNav: ke, SettingsLayout: Pr, StatusBadge: _r });
 }
 Pe();
-_r();
+Dr();
 yr();
 or();
 export {
@@ -985,43 +985,43 @@ export {
   ut as D,
   Cr as E,
   ar as F,
-  K as G,
+  Q as G,
   nt as H,
   ot as I,
   lt as J,
   Ir as K,
   dt as L,
-  ge as M,
+  he as M,
   Je as N,
-  _e as O,
-  Te as P,
+  De as O,
+  Ne as P,
   Le as Q,
   P as R,
-  Dr as S,
-  xe as T,
-  me as U,
+  _r as S,
+  we as T,
+  de as U,
   Fe as V,
   rr as a,
-  z as b,
+  K as b,
   c,
-  M as d,
-  U as e,
+  F as d,
+  q as e,
   wr as f,
-  ae as g,
-  ue as h,
-  j as i,
+  ie as g,
+  pe as h,
+  O as i,
   p as j,
-  W as k,
-  Ce as l,
-  H as m,
+  G as k,
+  xe as l,
+  j as m,
   Pr as n,
   Er as o,
-  Q as p,
+  J as p,
   Ie as q,
   er as r,
   Qe as s,
   Lr as t,
-  he as u,
+  fe as u,
   Ge as v,
   xr as w,
   qe as x,

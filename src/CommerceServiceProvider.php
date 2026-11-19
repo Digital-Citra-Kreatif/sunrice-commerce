@@ -70,6 +70,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->callAfterResolving(Admin\Dashboard\DashboardCards::class, fn (Admin\Dashboard\DashboardCards $cards) => Admin\Dashboard\BuiltinTodos::register($cards));
         $this->app->singleton(Catalog\PriceIndex::class);
         $this->app->scoped(Catalog\Catalog::class);
+        $this->app->scoped(Catalog\ProductDefaults::class);
         $this->app->scoped(Catalog\ProductViewFactory::class);
         $this->app->scoped(Catalog\BundleComponents::class);
         $this->app->singleton(Catalog\ProductViewHooks::class);

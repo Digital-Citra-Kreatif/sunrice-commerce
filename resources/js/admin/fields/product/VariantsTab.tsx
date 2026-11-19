@@ -1,3 +1,4 @@
+import { LiveStock } from './LiveStock';
 import { React, ui } from '../../lib/sunrice';
 import { FieldRenderer } from '../../components/FieldRenderer';
 import { formatMoney } from '../../lib/money';
@@ -90,7 +91,7 @@ function VariantDetails({ variant, index, updateVariant, tab }: { variant: Varia
                 <Grid cols={4}>
                     <Toggle id={`${p}-track`} label="Track stock" checked={variant.track_stock} onChange={(track_stock) => updateVariant(index, { track_stock })} />
                     {variant.track_stock && (live?.track_stock && live.stock_quantity !== null ? (
-                        <Row label="In stock"><p className="cm:text-sm">{live.stock_quantity} <span className="cm:text-muted-foreground">(change it in Shop → Inventory)</span></p></Row>
+                        <LiveStock variantKey={variant.id} tab={tab} sku={variant.sku} />
                     ) : (
                         <Row label="Starting stock" htmlFor={`${p}-initial`}><NumberInput id={`${p}-initial`} value={variant.initial_stock} onChange={(initial_stock) => updateVariant(index, { initial_stock })} /></Row>
                     ))}
