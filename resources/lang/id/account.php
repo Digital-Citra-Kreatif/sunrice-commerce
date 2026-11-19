@@ -105,6 +105,7 @@ return [
     'addresses' => [
         'title' => 'Alamat',
         'add' => 'Tambah alamat',
+        'cancel' => 'Batal',
         'edit' => 'Ubah',
         'delete' => 'Hapus',
         'saved' => 'Alamat disimpan.',

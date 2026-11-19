@@ -71,11 +71,15 @@ class AccountController
         return back()->with('commerce.success', __('commerce::account.password.saved'));
     }
 
-    public function addresses(): View
+    public function addresses(Request $request): View
     {
+        $addresses = $this->current()->get()->addresses();
+        $editing = $request->filled('edit') ? (clone $addresses)->find((int) $request->input('edit')) : null;
+
         return $this->page('addresses', __('commerce::account.addresses.title'), [
-            'addresses' => $this->current()->get()->addresses()->orderByDesc('default_shipping')->orderBy('id')->get(),
-            'editing' => request()->filled('edit') ? $this->current()->get()->addresses()->find((int) request('edit')) : null,
+            'addresses' => $addresses->orderByDesc('default_shipping')->orderBy('id')->get(),
+            'editing' => $editing,
+            'showAddressForm' => $editing !== null || $request->boolean('add'),
         ]);
     }
 
@@ -83,7 +87,7 @@ class AccountController
     {
         $save->handle($this->current()->get(), (array) $request->input('address', []));
 
-        return redirect()->to(url()->previous())->with('commerce.success', __('commerce::account.addresses.saved'));
+        return redirect()->to(commerce_url('commerce.account.addresses'))->with('commerce.success', __('commerce::account.addresses.saved'));
     }
 
     public function updateAddress(Request $request, int $address, SaveAddress $save): RedirectResponse
@@ -91,7 +95,7 @@ class AccountController
         $model = Address::query()->where('customer_id', $this->current()->get()->id)->findOrFail($address);
         $save->handle($this->current()->get(), (array) $request->input('address', []), $model);
 
-        return back()->with('commerce.success', __('commerce::account.addresses.saved'));
+        return redirect()->to(commerce_url('commerce.account.addresses'))->with('commerce.success', __('commerce::account.addresses.saved'));
     }
 
     public function deleteAddress(int $address): RedirectResponse

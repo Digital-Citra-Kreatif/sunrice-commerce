@@ -20,6 +20,46 @@ beforeEach(function () {
 
 $address = ['name' => 'Ana', 'phone' => '081234567890', 'country' => 'ID', 'province_code' => '32', 'city_code' => '32.73', 'district_code' => '32.73.01', 'line1' => 'Jl. Sarijadi 1'];
 
+it('opens the address form on demand and returns to the address book after saving', function () use ($address) {
+    $this->get('/account/addresses')->assertOk()
+        ->assertSee('Belum ada alamat tersimpan.')
+        ->assertSee('?add=1#address-form', false)
+        ->assertDontSee('id="address-form"', false);
+
+    $addUrl = '/account/addresses?add=1';
+    $this->get($addUrl)->assertOk()
+        ->assertSee('id="address-form"', false)
+        ->assertSee('Batal');
+
+    $this->from($addUrl)->post('/account/addresses', ['address' => ['label' => 'Rumah']])
+        ->assertRedirect($addUrl)
+        ->assertSessionHasErrors('address.name');
+    $this->get($addUrl)->assertOk()->assertSee('value="Rumah"', false);
+
+    $this->from($addUrl)->post('/account/addresses', ['address' => [...$address, 'label' => 'Rumah']])
+        ->assertRedirect('/account/addresses')
+        ->assertSessionHasNoErrors();
+
+    $first = $this->customer->addresses()->firstOrFail();
+    $this->get('/account/addresses')->assertOk()->assertSee('commerce-address-card"  open', false);
+
+    $this->from($addUrl)->post('/account/addresses', ['address' => [...$address, 'line1' => 'Jl. Kantor 2']])
+        ->assertRedirect('/account/addresses');
+    $this->get('/account/addresses')->assertOk()
+        ->assertSee('<summary class="commerce-address-card__summary">', false)
+        ->assertSee('Rumah')->assertSee('Jl. Kantor 2')->assertSee('Kota Bandung')
+        ->assertDontSee('commerce-address-card"  open', false)
+        ->assertDontSee('id="address-form"', false);
+
+    $editUrl = "/account/addresses?edit={$first->id}";
+    $this->get($editUrl)->assertOk()
+        ->assertSee('id="address-form"', false)
+        ->assertSee('value="Rumah"', false);
+    $this->from($editUrl)->put("/account/addresses/{$first->id}", ['address' => [...$address, 'label' => 'Rumah baru']])
+        ->assertRedirect('/account/addresses')
+        ->assertSessionHasNoErrors();
+});
+
 it('adds, edits and deletes addresses with defaults and region validation', function () use ($address) {
     $this->post('/account/addresses', ['address' => $address])->assertSessionHasNoErrors();
     $first = Address::query()->firstOrFail();

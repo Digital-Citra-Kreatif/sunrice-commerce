@@ -545,7 +545,7 @@ section.commerce-account { display: grid; gap: 24px; grid-template-columns: minm
     .commerce-account__nav form { padding-left: 16px; }
 }
 .commerce-account__page { min-width: 0; }
-.commerce-account__page > h1 { font-size: clamp(22px, 3vw, 30px); text-transform: uppercase; margin: 0 0 24px; }
+.commerce-account__page > h1, .commerce-address-book__header h1 { font-size: clamp(22px, 3vw, 30px); text-transform: uppercase; margin: 0 0 24px; }
 .commerce-account__page h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .08em; margin: 32px 0 12px; }
 .commerce-account__page > .commerce-order__states { margin-bottom: 24px; }
 .commerce-account__page > .commerce-order__actions { margin-top: 24px; }
@@ -573,10 +573,25 @@ section.commerce-account { display: grid; gap: 24px; grid-template-columns: minm
     .commerce-account__orders td { display: flex; justify-content: space-between; padding: 4px 0; border: 0; }
     .commerce-account__orders td::before { content: attr(data-label); color: var(--commerce-muted); font-size: 12px; }
 }
-.commerce-address-cards { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); margin-bottom: 8px; }
-.commerce-address-card { display: flex; flex-direction: column; gap: 8px; padding: 20px; border: 1px solid var(--commerce-line); }
-.commerce-address-card .commerce-badge { justify-self: start; }
-.commerce-address-card__actions { display: flex; gap: 16px; margin-top: auto; padding-top: 8px; font-size: 13px; font-weight: 700; }
+.commerce-address-book__header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 24px; }
+.commerce-address-book__header h1 { margin: 0; }
+.commerce-address-book__form { padding: clamp(16px, 4vw, 28px); border: 1px solid var(--commerce-line); margin-bottom: 24px; scroll-margin-top: 24px; }
+.commerce-address-book__form h2 { margin-top: 0; }
+.commerce-address-book__form-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.commerce-address-cards { display: grid; gap: 12px; margin-bottom: 8px; }
+.commerce-address-card { min-width: 0; border: 1px solid var(--commerce-line); }
+.commerce-address-card__summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 16px; padding: 16px; list-style: none; cursor: pointer; }
+.commerce-address-card__summary::-webkit-details-marker { display: none; }
+.commerce-address-card__summary:hover { background: var(--commerce-surface); }
+.commerce-address-card__summary:focus-visible { outline: 2px solid var(--commerce-fg); outline-offset: 2px; }
+.commerce-address-card__summary::after { content: ""; grid-area: 1 / 2; width: 8px; height: 8px; margin: 0 4px; border-right: 2px solid; border-bottom: 2px solid; transform: rotate(45deg); }
+.commerce-address-card[open] .commerce-address-card__summary::after { transform: rotate(225deg); }
+.commerce-address-card__identity { display: flex; flex-direction: column; gap: 2px; overflow-wrap: anywhere; }
+.commerce-address-card__identity > span { font-size: 14px; color: var(--commerce-muted); }
+.commerce-address-card__badges { grid-column: 1; display: flex; flex-wrap: wrap; gap: 4px 8px; }
+.commerce-address-card__badges .commerce-badge { padding: 3px 8px; background: var(--commerce-surface); border: 1px solid var(--commerce-line); }
+.commerce-address-card__body { padding: 16px; border-top: 1px solid var(--commerce-line); overflow-wrap: anywhere; }
+.commerce-address-card__actions { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px; font-size: 14px; font-weight: 700; }
 .commerce-address-card__actions form { margin: 0; }
 .commerce-account__danger { margin-top: 40px; padding: 20px; border: 1px solid var(--commerce-accent); }
 .commerce-account__danger h2 { margin-top: 0; color: var(--commerce-accent); }

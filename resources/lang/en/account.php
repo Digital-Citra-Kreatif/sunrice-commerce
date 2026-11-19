@@ -105,6 +105,7 @@ return [
     'addresses' => [
         'title' => 'Addresses',
         'add' => 'Add an address',
+        'cancel' => 'Cancel',
         'edit' => 'Edit',
         'delete' => 'Delete',
         'saved' => 'The address was saved.',
