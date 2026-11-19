@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Password sign-in, password-reset requests and final checkout submissions support the configured
+  Sunrice captcha. Merge the three form templates, `partials/captcha.blade.php` and the storefront
+  script into published copies.
+
 - Delivery collects the recipient name and phone with the shipping address. Checkout uses a
   compact saved-address selector, an Add address link and a collapsible notes field. Merge
   `checkout.blade.php`, the new `partials/checkout-contact-fields.blade.php`, checkout translations

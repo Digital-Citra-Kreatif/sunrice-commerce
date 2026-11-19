@@ -263,7 +263,7 @@ and the controllers that render them. Every store page also gets `$seoTitle`.
 | `tag` | `$term`: the tag. |
 | `brands` | `$brands`: brands with live products, each `['name', 'url', 'logo', 'count']`. |
 | `cart` | `$cart`: `CartView`, rendered with `<x-commerce::cart>`. |
-| `checkout` | `$cart` (CartView), `$state` (CalculationState), `$data` (CheckoutData), `$mode` (CheckoutMode), `$settings`, `$needsAddress`, `$paymentMethods`, `$savedAddresses`, `$loyaltyPoints`, `$guest`, `$offerAccount`, `$accountRequired`, `$extraFields`, `$termsUrl`, `$submitLabel`. See [checkout.md](checkout.md). |
+| `checkout` | `$cart` (CartView), `$state` (CalculationState), `$data` (CheckoutData), `$mode` (CheckoutMode), `$settings`, `$needsAddress`, `$paymentMethods`, `$savedAddresses`, `$loyaltyPoints`, `$guest`, `$offerAccount`, `$accountRequired`, `$extraFields`, `$termsUrl`, `$submitLabel`, `$captcha` (optional widget HTML). See [checkout.md](checkout.md). |
 | `order` | `$order`, `$payment`, `$instructionsView`, `$payUrl`, `$whatsappUrl`, `$openWhatsApp`, `$downloads`, `$invoiceUrl`, `$canCancel`, `$invite`, `$registerUrl`. Also renders quotes. See [orders.md](orders.md). |
 | `pay` | `$order`, `$methods`: pay an unpaid order, or choose another method. |
 | `confirm-payment` | The lookup form, or the form for `$order` and its pending `$payment`; `$accounts` (bank accounts paid into), `$proofRequired`, `$captcha` (widget data or null). |
@@ -282,9 +282,9 @@ both itself when you leave them out, so extension pages can extend it directly.
 | Template | Variables |
 | --- | --- |
 | `account.layout` | The account menu beside the page, and flash messages. |
-| `account.login` | Sign in with a password, an emailed code or Google (each shown while its feature is on). |
+| `account.login` | Sign in with a password, an emailed code or Google (each shown while its feature is on), and `$captcha` for password sign-in. |
 | `account.register` | Create an account. |
-| `account.forgot-password` | Request a reset link. |
+| `account.forgot-password` | Request a reset link, with `$captcha` when configured. |
 | `account.reset-password` | `$token`, `$email`. |
 | `account.code` | `$email`: enter the emailed sign-in code. |
 | `account.overview` | `$addresses`. Renders the `account.overview` slot. |
@@ -300,6 +300,7 @@ both itself when you leave them out, so extension pages can extend it directly.
 | Partial | Variables |
 | --- | --- |
 | `partials.assets` | — Links the published theme. Included once by every store page. |
+| `partials.captcha` | `$captcha`: the configured Sunrice widget HTML and its form error. Include inside the form. |
 | `partials.header-links` | — Account, wishlist and mini cart links for your header. |
 | `partials.buy` | `$product` (ProductView). The body of `<x-commerce::product>`. |
 | `partials.price` | `$product`. The body of `<x-commerce::price>`. |

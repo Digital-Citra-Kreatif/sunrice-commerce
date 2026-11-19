@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Sunrice\Admin\Security\Captcha;
 use Sunrice\Commerce\Cart\Actions\UpdateCheckoutData;
 use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Cart\CartView;
@@ -77,7 +78,11 @@ class CheckoutController
         $view = CartView::for($cart, $data->context());
         $view->acknowledgePrices();
 
-        return view(Layout::view('checkout'), [...$this->viewData($cart, $data, $view), 'seoTitle' => __('commerce::checkout.title')]);
+        return view(Layout::view('checkout'), [
+            ...$this->viewData($cart, $data, $view),
+            'seoTitle' => __('commerce::checkout.title'),
+            'captcha' => app(Captcha::class)->widget(app()->getLocale()),
+        ]);
     }
 
     public function submit(Request $request, PlaceOrder $place, UpdateCheckoutData $update): RedirectResponse
@@ -103,6 +108,11 @@ class CheckoutController
 
             return redirect(StorefrontRoutes::url('commerce.checkout').$section);
         }
+        $captcha = app(Captcha::class);
+        if (! $captcha->passes($request)) {
+            return redirect(StorefrontRoutes::url('commerce.checkout').'#checkout-captcha')
+                ->withErrors(['captcha' => __('commerce::payments.confirm.captcha')]);
+        }
         try {
             $placed = $place->handle($cart, $data, (string) $request->input('totals_hash'), $request->only('password'),
                 ['ip_address' => $request->ip(), 'user_agent' => $request->userAgent()]);
@@ -111,7 +121,8 @@ class CheckoutController
         } catch (CheckoutRefused $e) {
             return redirect(StorefrontRoutes::url('commerce.checkout'))->with('commerce.error', $e->getMessage());
         } catch (ValidationException $e) {
-            return redirect(StorefrontRoutes::url('commerce.checkout'))->withErrors($e->errors())->withInput($request->except('password'));
+            return redirect(StorefrontRoutes::url('commerce.checkout'))->withErrors($e->errors())
+                ->withInput($request->except(['password', $captcha->field()]));
         }
         $this->carts()->forget();
         $request->session()->put('commerce.orders.'.$placed->order->id, $placed->order->order_key);

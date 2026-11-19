@@ -202,6 +202,9 @@
                 @include($L::view('partials.field-error'), ['name' => 'terms'])
             @endif
             <x-commerce::slot name="checkout.before_submit" />
+            @if (filled((string) ($captcha ?? '')))
+                <div id="checkout-captcha">@include($L::view('partials.captcha'))</div>
+            @endif
             <p role="status" class="commerce-checkout__status" data-commerce-checkout-status
                 data-updating="{{ __('commerce::checkout.refresh.updating') }}"
                 data-updated="{{ __('commerce::checkout.refresh.updated') }}"

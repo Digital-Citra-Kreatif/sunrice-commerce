@@ -290,6 +290,10 @@ The order lookup at `/track-order` and the payment confirmation lookup allow 10 
 and IP and 20 per IP in 10 minutes, and have a honeypot. See [payments.md](payments.md) for the
 confirmation form.
 
+When the host configures Sunrice's captcha, checkout verifies the token on the final **Place
+order** submission. Address changes, points updates and shipping recalculations leave the
+token for that submission. See [Accounts](accounts.md#registration) for the provider setup.
+
 ## Extra fields and custom completions
 
 Packages add fields with `Commerce::checkoutFieldsUsing()` (in the `contact`, `shipping` or

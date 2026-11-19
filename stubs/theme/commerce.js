@@ -283,6 +283,8 @@
             var sent = revision;
             var data = new FormData(form);
             data.delete('password');
+            var captchaField = form.querySelector('[data-commerce-captcha]')?.dataset.commerceCaptcha;
+            if (captchaField) data.delete(captchaField);
             data.set('_form', 'checkout');
             fetch(form.dataset.refresh, {
                 method: 'POST',

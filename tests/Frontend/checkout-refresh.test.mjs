@@ -20,6 +20,7 @@ test('checkout reveals the payment step and confirms the auto-selected fee befor
     const elements = {
         '[data-commerce-payment-section]': payment,
         '[data-commerce-hash]': hash,
+        '[data-commerce-captcha]': { dataset: { commerceCaptcha: 'cf-turnstile-response' } },
         '[data-commerce-payments]': methods,
         'button[name=action][value=place]': button,
     };
@@ -44,7 +45,7 @@ test('checkout reveals the payment step and confirms the auto-selected fee befor
         setTimeout, clearTimeout, AbortSignal,
         FormData: class {
             constructor() {
-                this.values = new Map([['password', 'private']]);
+                this.values = new Map([['password', 'private'], ['cf-turnstile-response', 'checkout-token']]);
                 const selected = selectedMethod();
                 if (selected) this.values.set('payment_method', selected.value);
             }
@@ -71,6 +72,7 @@ test('checkout reveals the payment step and confirms the auto-selected fee befor
     await waitFor(1);
     assert.equal(requests[0].body.get('_form'), 'checkout');
     assert.equal(requests[0].body.get('password'), null);
+    assert.equal(requests[0].body.get('cf-turnstile-response'), null);
     assert.equal(requests[0].body.get('payment_method'), null);
     reply(requests[0], 10000, 'shipping-only', 'transfer');
 
