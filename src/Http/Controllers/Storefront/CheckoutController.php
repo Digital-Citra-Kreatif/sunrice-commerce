@@ -86,11 +86,13 @@ class CheckoutController
         if ($cart === null) {
             return redirect(StorefrontRoutes::url('commerce.cart'));
         }
-        $data = CheckoutData::fromCart($cart)->merge([...$request->except(['password', 'totals_hash', 'action']), '_form' => 'checkout']);
+        $data = $this->postedData($request, $cart, fullForm: true);
         $update->handle($cart, $data->toArray());
 
         if ($request->input('action') !== 'place') {
-            return redirect(StorefrontRoutes::url('commerce.checkout').'#shipping');
+            $section = $request->input('action') === 'update_points' ? '#checkout-points' : '#shipping';
+
+            return redirect(StorefrontRoutes::url('commerce.checkout').$section);
         }
         try {
             $placed = $place->handle($cart, $data, (string) $request->input('totals_hash'), $request->only('password'),
@@ -113,7 +115,7 @@ class CheckoutController
     {
         $cart = $this->carts()->current();
         abort_if($cart === null, 404);
-        $data = CheckoutData::fromCart($cart)->merge($request->except(['password', 'totals_hash', 'action']));
+        $data = $this->postedData($request, $cart);
         $update->handle($cart, $data->toArray());
         $view = CartView::for($cart, $data->context());
         $props = $this->viewData($cart, $data, $view);
@@ -130,6 +132,19 @@ class CheckoutController
             'payments_html' => view(Layout::view('partials.payment-methods'), $props)->render(),
             'summary' => '<aside class="commerce-checkout__summary" id="summary" data-commerce-summary>'.view(Layout::view('partials.checkout-summary'), $props)->render().'</aside>',
         ]);
+    }
+
+    private function postedData(Request $request, Cart $cart, bool $fullForm = false): CheckoutData
+    {
+        $input = $request->except(['password', 'totals_hash', 'action']);
+        if ($fullForm) {
+            $input['_form'] = 'checkout';
+        }
+        if (commerce_customer() === null || ! commerce_feature('loyalty')) {
+            $input['use_points'] = false;
+        }
+
+        return CheckoutData::fromCart($cart)->merge($input);
     }
 
     /** Signed-in customers start with their profile and default address. */
@@ -156,6 +171,7 @@ class CheckoutController
     {
         $state = $view->state;
         $user = commerce_customer();
+        $customer = $user !== null ? Customer::forUser($user) : null;
         $methods = [];
         if ($this->mode()->payment() && $state->totals['total'] > 0) {
             foreach ($this->payments()->available(PaymentContext::fromState($state)) as $key => $method) {
@@ -172,7 +188,8 @@ class CheckoutController
             'settings' => $this->settings(),
             'needsAddress' => $state->shipping['needed'] && $this->mode()->shipping(),
             'paymentMethods' => $methods,
-            'savedAddresses' => $user !== null ? Customer::forUser($user)->addresses()->get() : collect(),
+            'savedAddresses' => $customer?->addresses()->get() ?? collect(),
+            'loyaltyPoints' => commerce_feature('loyalty') ? (int) ($customer->loyalty_points ?? 0) : 0,
             'guest' => $user === null,
             'offerAccount' => $user === null && commerce_feature('accounts') && $this->settings()->get('accounts.registration', true)
                 && $this->settings()->get('checkout.create_account', 'offer') !== 'never',

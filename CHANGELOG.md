@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- The option to pay with loyalty points now sits next to the payment methods at checkout. The
+  cart shows the order before payment choices. Merge your published `checkout.blade.php`,
+  `partials/cart.blade.php` and the checkout and account translations to show the new option.
+
 - My Account now opens the address form on demand and shows saved addresses in expandable rows.
   The order history supports search by order number or product name, an order status filter and
   an inclusive date range, with filters preserved between pages. If you maintain published

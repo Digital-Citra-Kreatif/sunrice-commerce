@@ -52,6 +52,10 @@ return [
     'manual_discount' => 'Discount',
     'shipping_tax' => 'Tax on shipping',
     'whatsapp_payment' => 'Arranged via WhatsApp',
+    'points' => [
+        'title' => 'Loyalty points',
+        'update' => 'Update total',
+    ],
     'submit' => [
         'order' => 'Place order',
         'quote' => 'Request a quote',
@@ -67,7 +71,7 @@ return [
         'payment' => 'Choose a payment method.',
         'paused' => 'We aren\'t taking orders right now. Please try again later.',
         'changed' => 'Your order changed. Please check it and place it again.',
-        'points' => 'Your points balance changed. Please check your cart.',
+        'points' => 'Your points balance changed. Please check your order total.',
         'flash_sale' => 'The flash sale quantity just ran out. Please check your cart.',
         'voucher' => 'The voucher :code can\'t be used any more.',
     ],

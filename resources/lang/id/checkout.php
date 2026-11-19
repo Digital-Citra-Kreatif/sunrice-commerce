@@ -52,6 +52,10 @@ return [
     'manual_discount' => 'Diskon',
     'shipping_tax' => 'Pajak ongkir',
     'whatsapp_payment' => 'Diatur lewat WhatsApp',
+    'points' => [
+        'title' => 'Poin loyalty',
+        'update' => 'Perbarui total',
+    ],
     'submit' => [
         'order' => 'Buat pesanan',
         'quote' => 'Minta penawaran',
@@ -67,7 +71,7 @@ return [
         'payment' => 'Pilih metode pembayaran.',
         'paused' => 'Kami sedang tidak menerima pesanan. Silakan coba lagi nanti.',
         'changed' => 'Pesanan Anda berubah. Silakan periksa lalu buat pesanan lagi.',
-        'points' => 'Saldo poin Anda berubah. Silakan periksa keranjang Anda.',
+        'points' => 'Saldo poin Anda berubah. Silakan periksa total pesanan.',
         'flash_sale' => 'Kuota flash sale baru saja habis. Silakan periksa keranjang Anda.',
         'voucher' => 'Voucher :code tidak bisa dipakai lagi.',
     ],

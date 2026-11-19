@@ -69,7 +69,8 @@ The page has these sections, in order:
    signed-in customers, "save this address", "billing is the same";
 3. billing address, when it differs;
 4. shipping method, with the "Update shipping" button;
-5. payment method (Online store mode, when the total is more than zero);
+5. loyalty points for signed-in customers with a balance (when Loyalty is active), followed by
+   payment methods for the remaining total in Online store mode;
 6. order notes, dropshipper and extra fields;
 7. order summary (the first 10 lines, `commerce.cart.preview_lines`, and the rest behind "and 3
    more"), voucher, marketing consent (guests), terms;
@@ -83,6 +84,10 @@ customers start with their profile and default shipping address. The first view 
 Storefront slots let packages add to the page: `checkout.before`, `checkout.after_contact`,
 `checkout.after_shipping`, `checkout.after_payment` and `checkout.before_submit`. See
 [extending.md](extending.md#storefront-slots).
+
+The points checkbox updates the amount due and the payment options. If points cover the full total,
+the order is placed as paid. The **Update total** button is available with JavaScript off.
+See [Loyalty points](pricing.md#loyalty-points).
 
 ## Checkout settings
 

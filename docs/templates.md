@@ -263,7 +263,7 @@ and the controllers that render them. Every store page also gets `$seoTitle`.
 | `tag` | `$term`: the tag. |
 | `brands` | `$brands`: brands with live products, each `['name', 'url', 'logo', 'count']`. |
 | `cart` | `$cart`: `CartView`, rendered with `<x-commerce::cart>`. |
-| `checkout` | `$cart` (CartView), `$state` (CalculationState), `$data` (CheckoutData), `$mode` (CheckoutMode), `$settings`, `$needsAddress`, `$paymentMethods`, `$savedAddresses`, `$guest`, `$offerAccount`, `$accountRequired`, `$extraFields`, `$termsUrl`, `$submitLabel`. See [checkout.md](checkout.md). |
+| `checkout` | `$cart` (CartView), `$state` (CalculationState), `$data` (CheckoutData), `$mode` (CheckoutMode), `$settings`, `$needsAddress`, `$paymentMethods`, `$savedAddresses`, `$loyaltyPoints`, `$guest`, `$offerAccount`, `$accountRequired`, `$extraFields`, `$termsUrl`, `$submitLabel`. See [checkout.md](checkout.md). |
 | `order` | `$order`, `$payment`, `$instructionsView`, `$payUrl`, `$whatsappUrl`, `$openWhatsApp`, `$downloads`, `$invoiceUrl`, `$canCancel`, `$invite`, `$registerUrl`. Also renders quotes. See [orders.md](orders.md). |
 | `pay` | `$order`, `$methods`: pay an unpaid order, or choose another method. |
 | `confirm-payment` | The lookup form, or the form for `$order` and its pending `$payment`; `$accounts` (bank accounts paid into), `$proofRequired`, `$captcha` (widget data or null). |

@@ -165,7 +165,7 @@ now off still shows its saved instructions.
 | `flash_sales` | Sale prices stop applying; `/flash-sale` and sale pages answer 404; `<x-commerce::flash-sale>` renders nothing. Shop → Flash sales is hidden. |
 | `vouchers` | The voucher endpoints answer 404, codes already on a cart are reported as not found, and automatic discounts stop. Shop → Vouchers is hidden. |
 | `accounts` | My Account and the sign-in and register pages answer 404; checkout doesn't offer an account. |
-| `loyalty` | Orders stop earning, carts stop paying with points, My Account → Points and Shop → Loyalty points answer 404; balances are kept. |
+| `loyalty` | Orders stop earning, checkout stops offering payment with points, My Account → Points and Shop → Loyalty points answer 404; balances are kept. |
 | `passwordless_login` | The sign-in code pages answer 404. They also answer 404 while the user model lacks the `HasOneTimePasswords` trait; the store health check reports it. |
 | `google_login` | The Google sign-in routes answer 404. They also answer 404 until `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set. |
 | `wishlist` | Wishlist pages answer 404 and `<x-commerce::wishlist-button>` renders nothing. |

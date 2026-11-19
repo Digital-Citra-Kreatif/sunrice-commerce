@@ -315,8 +315,8 @@ A customer with an account earns when the order is **completed** (`OrderComplete
 prices without the tax they include. A refund takes back the same share of what the order earned
 (as far as the balance allows), including a refund made before the order was completed.
 
-**Spending.** Signed-in customers with points see their balance in the cart and choose **Pay with
-my points**. Points are store credit, not a discount: the `Loyalty\Loyalty` stage runs after the
+**Spending.** Signed-in customers with points see their balance at checkout and choose **Pay with
+my points** next to the payment options. Points act as store credit. The `Loyalty\Loyalty` stage runs after the
 totals, so prices, discounts and taxes are as without them, and the points pay what is left, up to
 the balance, with no cap (`totals.points`; `totals.total` is what remains to pay). An order paid in
 full with points is placed as paid. Orders keep the points as an adjustment of kind `points`.
