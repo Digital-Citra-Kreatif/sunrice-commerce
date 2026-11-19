@@ -199,7 +199,7 @@ class ProductViewFactory
         $from = $prices->min();
         $to = $prices->max();
         $single = $variants->first();
-        $regular = $single !== null ? $this->shown($product, max($this->basePrice($product, $single), (int) $single->compare_at_price)) : null;
+        $regular = $single !== null ? $this->regularPrice($product, $single) : null;
         $isRange = $from !== null && $from !== $to && $this->settings->get('catalog.price_range', 'range') !== 'min';
         $amount = $isRange ? null : $from;
         $compareAt = ! $isRange && $regular !== null && $amount !== null && $regular > $amount ? $regular : null;
@@ -301,25 +301,29 @@ class ProductViewFactory
     {
         $optionUids = $product->options->pluck('uid', 'id')->all();
 
-        return $variants->map(fn (Variant $v, int $i) => [
-            'id' => $v->id,
-            'uid' => $v->uid,
-            'title' => $v->title,
-            'sku' => $v->sku,
-            'options' => $preview ? (array) $v->getAttribute('option_uids') : $v->optionValues->mapWithKeys(fn ($value) => [
-                (string) ($optionUids[$value->option_id] ?? '') => $value->uid,
-            ])->all(),
-            'price' => $hidden ? null : $current[$v->uid],
-            'price_formatted' => $hidden ? null : $this->money->format($current[$v->uid]),
-            // Before discounts (flash sales, rules), as shown: what a sale price is compared with.
-            'regular' => $hidden ? null : $this->shown($product, max($this->basePrice($product, $v), (int) $v->compare_at_price)),
-            'compare_at' => $hidden || $v->compare_at_price === null || $this->shown($product, $v->compare_at_price) <= $current[$v->uid] ? null : $this->money->format($this->shown($product, $v->compare_at_price)),
-            'stock' => $statuses[$i],
-            'min_qty' => $v->minOrderQuantity(),
-            'max_qty' => $v->maxOrderQuantity(),
-            'qty_step' => $v->qty_step,
-            'image' => $v->image_asset_id,
-        ])->values()->all();
+        return $variants->map(function (Variant $v, int $i) use ($product, $current, $statuses, $hidden, $preview, $optionUids): array {
+            $regular = $hidden ? null : $this->regularPrice($product, $v);
+
+            return [
+                'id' => $v->id,
+                'uid' => $v->uid,
+                'title' => $v->title,
+                'sku' => $v->sku,
+                'options' => $preview ? (array) $v->getAttribute('option_uids') : $v->optionValues->mapWithKeys(fn ($value) => [
+                    (string) ($optionUids[$value->option_id] ?? '') => $value->uid,
+                ])->all(),
+                'price' => $hidden ? null : $current[$v->uid],
+                'price_formatted' => $hidden ? null : $this->money->format($current[$v->uid]),
+                // Before discounts (flash sales, rules), as shown: what a sale price is compared with.
+                'regular' => $regular,
+                'compare_at' => $regular !== null && $regular > $current[$v->uid] ? $this->money->format($regular) : null,
+                'stock' => $statuses[$i],
+                'min_qty' => $v->minOrderQuantity(),
+                'max_qty' => $v->maxOrderQuantity(),
+                'qty_step' => $v->qty_step,
+                'image' => $v->image_asset_id,
+            ];
+        })->values()->all();
     }
 
     /**
@@ -353,6 +357,11 @@ class ProductViewFactory
         }
 
         return $rows;
+    }
+
+    protected function regularPrice(Product $product, Variant $variant): int
+    {
+        return $this->shown($product, max($this->basePrice($product, $variant), (int) $variant->compare_at_price));
     }
 
     protected function basePrice(Product $product, Variant $variant): int

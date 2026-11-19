@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Dom\HTMLDocument;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
@@ -120,6 +121,23 @@ it('builds the rows on the product page, where the picker reads them', function 
         ->assertSee('"offerCount":5', false);
 
     expect(CountingProductViewFactory::$built)->toBe(1);
+});
+
+it('shows the regular price of the selected flash-sale variant without a compare-at price', function () {
+    publishProduct(colourShirt(), title: 'Kaos Warna');
+    $variant = Variant::query()->where('sku', 'K-M-BLUE')->firstOrFail();
+    $sale = FlashSale::query()->create(['name' => 'Kilat', 'slug' => 'kilat', 'active' => true, 'starts_at' => now()->subHour(), 'ends_at' => now()->addDay()]);
+    $sale->items()->create(['product_id' => $variant->product_id, 'variant_id' => $variant->id, 'discount_type' => 'percent_off', 'discount_value' => 1000]);
+    app()->forgetScopedInstances();
+
+    $page = $this->get('/products/kaos-warna?variant=m-blue')->assertOk();
+    $document = HTMLDocument::createFromString($page->getContent(), LIBXML_NOERROR);
+    expect($document->querySelector('.commerce-buy [data-commerce-amount]')?->textContent)->toBe('Rp98.100')
+        ->and($document->querySelector('.commerce-buy [data-commerce-compare]:not([hidden])')?->textContent)->toBe('Rp109.000');
+
+    $page = $this->get('/products/kaos-warna?variant=s-blue')->assertOk();
+    $document = HTMLDocument::createFromString($page->getContent(), LIBXML_NOERROR);
+    expect($document->querySelector('.commerce-buy [data-commerce-compare][hidden]'))->not->toBeNull();
 });
 
 it('loads the option values of a whole page in one query when rows are read', function () {

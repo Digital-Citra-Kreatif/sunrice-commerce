@@ -222,7 +222,7 @@ after overriding those areas.
 | --- | --- |
 | `account.layout`, `account.navigation` | Shared signed-in frame and navigation. The navigation receives `$navigation` and the selected `$current` key. Custom account pages can extend `account.layout` and fill `@section('account')`. |
 | `account.orders`, `account.quotes`, `account.order-table` | Order and quote pages and their shared table. The table receives the paginated `$orders`. |
-| `account.order-filters` | `$orderFilters`, `$orderFilterErrors`, `$filtersActive`. Order search, status and date controls. |
+| `account.order-filters` | `$orderFilters`, `$orderCategories` (category ID to label from the customer's orders), `$orderFilterErrors`, `$filtersActive`. Order search, status, product category and date controls. |
 | `account.address-form`, `account.address-card` | `$editing` for the address form. The card takes `$address`, `$addresses`, and `$showAddressForm`. |
 | `account.order`, `account.order-returns` | Account order detail and its return history and form. Returns receive `$order`, `$returns` and `$returnable`. |
 | `account.announcement-banner`, `account.announcement` | Announcement above or below account content, or on its own tab. |
@@ -362,7 +362,7 @@ both itself when you leave them out, so extension pages can extend it directly.
 | `account.announcement-banner` | Included by `account.layout` above or below account content according to the Store → Accounts setting. |
 | `account.profile` | `$google`: name, email, phone, password, Google link, deleting the account. |
 | `account.addresses` | `$addresses`, `$editing` (the address being edited, or null), `$showAddressForm` (true for `?add=1` or a valid `?edit={id}`). |
-| `account.orders` | `$orders` (paginated, with filter query parameters), `$type`: `order`, `$orderFilters` (entered values), `$orderFilterErrors` (validation messages), `$filtersActive` (whether any filters were applied). Renders the legacy `account.overview` slot. |
+| `account.orders` | `$orders` (paginated, with filter query parameters), `$type`: `order`, `$orderFilters` (entered values), `$orderCategories`, `$orderFilterErrors` (validation messages), `$filtersActive` (whether any filters were applied). Renders the legacy `account.overview` slot. |
 | `account.quotes` | `$orders` (paginated), `$type`: `quote`. |
 | `account.order` | The `order` page's variables. |
 | `account.downloads` | `$grants`: DownloadGrant models. |

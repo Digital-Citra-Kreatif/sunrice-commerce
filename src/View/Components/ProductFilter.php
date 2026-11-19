@@ -11,6 +11,7 @@ use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\Cms\Models\Term;
 use Sunrice\Commerce\Catalog\PriceVisibility;
 use Sunrice\Commerce\Catalog\ProductQuery;
+use Sunrice\Commerce\Catalog\StorefrontStructure;
 use Sunrice\Commerce\Storefront\Layout;
 
 /**
@@ -55,7 +56,7 @@ class ProductFilter extends Component
      */
     public function categoryLabels(Collection $categories): array
     {
-        return array_map(fn (array $path): string => implode(' › ', $path), $this->categoryPaths($categories));
+        return array_map(fn (array $path): string => implode(' › ', $path), app(StorefrontStructure::class)->categoryPaths($categories));
     }
 
     /**
@@ -65,7 +66,7 @@ class ProductFilter extends Component
      */
     public function categoryTree(Collection $categories, array $facets): array
     {
-        $paths = $this->categoryPaths($categories);
+        $paths = app(StorefrontStructure::class)->categoryPaths($categories);
         $tree = [];
         foreach ($facets as $facet) {
             $tree = $this->insertFacet($tree, $paths[$facet['id']] ?? [$facet['id'] => $facet['name']], $facet);
@@ -97,36 +98,6 @@ class ProductFilter extends Component
         $tree[$id] = $node;
 
         return $tree;
-    }
-
-    /**
-     * @param  Collection<int, Term>  $categories
-     * @return array<int, array<int, string>>
-     */
-    private function categoryPaths(Collection $categories): array
-    {
-        $known = $frontier = $categories->keyBy('id');
-        $queried = $known->keys();
-        while ($frontier->isNotEmpty()) {
-            $parents = $frontier->pluck('parent_id')->filter()->unique()->diff($queried);
-            if ($parents->isEmpty()) {
-                break;
-            }
-            $frontier = Term::query()->with('translations')->whereKey($parents->all())->get()->keyBy('id');
-            $known = $known->union($frontier);
-            $queried = $queried->concat($parents);
-        }
-
-        $labels = [];
-        foreach ($categories as $category) {
-            $path = [];
-            for ($node = $category; $node !== null && ! isset($path[$node->id]); $node = $known->get($node->parent_id ?? 0)) {
-                $path[$node->id] = $node->title();
-            }
-            $labels[$category->id] = array_reverse($path, true);
-        }
-
-        return $labels;
     }
 
     public function render(): View

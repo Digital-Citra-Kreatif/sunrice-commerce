@@ -302,6 +302,9 @@
         var update = form.querySelector('[data-commerce-update]');
         var submit = form.querySelector('button[name=action][value=place]');
         var status = form.querySelector('[data-commerce-checkout-status]');
+        var submitLabel = submit?.querySelector('[data-commerce-place-label]') || submit;
+        var defaultSubmitLabel = submitLabel?.textContent;
+        var processingLabel = submit?.dataset.processingLabel || status?.dataset.submitting;
         var voucherRequest = null;
         var addressRequest = null;
         var paymentSection = form.querySelector('[data-commerce-payment-section]');
@@ -309,10 +312,24 @@
         var termsLink = form.querySelector('[data-commerce-open-terms]');
         var termsDialog = form.closest('.commerce-checkout-page')?.querySelector('[data-commerce-terms-dialog]');
         if (termsLink && typeof termsDialog?.showModal === 'function') {
+            var pressedOnBackdrop = false;
+            function onTermsBackdrop(event) {
+                if (event.target !== termsDialog) return false;
+                var bounds = termsDialog.getBoundingClientRect();
+                return event.clientX < bounds.left || event.clientX > bounds.right
+                    || event.clientY < bounds.top || event.clientY > bounds.bottom;
+            }
             termsLink.addEventListener('click', function (event) {
                 if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
                 event.preventDefault();
                 termsDialog.showModal();
+            });
+            termsDialog.addEventListener('pointerdown', function (event) {
+                pressedOnBackdrop = onTermsBackdrop(event);
+            });
+            termsDialog.addEventListener('click', function (event) {
+                if (pressedOnBackdrop && onTermsBackdrop(event)) termsDialog.close();
+                pressedOnBackdrop = false;
             });
             termsDialog.addEventListener('close', function () { termsLink.focus({ preventScroll: true }); });
         }
@@ -486,7 +503,11 @@
 
         function showStatus(message) {
             if (status) status.textContent = status.dataset[message] || '';
-            if (submit) submit.setAttribute('aria-disabled', String(pending || failed || submitting));
+            if (submit) {
+                submit.disabled = submitting;
+                submit.setAttribute('aria-disabled', String(pending || failed || submitting));
+                if (processingLabel) submitLabel.textContent = submitting ? processingLabel : defaultSubmitLabel;
+            }
         }
 
         function replaceFragment(selector, html) {
@@ -635,8 +656,14 @@
                 event.preventDefault();
                 return;
             }
-            submitting = true;
-            showStatus('submitting');
+            if (submit && !event.defaultPrevented && (!event.submitter || event.submitter === submit)) {
+                submitting = true;
+                showStatus('');
+            }
+        });
+        form.addEventListener('formdata', function (event) {
+            // A disabled button is omitted from the browser's POST body.
+            if (submitting && submit) event.formData.set(submit.name, submit.value);
         });
         form.addEventListener('keydown', function (event) {
             if (event.key !== 'Enter' || event.target.name !== 'voucher_code') return;
@@ -650,6 +677,7 @@
             showStatus(pending ? 'updating' : failed ? 'failed' : '');
         });
         form.addEventListener('change', function (event) {
+            if (submitting) return;
             var t = event.target;
             if (t.matches('[data-commerce-saved-address]')) {
                 var option = t.selectedOptions[0];

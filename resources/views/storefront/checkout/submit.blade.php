@@ -18,8 +18,8 @@
     <p role="status" class="commerce-checkout__status" data-commerce-checkout-status
         data-updating="{{ __('commerce::checkout.refresh.updating') }}"
         data-updated="{{ __('commerce::checkout.refresh.updated') }}"
-        data-failed="{{ __('commerce::checkout.refresh.failed') }}"
-        data-submitting="{{ __('commerce::checkout.refresh.submitting') }}"></p>
+        data-failed="{{ __('commerce::checkout.refresh.failed') }}"></p>
     <button type="submit" name="action" value="update" class="commerce-link commerce-checkout__update" data-commerce-update>{{ __('commerce::checkout.refresh.update') }}</button>
-    <button type="submit" name="action" value="place" class="commerce-button commerce-button--accent commerce-button--block commerce-checkout__submit">{{ $submitLabel }}</button>
+    <button type="submit" name="action" value="place" class="commerce-button commerce-button--accent commerce-button--block commerce-checkout__submit"
+        data-processing-label="{{ __('commerce::checkout.refresh.submitting') }}"><span data-commerce-place-label>{{ $submitLabel }}</span></button>
 </div>

@@ -3,9 +3,10 @@
 @if ($product->isVariable() && isset($errors) && $errors->hasAny(['variant', 'email']))
     @php($default = $product->product->variants->first(fn ($variant) => $variant->active && $variant->id === (int) old('variant')) ?? $default)
 @endif
+@php($variantPrice = $product->isVariable() && ! $product->price['hidden'] && $default ? collect($product->variants)->firstWhere('id', $default->id) : null)
 <div class="commerce-buy" data-commerce-product="{{ $product->id() }}">
     @include(\Sunrice\Commerce\Storefront\Layout::view('partials.badges'))
-    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.price'))
+    @include(\Sunrice\Commerce\Storefront\Layout::view('partials.price'), ['variantPrice' => $variantPrice, 'updateVariantPrice' => $product->isVariable()])
     @if ($product->flashSale)
         <div class="commerce-flash" data-commerce-flash>
             <strong>{{ $product->flashSale['badge'] ?: $product->flashSale['name'] }}</strong>
