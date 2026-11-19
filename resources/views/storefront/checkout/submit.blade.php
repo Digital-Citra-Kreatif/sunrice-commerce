@@ -1,12 +1,14 @@
-{{-- $data, $guest, $termsUrl, $captcha, $submitLabel. Runs inside the checkout form. --}}
+{{-- $data, $guest, $termsUrl, $termsContent, $captcha, $submitLabel. Runs inside the checkout form. --}}
 @php($L = \Sunrice\Commerce\Storefront\Layout::class)
 <div class="commerce-checkout__place">
     @if (commerce_feature('accounts') && $guest)
         <label class="commerce-check"><input type="checkbox" name="accepts_marketing" value="1" @checked($data->get('accepts_marketing'))> {{ __('commerce::checkout.marketing') }}</label>
     @endif
     @if ($termsUrl)
+        @php($termsTrigger = ($termsContent ?? null) ? ' data-commerce-open-terms aria-haspopup="dialog" aria-controls="checkout-terms-dialog"' : '')
         <label class="commerce-check"><input type="checkbox" name="terms" value="1" @checked($data->get('terms')) required>
-            {!! __('commerce::checkout.terms', ['link' => '<a href="'.e($termsUrl).'" target="_blank" rel="noopener">'.e(__('commerce::checkout.terms_link')).'</a>']) !!}</label>
+            <span>{!! __('commerce::checkout.terms', ['link' => '<a href="'.e($termsUrl).'" target="_blank" rel="noopener"'.$termsTrigger.'>'.e(__('commerce::checkout.terms_link')).'</a>']) !!}</span>
+        </label>
         @include($L::view('partials.field-error'), ['name' => 'terms'])
     @endif
     <x-commerce::slot name="checkout.before_submit" />

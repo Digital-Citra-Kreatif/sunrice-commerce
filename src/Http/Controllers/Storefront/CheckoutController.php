@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Sunrice\Admin\Security\Captcha;
+use Sunrice\Cms\Support\HtmlSanitizer;
 use Sunrice\Commerce\Cart\Actions\ApplyVoucher;
 use Sunrice\Commerce\Cart\Actions\RemoveVoucher;
 use Sunrice\Commerce\Cart\Actions\UpdateCheckoutData;
@@ -86,9 +87,17 @@ class CheckoutController
         }
         [$data, $view] = $this->resolveSelections($cart, $data);
         $view->acknowledgePrices();
+        $terms = TermsPage::entry();
+        $values = $terms?->values() ?? [];
+        $intro = is_string($values['intro'] ?? null) ? $values['intro'] : '';
+        $body = is_string($values['body'] ?? null) ? HtmlSanitizer::sanitize($values['body']) : '';
 
         return view(Layout::view('checkout'), [
             ...$this->viewData($cart, $data, $view),
+            'termsUrl' => $terms?->url(),
+            'termsContent' => $terms !== null && (filled($intro) || filled($body))
+                ? ['title' => $terms->title, 'locale' => $terms->locale, 'intro' => $intro, 'body' => $body]
+                : null,
             'seoTitle' => __('commerce::checkout.title'),
             'captcha' => app(Captcha::class)->widget(app()->getLocale()),
         ]);
@@ -322,7 +331,6 @@ class CheckoutController
                 && $this->settings()->get('checkout.create_account', 'offer') !== 'never',
             'accountRequired' => $user === null && $validator->createsAccount($data->merge(['create_account' => true])) && $this->settings()->get('checkout.create_account') === 'always',
             'extraFields' => app(CheckoutFields::class)->for($data, $state),
-            'termsUrl' => TermsPage::url(),
             'submitLabel' => __('commerce::checkout.submit.'.$this->mode()->completion()),
         ];
     }

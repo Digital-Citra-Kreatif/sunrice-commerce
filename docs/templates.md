@@ -200,9 +200,10 @@ with slashes and add `.blade.php`.
 | `checkout.points`, `partials.checkout-vouchers` | Available points and voucher controls. Points use `$data` and `$loyaltyPoints`. Vouchers use `$state` and the voucher actions. |
 | `checkout.notes` | `$data`, `$settings`, `$extraFields`. Order notes, dropship details and extension fields. |
 | `checkout.summary`, `partials.checkout-summary` | `$cart`, `$state`. The summary wrapper and its contents, used on the page and by checkout refresh. |
-| `checkout.submit` | `$data`, `$guest`, `$termsUrl`, `$captcha`, `$submitLabel`. Terms, CAPTCHA, status and submit controls. |
+| `checkout.submit` | `$data`, `$guest`, `$termsUrl`, `$termsContent`, `$captcha`, `$submitLabel`. Terms, CAPTCHA, status and submit controls. |
+| `checkout.terms-dialog` | `$termsContent`. Published CMS title, locale, intro and sanitized body. The checkout terms link opens this dialog. |
 | `cart`, `partials.cart` | The page and cart component frame. The component receives `$cart` and the paginated `$lines`. |
-| `cart.items`, `cart.line` | The paginated lines and one row. A row receives `$row` with `line`, `item` and `entry`, plus `$money` and `$taxDisplay`. |
+| `cart.items`, `cart.line` | The paginated lines and one row. A row receives `$row` with `line`, `item` and `entry`, plus `$money`, `$taxDisplay` and `$variantImages` keyed by media ID. The first product photo is the fallback. |
 | `cart.summary`, `partials.totals` | The checkout link and cart summary use `$cart`. The shared totals view takes `$state`. |
 | `cart.remove-dialog`, `cart.cross-sells` | The shared confirmation dialog and the recommendations resolved from `$cart`. |
 | `partials.mini-cart` | `$count`. Header cart trigger and drawer shell. |
@@ -416,6 +417,12 @@ both itself when you leave them out, so extension pages can extend it directly.
 | `partials.pagination` | The page links (`$paginator->links(Layout::view('partials.pagination'))`). |
 | `partials.icon` | `$name`: a decorative line icon (search, user, heart, bag, menu, close, filter…). |
 | `partials.field-error` | `$name`: a field's validation message. |
+
+The storefront script fetches the selected catalog URL and replaces the filter panel and results in
+place. Keep `data-commerce-listing`, `data-commerce-filter-panel`, `data-commerce-listing-results`
+and the status and filter controls when overriding the listing. The filter form and result links
+also work as regular GET navigation. Filter changes, view switches and pagination use the browser's
+history so the chosen catalog URL can be bookmarked or shared.
 
 The checkout partials are also rendered by `POST /checkout/refresh`, so keep their outer elements
 (`data-commerce-rates`, `data-commerce-payments`, `data-commerce-summary`) when you edit them.

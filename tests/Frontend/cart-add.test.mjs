@@ -6,7 +6,7 @@ import { runInNewContext } from 'node:vm';
 const theme = readFileSync(new URL('../../stubs/theme/commerce.js', import.meta.url), 'utf8');
 
 function storefront(deliver) {
-    let submitHandler;
+    const submitHandlers = [];
     let posts = 0;
     let formPosts = 0;
     const notices = [];
@@ -30,7 +30,7 @@ function storefront(deliver) {
     };
     const form = {
         dataset: { commerceCartApi: '/commerce/api/cart/items' },
-        closest: () => form,
+        closest: (selector) => selector === '[data-commerce-add]' ? form : null,
         contains: (node) => node === button,
         querySelector: (selector) => controls[selector] ?? null,
         after: (notice) => notices.push(notice),
@@ -40,7 +40,7 @@ function storefront(deliver) {
     runInNewContext(theme, {
         document: {
             activeElement: button,
-            addEventListener: (event, handler) => { if (event === 'submit') submitHandler = handler; },
+            addEventListener: (event, handler) => { if (event === 'submit') submitHandlers.push(handler); },
             querySelector: () => null,
             querySelectorAll: (selector) => selector === '[data-commerce-cart-count]' ? [counter] : [],
             createElement: () => ({
@@ -68,7 +68,7 @@ function storefront(deliver) {
 
     const submit = () => {
         let prevented = false;
-        submitHandler({ target: form, submitter: button, preventDefault: () => { prevented = true; } });
+        submitHandlers.forEach((handler) => handler({ target: form, submitter: button, preventDefault: () => { prevented = true; } }));
         return prevented;
     };
     return { submit, counts: () => [posts, formPosts], button, link, recovery, counter, notices };

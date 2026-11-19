@@ -1,7 +1,7 @@
 {{--
     The one-page checkout. $cart (CartView), $state (CalculationState), $data (CheckoutData), $mode (CheckoutMode), $settings,
     $needsAddress, $paymentMethods, $savedAddresses, $loyaltyPoints, $guest, $offerAccount,
-    $accountRequired, $extraFields, $termsUrl, $submitLabel.
+    $accountRequired, $extraFields, $termsUrl, $termsContent, $submitLabel.
 --}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
@@ -72,6 +72,9 @@
         </form>
         @if ($needsAddress)
             @include($L::view('checkout.address-dialog'))
+        @endif
+        @if ($termsContent ?? null)
+            @include($L::view('checkout.terms-dialog'))
         @endif
     </section>
 @endsection

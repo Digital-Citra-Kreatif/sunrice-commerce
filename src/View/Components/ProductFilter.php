@@ -55,6 +55,40 @@ class ProductFilter extends Component
      */
     public function categoryLabels(Collection $categories): array
     {
+        return array_map(fn (array $path): string => implode(' › ', $path), $this->categoryPaths($categories));
+    }
+
+    /**
+     * @param  Collection<int, Term>  $categories
+     * @param  array<int, array{id: int, name: string, count: int, selected: bool}>  $facets
+     * @return array<int, mixed>
+     */
+    public function categoryTree(Collection $categories, array $facets): array
+    {
+        $paths = $this->categoryPaths($categories);
+        $tree = [];
+        foreach ($facets as $facet) {
+            $branch = &$tree;
+            foreach ($paths[$facet['id']] ?? [$facet['id'] => $facet['name']] as $id => $label) {
+                $branch[$id] ??= ['label' => $label, 'term' => null, 'selected' => false, 'children' => []];
+                $branch[$id]['selected'] = $branch[$id]['selected'] || $facet['selected'];
+                if ($id === $facet['id']) {
+                    $branch[$id]['term'] = $facet;
+                }
+                $branch = &$branch[$id]['children'];
+            }
+            unset($branch);
+        }
+
+        return $tree;
+    }
+
+    /**
+     * @param  Collection<int, Term>  $categories
+     * @return array<int, array<int, string>>
+     */
+    private function categoryPaths(Collection $categories): array
+    {
         $known = $frontier = $categories->keyBy('id');
         $queried = $known->keys();
         while ($frontier->isNotEmpty()) {
@@ -73,7 +107,7 @@ class ProductFilter extends Component
             for ($node = $category; $node !== null && ! isset($path[$node->id]); $node = $known->get($node->parent_id ?? 0)) {
                 $path[$node->id] = $node->title();
             }
-            $labels[$category->id] = implode(' › ', array_reverse($path));
+            $labels[$category->id] = array_reverse($path, true);
         }
 
         return $labels;

@@ -62,6 +62,7 @@ return [
     'marketing' => 'Email me news and offers',
     'terms' => 'I agree to the :link',
     'terms_link' => 'terms and conditions',
+    'close_terms' => 'Close',
     'voucher_link' => 'Have a voucher? Add it in the cart',
     'voucher' => [
         'title' => 'Apply a voucher',

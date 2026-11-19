@@ -13,7 +13,8 @@
         ])
     @else
         @if ($paginate)
-            <p class="commerce-products__count">{{ trans_choice('commerce::storefront.theme.products_count', $products->total(), ['count' => $products->total()]) }}</p>
+            @php($range = $products->firstItem() === $products->lastItem() ? $products->firstItem() : $products->firstItem().'–'.$products->lastItem())
+            <p class="commerce-products__count">{{ trans_choice('commerce::storefront.listing.showing', $products->total(), ['range' => $range]) }}</p>
         @endif
         @if ($table)
             @include($L::view('partials.product-table'))

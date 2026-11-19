@@ -9,15 +9,21 @@
 <section class="commerce-reviews" id="reviews" aria-labelledby="reviews-title">
     <h2 id="reviews-title">{{ __('commerce::storefront.reviews.title') }}</h2>
     @if ($product->rating_count > 0)
+        @php($average = number_format((float) $product->rating_average, 1, app()->getLocale() === 'id' ? ',' : '.', ''))
         <div class="commerce-reviews__summary">
-            <p class="commerce-rating">
+            <div class="commerce-reviews__score">
+                <p class="commerce-reviews__number">
+                    <strong>{{ $average }}</strong> <span>/ 5</span>
+                </p>
                 <span aria-hidden="true">{{ $stars((float) $product->rating_average) }}</span>
-                <span>{{ __('commerce::storefront.reviews.average', ['rating' => number_format((float) $product->rating_average, 1, app()->getLocale() === 'id' ? ',' : '.', ''), 'count' => $product->rating_count]) }}</span>
-            </p>
+                <p>{{ trans_choice('commerce::storefront.reviews.count', $product->rating_count) }}</p>
+            </div>
             <dl class="commerce-reviews__breakdown">
                 @foreach ($breakdown as $rating => $count)
-                    <div><dt>{{ trans_choice('commerce::storefront.reviews.stars', $rating, ['count' => $rating]) }}</dt>
-                        <dd><meter min="0" max="{{ $product->rating_count }}" value="{{ $count }}"></meter> {{ $count }}</dd></div>
+                    <div>
+                        <dt>{{ trans_choice('commerce::storefront.reviews.stars', $rating) }}</dt>
+                        <dd><meter aria-hidden="true" min="0" max="{{ $product->rating_count }}" value="{{ $count }}"></meter><span>{{ $count }}</span></dd>
+                    </div>
                 @endforeach
             </dl>
         </div>
@@ -28,11 +34,12 @@
     @foreach ($reviews as $review)
         <article class="commerce-review">
             <header>
-                <p class="commerce-rating" aria-label="{{ trans_choice('commerce::storefront.reviews.stars', $review->rating, ['count' => $review->rating]) }}"><span aria-hidden="true">{{ $stars($review->rating) }}</span></p>
+                <p class="commerce-rating"><span class="commerce-visually-hidden">{{ trans_choice('commerce::storefront.reviews.stars', $review->rating) }}</span><span aria-hidden="true">{{ $stars($review->rating) }}</span></p>
                 @if ($review->title)<h3>{{ $review->title }}</h3>@endif
                 <p class="commerce-review__meta">
-                    {{ $review->name }} · <time datetime="{{ $review->created_at?->toDateString() }}">{{ $review->created_at?->isoFormat('D MMM YYYY') }}</time>
-                    @if ($review->verified()) · <span class="commerce-review__verified">{{ __('commerce::storefront.reviews.verified') }}</span>@endif
+                    <strong>{{ $review->name }}</strong>
+                    <time datetime="{{ $review->created_at?->toDateString() }}">{{ $review->created_at?->isoFormat('D MMM YYYY') }}</time>
+                    @if ($review->verified()) <span class="commerce-review__verified">{{ __('commerce::storefront.reviews.verified') }}</span>@endif
                 </p>
             </header>
             <p class="commerce-review__body">{!! nl2br(e($review->body)) !!}</p>

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 use Dom\HTMLDocument;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Sunrice\Cms\Actions\Entries\CreateEntry;
+use Sunrice\Cms\Actions\Entries\PublishEntry;
+use Sunrice\Cms\Models\Blueprint;
+use Sunrice\Cms\Models\Collection;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Orders\Models\Order;
@@ -19,6 +23,25 @@ beforeEach(function () {
 
 it('sends an empty cart back to the cart page', function () {
     $this->get('/checkout')->assertRedirect('/cart');
+});
+
+it('renders published terms in a checkout dialog with a normal page link as fallback', function () {
+    cartWith([[$this->mug, 1]]);
+    Blueprint::query()->create(['handle' => 'legal', 'title' => 'Legal', 'fields' => [
+        ['handle' => 'body', 'type' => 'rich_text', 'label' => 'Body'],
+    ]]);
+    $pages = Collection::query()->create(['handle' => 'legal', 'title' => 'Legal', 'blueprint' => 'legal', 'route' => '/legal/{slug}']);
+    $terms = app(CreateEntry::class)->handle($pages, [
+        'title' => 'Store terms', 'slug' => 'terms', 'data' => ['body' => '<p>Published payment terms.</p>'],
+    ]);
+    app(PublishEntry::class)->handle($terms->fresh());
+    app(StoreSettings::class)->saveSection('checkout', ['terms_page' => $terms->entry_id]);
+
+    $page = $this->get('/checkout')->assertOk();
+    $document = HTMLDocument::createFromString($page->getContent(), LIBXML_NOERROR);
+    expect($document->querySelector('[data-commerce-open-terms]')?->getAttribute('href'))->toEndWith('/legal/terms')
+        ->and($document->querySelector('#checkout-terms-dialog')?->textContent)->toContain('Published payment terms.')
+        ->and($document->querySelector('input[name=terms][required]'))->not->toBeNull();
 });
 
 it('shows the sections and the rates for the saved address', function () {

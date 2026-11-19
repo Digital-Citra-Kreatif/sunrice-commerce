@@ -186,51 +186,48 @@
     });
 
     // Leaving the list pages as regular forms lets the server render removed rows and empty states.
-    var collectionForms = Array.from(document.querySelectorAll('[data-commerce-collection]')).filter(function (form) {
-        return !form.closest('.commerce-wishlist, .commerce-compare');
-    });
     var updatingCollection = false;
-    collectionForms.forEach(function (form) {
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-            if (updatingCollection) return;
+    document.addEventListener('submit', function (event) {
+        var form = event.target.closest('[data-commerce-collection]');
+        if (!form || form.closest('.commerce-wishlist, .commerce-compare')) return;
+        event.preventDefault();
+        if (updatingCollection) return;
 
-            var button = form.querySelector('button[type=submit]');
-            var method = form.querySelector('[name=_method]');
-            var selecting = method.disabled;
-            updatingCollection = true;
-            button.setAttribute('aria-disabled', 'true');
-            fetch(form.action, {
-                method: 'POST',
-                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
-                body: new FormData(form),
-                credentials: 'same-origin',
-                signal: AbortSignal.timeout(12000),
-            })
-                .then(function (response) {
-                    if (response.status >= 500) throw new Error('Collection result is unknown');
-                    return response.json().then(function (json) {
-                        if (typeof json?.message !== 'string' || (response.ok && !Number.isInteger(json.count))) {
-                            throw new Error('Unexpected collection response');
-                        }
-                        if (response.ok) {
-                            collectionForms.forEach(function (peer) {
-                                if (peer.dataset.commerceCollection !== form.dataset.commerceCollection || peer.dataset.productId !== form.dataset.productId) return;
-                                peer.action = selecting ? peer.dataset.removeUrl : peer.dataset.addUrl;
-                                peer.querySelector('[name=_method]').disabled = !selecting;
-                                peer.querySelector('button[type=submit]').setAttribute('aria-pressed', String(selecting));
-                                peer.querySelector('[data-commerce-collection-label]').textContent = selecting ? peer.dataset.removeLabel : peer.dataset.addLabel;
-                            });
-                        }
-                        toast(json.message, !response.ok, response.ok ? form : null);
-                    });
-                })
-                .catch(function () { toast(form.dataset.unconfirmed, true); })
-                .finally(function () {
-                    updatingCollection = false;
-                    button.removeAttribute('aria-disabled');
+        var button = form.querySelector('button[type=submit]');
+        var method = form.querySelector('[name=_method]');
+        var selecting = method.disabled;
+        updatingCollection = true;
+        button.setAttribute('aria-disabled', 'true');
+        fetch(form.action, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
+            body: new FormData(form),
+            credentials: 'same-origin',
+            signal: AbortSignal.timeout(12000),
+        })
+            .then(function (response) {
+                if (response.status >= 500) throw new Error('Collection result is unknown');
+                return response.json().then(function (json) {
+                    if (typeof json?.message !== 'string' || (response.ok && !Number.isInteger(json.count))) {
+                        throw new Error('Unexpected collection response');
+                    }
+                    if (response.ok) {
+                        document.querySelectorAll('[data-commerce-collection]').forEach(function (peer) {
+                            if (peer.dataset.commerceCollection !== form.dataset.commerceCollection || peer.dataset.productId !== form.dataset.productId) return;
+                            peer.action = selecting ? peer.dataset.removeUrl : peer.dataset.addUrl;
+                            peer.querySelector('[name=_method]').disabled = !selecting;
+                            peer.querySelector('button[type=submit]').setAttribute('aria-pressed', String(selecting));
+                            peer.querySelector('[data-commerce-collection-label]').textContent = selecting ? peer.dataset.removeLabel : peer.dataset.addLabel;
+                        });
+                    }
+                    toast(json.message, !response.ok, response.ok && form.isConnected ? form : null);
                 });
-        });
+            })
+            .catch(function () { toast(form.dataset.unconfirmed, true); })
+            .finally(function () {
+                updatingCollection = false;
+                button.removeAttribute('aria-disabled');
+            });
     });
 
     document.querySelectorAll('[data-commerce-cart]').forEach(function (cart) {
@@ -309,6 +306,16 @@
         var addressRequest = null;
         var paymentSection = form.querySelector('[data-commerce-payment-section]');
         var paymentStep = form.closest('.commerce-checkout-page')?.querySelector('[data-commerce-payment-step]');
+        var termsLink = form.querySelector('[data-commerce-open-terms]');
+        var termsDialog = form.closest('.commerce-checkout-page')?.querySelector('[data-commerce-terms-dialog]');
+        if (termsLink && typeof termsDialog?.showModal === 'function') {
+            termsLink.addEventListener('click', function (event) {
+                if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+                event.preventDefault();
+                termsDialog.showModal();
+            });
+            termsDialog.addEventListener('close', function () { termsLink.focus({ preventScroll: true }); });
+        }
 
         function fillShippingAddress(address, fields) {
             fields.forEach(function (input) {
@@ -798,7 +805,9 @@
         button.hidden = false;
         var filters = panel(aside, button, 'commerce-filters-backdrop');
         button.addEventListener('click', filters.open);
-        aside.querySelectorAll('[data-commerce-filters-close]').forEach(function (b) { b.addEventListener('click', filters.close); });
+        aside.addEventListener('click', function (event) {
+            if (event.target.closest('[data-commerce-filters-close]')) filters.close();
+        });
 
         // Before the sticky sidebar reaches the header, its starting position can be lower on the page.
         var desktop = window.matchMedia('(min-width: 1024px)');
@@ -820,6 +829,113 @@
         window.addEventListener('resize', scheduleFit);
         window.addEventListener('scroll', scheduleFit, { passive: true });
         document.fonts?.ready.then(scheduleFit);
+
+        var results = listing.querySelector('[data-commerce-listing-results]');
+        var status = listing.querySelector('[data-commerce-listing-status]');
+        if (!results || !status) return;
+        var pending;
+        var renderedUrl = window.location.href;
+        var appliedFilters;
+
+        function filterParams(form) {
+            var params = new URLSearchParams();
+            new FormData(form).forEach(function (value, name) {
+                if (value !== '' && !(name === 'sort' && value === 'featured')) params.append(name, value);
+            });
+            return params;
+        }
+
+        function syncApply() {
+            var form = aside.querySelector('[data-commerce-filters]');
+            var apply = form?.querySelector('[data-commerce-filters-apply]');
+            if (apply) apply.disabled = filterParams(form).toString() === appliedFilters;
+        }
+
+        function rememberFilters() {
+            var form = aside.querySelector('[data-commerce-filters]');
+            appliedFilters = form && filterParams(form).toString();
+            syncApply();
+        }
+
+        rememberFilters();
+        aside.addEventListener('input', syncApply);
+        aside.addEventListener('change', syncApply);
+        window.addEventListener('pageshow', syncApply);
+
+        function showLoading(loading) {
+            results.setAttribute('aria-busy', String(loading));
+            status.textContent = loading ? status.dataset.loading : '';
+        }
+
+        async function navigate(url, source) {
+            pending?.abort();
+            if (url.href === renderedUrl) {
+                showLoading(false);
+                return;
+            }
+
+            var request = new AbortController();
+            pending = request;
+            showLoading(true);
+            try {
+                var response = await fetch(url, {
+                    headers: { Accept: 'text/html' },
+                    signal: AbortSignal.any([request.signal, AbortSignal.timeout(12000)]),
+                });
+                if (!response.ok || response.redirected) throw new Error('Listing unavailable');
+                var html = new DOMParser().parseFromString(await response.text(), 'text/html');
+                if (request.signal.aborted) return;
+                var nextListing = html.querySelector('[data-commerce-listing]');
+                var nextAside = nextListing?.querySelector('[data-commerce-filter-panel]');
+                var nextResults = nextListing?.querySelector('[data-commerce-listing-results]');
+                var nextButton = nextResults?.querySelector('[data-commerce-filters-open]');
+                if (!nextAside || !nextButton) throw new Error('Listing fragment unavailable');
+
+                var focusInListing = listing.contains(document.activeElement);
+                var drawerOpen = aside.classList.contains('is-open');
+                filters.close();
+                nextButton.replaceWith(button);
+                aside.replaceChildren(...nextAside.childNodes);
+                results.replaceChildren(...nextResults.childNodes);
+                rememberFilters();
+                if (source !== 'history') window.history.pushState(null, '', url);
+                renderedUrl = url.href;
+                if (source === 'page') listing.scrollIntoView({ block: 'start' });
+                if (source !== 'history' || focusInListing) {
+                    var focus = source === 'view' ? results.querySelector('.commerce-listing__views [aria-current]')
+                        : drawerOpen ? button : results;
+                    (focus || results).focus({ preventScroll: true });
+                }
+                scheduleFit();
+                showLoading(false);
+                status.textContent = results.querySelector('.commerce-products__count, .commerce-products .commerce-empty__title')?.textContent.trim() || '';
+            } catch {
+                if (request.signal.aborted) return;
+                if (source === 'history') window.location.reload();
+                else window.location.assign(url);
+            }
+        }
+
+        listing.addEventListener('submit', function (event) {
+            var form = event.target.closest('[data-commerce-filters]');
+            if (!form) return;
+            var url = new URL(form.action);
+            event.preventDefault();
+            var params = filterParams(form).toString();
+            if (params === appliedFilters) return;
+            url.search = params;
+            navigate(url, 'filter');
+        });
+        listing.addEventListener('click', function (event) {
+            if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+            var link = event.target.closest('.commerce-listing__views a, .commerce-pages a, .commerce-chips a, .commerce-filters__foot a, .commerce-products .commerce-empty a');
+            if (!link || link.target || link.hasAttribute('download')) return;
+            var url = new URL(link.href);
+            if (url.origin !== window.location.origin || url.pathname !== window.location.pathname) return;
+            event.preventDefault();
+            navigate(url, link.closest('.commerce-listing__views') ? 'view' : link.closest('.commerce-pages') ? 'page' : 'filter');
+        });
+        window.addEventListener('popstate', function () { navigate(new URL(window.location.href), 'history'); });
     });
 
     // Use the original form to submit from the floating controls on product pages.

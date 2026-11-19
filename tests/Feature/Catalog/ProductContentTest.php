@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Dom\HTMLDocument;
 use Sunrice\Admin\Media\Media;
 use Sunrice\Cms\Models\Blueprint;
 use Sunrice\Cms\Models\Entry;
@@ -116,11 +117,13 @@ it('appends variant-only photos once and maps each variant to its gallery slide'
         'product' => [
             'type' => 'variable', 'options' => [['id' => 'colour', 'name' => 'Colour', 'values' => [
                 ['id' => 'blue', 'label' => 'Blue'], ['id' => 'black', 'label' => 'Black'], ['id' => 'grey', 'label' => 'Grey'],
+                ['id' => 'red', 'label' => 'Red'],
             ]]],
             'variants' => [
                 ['id' => 'one', 'price' => 20000, 'image' => $cover->id, 'options' => ['colour' => 'blue']],
                 ['id' => 'two', 'price' => 20000, 'image' => $variantPhoto->id, 'options' => ['colour' => 'black']],
                 ['id' => 'three', 'price' => 20000, 'image' => $variantPhoto->id, 'options' => ['colour' => 'grey']],
+                ['id' => 'four', 'price' => 20000, 'options' => ['colour' => 'red']],
             ],
         ],
     ]);
@@ -131,4 +134,12 @@ it('appends variant-only photos once and maps each variant to its gallery slide'
 
     expect(substr_count($response->getContent(), 'data-commerce-gallery-image'))->toBe(3);
     $response->assertSee(json_encode((object) [$variants['one']->id => 0, $variants['two']->id => 2, $variants['three']->id => 2]));
+
+    cartWith([[$variants['two'], 1], [$variants['four'], 1]]);
+    $cartPage = $this->get('/cart')->assertOk();
+    $document = HTMLDocument::createFromString($cartPage->getContent(), LIBXML_NOERROR);
+    $thumbnails = iterator_to_array($document->querySelectorAll('.commerce-cart__thumb img'));
+    expect($thumbnails)->toHaveCount(2)
+        ->and($thumbnails[0]->getAttribute('src'))->toContain('gallery-variant.png')
+        ->and($thumbnails[1]->getAttribute('src'))->toContain('gallery-cover.png');
 });

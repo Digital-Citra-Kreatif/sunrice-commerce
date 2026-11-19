@@ -49,6 +49,8 @@ return [
         'on_sale' => 'Sedang promo',
         'sort' => 'Urutkan',
         'apply' => 'Terapkan',
+        'updating' => 'Memperbarui produk…',
+        'showing' => 'Menampilkan :range dari :count produk',
         'reset' => 'Hapus filter',
         'sorts' => [
             'featured' => 'Unggulan',

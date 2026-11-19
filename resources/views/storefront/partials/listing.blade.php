@@ -9,10 +9,12 @@
 @php($table = request('view') === 'table')
 @php($params = request()->except(['page', 'view']))
 <div class="commerce-listing" data-commerce-listing>
+    <span class="commerce-visually-hidden" role="status" data-commerce-listing-status
+        data-loading="{{ __('commerce::storefront.listing.updating') }}"></span>
     <aside class="commerce-listing__filters" data-commerce-filter-panel>
         <x-commerce::product-filter :query="$query" :without="$without" />
     </aside>
-    <div class="commerce-listing__main">
+    <div class="commerce-listing__main" data-commerce-listing-results tabindex="-1">
         <div class="commerce-listing__toolbar">
             <button type="button" class="commerce-button commerce-button--secondary commerce-listing__filter-button" data-commerce-filters-open aria-controls="commerce-filters" aria-expanded="false" hidden>
                 @include($L::view('partials.icon'), ['name' => 'filter'])

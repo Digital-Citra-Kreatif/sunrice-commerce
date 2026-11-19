@@ -1,13 +1,17 @@
-{{-- $row (line, item, entry), $money and $taxDisplay. --}}
-@php($L = \Sunrice\Commerce\Storefront\Layout::class)
-@php($line = $row['line'])
-@php($productName = $row['entry']?->title ?? $row['entry']?->draft_title ?? '')
-@php($itemName = implode(' · ', array_filter([$productName, $line->variant->title])))
+{{-- $row (line, item, entry), $money, $taxDisplay and $variantImages. --}}
+@php
+    $L = \Sunrice\Commerce\Storefront\Layout::class;
+    $line = $row['line'];
+    $productName = $row['entry']?->title ?? $row['entry']?->draft_title ?? '';
+    $itemName = implode(' · ', array_filter([$productName, $line->variant->title]));
+    $image = ($variantImages ?? collect())->get($line->variant->image_asset_id)
+        ?? collect($row['entry'] ? (commerce_values($row['entry'])['gallery'] ?? []) : [])
+            ->first(fn ($media) => $media instanceof \Sunrice\Admin\Media\Media && $media->isImage());
+@endphp
 <tr data-commerce-cart-line="{{ $row['item']->id }}">
     <td class="commerce-cart__product">
         <div class="commerce-cart__product-content">
-            @php($image = $row['entry'] ? collect((commerce_values($row['entry'])['gallery'] ?? null) ?? [])->first() : null)
-            <span class="commerce-cart__thumb">@if (is_object($image))<img src="{{ $image->url() }}" alt="" width="64" height="80" loading="lazy">@endif</span>
+            <span class="commerce-cart__thumb">@if ($image)<img src="{{ $image->url('thumb') }}" alt="" width="64" height="80" loading="lazy">@endif</span>
             <span class="commerce-cart__info">
                 <a href="{{ $row['entry']?->url() }}">{{ $productName }}</a>
                 @if ($line->variant->title !== '')<span class="commerce-cart__variant">{{ $line->variant->title }}</span>@endif

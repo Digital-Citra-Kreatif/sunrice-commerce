@@ -49,6 +49,8 @@ return [
         'on_sale' => 'On sale',
         'sort' => 'Sort by',
         'apply' => 'Apply',
+        'updating' => 'Updating products…',
+        'showing' => '{1} Showing :range of :count product|[2,*] Showing :range of :count products',
         'reset' => 'Clear filters',
         'sorts' => [
             'featured' => 'Featured',

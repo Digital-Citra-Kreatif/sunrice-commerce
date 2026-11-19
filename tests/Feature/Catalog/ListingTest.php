@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Dom\HTMLDocument;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -94,9 +95,15 @@ it('distinguishes categories with the same name even when their ancestors are mi
     listed('Raincoat', 100000, [$menCoats]);
     listed('Trench coat', 200000, [$womenCoats]);
 
-    $this->get('/products')->assertOk()
-        ->assertSeeText('Men › Outerwear › Coats (1)')
-        ->assertSeeText('Women › Coats (1)');
+    $listing = $this->get('/products')->assertOk()
+        ->assertSee('aria-label="Men › Outerwear › Coats (1)"', false)
+        ->assertSee('aria-label="Women › Coats (1)"', false);
+    $document = HTMLDocument::createFromString($listing->getContent(), LIBXML_NOERROR);
+    expect($document->querySelectorAll('.commerce-filters__branch details.commerce-filters__branch'))->toHaveCount(1);
+
+    $selected = $this->get("/products?category[]={$menCoats->id}")->assertOk();
+    $document = HTMLDocument::createFromString($selected->getContent(), LIBXML_NOERROR);
+    expect($document->querySelectorAll('.commerce-filters__branch[open]'))->toHaveCount(2);
 });
 
 it('drops price filters and sorts when prices are hidden', function () {
@@ -124,6 +131,7 @@ it('offers a table view that keeps the search and selected category when switchi
         ->assertSee('class="commerce-product-table"', false)
         ->assertSee('name="view" value="table"', false)
         ->assertSee('aria-label="Tabel"', false)
+        ->assertSee('Menampilkan 1–2 dari 2 produk')
         ->assertDontSee('class="commerce-price__tax"', false)
         ->assertSee('Kaos Biru')->assertDontSee('Tas Kanvas');
     $this->get("/products?q=Kaos&category[]={$category}")->assertOk()

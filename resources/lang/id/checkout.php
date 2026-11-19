@@ -62,6 +62,7 @@ return [
     'marketing' => 'Kirimi saya kabar dan promo lewat email',
     'terms' => 'Saya menyetujui :link',
     'terms_link' => 'syarat dan ketentuan',
+    'close_terms' => 'Tutup',
     'voucher_link' => 'Punya voucher? Masukkan di keranjang',
     'voucher' => [
         'title' => 'Pakai kupon',
