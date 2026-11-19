@@ -51,7 +51,7 @@ class AcceptQuote
             try {
                 app(Inventory::class)->reserve($lines, $quote, 'order');
             } catch (OutOfStock $e) {
-                throw new DomainException($e->getMessage());
+                throw new DomainException($e->customerMessage(), previous: $e);
             }
             $this->states->transition($quote, OrderStatus::ACCEPTED, $actor);
             $free = $quote->total === 0;

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Show a localized stock message if inventory changes while placing an order or accepting a quote.
+
 - Group product settings separately from content. Reuse specifications, questions and size guides
   across store, category and brand defaults. Product editors can override or hide sections.
 - Reorder product images in the CMS and add a local or external product video. Existing product

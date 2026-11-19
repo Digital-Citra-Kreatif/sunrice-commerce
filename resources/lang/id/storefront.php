@@ -204,6 +204,7 @@ return [
         'price_hidden' => 'Masuk untuk membeli produk ini.',
         'feature_off' => 'Keranjang sedang ditutup.',
         'out_of_stock' => 'Stok :product habis.',
+        'stock_changed' => 'Stok produk berubah. Periksa kembali jumlah di keranjang atau pesanan Anda.',
         'not_enough_stock' => 'Stok :product tinggal :count.',
         'qty_rules' => ':product: pilih jumlah yang valid.',
         'flash_sale_limit' => 'Anda bisa membeli :count lagi :product dengan harga promo.',
