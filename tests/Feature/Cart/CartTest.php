@@ -95,7 +95,8 @@ it('works without JavaScript: forms with flash messages', function () {
         ->assertSee('data-commerce-cart-remove-dialog', false)
         ->assertSee('commerce-cart__remove-fallback', false)
         ->assertSee('Hapus produk dari keranjang?')
-        ->assertSee('value="cancel"', false);
+        ->assertSee('value="cancel" class="commerce-link commerce-link--action" autofocus', false)
+        ->assertSee('value="remove" class="commerce-button commerce-button--accent"', false);
     $this->withCookies($cookie)->patch("/cart/items/{$item->id}", ['quantity' => 9])->assertSessionHas('commerce.error');
     $this->withCookies($cookie)->patch("/cart/items/{$item->id}", ['quantity' => 3])->assertSessionHas('commerce.success');
     expect($item->fresh()->quantity)->toBe(3);

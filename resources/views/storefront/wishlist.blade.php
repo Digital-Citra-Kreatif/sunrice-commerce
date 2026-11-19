@@ -41,7 +41,7 @@
                     <form method="POST" action="{{ commerce_url('commerce.wishlist.share') }}">
                         @csrf
                         <input type="hidden" name="on" value="{{ $shareUrl ? 0 : 1 }}">
-                        <button type="submit" class="commerce-button commerce-button--secondary">{{ $shareUrl ? __('commerce::storefront.wishlist.stop_sharing') : __('commerce::storefront.wishlist.share') }}</button>
+                        <button type="submit" @class(['commerce-link commerce-link--action' => $shareUrl, 'commerce-button commerce-button--secondary' => ! $shareUrl])>{{ $shareUrl ? __('commerce::storefront.wishlist.stop_sharing') : __('commerce::storefront.wishlist.share') }}</button>
                     </form>
                     @if ($shareUrl)
                         <p class="commerce-inline-form">

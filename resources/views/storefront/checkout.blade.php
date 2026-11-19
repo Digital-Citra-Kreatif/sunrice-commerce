@@ -222,7 +222,7 @@
                 <div class="commerce-checkout-address-dialog__body" data-commerce-address-dialog-body></div>
                 <p class="commerce-field__error commerce-checkout-address-dialog__error" data-commerce-address-dialog-error role="alert" hidden>{{ __('commerce::checkout.address_picker.incomplete') }}</p>
                 <footer>
-                    <button type="button" class="commerce-button commerce-button--secondary" data-commerce-cancel-address>{{ __('commerce::account.addresses.cancel') }}</button>
+                    <button type="button" class="commerce-link commerce-link--action" data-commerce-cancel-address>{{ __('commerce::account.addresses.cancel') }}</button>
                     <button type="button" class="commerce-button commerce-button--primary" data-commerce-apply-address>{{ __('commerce::checkout.address_picker.apply') }}</button>
                 </footer>
             </dialog>

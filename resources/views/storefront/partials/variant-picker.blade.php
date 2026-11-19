@@ -81,6 +81,14 @@
                         if (status) stock.classList.add('commerce-stock--' + status);
                         stock.textContent = ({ in_stock: stock.dataset.inStock, out_of_stock: stock.dataset.outOfStock, backorder: stock.dataset.backorder })[status] || '';
                     }
+                    var quantity = root.querySelector('input[name=quantity]');
+                    if (quantity && match) {
+                        quantity.min = match.min_qty;
+                        quantity.step = match.qty_step;
+                        if (match.max_qty == null) quantity.removeAttribute('max');
+                        else quantity.max = match.max_qty;
+                        if (!quantity.value || !quantity.validity.valid) quantity.value = match.min_qty;
+                    }
                     var button = root.querySelector('button.commerce-add__button');
                     if (button) button.disabled = !match || status === 'out_of_stock';
                     root.dispatchEvent(new CustomEvent('commerce:variant', { detail: match || null, bubbles: true }));

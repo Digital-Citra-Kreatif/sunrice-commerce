@@ -22,11 +22,19 @@
         document.dispatchEvent(new CustomEvent('commerce:cart-updated', { detail: cart }));
     }
 
-    var cartToast;
+    var buyBars = new WeakMap();
+    var actionToast;
     function toast(message, isError, form) {
         var el = document.createElement('div');
         el.className = 'commerce-toast' + (isError ? ' commerce-toast--error' : '');
-        var action = form?.querySelector('[data-commerce-add-success-action]')?.content.firstElementChild;
+        if (form) {
+            el.classList.add(form.dataset.commerceCollection ? 'commerce-toast--collection-success' : 'commerce-toast--cart-success');
+            var header = document.querySelector('.commerce-header');
+            if (header) el.style.setProperty('--commerce-toast-top', Math.max(16, header.getBoundingClientRect().bottom + 12) + 'px');
+        }
+        var actionSelector = form?.dataset.commerceCollection
+            ? '[data-commerce-collection-success-action]' : '[data-commerce-add-success-action]';
+        var action = form?.querySelector(actionSelector)?.content.firstElementChild;
         if (!action) {
             el.setAttribute('role', isError ? 'alert' : 'status');
             el.textContent = message;
@@ -35,22 +43,24 @@
             return;
         }
 
-        cartToast?.remove();
-        cartToast = el;
+        actionToast?.remove();
+        actionToast = el;
         el.classList.add('commerce-toast--with-action');
         var text = document.createElement('span');
         text.className = 'commerce-toast__message';
         text.setAttribute('role', 'status');
         text.textContent = message;
         el.append(text, action.cloneNode(true));
-        form.after(el);
+        var bar = buyBars.get(form);
+        var origin = bar?.contains(document.activeElement) ? bar : form;
+        origin.after(el);
 
         var timer;
         function dismissLater() {
             clearTimeout(timer);
             timer = setTimeout(function () {
                 el.remove();
-                if (cartToast === el) cartToast = null;
+                if (actionToast === el) actionToast = null;
             }, 8000);
         }
 
@@ -106,7 +116,9 @@
                 var recovery = form.querySelector('[data-commerce-add-recovery]');
                 if (recovery) {
                     recovery.hidden = false;
-                    if (form.contains(document.activeElement)) recovery.querySelector('a')?.focus();
+                    if (form.contains(document.activeElement) || buyBars.get(form)?.classList.contains('is-visible')) {
+                        recovery.querySelector('a')?.focus();
+                    }
                 } else {
                     // Older published templates still get a safe recovery path.
                     var cart = document.querySelector('[data-commerce-mini-cart]');
@@ -118,6 +130,54 @@
                     }
                 }
             });
+    });
+
+    // Leaving the list pages as regular forms lets the server render removed rows and empty states.
+    var collectionForms = Array.from(document.querySelectorAll('[data-commerce-collection]')).filter(function (form) {
+        return !form.closest('.commerce-wishlist, .commerce-compare');
+    });
+    var updatingCollection = false;
+    collectionForms.forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            if (updatingCollection) return;
+
+            var button = form.querySelector('button[type=submit]');
+            var method = form.querySelector('[name=_method]');
+            var selecting = method.disabled;
+            updatingCollection = true;
+            button.setAttribute('aria-disabled', 'true');
+            fetch(form.action, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
+                body: new FormData(form),
+                credentials: 'same-origin',
+                signal: AbortSignal.timeout(12000),
+            })
+                .then(function (response) {
+                    if (response.status >= 500) throw new Error('Collection result is unknown');
+                    return response.json().then(function (json) {
+                        if (typeof json?.message !== 'string' || (response.ok && !Number.isInteger(json.count))) {
+                            throw new Error('Unexpected collection response');
+                        }
+                        if (response.ok) {
+                            collectionForms.forEach(function (peer) {
+                                if (peer.dataset.commerceCollection !== form.dataset.commerceCollection || peer.dataset.productId !== form.dataset.productId) return;
+                                peer.action = selecting ? peer.dataset.removeUrl : peer.dataset.addUrl;
+                                peer.querySelector('[name=_method]').disabled = !selecting;
+                                peer.querySelector('button[type=submit]').setAttribute('aria-pressed', String(selecting));
+                                peer.querySelector('[data-commerce-collection-label]').textContent = selecting ? peer.dataset.removeLabel : peer.dataset.addLabel;
+                            });
+                        }
+                        toast(json.message, !response.ok, response.ok ? form : null);
+                    });
+                })
+                .catch(function () { toast(form.dataset.unconfirmed, true); })
+                .finally(function () {
+                    updatingCollection = false;
+                    button.removeAttribute('aria-disabled');
+                });
+        });
     });
 
     document.querySelectorAll('[data-commerce-cart]').forEach(function (cart) {
@@ -633,6 +693,89 @@
         var filters = panel(aside, button, 'commerce-filters-backdrop');
         button.addEventListener('click', filters.open);
         aside.querySelectorAll('[data-commerce-filters-close]').forEach(function (b) { b.addEventListener('click', filters.close); });
+    });
+
+    // Use the original form to submit from the floating controls on product pages.
+    document.querySelectorAll('.commerce-product [data-commerce-buy-controls]').forEach(function (controls) {
+        if (typeof IntersectionObserver !== 'function' || typeof ResizeObserver !== 'function') return;
+
+        var form = controls.closest('[data-commerce-add]');
+        var page = controls.closest('.commerce-product');
+        var sourceButton = controls.querySelector('button[type=submit]');
+        var sourceQuantity = controls.querySelector('input[name=quantity]');
+        if (!form || !sourceButton || !sourceQuantity) return;
+
+        var bar = document.createElement('div');
+        bar.className = 'commerce-buy-bar';
+        bar.inert = true;
+        var buttons = controls.cloneNode(true);
+        buttons.removeAttribute('data-commerce-buy-controls');
+        buttons.className = 'commerce-buy-bar__controls';
+        var button = buttons.querySelector('button[type=submit]');
+        button.type = 'button';
+        var quantity = buttons.querySelector('input[name=quantity]');
+        quantity.removeAttribute('name');
+        bar.appendChild(buttons);
+        page.after(bar);
+        buyBars.set(form, bar);
+
+        var inView = true;
+        function updateBar() {
+            var visible = !inView && !sourceButton.disabled;
+            if (!visible && bar.contains(document.activeElement)) {
+                var target = document.activeElement === button && !sourceButton.disabled ? sourceButton : sourceQuantity;
+                target.focus({ preventScroll: true });
+            }
+            bar.inert = !visible;
+            bar.classList.toggle('is-visible', visible);
+            button.setAttribute('aria-disabled', sourceButton.getAttribute('aria-disabled') || 'false');
+        }
+
+        function syncQuantity() {
+            quantity.min = sourceQuantity.min;
+            quantity.max = sourceQuantity.max;
+            quantity.step = sourceQuantity.step;
+            quantity.value = sourceQuantity.value;
+        }
+
+        ['input', 'change'].forEach(function (event) {
+            sourceQuantity.addEventListener(event, syncQuantity);
+            quantity.addEventListener(event, function () {
+                sourceQuantity.value = quantity.value;
+                sourceQuantity.dispatchEvent(new Event(event, { bubbles: true }));
+            });
+        });
+        function addFromBar() {
+            if (sourceButton.disabled || sourceButton.getAttribute('aria-disabled') === 'true') return;
+            if (!quantity.reportValidity()) return;
+            form.requestSubmit(sourceButton);
+        }
+        button.addEventListener('click', addFromBar);
+        quantity.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter') return;
+            event.preventDefault();
+            addFromBar();
+        });
+        controls.closest('[data-commerce-product]')?.addEventListener('commerce:variant', syncQuantity);
+        new MutationObserver(updateBar).observe(sourceButton, { attributeFilter: ['disabled', 'aria-disabled'] });
+        syncQuantity();
+
+        var header = document.querySelector('.commerce-header');
+        var observer;
+        function observeControls() {
+            var top = Math.ceil(header?.getBoundingClientRect().height || 0);
+            var bottom = Math.ceil(bar.getBoundingClientRect().height);
+            document.documentElement.style.setProperty('--commerce-buy-bar-space', bottom + 'px');
+            observer?.disconnect();
+            observer = new IntersectionObserver(function (entries) {
+                inView = entries[0].intersectionRatio >= 0.95;
+                updateBar();
+            }, { rootMargin: '-' + top + 'px 0px -' + bottom + 'px', threshold: 0.95 });
+            observer.observe(controls);
+        }
+        var resizer = new ResizeObserver(observeControls);
+        resizer.observe(bar);
+        if (header) resizer.observe(header);
     });
 
     // Quantity steppers: − and + buttons around a number input; in the cart a change saves the line.

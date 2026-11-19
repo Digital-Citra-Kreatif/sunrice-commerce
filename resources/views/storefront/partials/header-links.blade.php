@@ -1,5 +1,5 @@
 {{--
-    Store links for the site header: account, wishlist and the mini cart,
+    Store links for the site header: account, wishlist, comparison and the mini cart,
     each an icon with its label (the starter header hides the labels on
     small screens, keeping them for screen readers). Add to your header:
         @include(\Sunrice\Commerce\Storefront\Layout::view('partials.header-links'))
@@ -16,6 +16,12 @@
         <a class="commerce-header-links__link" href="{{ commerce_url('commerce.wishlist') }}">
             @include(\Sunrice\Commerce\Storefront\Layout::view('partials.icon'), ['name' => 'heart'])
             <span class="commerce-header-links__label">{{ __('commerce::storefront.wishlist.title') }}</span>
+        </a>
+    @endif
+    @if (commerce_feature('compare') && \Illuminate\Support\Facades\Route::has('commerce.compare'))
+        <a class="commerce-header-links__link commerce-header-links__compare" href="{{ commerce_url('commerce.compare') }}">
+            @include(\Sunrice\Commerce\Storefront\Layout::view('partials.icon'), ['name' => 'compare'])
+            <span class="commerce-header-links__label">{{ __('commerce::storefront.compare.title') }}</span>
         </a>
     @endif
     @if (commerce_feature('cart'))

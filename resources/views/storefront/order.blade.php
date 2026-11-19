@@ -28,7 +28,7 @@
                         <form method="POST" action="{{ commerce_url('commerce.quote.accept', ['key' => $order->order_key]) }}">@csrf
                             <button type="submit" class="commerce-button commerce-button--primary">{{ __('commerce::checkout.quote.accept') }}</button></form>
                         <form method="POST" action="{{ commerce_url('commerce.quote.decline', ['key' => $order->order_key]) }}" onsubmit="return confirm(@js(__('commerce::checkout.quote.decline_confirm')))">@csrf
-                            <button type="submit" class="commerce-button commerce-button--secondary">{{ __('commerce::checkout.quote.decline') }}</button></form>
+                            <button type="submit" class="commerce-link commerce-link--action">{{ __('commerce::checkout.quote.decline') }}</button></form>
                     </div>
                 @endif
             @elseif ($order->isQuote() && $order->status === $S::REQUESTED)
@@ -137,7 +137,7 @@
                         <form method="POST" action="{{ commerce_url('commerce.order.cancel', ['key' => $order->order_key]) }}" class="commerce-order__cancel"
                             onsubmit="return confirm(@js(__('commerce::checkout.order.cancel_confirm')))">
                             @csrf
-                            <button type="submit" class="commerce-button commerce-button--secondary">{{ __('commerce::checkout.order.cancel') }}</button>
+                            <button type="submit" class="commerce-link commerce-link--action">{{ __('commerce::checkout.order.cancel') }}</button>
                         </form>
                     @endif
                 </div>

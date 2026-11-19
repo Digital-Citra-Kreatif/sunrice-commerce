@@ -301,7 +301,7 @@ both itself when you leave them out, so extension pages can extend it directly.
 | --- | --- |
 | `partials.assets` | — Links the published theme. Included once by every store page. |
 | `partials.captcha` | `$captcha`: the configured Sunrice widget HTML and its form error. Include inside the form. |
-| `partials.header-links` | — Account, wishlist and mini cart links for your header. |
+| `partials.header-links` | — Account, wishlist, comparison and mini cart links for your header. |
 | `partials.buy` | `$product` (ProductView). The body of `<x-commerce::product>`. |
 | `partials.price` | `$product`. The body of `<x-commerce::price>`. |
 | `partials.badges` | `$product`: sale, new, stock and featured badges. |
@@ -373,10 +373,16 @@ your own layout's look.
 attributes:
 
 - **Add to cart** (`[data-commerce-add]`): posts the form to the cart API and stays on the page,
-  updates every `[data-commerce-cart-count]` and shows a toast with a link to the cart after a
+  updates every `[data-commerce-cart-count]` and shows a toast at the top with a link to the cart after a
   successful add. A submit button named `buy_now` still posts normally. If the API response cannot
   confirm what happened, Commerce does not resend the request. Include `partials.add-recovery` in
   published add-to-cart forms for the success toast link and the inline recovery notice.
+- **Floating product controls** appear at the bottom of a `.commerce-product` page when
+  `data-commerce-buy-controls` scrolls out of view. Both sets share the selected quantity and
+  submit the same form. The controls disappear again when the original controls return to view.
+- **Wishlist and Compare** use the existing form routes. The storefront updates the selection
+  without reloading product and listing pages, then shows a shortcut in the success toast.
+  The starter header links to Compare through the mobile menu or the desktop comparison icon.
 - **Cart removal** uses a trash button and a shared confirmation dialog from `partials.cart`.
   With JavaScript off, the trash control opens an inline confirmation.
 - **Checkout refresh** (`[data-commerce-checkout]`): changes to pricing inputs post the form to

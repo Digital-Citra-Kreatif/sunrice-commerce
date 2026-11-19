@@ -110,7 +110,9 @@ return [
         'add_unconfirmed' => 'Kami belum bisa memastikan barang sudah masuk. Periksa keranjang sebelum menambahkan lagi.',
         'view_cart' => 'Lihat keranjang',
     ],
+    'collection_unconfirmed' => 'Perubahan belum bisa dikonfirmasi. Anda bisa mencoba lagi.',
     'wishlist' => [
+        'view' => 'Lihat wishlist',
         'title' => 'Wishlist',
         'empty' => 'Wishlist Anda kosong.',
         'add' => 'Simpan ke wishlist',
@@ -156,6 +158,7 @@ return [
         'captcha' => 'Mohon selesaikan verifikasi.',
     ],
     'compare' => [
+        'view' => 'Lihat perbandingan',
         'title' => 'Bandingkan produk',
         'empty' => 'Tambahkan produk untuk membandingkannya.',
         'add' => 'Bandingkan',

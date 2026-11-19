@@ -24,11 +24,11 @@
         <a href="{{ $order->url() }}" class="commerce-button commerce-button--secondary">{{ __('commerce::account.orders.details') }}</a>
         @if (! $order->isQuote() && commerce_feature('cart'))
             <form method="POST" action="{{ commerce_url('commerce.account.order.again', ['order' => $order->id]) }}">@csrf
-                <button type="submit" class="commerce-button commerce-button--secondary">{{ __('commerce::account.orders.buy_again') }}</button></form>
+                <button type="submit" class="commerce-link commerce-link--action">{{ __('commerce::account.orders.buy_again') }}</button></form>
         @endif
         @if ($canCancel)
             <form method="POST" action="{{ commerce_url('commerce.account.order.cancel', ['order' => $order->id]) }}" onsubmit="return confirm(@js(__('commerce::checkout.order.cancel_confirm')))">@csrf
-                <button type="submit" class="commerce-button commerce-button--secondary">{{ __('commerce::checkout.order.cancel') }}</button></form>
+                <button type="submit" class="commerce-link commerce-link--action">{{ __('commerce::checkout.order.cancel') }}</button></form>
         @endif
     </div>
 

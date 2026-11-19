@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Wishlist and Compare confirmations include shortcuts to their pages. The starter header
+  also links to Compare. Merge the updated storefront templates and theme assets into published
+  copies and include the new `partials/collection-button.blade.php` partial.
+
+- Storefront buttons use tighter padding. Secondary actions in grouped controls use a link style,
+  including Cancel in the cart and checkout dialogs. Merge the changed storefront templates and
+  theme assets into published copies.
+
+- The product page keeps quantity and Add to cart within reach when the original controls are
+  outside the viewport. Add-to-cart confirmations appear at the top. Merge the updated buying
+  and variant picker partials and storefront theme assets into published copies.
+
 - Cart items use denser rows, with a trash icon and a confirmation dialog before removal.
   Merge the updated cart and icon partials, storefront translations and theme assets into published copies.
 

@@ -43,7 +43,7 @@
             <div class="commerce-order-filters__actions">
                 <button type="submit" class="commerce-button commerce-button--primary">{{ __('commerce::account.orders.filters.apply') }}</button>
                 @if ($filtersActive || $orderFilterErrors->any())
-                    <a class="commerce-button commerce-button--secondary" href="{{ $ordersUrl }}">{{ __('commerce::account.orders.filters.reset') }}</a>
+                    <a class="commerce-link commerce-link--action" href="{{ $ordersUrl }}">{{ __('commerce::account.orders.filters.reset') }}</a>
                 @endif
             </div>
         </form>
