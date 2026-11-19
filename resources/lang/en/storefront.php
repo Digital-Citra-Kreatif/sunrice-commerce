@@ -51,6 +51,7 @@ return [
         'apply' => 'Apply',
         'updating' => 'Updating products…',
         'showing' => '{1} Showing :range of :count product|[2,*] Showing :range of :count products',
+        'subcategories' => 'Subcategories of :name',
         'reset' => 'Clear filters',
         'sorts' => [
             'featured' => 'Featured',

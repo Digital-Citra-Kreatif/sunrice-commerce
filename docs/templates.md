@@ -424,6 +424,10 @@ and the status and filter controls when overriding the listing. The filter form 
 also work as regular GET navigation. Filter changes, view switches and pagination use the browser's
 history so the chosen catalog URL can be bookmarked or shared.
 
+In a category tree, the checkbox on a parent selects the category and all of its descendants.
+The adjacent control expands the branch. Selecting a subcategory replaces any selected ancestors
+within that branch, while filters selected in separate branches remain applied.
+
 The checkout partials are also rendered by `POST /checkout/refresh`, so keep their outer elements
 (`data-commerce-rates`, `data-commerce-payments`, `data-commerce-summary`) when you edit them.
 

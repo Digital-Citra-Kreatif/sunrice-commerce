@@ -31,7 +31,7 @@ class ProductFilter extends Component
     public function __construct(?ProductQuery $query = null, public string $without = '')
     {
         $query ??= ProductQuery::fromRequest(request());
-        $this->facets = $query->facets();
+        $this->facets = $query->facets(includeCategoryAncestors: $this->without !== 'category');
         $this->titles = Taxonomy::query()->whereIn('handle', array_keys($this->facets['terms']))->pluck('title', 'handle')->all();
         $this->prices = app(PriceVisibility::class)->visible();
     }

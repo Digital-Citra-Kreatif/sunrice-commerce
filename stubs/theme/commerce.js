@@ -858,7 +858,22 @@
         }
 
         rememberFilters();
-        aside.addEventListener('input', syncApply);
+        aside.addEventListener('input', function (event) {
+            var option = event.target;
+            if (option.matches('input[name="category[]"]:checked')) {
+                for (var branch = option.closest('.commerce-filters__branch'); branch; branch = branch.parentElement.closest('.commerce-filters__branch')) {
+                    var parent = branch.parentElement.querySelector(':scope > label [data-commerce-filter-parent]');
+                    if (parent) parent.checked = false;
+                }
+                if (option.hasAttribute('data-commerce-filter-parent')) {
+                    var group = option.closest('.commerce-filters__parent').querySelector(':scope > .commerce-filters__branch');
+                    group.open = true;
+                    group.querySelectorAll('input[name="category[]"]:checked')
+                        .forEach(function (child) { child.checked = false; });
+                }
+            }
+            syncApply();
+        });
         aside.addEventListener('change', syncApply);
         window.addEventListener('pageshow', syncApply);
 

@@ -51,6 +51,7 @@ return [
         'apply' => 'Terapkan',
         'updating' => 'Memperbarui produk…',
         'showing' => 'Menampilkan :range dari :count produk',
+        'subcategories' => 'Subkategori :name',
         'reset' => 'Hapus filter',
         'sorts' => [
             'featured' => 'Unggulan',

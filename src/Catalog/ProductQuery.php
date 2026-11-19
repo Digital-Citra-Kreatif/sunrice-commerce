@@ -36,6 +36,9 @@ class ProductQuery
     /** @var array<string, array<int, int>> taxonomy handle => term ids */
     protected array $terms = [];
 
+    /** @var array<string, array<int, int>> taxonomy handle => explicitly selected term ids */
+    protected array $selectedTerms = [];
+
     protected ?string $search = null;
 
     protected ?int $minPrice = null;
@@ -118,20 +121,24 @@ class ProductQuery
         $model = Taxonomy::query()->where('handle', $taxonomy)->first();
         if ($model === null) {
             $this->terms[$taxonomy] = [0];
+            unset($this->selectedTerms[$taxonomy]);
 
             return $this;
         }
         $ids = [];
+        $selected = [];
         foreach ((array) $terms as $term) {
             $id = is_numeric($term) ? (int) $term : (int) Term::query()->where('taxonomy_id', $model->id)
                 ->whereHas('translations', fn ($q) => $q->where('slug', (string) $term))->value('id');
             if ($id > 0) {
+                $selected[] = $id;
                 $ids[] = $id;
                 if ($includeChildren) {
                     $ids = [...$ids, ...$this->descendants((int) $model->id, $id)];
                 }
             }
         }
+        $this->selectedTerms[$taxonomy] = array_values(array_unique($selected));
         $this->terms[$taxonomy] = $ids === [] ? [0] : array_values(array_unique($ids));
 
         return $this;
@@ -148,16 +155,11 @@ class ProductQuery
      */
     protected function descendants(int $taxonomyId, int $id): array
     {
-        if (! isset($this->trees[$taxonomyId])) {
-            $this->trees[$taxonomyId] = [];
-            foreach (Term::query()->where('taxonomy_id', $taxonomyId)->whereNotNull('parent_id')->toBase()->get(['id', 'parent_id']) as $row) {
-                $this->trees[$taxonomyId][(int) $row->parent_id][] = (int) $row->id;
-            }
-        }
+        $tree = $this->termTree($taxonomyId);
         $found = [];
         $queue = [$id];
         while ($queue !== []) {
-            foreach ($this->trees[$taxonomyId][array_shift($queue)] ?? [] as $child) {
+            foreach ($tree[array_shift($queue)] ?? [] as $child) {
                 if (! in_array($child, $found, true)) {
                     $found[] = $child;
                     $queue[] = $child;
@@ -166,6 +168,44 @@ class ProductQuery
         }
 
         return $found;
+    }
+
+    /** @return array<int, array<int, int>> */
+    protected function termTree(int $taxonomyId): array
+    {
+        if (! isset($this->trees[$taxonomyId])) {
+            $this->trees[$taxonomyId] = [];
+            foreach (Term::query()->where('taxonomy_id', $taxonomyId)->whereNotNull('parent_id')->toBase()->get(['id', 'parent_id']) as $row) {
+                $this->trees[$taxonomyId][(int) $row->parent_id][] = (int) $row->id;
+            }
+        }
+
+        return $this->trees[$taxonomyId];
+    }
+
+    /**
+     * Categories remain selectable even when all matching products are assigned to their children.
+     *
+     * @param  array<int, int>  $ids
+     * @return array<int, int>
+     */
+    protected function categoryFacetIds(int $taxonomyId, array $ids): array
+    {
+        $parents = [];
+        foreach ($this->termTree($taxonomyId) as $parent => $children) {
+            foreach ($children as $child) {
+                $parents[$child] = $parent;
+            }
+        }
+
+        $seen = array_fill_keys($ids, true);
+        foreach ($ids as $id) {
+            for ($parent = $parents[$id] ?? null; $parent !== null && ! isset($seen[$parent]); $parent = $parents[$parent] ?? null) {
+                $seen[$parent] = true;
+            }
+        }
+
+        return array_keys($seen);
     }
 
     public function category(int|string $term): self
@@ -281,15 +321,15 @@ class ProductQuery
      *
      * @return array{terms: array<string, array<int, array{id: int, name: string, slug: string, count: int, selected: bool}>>, price: array{min: int, max: int}|null}
      */
-    public function facets(): array
+    public function facets(bool $includeCategoryAncestors = false): array
     {
         $taxonomies = array_values(array_filter([
             config('commerce.catalog.category_taxonomy'), commerce_feature('brands') ? config('commerce.catalog.brand_taxonomy') : null, config('commerce.catalog.tag_taxonomy'),
             ...(array) app(StoreSettings::class)->get('catalog.attribute_taxonomies', []),
         ]));
-        $key = md5(json_encode([$this->state(), $taxonomies, app()->getLocale()]) ?: '');
+        $key = md5(json_encode([$this->state(), $this->selectedTerms, $taxonomies, $includeCategoryAncestors, app()->getLocale()]) ?: '');
 
-        return CatalogVersion::remember("facets:{$key}", 300, function () use ($taxonomies) {
+        return CatalogVersion::remember("facets:{$key}", 300, function () use ($taxonomies, $includeCategoryAncestors) {
             $terms = [];
             $attributes = (array) app(StoreSettings::class)->get('catalog.attribute_taxonomies', []);
             foreach ($taxonomies as $handle) {
@@ -298,6 +338,7 @@ class ProductQuery
                     continue;
                 }
                 $base = $this->filtered(exclude: $handle);
+                $selected = $this->selectedTerms[$handle] ?? [];
                 $counts = in_array($handle, $attributes, true)
                     // Attribute terms come from the variants' option values.
                     ? DB::table('commerce_product_option_values as v')
@@ -309,13 +350,17 @@ class ProductQuery
                     : DB::table('sunrice_entry_term')->whereIn('entry_id', $base->select('commerce_products.entry_id'))
                         ->join('sunrice_terms', 'sunrice_terms.id', '=', 'sunrice_entry_term.term_id')->where('sunrice_terms.taxonomy_id', $taxonomy->id)
                         ->groupBy('term_id')->selectRaw('term_id, count(*) as total')->pluck('total', 'term_id');
-                if ($counts->isEmpty()) {
+                $ids = $counts->keys()->all();
+                if ($includeCategoryAncestors && $handle === config('commerce.catalog.category_taxonomy')) {
+                    $ids = $this->categoryFacetIds((int) $taxonomy->id, [...$ids, ...$selected]);
+                }
+                if ($ids === []) {
                     continue;
                 }
-                $terms[$handle] = Term::query()->with('translations')->whereIn('id', $counts->keys())->get()
+                $terms[$handle] = Term::query()->with('translations')->where('taxonomy_id', $taxonomy->id)->whereIn('id', $ids)->get()
                     ->map(fn (Term $term) => [
                         'id' => $term->id, 'name' => (string) $term->title(), 'slug' => (string) $term->translation(app()->getLocale())?->slug,
-                        'count' => (int) $counts[$term->id], 'selected' => in_array($term->id, $this->terms[$handle] ?? [], true),
+                        'count' => (int) ($counts[$term->id] ?? 0), 'selected' => in_array($term->id, $selected, true),
                     ])->sortBy('name')->values()->all();
             }
 

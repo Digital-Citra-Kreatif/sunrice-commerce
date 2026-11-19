@@ -92,16 +92,27 @@ it('distinguishes categories with the same name even when their ancestors are mi
     $menCoats = term('product_categories', 'Coats', $outerwear);
     $menCoats->translations()->update(['slug' => 'men-coats']);
     $womenCoats = term('product_categories', 'Coats', $women);
+    $shoes = term('product_categories', 'Shoes', $men);
     listed('Raincoat', 100000, [$menCoats]);
     listed('Trench coat', 200000, [$womenCoats]);
+    listed('Leather shoes', 200000, [$shoes]);
 
     $listing = $this->get('/products')->assertOk()
         ->assertSee('aria-label="Men › Outerwear › Coats (1)"', false)
         ->assertSee('aria-label="Women › Coats (1)"', false);
     $document = HTMLDocument::createFromString($listing->getContent(), LIBXML_NOERROR);
     expect($document->querySelectorAll('.commerce-filters__branch details.commerce-filters__branch'))->toHaveCount(1);
+    expect($document->querySelector('input[data-commerce-filter-parent][value="'.$men->id.'"]'))->not->toBeNull();
 
-    $selected = $this->get("/products?category[]={$menCoats->id}")->assertOk();
+    $parent = $this->get("/products?category[]={$men->id}")->assertOk()
+        ->assertSeeText('Raincoat')->assertSeeText('Leather shoes')->assertDontSee('Trench coat');
+    $document = HTMLDocument::createFromString($parent->getContent(), LIBXML_NOERROR);
+    expect($document->querySelectorAll('input[name="category[]"][checked]'))->toHaveCount(1)
+        ->and($document->querySelector('input[name="category[]"][checked]')?->getAttribute('value'))->toBe((string) $men->id)
+        ->and($document->querySelector('.commerce-chip')?->textContent)->toContain('Men');
+
+    $selected = $this->get("/products?category[]={$menCoats->id}")->assertOk()
+        ->assertSeeText('Raincoat')->assertDontSee('Trench coat')->assertDontSee('Leather shoes');
     $document = HTMLDocument::createFromString($selected->getContent(), LIBXML_NOERROR);
     expect($document->querySelectorAll('.commerce-filters__branch[open]'))->toHaveCount(2);
 });

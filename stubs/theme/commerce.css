@@ -364,7 +364,9 @@
 .commerce-filters__options { border: 0; margin: 0; padding: 0 0 16px; display: grid; gap: 10px; }
 .commerce-filters__option { position: relative; display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; }
 .commerce-filters__count { color: var(--commerce-muted); font-size: 12px; }
-.commerce-filters__branch > summary { display: flex; justify-content: space-between; align-items: center; gap: 8px; list-style: none; padding-block: 4px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.commerce-filters__parent { position: relative; min-width: 0; }
+.commerce-filters__parent > .commerce-filters__option, .commerce-filters__parent-label { display: flex; align-items: center; min-height: 36px; padding-inline-end: 38px; font-size: 14px; font-weight: 600; }
+.commerce-filters__branch > summary { position: absolute; inset-block-start: 0; inset-inline-end: 0; display: grid; place-items: center; width: 36px; height: 36px; list-style: none; cursor: pointer; }
 .commerce-filters__branch > summary::-webkit-details-marker { display: none; }
 .commerce-filters__branch > summary::after { content: "+"; color: var(--commerce-muted); font-weight: 400; }
 .commerce-filters__branch[open] > summary::after { content: "–"; }
