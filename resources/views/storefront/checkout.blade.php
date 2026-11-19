@@ -160,7 +160,7 @@
             @endif
 
             @if ($settings->get('checkout.order_notes', true))
-                <details class="commerce-checkout__notes" id="order-notes" @if (old('notes', $data->get('notes')) || $errors->has('notes')) open @endif>
+                <details class="commerce-accordion commerce-checkout__notes" id="order-notes" @if (old('notes', $data->get('notes')) || $errors->has('notes')) open @endif>
                     <summary>{{ __('commerce::checkout.fields.notes') }}</summary>
                     <label class="commerce-field">
                         <span class="commerce-visually-hidden">{{ __('commerce::checkout.fields.notes') }}</span>

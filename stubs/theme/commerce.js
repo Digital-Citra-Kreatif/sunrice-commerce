@@ -404,7 +404,7 @@
 
             if (details && replacement.querySelector('details')) replacement.querySelector('details').open = true;
             if (focused && focused.matches('summary')) replacement.querySelector('summary')?.focus({ preventScroll: true });
-            if (focused && selector === '[data-commerce-checkout-vouchers]' && !focused.matches('summary')) {
+            if (focused && selector === '[data-commerce-checkout-vouchers]') {
                 replacement.querySelector('[name=voucher_code]')?.focus({ preventScroll: true });
             }
             if (focused && focused.type === 'radio') {
