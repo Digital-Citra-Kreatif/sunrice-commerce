@@ -10,9 +10,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Sunrice\Commerce\Admin\SchemaForm;
-use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\Models\Order;
-use Sunrice\Commerce\Orders\Timeline;
+use Sunrice\Commerce\Payments\Actions\NoteAmountMismatch;
 use Sunrice\Commerce\Payments\Contracts\HandlesReturn;
 use Sunrice\Commerce\Payments\Contracts\HandlesWebhooks;
 use Sunrice\Commerce\Payments\Contracts\SupportsStatusCheck;
@@ -148,26 +147,13 @@ abstract class GatewayMethod extends PaymentMethodBase implements HandlesReturn,
         return PaymentResult::paid($payment->amount, $reference, $at, $raw);
     }
 
-    /** A timeline note for a paid amount that isn't the payment's, once per payment and amount. */
+    /** A timeline note for a paid amount that isn't the payment's (NoteAmountMismatch); it mustn't change the webhook's answer. */
     protected function noteMismatch(Payment $payment, int $amount, string $reference): void
     {
         try {
-            DB::transaction(function () use ($payment, $amount, $reference): void {
-                /** @var Payment $locked */
-                $locked = Payment::query()->whereKey($payment->id)->lockForUpdate()->firstOrFail();
-                $noted = (array) ($locked->meta['amount_mismatches'] ?? []);
-                if (in_array($amount, $noted, true)) {
-                    return;
-                }
-                $locked->forceFill(['meta' => [...(array) $locked->meta, 'amount_mismatches' => [...$noted, $amount]]])->save();
-                $order = Order::withTrashed()->findOrFail($locked->order_id);
-                $money = app(MoneyFormatter::class);
-                app(Timeline::class)->record($order, 'note', Timeline::text('commerce::orders.timeline.amount_mismatch', [
-                    'method' => $locked->method_title ?? $locked->method, 'amount' => $money->format($amount), 'expected' => $money->format($locked->amount),
-                ]), ['payment_id' => $locked->id, 'reference' => $reference, 'amount' => $amount], Actor::gateway($locked->method));
-            });
+            app(NoteAmountMismatch::class)->handle($payment, $amount, $reference);
         } catch (Throwable $e) {
-            report($e); // a note mustn't stop the webhook's answer
+            report($e);
         }
     }
 
