@@ -107,8 +107,15 @@ class CartController
 
     protected function cartUrl(?Request $request = null): string
     {
-        $page = $request?->integer('page') ?? 1;
+        $cart = StorefrontRoutes::url('commerce.cart');
+        $page = $request?->integer('page') ?? 0;
+        $referer = $request?->headers->get('referer', '') ?? '';
+        if ($page === 0 && parse_url($referer, PHP_URL_PATH) === parse_url($cart, PHP_URL_PATH)) {
+            // Older cart templates carry the page in the referrer rather than a form field.
+            parse_str((string) parse_url($referer, PHP_URL_QUERY), $query);
+            $page = filter_var($query['page'] ?? 1, FILTER_VALIDATE_INT) ?: 1;
+        }
 
-        return StorefrontRoutes::url('commerce.cart', $page > 1 ? ['page' => $page] : []);
+        return $page > 1 ? StorefrontRoutes::url('commerce.cart', ['page' => $page]) : $cart;
     }
 }
