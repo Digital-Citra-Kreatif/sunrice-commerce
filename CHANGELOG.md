@@ -2,12 +2,50 @@
 
 ## Unreleased
 
+## 0.3.1 (2026-11-19)
+
+A fix for orders with more than one payment. Update with `composer update sunrice/commerce`; nothing
+else to run.
+
 - Fix: the newest payment of an order is used where it should be. `Order::payments()` is ordered by
   id, so `->latest('id')` on it still returned the oldest payment: the gateway return checked an
   earlier payment after the customer switched method or paid a deposit's balance, and Mark paid,
   refunds via the gateway and payment confirmations could pick an older payment. Refunds were also
   spread over the payments oldest first instead of newest first. They now use
   `->reorder('id', 'desc')`.
+
+## 0.3.0 (2026-11-19)
+
+**Upgrading from 0.2**: still on Sunrice 0.7. Run `composer require sunrice/commerce:^0.3 -W`, then
+`php artisan migrate` (deposits, cart line keys, confirmation reminders, product presentation
+fields), `php artisan commerce:publish-assets`, `php artisan sunrice:sync-permissions` and
+`php artisan commerce:seed-roles` (the new `commerce.products.export` and
+`commerce.reviews.manage` permissions). If you published storefront templates, compare them with
+the package's: account, cart, checkout, order, product and `track-order` templates changed (see
+[Upgrading](docs/upgrading.md#published-templates)). Update the gateways at the same time:
+`sunrice/commerce-midtrans` and `-xendit` 0.1.2 and `sunrice/commerce-biteship` 0.2.0 accept
+commerce 0.3.
+
+**Behaviour changes to check.**
+
+- **Order pages need ownership or verification**: an account's orders open for its owner only; a
+  guest's order opens in the checkout browser for an hour, then after an emailed code on Track
+  order. Links in emails go through Track order. A customer returning from a payment gateway
+  without access has the payment checked, then is asked to verify or sign in.
+- **Product CSV exports need `commerce.products.export`** (they include internal cost); reviews
+  need `commerce.reviews.manage`. Sync permissions and reseed roles after upgrading.
+
+**Highlights.**
+
+- **Deposits**: an extension asks for part of the total at checkout and the balance by a due date,
+  with reminders and an overdue notice (`DepositPaid`, `BalanceOverdue`).
+- **Branches**: ship from another origin (`Commerce::shippingOriginUsing()`), limit staff to their
+  orders (`Commerce::scopeAdminOrders()`), extension catalog filters and line details.
+- **Payments**: gateway amount mismatches are noted on the order; staff are reminded of waiting
+  payment confirmations.
+- **Storefront**: catalog table view, product image carousel and video, reusable product
+  specifications, FAQ and size guides, a points balance with expiry and history, an account
+  announcement, and individually overridable checkout, cart, product, account and order sections.
 
 - Note on the order's timeline when a payment gateway reports a paid amount that isn't the
   payment's (once per amount; the payment stays unpaid), so staff see it without the webhook log.
