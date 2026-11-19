@@ -1,6 +1,7 @@
 import { React, adminUrl, inertia, ui, useBreadcrumbs } from '../../lib/sunrice';
 import { api } from '../../lib/api';
 import { PageHeader } from '../../components/PageHeader';
+import { PaymentConfirmationDialog } from '../../components/PaymentConfirmationDialog';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useCommerceShared } from '../../lib/store';
 import { ShipmentDialog, RefundDialog } from './dialogs';
@@ -126,7 +127,7 @@ export default function OrderShow(props: OrderPageProps) {
                                             {c.proof_url && <> · <a href={c.proof_url} target="_blank" rel="noreferrer" className="cm:underline">proof</a></>}</span>
                                         <span className="cm:flex cm:items-center cm:gap-2">
                                             <StatusBadge tone={c.status === 'approved' ? 'ok' : c.status === 'rejected' ? 'error' : 'warning'}>{c.status}</StatusBadge>
-                                            {c.can_review && <Button size="sm" asChild><Link href={adminUrl('commerce/confirmations')}>Review</Link></Button>}
+                                            {c.review && <PaymentConfirmationDialog confirmation={c.review} />}
                                         </span>
                                     </div>
                                 ))}

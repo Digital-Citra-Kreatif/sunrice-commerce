@@ -1,7 +1,7 @@
-import { i as p, R as g, j as c, n as T, c as i, d as B, S as s, F as q } from "./main-C-yFSVmg.js";
-function O({ sections: u, mode: r, groups: y, updateUrl: b }) {
+import { i as p, R as g, j as c, n as T, b as i, c as B, S as s, F as q } from "./main-DvGXgNMx.js";
+function O({ sections: u, mode: r, groups: b, updateUrl: y }) {
   const { Card: f, CardContent: v, CardHeader: x, CardTitle: k, Switch: w, Button: d, Dialog: C, DialogContent: S, DialogDescription: N, DialogFooter: j, DialogHeader: D, DialogTitle: F } = B, { errors: a } = p.usePage().props, [l, t] = g.useState(null), [_, o] = g.useState(null), m = (n, e) => {
-    o(n.key), p.router.put(b.replace("__key__", n.key), { on: e }, { preserveScroll: !0, onFinish: () => o(null) });
+    o(n.key), p.router.put(y.replace("__key__", n.key), { on: e }, { preserveScroll: !0, onFinish: () => o(null) });
   };
   return /* @__PURE__ */ c(
     T,
@@ -16,7 +16,7 @@ function O({ sections: u, mode: r, groups: y, updateUrl: b }) {
       ] }),
       children: [
         a.feature && /* @__PURE__ */ i("div", { role: "alert", className: "cm:rounded-md cm:border cm:border-destructive/40 cm:bg-destructive/5 cm:px-3 cm:py-2 cm:text-sm cm:text-destructive", children: a.feature }),
-        y.map((n) => /* @__PURE__ */ c(f, { children: [
+        b.map((n) => /* @__PURE__ */ c(f, { children: [
           /* @__PURE__ */ i(x, { children: /* @__PURE__ */ i(k, { children: n.label }) }),
           /* @__PURE__ */ i(v, { className: "cm:grid cm:gap-0 cm:divide-y cm:divide-border", children: n.features.map((e) => /* @__PURE__ */ c("div", { className: "cm:flex cm:items-start cm:justify-between cm:gap-4 cm:py-3 cm:first:pt-0 cm:last:pb-0", children: [
             /* @__PURE__ */ c("div", { className: "cm:grid cm:gap-1", children: [

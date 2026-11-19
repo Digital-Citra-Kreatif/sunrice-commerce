@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Make checkout, cart, product, account, and order sections individually overridable and load an optional app CSS skin.
+- Select the first available delivery option when checkout has no valid delivery selection, keeping store pickup explicit.
+- List payment confirmations in the standard admin table and reuse the review dialog in order detail.
+
 - Let apps override the bulk pricing presentation through its own Blade partial.
 
 - Use icon-only catalog view links and offer a separate Blade override for the table columns.

@@ -1,5 +1,5 @@
-import { e as o, R as m, c as t, n as c, o as g, d as u } from "./main-C-yFSVmg.js";
-function d({ section: e, sections: r, form: a }) {
+import { e as o, R as m, b as t, n as c, o as g, c as u } from "./main-DvGXgNMx.js";
+function l({ section: e, sections: r, form: a }) {
   const s = o.settingsSections()[e.key], [i, n] = m.useState(!1);
   return /* @__PURE__ */ t(
     c,
@@ -13,5 +13,5 @@ function d({ section: e, sections: r, form: a }) {
   );
 }
 export {
-  d as default
+  l as default
 };

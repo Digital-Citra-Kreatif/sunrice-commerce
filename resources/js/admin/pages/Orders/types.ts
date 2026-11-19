@@ -1,3 +1,5 @@
+import type { PaymentConfirmation } from '../../components/PaymentConfirmationDialog';
+
 export interface OrderItemRow {
     id: number; name: string; variant_title: string | null; sku: string | null; options: Record<string, string> | null; details: string[];
     quantity: number; fulfilled_quantity: number; refunded_quantity: number; unfulfilled: number; requires_shipping: boolean;
@@ -25,7 +27,7 @@ export interface OrderData {
         deposit: string | null; balance: string | null; balance_due_at: string | null };
     adjustments: Array<{ kind: string; label: string; code: string | null; source: string; amount: string; included: boolean }>;
     payments: Array<{ id: number; method: string; amount: string; status: string; reference: string | null; paid_at: string | null; expires_at: string | null; refunded: string | null }>;
-    confirmations: Array<{ id: number; sender_name: string; sender_bank: string | null; amount: string; status: string; created_at: string | null; proof_url: string | null; can_review: boolean }>;
+    confirmations: Array<{ id: number; sender_name: string; sender_bank: string | null; amount: string; status: string; created_at: string | null; proof_url: string | null; can_review: boolean; review: PaymentConfirmation | null }>;
     shipments: Array<{ id: number; courier: string | null; service: string | null; tracking_number: string | null; tracking_url: string | null; status: string;
         shipped_at: string | null; delivered_at: string | null; items: Array<{ name: string | null; quantity: number }> }>;
     refunds: Array<{ id: number; amount: string; reason: string | null; restock: boolean; created_at: string | null }>;
