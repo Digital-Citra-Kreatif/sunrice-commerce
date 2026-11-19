@@ -190,7 +190,7 @@ Actions, each with its permission:
 
 | Action | Permission | When |
 | --- | --- | --- |
-| Change status | `commerce.orders.edit`, or `commerce.orders.cancel` to cancel | The allowed moves, with the reason when one is refused. An unpaid Pending order reaches Processing by recording its payment, so that move isn't offered there. |
+| Change status | `commerce.orders.edit`, or `commerce.orders.cancel` to cancel | The visible order header button lists the permitted transitions. Use **Mark paid** to record payment for an unpaid Pending order. |
 | Mark paid | `commerce.payments.verify` | Unpaid orders with a total, not cancelled. Takes a reference, date and account. |
 | Add a note | `commerce.orders.edit` | Internal, or to the customer (emailed). |
 | Edit addresses | `commerce.orders.edit` | Until something has shipped. |

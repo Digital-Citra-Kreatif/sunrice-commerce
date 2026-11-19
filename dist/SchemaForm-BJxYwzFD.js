@@ -1,4 +1,4 @@
-import { d as u, u as v, a as r, R as p, j as x, b as a, P as b, c as g, i as w, o as S } from "./main-DvGXgNMx.js";
+import { d as u, u as v, a as r, R as p, j as x, b as a, P as b, c as g, i as w, o as S } from "./main-DxgJLs0v.js";
 const n = "commerce-schema-form";
 function y({ title: o, description: l, form: s, breadcrumbs: t = [], deleteUrl: i, deleteConfirm: d }) {
   const { Button: m } = g;

@@ -1,17 +1,17 @@
-import { i as B, b as t, c as L, j as a, a as m, M as W, d as X, u as Z, R as j, e as ee, P as te, S as R, F as D } from "./main-DvGXgNMx.js";
-import { P as re } from "./PaymentConfirmationDialog-BWO0fJum.js";
-function ae({ order: o, couriers: r, onClose: _ }) {
-  const { Dialog: d, DialogContent: F, DialogFooter: h, DialogHeader: p, DialogTitle: g, Button: u, Input: s, Label: N } = L, b = o.items.filter((n) => n.unfulfilled > 0), c = B.useForm({
+import { i as M, b as t, c as L, j as a, a as m, M as re, d as ae, u as ne, R as j, e as ce, P as le, S as R, F as D } from "./main-DxgJLs0v.js";
+import { P as ie } from "./PaymentConfirmationDialog-BEE0PaqT.js";
+function se({ order: o, couriers: r, onClose: x }) {
+  const { Dialog: d, DialogContent: F, DialogFooter: h, DialogHeader: p, DialogTitle: g, Button: u, Input: s, Label: N } = L, _ = o.items.filter((n) => n.unfulfilled > 0), c = M.useForm({
     courier: r[0]?.key ?? "",
     courier_name: "",
     service: "",
     tracking_number: "",
-    items: b.map((n) => ({ order_item_id: n.id, quantity: n.unfulfilled }))
-  }), x = c.errors;
-  return /* @__PURE__ */ t(d, { open: !0, onOpenChange: (n) => !n && _(), children: /* @__PURE__ */ a(F, { children: [
+    items: _.map((n) => ({ order_item_id: n.id, quantity: n.unfulfilled }))
+  }), b = c.errors;
+  return /* @__PURE__ */ t(d, { open: !0, onOpenChange: (n) => !n && x(), children: /* @__PURE__ */ a(F, { children: [
     /* @__PURE__ */ t(p, { children: /* @__PURE__ */ t(g, { children: "Add a shipment" }) }),
     /* @__PURE__ */ a("form", { className: "cm:grid cm:gap-3", onSubmit: (n) => {
-      n.preventDefault(), c.post(m(`commerce/orders/${o.id}/shipments`), { preserveScroll: !0, onSuccess: _ });
+      n.preventDefault(), c.post(m(`commerce/orders/${o.id}/shipments`), { preserveScroll: !0, onSuccess: x });
     }, children: [
       /* @__PURE__ */ a("div", { className: "cm:grid cm:gap-1", children: [
         /* @__PURE__ */ t(N, { htmlFor: "s-courier", children: "Courier" }),
@@ -34,7 +34,7 @@ function ae({ order: o, couriers: r, onClose: _ }) {
       ] }),
       /* @__PURE__ */ a("fieldset", { className: "cm:grid cm:gap-2", children: [
         /* @__PURE__ */ t("legend", { className: "cm:mb-1 cm:text-sm cm:font-medium", children: "In this parcel" }),
-        b.map((n, S) => /* @__PURE__ */ a("label", { className: "cm:flex cm:items-center cm:justify-between cm:gap-3 cm:text-sm", children: [
+        _.map((n, w) => /* @__PURE__ */ a("label", { className: "cm:flex cm:items-center cm:justify-between cm:gap-3 cm:text-sm", children: [
           /* @__PURE__ */ a("span", { children: [
             n.name,
             n.variant_title ? ` · ${n.variant_title}` : "",
@@ -52,28 +52,28 @@ function ae({ order: o, couriers: r, onClose: _ }) {
               min: 0,
               max: n.unfulfilled,
               className: "cm:w-20",
-              value: c.data.items[S].quantity,
-              onChange: (w) => c.setData("items", c.data.items.map(($, O) => O === S ? { ...$, quantity: Number(w.target.value) } : $))
+              value: c.data.items[w].quantity,
+              onChange: (S) => c.setData("items", c.data.items.map(($, B) => B === w ? { ...$, quantity: Number(S.target.value) } : $))
             }
           )
         ] }, n.id)),
-        x.items && /* @__PURE__ */ t("p", { className: "cm:text-sm cm:text-destructive", children: x.items })
+        b.items && /* @__PURE__ */ t("p", { className: "cm:text-sm cm:text-destructive", children: b.items })
       ] }),
       /* @__PURE__ */ a(h, { children: [
-        /* @__PURE__ */ t(u, { type: "button", variant: "outline", onClick: _, children: "Cancel" }),
+        /* @__PURE__ */ t(u, { type: "button", variant: "outline", onClick: x, children: "Cancel" }),
         /* @__PURE__ */ t(u, { type: "submit", disabled: c.processing, children: "Save shipment" })
       ] })
     ] })
   ] }) });
 }
-function ne({ order: o, onClose: r }) {
-  const { Dialog: _, DialogContent: d, DialogFooter: F, DialogHeader: h, DialogTitle: p, DialogDescription: g, Button: u, Input: s, Label: N, Checkbox: b } = L, c = B.useForm({
+function de({ order: o, onClose: r }) {
+  const { Dialog: x, DialogContent: d, DialogFooter: F, DialogHeader: h, DialogTitle: p, DialogDescription: g, Button: u, Input: s, Label: N, Checkbox: _ } = L, c = M.useForm({
     amount: o.totals.refundable,
     reason: "",
     restock: !1,
     items: o.items.map((i) => ({ order_item_id: i.id, quantity: 0 }))
-  }), x = c.errors;
-  return /* @__PURE__ */ t(_, { open: !0, onOpenChange: (i) => !i && r(), children: /* @__PURE__ */ a(d, { children: [
+  }), b = c.errors;
+  return /* @__PURE__ */ t(x, { open: !0, onOpenChange: (i) => !i && r(), children: /* @__PURE__ */ a(d, { children: [
     /* @__PURE__ */ a(h, { children: [
       /* @__PURE__ */ t(p, { children: "Refund" }),
       /* @__PURE__ */ t(g, { children: "Record money you returned to the customer." })
@@ -83,8 +83,8 @@ function ne({ order: o, onClose: r }) {
     }, children: [
       /* @__PURE__ */ a("div", { className: "cm:grid cm:gap-1", children: [
         /* @__PURE__ */ t(N, { htmlFor: "r-amount", children: "Amount" }),
-        /* @__PURE__ */ t(W, { id: "r-amount", value: c.data.amount, onChange: (i) => c.setData("amount", i) }),
-        x.amount && /* @__PURE__ */ t("p", { className: "cm:text-sm cm:text-destructive", children: x.amount })
+        /* @__PURE__ */ t(re, { id: "r-amount", value: c.data.amount, onChange: (i) => c.setData("amount", i) }),
+        b.amount && /* @__PURE__ */ t("p", { className: "cm:text-sm cm:text-destructive", children: b.amount })
       ] }),
       /* @__PURE__ */ a("fieldset", { className: "cm:grid cm:gap-2", children: [
         /* @__PURE__ */ t("legend", { className: "cm:mb-1 cm:text-sm cm:font-medium", children: "Items returned (optional)" }),
@@ -101,13 +101,13 @@ function ne({ order: o, onClose: r }) {
               max: i.quantity - i.refunded_quantity,
               className: "cm:w-20",
               value: c.data.items[n].quantity,
-              onChange: (S) => c.setData("items", c.data.items.map((w, $) => $ === n ? { ...w, quantity: Number(S.target.value) } : w))
+              onChange: (w) => c.setData("items", c.data.items.map((S, $) => $ === n ? { ...S, quantity: Number(w.target.value) } : S))
             }
           )
         ] }, i.id))
       ] }),
       /* @__PURE__ */ a("label", { className: "cm:flex cm:items-center cm:gap-2 cm:text-sm", children: [
-        /* @__PURE__ */ t(b, { checked: c.data.restock, onCheckedChange: (i) => c.setData("restock", i === !0) }),
+        /* @__PURE__ */ t(_, { checked: c.data.restock, onCheckedChange: (i) => c.setData("restock", i === !0) }),
         " Put the returned items back in stock"
       ] }),
       /* @__PURE__ */ a("div", { className: "cm:grid cm:gap-1", children: [
@@ -143,13 +143,33 @@ const f = (o) => o ? new Date(o).toLocaleString(void 0, { dateStyle: "medium", t
   declined: "error",
   expired: "error"
 })[o] ?? "neutral";
-function ie(o) {
-  const { order: r, transitions: _, can: d, panels: F } = o, { Card: h, CardContent: p, CardHeader: g, CardTitle: u, Button: s, Textarea: N, Label: b, Checkbox: c, Input: x, Dialog: i, DialogContent: n, DialogFooter: S, DialogHeader: w, DialogTitle: $, DialogDescription: O } = L, { Link: I, router: q } = B;
-  X(), Z([{ label: "Shop", href: m("commerce") }, { label: "Orders", href: m("commerce/orders") }, { label: r.number }]);
-  const v = `commerce/orders/${r.id}`, [P, M] = j.useState(null), [z, Q] = j.useState(""), [U, A] = j.useState(!1), [K, E] = j.useState(!1), [Y, H] = j.useState(!1), y = B.useForm({ message: "", customer: !1 }), C = B.useForm({ reference: "", paid_at: "", account: "" }), J = ee.orderPanels(), G = (e, l) => q.post(m(`${v}/transition`), { to: e, reason: l ?? null }, { preserveScroll: !0, onFinish: () => M(null) });
+function ue(o) {
+  const { order: r, transitions: x, can: d, panels: F } = o, {
+    Card: h,
+    CardContent: p,
+    CardHeader: g,
+    CardTitle: u,
+    Button: s,
+    Textarea: N,
+    Label: _,
+    Checkbox: c,
+    Input: b,
+    Dialog: i,
+    DialogContent: n,
+    DialogFooter: w,
+    DialogHeader: S,
+    DialogTitle: $,
+    DialogDescription: B,
+    DropdownMenu: K,
+    DropdownMenuTrigger: Y,
+    DropdownMenuContent: J,
+    DropdownMenuItem: V
+  } = L, { Link: I, router: q } = M;
+  ae(), ne([{ label: "Shop", href: m("commerce") }, { label: "Orders", href: m("commerce/orders") }, { label: r.number }]);
+  const v = `commerce/orders/${r.id}`, [P, O] = j.useState(null), [z, E] = j.useState(""), [W, A] = j.useState(!1), [X, H] = j.useState(!1), [Z, G] = j.useState(!1), y = M.useForm({ message: "", customer: !1 }), C = M.useForm({ reference: "", paid_at: "", account: "" }), ee = ce.orderPanels(), Q = x.filter((e) => e.permission && e.allowed), U = (e, l) => q.post(m(`${v}/transition`), { to: e, reason: l ?? null }, { preserveScroll: !0, onFinish: () => O(null) });
   return /* @__PURE__ */ a("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6", children: [
     /* @__PURE__ */ t(
-      te,
+      le,
       {
         title: `${r.type === "quote" ? "Quote" : "Order"} ${r.number}`,
         description: /* @__PURE__ */ a(D, { children: [
@@ -161,20 +181,21 @@ function ie(o) {
         ] }),
         back: { href: m("commerce/orders"), label: "Back to orders" },
         actions: /* @__PURE__ */ a(D, { children: [
+          Q.length > 0 && /* @__PURE__ */ a(K, { children: [
+            /* @__PURE__ */ t(Y, { asChild: !0, children: /* @__PURE__ */ t(s, { type: "button", variant: "outline", children: "Change status" }) }),
+            /* @__PURE__ */ t(J, { align: "end", children: Q.map((e) => /* @__PURE__ */ t(V, { variant: e.to === "cancelled" ? "destructive" : "default", onSelect: () => {
+              e.to === "cancelled" || e.to === "on_hold" ? (E(""), O(e)) : U(e.to);
+            }, children: e.to === "cancelled" ? "Cancel order…" : e.to === "on_hold" ? "Put on hold…" : `Mark ${e.label.toLowerCase()}` }, e.to)) })
+          ] }),
           d.mark_paid && /* @__PURE__ */ t(s, { variant: "outline", onClick: () => A(!0), children: "Mark paid" }),
-          d.shipments && r.items.some((e) => e.unfulfilled > 0) && /* @__PURE__ */ t(s, { variant: "outline", onClick: () => E(!0), children: "Add shipment" }),
-          _.filter((e) => e.permission && e.allowed && e.to !== "cancelled" && e.to !== "on_hold").map((e) => /* @__PURE__ */ a(s, { variant: "outline", onClick: () => G(e.to), children: [
-            "Mark ",
-            e.label.toLowerCase()
-          ] }, e.to))
+          d.shipments && r.items.some((e) => e.unfulfilled > 0) && /* @__PURE__ */ t(s, { variant: "outline", onClick: () => H(!0), children: "Add shipment" })
         ] }),
         primary: d.respond_quote ? /* @__PURE__ */ t(s, { asChild: !0, children: /* @__PURE__ */ t(I, { href: m(`${v}/quote`), children: r.status === "quoted" ? "Edit quote" : "Send a quote" }) }) : void 0,
         menu: [
           { label: "Customer view", href: r.storefront_url, external: !0 },
           ...d.edit_items ? [{ label: "Edit items", href: m(`${v}/edit`) }] : [],
-          ...d.refund ? [{ label: "Refund…", onSelect: () => H(!0) }] : [],
+          ...d.refund ? [{ label: "Refund…", onSelect: () => G(!0) }] : [],
           ...d.send_link ? [{ label: "Send payment link", onSelect: () => q.post(m(`${v}/payment-link`), {}, { preserveScroll: !0 }) }] : [],
-          ..._.filter((e) => e.permission && e.allowed && (e.to === "cancelled" || e.to === "on_hold")).map((e) => ({ label: e.to === "cancelled" ? "Cancel order…" : "Put on hold…", onSelect: () => M(e), group: "Status" })),
           ...d.delete && !r.trashed ? [{ label: "Move to trash", destructive: !0, group: "Delete", onSelect: () => {
             window.confirm("Move this order to the trash?") && q.delete(m(v));
           } }] : [],
@@ -223,11 +244,11 @@ function ie(o) {
                     e.refunded_quantity
                   ] })
                 ] }),
-                e.components.length > 0 && /* @__PURE__ */ t("ul", { className: "cm:mt-1 cm:text-xs cm:text-muted-foreground", children: e.components.map((l, V) => /* @__PURE__ */ a("li", { children: [
+                e.components.length > 0 && /* @__PURE__ */ t("ul", { className: "cm:mt-1 cm:text-xs cm:text-muted-foreground", children: e.components.map((l, te) => /* @__PURE__ */ a("li", { children: [
                   l.quantity,
                   " × ",
                   l.name
-                ] }, V)) })
+                ] }, te)) })
               ] }),
               /* @__PURE__ */ a("div", { className: "cm:text-sm cm:sm:text-right", children: [
                 /* @__PURE__ */ a("p", { children: [
@@ -293,7 +314,7 @@ function ie(o) {
               ] }),
               /* @__PURE__ */ a("span", { className: "cm:flex cm:items-center cm:gap-2", children: [
                 /* @__PURE__ */ t(R, { tone: e.status === "approved" ? "ok" : e.status === "rejected" ? "error" : "warning", children: e.status }),
-                e.review && /* @__PURE__ */ t(re, { confirmation: e.review })
+                e.review && /* @__PURE__ */ t(ie, { confirmation: e.review })
               ] })
             ] }, e.id))
           ] })
@@ -349,7 +370,7 @@ function ie(o) {
           ] }, e.id)) })
         ] }),
         F.map((e) => {
-          const l = J[e.key];
+          const l = ee[e.key];
           return l ? /* @__PURE__ */ a(h, { children: [
             /* @__PURE__ */ t(g, { children: /* @__PURE__ */ t(u, { children: e.label }) }),
             /* @__PURE__ */ t(p, { children: /* @__PURE__ */ t(l, { order: r, data: e.data }) })
@@ -361,7 +382,7 @@ function ie(o) {
             d.edit && /* @__PURE__ */ a("form", { className: "cm:grid cm:gap-2", onSubmit: (e) => {
               e.preventDefault(), y.post(m(`${v}/notes`), { preserveScroll: !0, onSuccess: () => y.reset() });
             }, children: [
-              /* @__PURE__ */ t(b, { htmlFor: "o-note", className: "cm:sr-only", children: "Note" }),
+              /* @__PURE__ */ t(_, { htmlFor: "o-note", className: "cm:sr-only", children: "Note" }),
               /* @__PURE__ */ t(N, { id: "o-note", placeholder: "Add a note…", value: y.data.message, onChange: (e) => y.setData("message", e.target.value) }),
               /* @__PURE__ */ a("div", { className: "cm:flex cm:items-center cm:justify-between cm:gap-2", children: [
                 /* @__PURE__ */ a("label", { className: "cm:flex cm:items-center cm:gap-2 cm:text-sm", children: [
@@ -476,24 +497,24 @@ function ie(o) {
         ] })
       ] })
     ] }),
-    /* @__PURE__ */ t(i, { open: P !== null, onOpenChange: (e) => !e && M(null), children: /* @__PURE__ */ a(n, { children: [
-      /* @__PURE__ */ a(w, { children: [
+    /* @__PURE__ */ t(i, { open: P !== null, onOpenChange: (e) => !e && O(null), children: /* @__PURE__ */ a(n, { children: [
+      /* @__PURE__ */ a(S, { children: [
         /* @__PURE__ */ t($, { children: P?.to === "cancelled" ? "Cancel this order?" : "Put this order on hold?" }),
-        /* @__PURE__ */ t(O, { children: P?.to === "cancelled" ? "Stock, flash sale quantities and voucher uses are given back." : "It can go back to its status later." })
+        /* @__PURE__ */ t(B, { children: P?.to === "cancelled" ? "Stock, flash sale quantities and voucher uses are given back." : "It can go back to its status later." })
       ] }),
       /* @__PURE__ */ a("div", { className: "cm:grid cm:gap-1", children: [
-        /* @__PURE__ */ t(b, { htmlFor: "o-reason", children: "Reason (on the timeline)" }),
-        /* @__PURE__ */ t(x, { id: "o-reason", value: z, onChange: (e) => Q(e.target.value) })
+        /* @__PURE__ */ t(_, { htmlFor: "o-reason", children: "Reason (on the timeline)" }),
+        /* @__PURE__ */ t(b, { id: "o-reason", value: z, onChange: (e) => E(e.target.value) })
       ] }),
-      /* @__PURE__ */ a(S, { children: [
-        /* @__PURE__ */ t(s, { variant: "outline", onClick: () => M(null), children: "Back" }),
-        /* @__PURE__ */ t(s, { onClick: () => P && G(P.to, z), children: "Confirm" })
+      /* @__PURE__ */ a(w, { children: [
+        /* @__PURE__ */ t(s, { variant: "outline", onClick: () => O(null), children: "Back" }),
+        /* @__PURE__ */ t(s, { onClick: () => P && U(P.to, z), children: "Confirm" })
       ] })
     ] }) }),
-    /* @__PURE__ */ t(i, { open: U, onOpenChange: A, children: /* @__PURE__ */ a(n, { children: [
-      /* @__PURE__ */ a(w, { children: [
+    /* @__PURE__ */ t(i, { open: W, onOpenChange: A, children: /* @__PURE__ */ a(n, { children: [
+      /* @__PURE__ */ a(S, { children: [
         /* @__PURE__ */ t($, { children: "Mark as paid" }),
-        /* @__PURE__ */ a(O, { children: [
+        /* @__PURE__ */ a(B, { children: [
           "Record a payment you received outside the store (",
           r.totals.total,
           ")."
@@ -503,30 +524,30 @@ function ie(o) {
         e.preventDefault(), C.post(m(`${v}/mark-paid`), { preserveScroll: !0, onSuccess: () => A(!1) });
       }, children: [
         /* @__PURE__ */ a("div", { className: "cm:grid cm:gap-1", children: [
-          /* @__PURE__ */ t(b, { htmlFor: "p-ref", children: "Reference" }),
-          /* @__PURE__ */ t(x, { id: "p-ref", value: C.data.reference, onChange: (e) => C.setData("reference", e.target.value) })
+          /* @__PURE__ */ t(_, { htmlFor: "p-ref", children: "Reference" }),
+          /* @__PURE__ */ t(b, { id: "p-ref", value: C.data.reference, onChange: (e) => C.setData("reference", e.target.value) })
         ] }),
         /* @__PURE__ */ a("div", { className: "cm:grid cm:gap-1", children: [
-          /* @__PURE__ */ t(b, { htmlFor: "p-date", children: "Paid on" }),
-          /* @__PURE__ */ t(x, { id: "p-date", type: "datetime-local", value: C.data.paid_at, onChange: (e) => C.setData("paid_at", e.target.value) })
+          /* @__PURE__ */ t(_, { htmlFor: "p-date", children: "Paid on" }),
+          /* @__PURE__ */ t(b, { id: "p-date", type: "datetime-local", value: C.data.paid_at, onChange: (e) => C.setData("paid_at", e.target.value) })
         ] }),
         /* @__PURE__ */ a("div", { className: "cm:grid cm:gap-1", children: [
-          /* @__PURE__ */ t(b, { htmlFor: "p-acc", children: "Into account" }),
-          /* @__PURE__ */ t(x, { id: "p-acc", value: C.data.account, onChange: (e) => C.setData("account", e.target.value) })
+          /* @__PURE__ */ t(_, { htmlFor: "p-acc", children: "Into account" }),
+          /* @__PURE__ */ t(b, { id: "p-acc", value: C.data.account, onChange: (e) => C.setData("account", e.target.value) })
         ] }),
-        /* @__PURE__ */ t(S, { children: /* @__PURE__ */ t(s, { type: "submit", disabled: C.processing, children: "Record payment" }) })
+        /* @__PURE__ */ t(w, { children: /* @__PURE__ */ t(s, { type: "submit", disabled: C.processing, children: "Record payment" }) })
       ] })
     ] }) }),
-    K && /* @__PURE__ */ t(ae, { order: r, couriers: o.couriers, onClose: () => E(!1) }),
-    Y && /* @__PURE__ */ t(ne, { order: r, onClose: () => H(!1) })
+    X && /* @__PURE__ */ t(se, { order: r, couriers: o.couriers, onClose: () => H(!1) }),
+    Z && /* @__PURE__ */ t(de, { order: r, onClose: () => G(!1) })
   ] });
 }
-function k({ label: o, value: r, muted: _, strong: d }) {
-  return /* @__PURE__ */ a("div", { className: `cm:flex cm:justify-between cm:gap-4 ${_ ? "cm:text-muted-foreground" : ""} ${d ? "cm:text-base cm:font-semibold" : ""}`, children: [
+function k({ label: o, value: r, muted: x, strong: d }) {
+  return /* @__PURE__ */ a("div", { className: `cm:flex cm:justify-between cm:gap-4 ${x ? "cm:text-muted-foreground" : ""} ${d ? "cm:text-base cm:font-semibold" : ""}`, children: [
     /* @__PURE__ */ t("dt", { children: o }),
     /* @__PURE__ */ t("dd", { children: r })
   ] });
 }
 export {
-  ie as default
+  ue as default
 };

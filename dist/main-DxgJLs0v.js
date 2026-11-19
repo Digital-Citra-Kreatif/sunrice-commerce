@@ -253,24 +253,24 @@ function cr(e) {
     t.registerPageLoader(n, r);
 }
 const sr = {
-  "Commerce/Confirmations/Index": () => import("./Index-XHfAP3uS.js"),
-  "Commerce/Customers/Show": () => import("./Show-CWJvCexo.js"),
-  "Commerce/Dashboard": () => import("./Dashboard-mWOITGMK.js"),
-  "Commerce/Inventory/Index": () => import("./Index-BKyOZUbY.js"),
-  "Commerce/Marketing/Editor": () => import("./Editor-BvqLRIAz.js"),
-  "Commerce/Marketing/Report": () => import("./Report-DzcAKd-S.js"),
-  "Commerce/Orders/Editor": () => import("./Editor-Cs65xNZ_.js"),
-  "Commerce/Orders/Show": () => import("./Show-BifGlatu.js"),
-  "Commerce/Products/Index": () => import("./Index-bEylamIN.js"),
-  "Commerce/Products/Import": () => import("./Import-fDhDz_4U.js"),
-  "Commerce/Reports/Show": () => import("./Show-D75qYeYm.js"),
-  "Commerce/Settings/Section": () => import("./Section-CL4nsBId.js"),
-  "Commerce/Settings/Emails": () => import("./Emails-CR4wev-Y.js"),
-  "Commerce/Settings/Features": () => import("./Features-6Mw_RSkD.js"),
-  "Commerce/Settings/Payments": () => import("./Payments-CoLHnihx.js"),
-  "Commerce/Settings/Shipping": () => import("./Shipping-DGFRw9YC.js"),
-  "Commerce/Shared/SchemaForm": () => import("./SchemaForm-DkgPhsCy.js"),
-  "Commerce/Shared/ResourceIndex": () => import("./ResourceIndex-CPMjQepl.js")
+  "Commerce/Confirmations/Index": () => import("./Index-CiCyn-k8.js"),
+  "Commerce/Customers/Show": () => import("./Show-CwED36NM.js"),
+  "Commerce/Dashboard": () => import("./Dashboard-DUP_zz0v.js"),
+  "Commerce/Inventory/Index": () => import("./Index-CqeuCUbS.js"),
+  "Commerce/Marketing/Editor": () => import("./Editor-DP9cFLDv.js"),
+  "Commerce/Marketing/Report": () => import("./Report-3khoTE7t.js"),
+  "Commerce/Orders/Editor": () => import("./Editor-Cv-ZDeeW.js"),
+  "Commerce/Orders/Show": () => import("./Show-CWhDJmrm.js"),
+  "Commerce/Products/Index": () => import("./Index-chc_2S8n.js"),
+  "Commerce/Products/Import": () => import("./Import-CWm5saUS.js"),
+  "Commerce/Reports/Show": () => import("./Show-3y8-Dnpb.js"),
+  "Commerce/Settings/Section": () => import("./Section-B19jYY0u.js"),
+  "Commerce/Settings/Emails": () => import("./Emails-B-6-cUh2.js"),
+  "Commerce/Settings/Features": () => import("./Features-Cr91JUtw.js"),
+  "Commerce/Settings/Payments": () => import("./Payments-Bt8bwVoT.js"),
+  "Commerce/Settings/Shipping": () => import("./Shipping-tdY9tF3H.js"),
+  "Commerce/Shared/SchemaForm": () => import("./SchemaForm-BJxYwzFD.js"),
+  "Commerce/Shared/ResourceIndex": () => import("./ResourceIndex-B9WdoI8G.js")
 };
 function ar() {
   cr(sr);
@@ -568,7 +568,7 @@ function we({ field: e, value: t, onChange: n, id: r }) {
     ] })
   ] });
 }
-const fr = D.lazy(() => import("./ProductEditor-Ck_l4O2_.js")), br = (e) => D.createElement(D.Suspense, { fallback: null }, D.createElement(fr, e)), yr = {
+const fr = D.lazy(() => import("./ProductEditor-CQX2465j.js")), br = (e) => D.createElement(D.Suspense, { fallback: null }, D.createElement(fr, e)), yr = {
   commerce_money: be,
   commerce_datetime_range: ge,
   commerce_region: xe,
@@ -579,7 +579,7 @@ const fr = D.lazy(() => import("./ProductEditor-Ck_l4O2_.js")), br = (e) => D.cr
 function Sr() {
   (window.SunriceCmsQueue ??= []).push((e) => Object.entries(yr).forEach(([t, n]) => e.registerFieldInput(t, n)));
 }
-const vr = D.lazy(() => import("./ChartImpl-B53udvqa.js"));
+const vr = D.lazy(() => import("./ChartImpl-CU_RnvyZ.js"));
 function Cr(e) {
   const t = /* @__PURE__ */ c("div", { className: "cm:animate-pulse cm:rounded-md cm:bg-muted", style: { height: e.height ?? 260 } });
   return /* @__PURE__ */ c(D.Suspense, { fallback: t, children: /* @__PURE__ */ c(vr, { ...e }) });
