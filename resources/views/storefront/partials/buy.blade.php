@@ -4,6 +4,9 @@
     @php($default = $product->product->variants->first(fn ($variant) => $variant->active && $variant->id === (int) old('variant')) ?? $default)
 @endif
 @php($variantPrice = $product->isVariable() && ! $product->price['hidden'] && $default ? collect($product->variants)->firstWhere('id', $default->id) : null)
+@if ($product->price['isRange'] && ! request()->filled('variant') && ! old('variant'))
+    @php($variantPrice = null)
+@endif
 <div class="commerce-buy" data-commerce-product="{{ $product->id() }}">
     @include(\Sunrice\Commerce\Storefront\Layout::view('partials.badges'))
     @include(\Sunrice\Commerce\Storefront\Layout::view('partials.price'), ['variantPrice' => $variantPrice, 'updateVariantPrice' => $product->isVariable()])
