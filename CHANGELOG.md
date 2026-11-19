@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Let apps override the bulk pricing presentation through its own Blade partial.
+
 - Use icon-only catalog view links and offer a separate Blade override for the table columns.
 
 - Keep Apply visible while catalog filters scroll, and offer a paginated table beside the grid view.

@@ -305,6 +305,7 @@ both itself when you leave them out, so extension pages can extend it directly.
 | `partials.captcha` | `$captcha`: the configured Sunrice widget HTML and its form error. Include inside the form. |
 | `partials.header-links` | — Account, wishlist, comparison and mini cart links for your header. |
 | `partials.buy` | `$product` (ProductView). The body of `<x-commerce::product>`. |
+| `partials.bulk-pricing` | `$tiers`: resolved rows with `min_qty`, the formatted unit `price` and a discount `label`. Override `resources/views/commerce/partials/bulk-pricing.blade.php` to change the display. The buying block includes it when there are tiers to show. |
 | `partials.price` | `$product`. The body of `<x-commerce::price>`. |
 | `partials.product-table` | `$products`: the current page of product entries. Override `resources/views/commerce/partials/product-table.blade.php` to customize the column headings and cells. Filters, sorting and pagination are handled by the listing. |
 | `partials.badges` | `$product`: sale, new, stock and featured badges. |

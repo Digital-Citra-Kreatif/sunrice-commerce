@@ -51,6 +51,15 @@ it('shows a simple product with its sale price, stock and SKU', function () {
         ->assertSee('"price":"50000"', false)->assertSee('commerce-badge--sale', false);
 });
 
+it('uses an app override for bulk pricing with the resolved tiers', function () {
+    View::getFinder()->prependLocation(__DIR__.'/../../Fixtures/bulk-pricing');
+    publishProduct(kaos(), title: 'Kaos Grosir');
+
+    $this->get('/products/kaos-grosir')->assertOk()
+        ->assertSeeText('Bulk tier: 10 pcs at Rp89.100')
+        ->assertDontSee('data-commerce-tiers', false);
+});
+
 it('leaves no price anywhere when prices are hidden', function () {
     app(StoreSettings::class)->saveSection('catalog', ['price_visibility' => 'signed_in']);
     publishProduct(kaos(), title: 'Kaos Polos');
