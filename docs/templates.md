@@ -373,10 +373,10 @@ your own layout's look.
 attributes:
 
 - **Add to cart** (`[data-commerce-add]`): posts the form to the cart API and stays on the page,
-  updates every `[data-commerce-cart-count]` and shows a toast. A submit button named `buy_now` still
-  posts normally. If the API response cannot confirm what happened, Commerce does not resend the
-  request. The `partials.add-recovery` notice provides a link to check the cart. Include it in
-  published overrides of the add-to-cart form for the same inline recovery.
+  updates every `[data-commerce-cart-count]` and shows a toast with a link to the cart after a
+  successful add. A submit button named `buy_now` still posts normally. If the API response cannot
+  confirm what happened, Commerce does not resend the request. Include `partials.add-recovery` in
+  published add-to-cart forms for the success toast link and the inline recovery notice.
 - **Checkout refresh** (`[data-commerce-checkout]`): changes to pricing inputs post the form to
   `/checkout/refresh` and replace the shipping rates, payment methods and summary. Choosing pickup
   keeps the shipping address visible and shows `data-commerce-pickup-note`. Applying or removing

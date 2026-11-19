@@ -204,6 +204,11 @@
 .commerce-toast { position: fixed; right: 16px; bottom: 16px; left: 16px; z-index: 80; max-width: 420px; margin-left: auto; padding: 14px 18px; background: var(--commerce-fg); color: #fff; font-size: 14px; font-weight: 600; box-shadow: 0 8px 24px rgba(0, 0, 0, .2); }
 .commerce-toast:empty { display: none; }
 .commerce-toast--error { background: var(--commerce-accent); color: #fff; }
+.commerce-toast--with-action { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 8px 8px 16px; bottom: max(16px, env(safe-area-inset-bottom)); }
+.commerce-toast__message { overflow-wrap: anywhere; }
+.commerce-toast__cart { display: grid; place-items: center; width: 44px; height: 44px; color: var(--commerce-fg); background: #fff; border-radius: var(--commerce-radius); }
+.commerce-toast__cart:hover { background: var(--commerce-surface); }
+.commerce-toast__cart:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .commerce-price { display: flex; gap: 4px 8px; align-items: baseline; flex-wrap: wrap; font-weight: 800; }
 .commerce-price del, .commerce-price [data-commerce-compare] { order: 2; color: var(--commerce-muted); font-weight: 400; font-size: .85em; }
 .commerce-price:has(del:not([hidden])) .commerce-price__amount { color: var(--commerce-sale); }

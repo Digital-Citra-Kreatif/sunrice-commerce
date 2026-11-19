@@ -22,13 +22,47 @@
         document.dispatchEvent(new CustomEvent('commerce:cart-updated', { detail: cart }));
     }
 
-    function toast(message, isError) {
+    var cartToast;
+    function toast(message, isError, form) {
         var el = document.createElement('div');
         el.className = 'commerce-toast' + (isError ? ' commerce-toast--error' : '');
-        el.setAttribute('role', isError ? 'alert' : 'status');
-        el.textContent = message;
-        document.body.appendChild(el);
-        setTimeout(function () { el.remove(); }, 4000);
+        var action = form?.querySelector('[data-commerce-add-success-action]')?.content.firstElementChild;
+        if (!action) {
+            el.setAttribute('role', isError ? 'alert' : 'status');
+            el.textContent = message;
+            document.body.appendChild(el);
+            setTimeout(function () { el.remove(); }, 4000);
+            return;
+        }
+
+        cartToast?.remove();
+        cartToast = el;
+        el.classList.add('commerce-toast--with-action');
+        var text = document.createElement('span');
+        text.className = 'commerce-toast__message';
+        text.setAttribute('role', 'status');
+        text.textContent = message;
+        el.append(text, action.cloneNode(true));
+        form.after(el);
+
+        var timer;
+        function dismissLater() {
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                el.remove();
+                if (cartToast === el) cartToast = null;
+            }, 8000);
+        }
+
+        el.addEventListener('pointerenter', function () { clearTimeout(timer); });
+        el.addEventListener('focusin', function () { clearTimeout(timer); });
+        el.addEventListener('pointerleave', function () {
+            if (!el.contains(document.activeElement)) dismissLater();
+        });
+        el.addEventListener('focusout', function (event) {
+            if (!el.contains(event.relatedTarget) && !el.matches(':hover')) dismissLater();
+        });
+        dismissLater();
     }
 
     // A failed response may arrive after the server already added the item.
@@ -66,7 +100,7 @@
                 activeAdds.delete(form);
                 if (button) button.removeAttribute('aria-disabled');
                 if (Number.isInteger(result.json.cart?.count)) updateMiniCart(result.json.cart);
-                toast(result.json.message, !result.ok);
+                toast(result.json.message, !result.ok, result.ok ? form : null);
             })
             .catch(function () {
                 var recovery = form.querySelector('[data-commerce-add-recovery]');

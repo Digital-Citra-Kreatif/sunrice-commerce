@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- The add-to-cart success toast includes a shortcut to the cart. Merge the updated
+  `partials/add-recovery.blade.php` and storefront theme assets into published copies.
+
 - Shoppers can apply or remove vouchers before payment in checkout. Selecting pickup keeps the
   delivery address and courier options available. If automatic recalculation fails, **Update total**
   submits the current selections. Merge the updated checkout, cart and checkout partials, the new

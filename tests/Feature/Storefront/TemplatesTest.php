@@ -68,12 +68,15 @@ it('publishes the starter theme with the templates', function () {
     }
 });
 
-it('renders a cart recovery link for an unconfirmed add-to-cart request', function () {
+it('renders the cart link for both successful and unconfirmed add-to-cart requests', function () {
     checkoutStore();
 
     $this->get('/products/mug')->assertOk()
         ->assertSee('data-commerce-add-recovery hidden', false)
-        ->assertSee(trans('commerce::storefront.cart.add_unconfirmed'));
+        ->assertSee(trans('commerce::storefront.cart.add_unconfirmed'))
+        ->assertSee('<template data-commerce-add-success-action>', false)
+        ->assertSee('class="commerce-toast__cart" href="'.commerce_url('commerce.cart').'"', false)
+        ->assertSee('aria-label="'.trans('commerce::storefront.cart.view_cart').'"', false);
 });
 
 it('buys a variable product with plain form posts, no JavaScript', function () {
