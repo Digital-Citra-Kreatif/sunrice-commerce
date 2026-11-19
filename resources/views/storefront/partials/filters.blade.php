@@ -1,6 +1,6 @@
 {{--
     <x-commerce::product-filter>: a GET form on the current page. $facets, $titles, $prices, $without, $param().
-    Each facet is a collapsible group: categories as a tree, colour terms
+    Each facet is a collapsible group: categories with their parent paths, colour terms
     (those with a `swatch` hex field) as swatches, other attributes (sizes)
     as boxes in their term order, the rest as checkboxes; then the price
     range, stock and sale, and the sort. With commerce.js it is the filter
@@ -44,13 +44,13 @@
                 if ($isBoxes) {
                     $terms = collect($terms)->sortBy(fn ($t) => [$termData->get($t['id'])?->sort_order ?? 0, $t['id']])->values()->all();
                 }
-                // Categories: parents first, each followed by its children in the list.
-                $isTree = $name === 'category';
-                if ($isTree) {
-                    $byParent = collect($terms)->groupBy(fn ($t) => (int) ($termData->get($t['id'])?->parent_id ?? 0));
-                    $ids = collect($terms)->pluck('id')->all();
-                    $roots = collect($terms)->filter(fn ($t) => ! in_array((int) ($termData->get($t['id'])?->parent_id ?? 0), $ids, true));
-                    $terms = $roots->flatMap(fn ($t) => [['depth' => 0, ...$t], ...($byParent->get($t['id']) ?? collect())->map(fn ($c) => ['depth' => 1, ...$c])->all()])->values()->all();
+                if ($name === 'category') {
+                    $labels = $categoryLabels($termData->only(array_column($terms, 'id')));
+                    $terms = collect($terms)->map(function ($term) use ($labels) {
+                        $term['name'] = $labels[$term['id']] ?? $term['name'];
+
+                        return $term;
+                    })->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)->all();
                 }
                 $title = in_array($name, ['category', 'brand', 'tag'], true) ? __('commerce::storefront.theme.facet_'.$name) : ($titles[$taxonomy] ?? $taxonomy);
                 $open = collect($terms)->contains('selected', true) || $loop->index < 3;
@@ -60,7 +60,7 @@
                 <fieldset @class(['commerce-filters__options', 'commerce-filters__options--swatches' => $isSwatches, 'commerce-filters__options--boxes' => $isBoxes])>
                     <legend class="commerce-visually-hidden">{{ $title }}</legend>
                     @foreach ($terms as $term)
-                        <label @class(['commerce-filters__option', 'commerce-filters__option--child' => ($term['depth'] ?? 0) > 0])>
+                        <label class="commerce-filters__option">
                             <input type="checkbox" name="{{ $name }}[]" value="{{ $term['id'] }}" @checked($term['selected'])>
                             @if ($isSwatches)
                                 <span class="commerce-swatch" style="--swatch: {{ $swatchOf($term['id']) ?? 'transparent' }}" aria-hidden="true"></span>
