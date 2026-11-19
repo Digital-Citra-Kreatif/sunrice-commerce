@@ -65,12 +65,12 @@ test('starter theme: quantity steppers respect min, max and step, and the cart s
     assert.match(css, /\.commerce-stepper__button \{/);
 });
 
-test('starter theme: the gallery thumbnails follow the swipeable images on phones', () => {
+test('starter theme: the product gallery uses one slide per viewport on every screen', () => {
     const js = readFileSync(new URL('../../stubs/theme/commerce.js', import.meta.url), 'utf8');
     assert.match(js, /\[data-commerce-thumb\]/);
     assert.match(js, /Math\.round\(main\.scrollLeft \/ main\.clientWidth\)/);
-    const block = mediaBlock('(max-width: 899px)');
-    assert.match(block, /scroll-snap-type: x mandatory/);
+    assert.match(css, /\.commerce-gallery__main \{[^}]*scroll-snap-type: x mandatory/);
+    assert.match(css, /\.commerce-gallery__main > \* \{[^}]*flex: 0 0 100%/);
 });
 
 test('starter theme: colours and the font are design tokens', () => {

@@ -608,18 +608,6 @@
         navigator.clipboard.writeText(source.dataset.commerceCopy).then(function () { toast(button.dataset.copied || '✓'); });
     });
 
-    // The variant's own image comes first in the gallery.
-    document.addEventListener('commerce:variant', function (event) {
-        var gallery = document.querySelector('[data-commerce-gallery]');
-        if (!gallery || !event.detail) return;
-        var images = JSON.parse(gallery.dataset.commerceGallery || '{}');
-        var src = images[event.detail.id];
-        var first = gallery.querySelector('img');
-        if (!src || !first) return;
-        if (!first.dataset.original) first.dataset.original = first.src;
-        first.src = src;
-    });
-
     // The mini cart drawer: a <dialog> listing the cart's first lines (focus stays inside; Escape closes and focus returns to the link).
     document.addEventListener('click', function (event) {
         var link = event.target.closest('[data-commerce-mini-cart]');
@@ -866,24 +854,92 @@
         }
     });
 
-    // Product gallery: on phones the images scroll sideways; the thumbnails follow and jump to an image.
+    // Product photos stay in order. Variant selection moves to the matching slide.
     document.querySelectorAll('[data-commerce-gallery]').forEach(function (gallery) {
         var main = gallery.querySelector('.commerce-gallery__main');
-        var thumbs = gallery.querySelectorAll('[data-commerce-thumb]');
-        if (!main || !thumbs.length) return;
+        if (!main) return;
+        var slides = Array.from(main.querySelectorAll('[data-commerce-gallery-image]'));
+        if (!slides.length) return;
+        var thumbs = Array.from(gallery.querySelectorAll('[data-commerce-thumb]'));
+        var photoMap = JSON.parse(gallery.dataset.commerceGallery || '{}');
+        var lightbox = gallery.querySelector('[data-commerce-gallery-lightbox]');
+        var zoom = lightbox?.querySelector('[data-commerce-gallery-zoom]');
+        var product = gallery.closest('.commerce-product');
+        var active = 0;
+
         function mark(index) {
-            thumbs.forEach(function (t, i) { if (i === index) t.setAttribute('aria-current', 'true'); else t.removeAttribute('aria-current'); });
+            active = index;
+            thumbs.forEach(function (thumb, i) {
+                if (i === index) thumb.setAttribute('aria-current', 'true');
+                else thumb.removeAttribute('aria-current');
+            });
+            slides.forEach(function (slide, i) {
+                if (slide.matches('a')) slide.tabIndex = i === index ? 0 : -1;
+            });
+            var selected = thumbs[index];
+            var rail = selected?.closest('.commerce-gallery__thumbs');
+            if (!rail) return;
+            var thumbBox = selected.getBoundingClientRect();
+            var railBox = rail.getBoundingClientRect();
+            if (thumbBox.left < railBox.left || thumbBox.right > railBox.right) {
+                rail.scrollBy({ left: thumbBox.left - railBox.left });
+            }
         }
+
+        function show(index) {
+            index = (index + slides.length) % slides.length;
+            main.scrollTo({ left: index * main.clientWidth, behavior: 'instant' });
+            mark(index);
+            if (lightbox?.open && zoom) {
+                zoom.src = slides[index].href;
+                zoom.alt = slides[index].querySelector('img').alt;
+            }
+        }
+
         thumbs.forEach(function (thumb, index) {
             thumb.addEventListener('click', function (event) {
                 event.preventDefault();
-                var image = main.querySelectorAll('[data-commerce-gallery-image]')[index];
-                if (image) main.scrollTo({ left: image.offsetLeft - main.offsetLeft, behavior: 'smooth' });
-                mark(index);
+                show(index);
             });
         });
         main.addEventListener('scroll', function () {
             if (main.clientWidth) mark(Math.round(main.scrollLeft / main.clientWidth));
         }, { passive: true });
+        gallery.querySelectorAll('[data-commerce-gallery-step]').forEach(function (button) {
+            button.hidden = false;
+            button.addEventListener('click', function () { show(active + Number(button.dataset.commerceGalleryStep)); });
+        });
+        gallery.addEventListener('keydown', function (event) {
+            if (!event.target.closest('.commerce-gallery__stage, .commerce-gallery__thumbs, .commerce-gallery__lightbox')) return;
+            if (slides.length < 2 || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) return;
+            event.preventDefault();
+            show(active + (event.key === 'ArrowLeft' ? -1 : 1));
+            if (!lightbox?.open && main.contains(event.target)) slides[active].focus({ preventScroll: true });
+        });
+        if (lightbox && zoom && typeof lightbox.showModal === 'function') {
+            lightbox.querySelector('[data-commerce-gallery-close]').addEventListener('click', function () { lightbox.close(); });
+            lightbox.addEventListener('click', function (event) { if (event.target === lightbox) lightbox.close(); });
+            lightbox.addEventListener('close', function () { slides[active].focus({ preventScroll: true }); });
+            slides.forEach(function (slide, index) {
+                slide.addEventListener('click', function (event) {
+                    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                    event.preventDefault();
+                    lightbox.showModal();
+                    show(index);
+                });
+            });
+        }
+        document.addEventListener('commerce:variant', function (event) {
+            if (!event.detail || (product && !product.contains(event.target))) return;
+            var image = photoMap[event.detail.id];
+            if (typeof image === 'string') {
+                // A published template from before the carousel still sends image URLs.
+                var first = main.querySelector('img');
+                if (first) first.src = image;
+            } else if (!event.detail.initial) {
+                show(Number.isInteger(image) ? image : 0);
+            }
+        });
+        mark(0);
     });
 })();

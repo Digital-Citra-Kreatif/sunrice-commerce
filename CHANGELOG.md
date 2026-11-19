@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Default the variant option name to the selected taxonomy title.
+- Show product and variant images in one carousel with thumbnails and a lightbox. Selecting a
+  variant opens its image in the carousel.
+
 - Require a dedicated permission for product CSV exports, which include internal cost. Sync
   permissions and reseed the default shop manager role after upgrading.
 - Authenticate Commerce admin requests before resolving order and customer models.

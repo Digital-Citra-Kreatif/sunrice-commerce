@@ -193,6 +193,9 @@ A product that is neither is **virtual**: a service, a ticket or a booking. Ther
 "digital" type: a digital product is a simple or variable product with Downloadable on (and usually
 Requires shipping off).
 
+Taxonomy-backed variant options default to the taxonomy title. You can edit the displayed option
+name for an individual product.
+
 ### Storefront content and media
 
 Use **Shop → Settings → Catalog** to set store defaults for specifications, questions and answers,
@@ -207,7 +210,9 @@ On the product editor, **Display options and video** can hide each section or ov
 visibility. Previously saved size guide content appears once its effective visibility is **Show**.
 
 Drag the images in the product editor to reorder them. The first image is the cover. The product
-gallery extends the CMS media field and stores the same ordered list of image IDs. To publish a
+gallery extends the CMS media field and stores the same ordered list of image IDs. The storefront
+displays one photo at a time, with thumbnails and a lightbox. It appends each variant photo not
+already in the gallery. Choosing a variant jumps to its photo. To publish a
 product video, select a video in the Media Library or enter an HTTPS link under **Display options
 and video**. YouTube links use an embedded player. Other HTTPS sources open as links.
 
