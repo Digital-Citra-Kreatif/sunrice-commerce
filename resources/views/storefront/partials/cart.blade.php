@@ -6,7 +6,7 @@
 @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
 @php($taxDisplay = app(\Sunrice\Commerce\Taxes\TaxDisplay::class))
 @php($L = \Sunrice\Commerce\Storefront\Layout::class)
-@php($home = \Illuminate\Support\Facades\Route::has('sunrice.frontend.home') ? route('sunrice.frontend.home') : url('/'))
+@php($continueShopping = app(\Sunrice\Commerce\Storefront\ShoppingDestination::class)->url())
 <div class="commerce-cart" data-commerce-cart>
     @include($L::view('partials.messages'))
     @foreach (collect($cart->state->notices)->whereNotIn('code', ['voucher_conditional']) as $notice)
@@ -16,7 +16,7 @@
     @if ($cart->isEmpty())
         <div class="commerce-cart__empty">
             @include($L::view('partials.empty'), ['title' => __('commerce::storefront.cart.empty'), 'text' => __('commerce::storefront.theme.cart_empty_text'), 'icon' => 'bag',
-                'action' => ['url' => $home, 'label' => __('commerce::storefront.cart.continue')]])
+                'action' => ['url' => $continueShopping, 'label' => __('commerce::storefront.cart.continue')]])
         </div>
     @else
         <div class="commerce-cart__layout">
@@ -83,7 +83,7 @@
                     </nav>
                 @endif
                 <x-commerce::slot name="cart.after_items" :cart="$cart" />
-                <p class="commerce-cart__continue"><a href="{{ $home }}">← {{ __('commerce::storefront.cart.continue') }}</a></p>
+                <p class="commerce-cart__continue"><a href="{{ $continueShopping }}">← {{ __('commerce::storefront.cart.continue') }}</a></p>
             </div>
 
             <aside class="commerce-cart__summary" aria-labelledby="commerce-cart-summary">

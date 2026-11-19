@@ -13,6 +13,10 @@
 - Keep the sticky product purchase panel within the product gallery and details so it clears the
   review form and related products. Update the published product template and starter stylesheet.
 
+- Continue shopping links in Compare, Wishlist, Cart, and order confirmation share a Catalog
+  setting. Automatic uses the localized catalog with a homepage fallback. Staff can choose a
+  published CMS page or collection listing.
+
 - Product buttons inherit across Store, Category, Brand, and Product. The product editor shows
   the inherited action and its source, and cart eligibility uses the same rule.
 - Flash Sale separates product selection, pricing and quantity limits. A rule now applies to

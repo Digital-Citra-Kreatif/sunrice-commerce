@@ -123,6 +123,10 @@ final class BuiltinSections
     {
         $roles = Role::query()->orderBy('name')->pluck('name')->map(fn (string $r) => ['value' => $r, 'label' => $r])->all();
         $taxonomies = Taxonomy::query()->orderBy('title')->get()->map(fn (Taxonomy $t) => ['value' => $t->handle, 'label' => $t->title])->all();
+        $choosePage = ['field' => 'continue_shopping_mode', 'operator' => 'equals', 'value' => 'page'];
+        $target = fn (string $kind): array => ['match' => 'all', 'rules' => [
+            $choosePage, ['field' => 'continue_shopping_target', 'operator' => 'equals', 'value' => $kind],
+        ]];
 
         return [
             ['handle' => 'price_visibility', 'type' => 'select', 'label' => 'Who sees prices', 'config' => ['options' => self::options([
@@ -142,6 +146,18 @@ final class BuiltinSections
             ])]],
             ['handle' => 'low_stock_threshold', 'type' => 'number', 'label' => 'Low stock at', 'config' => ['min' => 0, 'max' => 100000], 'validation' => ['integer']],
             ['handle' => 'hide_out_of_stock', 'type' => 'toggle', 'label' => 'Hide out-of-stock products from listings'],
+            ['handle' => 'continue_shopping_mode', 'section' => 'Continue shopping', 'type' => 'select', 'label' => 'Destination',
+                'instructions' => 'Automatic opens the catalog in the shopper’s language, or the homepage if there is no catalog listing.',
+                'config' => ['options' => self::options(['auto' => 'Automatic', 'page' => 'Choose a page'])]],
+            ['handle' => 'continue_shopping_target', 'section' => 'Continue shopping', 'type' => 'select', 'label' => 'Page type', 'condition' => $choosePage,
+                'config' => ['options' => self::options(['entry' => 'CMS page', 'collection' => 'Collection listing'])]],
+            ['handle' => 'continue_shopping_page', 'section' => 'Continue shopping', 'type' => 'entries', 'label' => 'CMS page',
+                'condition' => $target('entry'), 'required' => true,
+                'config' => ['collections' => Collection::query()->whereNotNull('route')->orderBy('title')->pluck('handle')->all()],
+                'instructions' => 'Choose a published page. If it becomes unavailable, this link uses the automatic destination.'],
+            ['handle' => 'continue_shopping_collection', 'section' => 'Continue shopping', 'type' => 'select', 'label' => 'Collection listing',
+                'condition' => $target('collection'), 'required' => true, 'config' => ['options' => Collection::query()->whereNotNull('listing_route')
+                    ->orderBy('title')->get()->map(fn (Collection $collection) => ['value' => $collection->handle, 'label' => $collection->title])->all()]],
             ['handle' => 'new_badge_days', 'type' => 'number', 'label' => '"New" badge for (days)', 'instructions' => '0: no badge.', 'config' => ['min' => 0, 'max' => 365], 'validation' => ['integer']],
             ['handle' => 'price_range', 'type' => 'select', 'label' => 'Price of variable products', 'config' => ['options' => self::options([
                 'range' => 'Range (Rp10.000 – Rp25.000)', 'from' => 'From the lowest (From Rp10.000)', 'min' => 'Lowest only',
