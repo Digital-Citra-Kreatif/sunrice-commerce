@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Role;
+use Sunrice\Admin\Panel;
+use Sunrice\Cms\Models\Collection;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Database\Seeders\CommerceRolesSeeder;
 use Sunrice\Commerce\Orders\Models\Order;
@@ -56,4 +58,16 @@ it('installs non-interactively, twice, with a demo store whose checkout works', 
         ->and($order->shipping_total)->toBe(12000)
         ->and($order->total)->toBeGreaterThan(40000 + 12000);          // flash sale 20% off, plus the unique code
     $this->get($order->url())->assertOk()->assertSee('1234567890');
+});
+
+it('stops with instructions when the app has no Sunrice panel', function () {
+    // As after `composer require` on an app that hasn't run sunrice:install.
+    $this->app->offsetUnset(Panel::class);
+
+    $this->artisan('commerce:install', ['--no-regions' => true, '--no-interaction' => true])
+        ->expectsOutputToContain('no Sunrice panel')
+        ->expectsOutputToContain('sunrice:install --plugins')
+        ->assertFailed();
+
+    expect(Collection::query()->where('handle', 'products')->exists())->toBeFalse();
 });
