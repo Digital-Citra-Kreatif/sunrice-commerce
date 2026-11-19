@@ -23,6 +23,7 @@ use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
 use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Regions\RegionImporter;
 use Sunrice\Commerce\Reviews\Models\Review;
+use Sunrice\Commerce\Shipping\Models\ShippingZone;
 use Sunrice\Commerce\Storefront\Templates;
 use Workbench\App\Models\User;
 use Workbench\Database\Seeders\LoadTestSeeder;
@@ -57,6 +58,8 @@ it('ships starter templates that compile to valid PHP', function () {
 });
 
 it('seeds the starter store once, however often it runs', function () {
+    $existingZone = ShippingZone::query()->create(['name' => 'Existing Indonesia']);
+    $existingZone->regions()->create(['country' => 'ID']);
     starterStore();
     $counts = fn () => [Product::query()->count(), Variant::query()->count(), Media::query()->count(), Term::query()->count(), Entry::query()->count(),
         Order::query()->count(), Voucher::query()->count(), FlashSale::query()->count(), Menu::query()->count(), Customer::query()->count(), Review::query()->count()];
@@ -70,7 +73,8 @@ it('seeds the starter store once, however often it runs', function () {
         ->and(Order::query()->distinct()->pluck('status')->all())->toContain('completed', 'processing', 'cancelled', 'pending')
         ->and(User::query()->where('email', StarterStoreSeeder::CUSTOMER_EMAIL)->exists())->toBeTrue()
         ->and($first[10])->toBe(5)->and(Review::query()->whereNotNull('order_id')->count())->toBe(2)
-        ->and(Product::query()->where('rating_count', '>', 0)->count())->toBe(4);
+        ->and(Product::query()->where('rating_count', '>', 0)->count())->toBe(4)
+        ->and(ShippingZone::query()->orderBy('position')->pluck('name')->all())->toBe(['Jawa & Bali', 'Indonesia', 'Existing Indonesia']);
 });
 
 it('fills the load test fixtures on top of the starter store and can be rerun', function () {
