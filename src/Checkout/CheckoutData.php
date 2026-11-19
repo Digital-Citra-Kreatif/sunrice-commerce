@@ -56,6 +56,9 @@ final class CheckoutData
             foreach (['billing_same', 'terms', 'create_account', 'accepts_marketing', 'save_address'] as $flag) {
                 $values[$flag] = filter_var($input[$flag] ?? false, FILTER_VALIDATE_BOOLEAN);
             }
+            if (! array_key_exists('payment_method', $input)) {
+                $values['payment_method'] = null;
+            }
             $values['dropship'] = (array) ($input['dropship'] ?? []);
         }
 

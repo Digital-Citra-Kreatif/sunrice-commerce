@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Preselect the first available payment method at checkout and include its fees in the initial total.
+
 - Show a localized product count and a results link after a one-second pause in storefront search.
 
 - Share a compact payment panel between the confirmation and account order pages. Simplify the

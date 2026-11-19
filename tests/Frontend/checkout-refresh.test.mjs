@@ -60,8 +60,8 @@ test('checkout reveals the payment step and confirms the auto-selected fee befor
         fetch: (url, { body }) => new Promise((resolve) => requests.push({ url, body, resolve })),
     });
     const refresh = () => listeners.get('change')({ target: { name: 'shipping_rate', matches: () => false } });
-    const reply = (request, amount, label, html) => request.resolve({
-        ok: true, json: async () => ({ totals: { total: { amount } }, hash: label, payments_html: html }),
+    const reply = (request, amount, label, html, method) => request.resolve({
+        ok: true, json: async () => ({ totals: { total: { amount } }, hash: label, payments_html: html, selected_payment_method: method }),
     });
     const waitFor = async (count) => {
         const deadline = Date.now() + 3000;
@@ -101,13 +101,21 @@ test('checkout reveals the payment step and confirms the auto-selected fee befor
     assert.equal(hash.value, 'free-again');
     assert.equal(update.hidden, true);
 
+    refresh();
+    await waitFor(4);
+    reply(requests[3], 12000, 'server-priced-default', 'transfer', 'transfer');
+    await settle();
+    assert.equal(hash.value, 'server-priced-default');
+    assert.equal(button.disabled, false);
+    assert.equal(requests.length, 4);
+
     const submit = (submitter) => {
         let prevented = false;
         listeners.get('submit')({ submitter, preventDefault() { prevented = true; } });
         return prevented;
     };
     refresh();
-    await waitFor(4);
+    await waitFor(5);
     assert.equal(submit({
         name: 'apply_voucher',
         value: '1',
@@ -115,15 +123,15 @@ test('checkout reveals the payment step and confirms the auto-selected fee befor
         hasAttribute: (attribute) => attribute === 'data-commerce-voucher-submit',
     }), true);
     voucherCode.value = 'OTHER';
-    reply(requests[3], 0, 'old', 'empty');
-    await waitFor(5);
-    assert.equal(requests[4].url, '/checkout/voucher');
-    assert.equal(requests[4].body.get('apply_voucher'), '1');
-    assert.equal(requests[4].body.get('voucher_code'), 'HEMAT');
-    assert.equal(requests[4].body.get('password'), null);
-    assert.equal(requests[4].body.get('cf-turnstile-response'), null);
+    reply(requests[4], 0, 'old', 'empty');
+    await waitFor(6);
+    assert.equal(requests[5].url, '/checkout/voucher');
+    assert.equal(requests[5].body.get('apply_voucher'), '1');
+    assert.equal(requests[5].body.get('voucher_code'), 'HEMAT');
+    assert.equal(requests[5].body.get('password'), null);
+    assert.equal(requests[5].body.get('cf-turnstile-response'), null);
 
-    requests[4].resolve({ ok: false });
+    requests[5].resolve({ ok: false });
     await settle();
     assert.equal(update.hidden, false);
     assert.equal(submit(button), true);

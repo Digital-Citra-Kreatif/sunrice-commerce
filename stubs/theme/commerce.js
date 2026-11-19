@@ -517,10 +517,9 @@
                         var paymentNeeded = json.totals.total.amount > 0;
                         if (paymentSection) paymentSection.hidden = !paymentNeeded;
                         if (paymentStep) paymentStep.hidden = !paymentNeeded;
-                        // A sole method can become selected when the rates or total change.
-                        // Confirm its fee before allowing the order to be placed.
+                        // The selected method must match the totals returned by the server.
                         var selectedPayment = form.querySelector('[data-commerce-payments] input[name=payment_method]:checked');
-                        if (paymentNeeded && selectedPayment && selectedPayment.value !== data.get('payment_method')) {
+                        if (paymentNeeded && selectedPayment && selectedPayment.value !== (json.selected_payment_method ?? data.get('payment_method'))) {
                             revision++;
                             return;
                         }

@@ -34,6 +34,36 @@ it('shows the sections and the rates for the saved address', function () {
     expect($cart->fresh()->checkout['started_at'])->not->toBeNull();
 });
 
+it('selects the first available payment method and prices checkout with its fee', function () {
+    $settings = app(StoreSettings::class);
+    $methods = $settings->section('payments')['methods'];
+    $methods['bank_transfer'] = [
+        'active' => true, 'fee_fixed' => 1500,
+        'accounts' => [['bank' => 'bca', 'number' => '123', 'holder' => 'PT Toko']],
+    ];
+    $settings->saveSection('payments', ['order' => ['bank_transfer', 'test_transfer'], 'methods' => $methods]);
+
+    $cart = cartWith([[$this->mug, 1]]);
+    $input = checkoutInput(['payment_method' => null]);
+    $cart->update(['checkout' => $input]);
+    $page = $this->get('/checkout')->assertOk()->assertSee('Rp61.500');
+    $document = HTMLDocument::createFromString($page->getContent(), LIBXML_NOERROR);
+    expect($document->querySelector('[name=payment_method][checked]')?->getAttribute('value'))->toBe('bank_transfer');
+
+    $this->withCredentials()->postJson('/checkout/refresh', ['payment_method' => 'test_transfer'])
+        ->assertOk()->assertJsonPath('selected_payment_method', 'test_transfer')->assertJsonPath('totals.total.amount', 60000);
+    $this->postJson('/checkout/refresh', ['shipping_rate' => $input['shipping_rate']])
+        ->assertOk()->assertJsonPath('selected_payment_method', 'test_transfer');
+
+    $methods['test_transfer']['active'] = false;
+    $settings->saveSection('payments', ['methods' => $methods]);
+    $response = $this->postJson('/checkout/refresh', [...$input, 'payment_method' => 'test_transfer'])
+        ->assertOk()->assertJsonPath('selected_payment_method', 'bank_transfer')->assertJsonPath('totals.total.amount', 61500);
+    $this->post('/checkout', [...$input, 'payment_method' => 'bank_transfer', 'action' => 'place', 'totals_hash' => $response->json('hash')])
+        ->assertRedirect()->assertSessionHasNoErrors();
+    expect(Order::query()->sole())->payment_method->toBe('bank_transfer')->total->toBe(61500);
+});
+
 it('labels the total as estimated until a shipping method is selected', function () {
     cartWith([[$this->mug, 1]]);
 

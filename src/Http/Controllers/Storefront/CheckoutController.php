@@ -29,8 +29,10 @@ use Sunrice\Commerce\Checkout\Events\CheckoutStarted;
 use Sunrice\Commerce\Checkout\TermsPage;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Orders\OrderAccess;
+use Sunrice\Commerce\Payments\Contracts\PaymentMethod;
 use Sunrice\Commerce\Payments\PaymentContext;
 use Sunrice\Commerce\Payments\PaymentManager;
+use Sunrice\Commerce\Pricing\CalculationState;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
@@ -80,7 +82,7 @@ class CheckoutController
             app(UpdateCheckoutData::class)->handle($cart, ['started_at' => now()->toIso8601String()]);
             CheckoutStarted::dispatch($cart);
         }
-        $view = CartView::for($cart, $data->context());
+        [$data, $view] = $this->resolvePaymentSelection($cart, $data);
         $view->acknowledgePrices();
 
         return view(Layout::view('checkout'), [
@@ -184,7 +186,7 @@ class CheckoutController
     /** @param  array<string, string>  $voucherFeedback */
     private function checkoutResponse(Cart $cart, CheckoutData $data, array $voucherFeedback = []): JsonResponse
     {
-        $view = CartView::for($cart, $data->context());
+        [$data, $view] = $this->resolvePaymentSelection($cart, $data);
         $props = $this->viewData($cart, $data, $view);
         $money = app(MoneyFormatter::class);
 
@@ -192,6 +194,7 @@ class CheckoutController
             'rates' => array_map(fn (array $r) => [...$r, 'cost_formatted' => $money->format((int) $r['cost'])], $view->state->shipping['rates']),
             'selected_rate' => $view->state->shipping['rate']['id'] ?? null,
             'payment_methods' => $props['paymentMethods'],
+            'selected_payment_method' => $data->paymentMethod(),
             'totals' => array_map(fn (int $a) => ['amount' => $a, 'formatted' => $money->format($a)], $view->state->totals),
             'hash' => $view->state->hash(),
             'notices' => $view->state->notices,
@@ -236,6 +239,31 @@ class CheckoutController
         return $data->merge(array_filter($defaults));
     }
 
+    /** @return array{CheckoutData, CartView} */
+    private function resolvePaymentSelection(Cart $cart, CheckoutData $data): array
+    {
+        $view = CartView::for($cart, $data->context());
+        $available = $this->availablePayments($view->state);
+        $selected = $data->paymentMethod();
+        if ($selected === null || ! isset($available[$selected])) {
+            $default = array_key_first($available);
+            if ($selected !== $default) {
+                $data = $data->merge(['payment_method' => $default]);
+                $view = CartView::for($cart, $data->context());
+            }
+        }
+
+        return [$data, $view];
+    }
+
+    /** @return array<string, PaymentMethod> */
+    private function availablePayments(CalculationState $state): array
+    {
+        $context = PaymentContext::fromState($state);
+
+        return $this->mode()->payment() && $context->amount > 0 ? $this->payments()->available($context) : [];
+    }
+
     /** @return array<string, mixed> */
     protected function viewData(Cart $cart, CheckoutData $data, CartView $view): array
     {
@@ -243,10 +271,8 @@ class CheckoutController
         $user = commerce_customer();
         $customer = $user !== null ? Customer::forUser($user) : null;
         $methods = [];
-        if ($this->mode()->payment() && $state->totals['total'] > 0) {
-            foreach ($this->payments()->available(PaymentContext::fromState($state)) as $key => $method) {
-                $methods[] = ['key' => $key, 'title' => PaymentManager::titleOf($method), 'description' => method_exists($method, 'description') ? $method->description() : null];
-            }
+        foreach ($this->availablePayments($state) as $key => $method) {
+            $methods[] = ['key' => $key, 'title' => PaymentManager::titleOf($method), 'description' => method_exists($method, 'description') ? $method->description() : null];
         }
         $validator = app(CheckoutValidator::class);
 
