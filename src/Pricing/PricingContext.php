@@ -18,6 +18,7 @@ final class PricingContext
      * @param  array<int, string>  $roles
      * @param  array<string, mixed>|null  $destination  address: country, province_code, city_code, district_code, postal_code
      * @param  array<string, mixed>|null  $billingAddress  the billing address (taxes based on billing; falls back to the destination)
+     * @param  array<string, mixed>|null  $deliveryDestination  an address kept for delivery quotes while pickup is selected
      * @param  array{shipping?: array{label: string, cost: int}, discount?: array{label: string, amount: int}}  $overrides  staff-set shipping and discount (admin and quote channels)
      */
     public function __construct(
@@ -36,6 +37,7 @@ final class PricingContext
         public readonly ?array $billingAddress = null,
         // The customer chose to pay with their loyalty points (the cart's choice).
         public readonly bool $usePoints = false,
+        public readonly ?array $deliveryDestination = null,
     ) {}
 
     public static function guest(): self

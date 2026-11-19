@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Shoppers can apply or remove vouchers before payment in checkout. Selecting pickup keeps the
+  delivery address and courier options available. If automatic recalculation fails, **Update total**
+  submits the current selections. Merge the updated checkout, cart and checkout partials, the new
+  `partials/checkout-vouchers.blade.php`, checkout translations and theme assets into published copies.
+
 - Password sign-in, password-reset requests and final checkout submissions support the configured
   Sunrice captcha. Merge the three form templates, `partials/captcha.blade.php` and the storefront
   script into published copies.
@@ -34,7 +39,7 @@
   methods appear if shipping makes a free cart payable. Choosing a saved address updates its region
   codes and clears any optional fields missing from that address.
 
-- Checkout labels totals as estimated before shipping is selected, preserves the latest selections while refreshing, and offers a retry if the refresh fails.
+- Checkout labels totals as estimated before shipping is selected, and preserves the latest selections while refreshing.
 
 - The add-to-cart form links customers to their cart if the response is interrupted. For published
   storefronts, merge the updated checkout and address partials, `commerce.js` and the

@@ -11,6 +11,8 @@ test('checkout reveals the payment step and confirms the auto-selected fee befor
     const step = { hidden: true };
     const payment = { hidden: true };
     const hash = { value: 'free' };
+    const update = { hidden: false };
+    const voucherCode = { value: 'HEMAT' };
     const button = { setAttribute(_name, value) { this.disabled = value === 'true'; } };
     const methods = {
         outerHTML: 'empty',
@@ -20,6 +22,7 @@ test('checkout reveals the payment step and confirms the auto-selected fee befor
     const elements = {
         '[data-commerce-payment-section]': payment,
         '[data-commerce-hash]': hash,
+        '[data-commerce-update]': update,
         '[data-commerce-captcha]': { dataset: { commerceCaptcha: 'cf-turnstile-response' } },
         '[data-commerce-payments]': methods,
         'button[name=action][value=place]': button,
@@ -27,6 +30,7 @@ test('checkout reveals the payment step and confirms the auto-selected fee befor
     const selectedMethod = () => methods.outerHTML === 'transfer' ? { value: 'transfer' } : null;
     const form = {
         dataset: { refresh: '/checkout/refresh' },
+        elements: { namedItem: () => voucherCode },
         closest: () => ({ querySelector: () => step }),
         querySelectorAll: () => [],
         querySelector: (selector) => selector.endsWith(':checked') && selector.includes('payment_method')
@@ -53,7 +57,7 @@ test('checkout reveals the payment step and confirms the auto-selected fee befor
             set(key, value) { this.values.set(key, value); }
             delete(key) { this.values.delete(key); }
         },
-        fetch: (_url, { body }) => new Promise((resolve) => requests.push({ body, resolve })),
+        fetch: (url, { body }) => new Promise((resolve) => requests.push({ url, body, resolve })),
     });
     const refresh = () => listeners.get('change')({ target: { name: 'shipping_rate', matches: () => false } });
     const reply = (request, amount, label, html) => request.resolve({
@@ -95,4 +99,33 @@ test('checkout reveals the payment step and confirms the auto-selected fee befor
     assert.equal(payment.hidden, true);
     assert.equal(step.hidden, true);
     assert.equal(hash.value, 'free-again');
+    assert.equal(update.hidden, true);
+
+    const submit = (submitter) => {
+        let prevented = false;
+        listeners.get('submit')({ submitter, preventDefault() { prevented = true; } });
+        return prevented;
+    };
+    refresh();
+    await waitFor(4);
+    assert.equal(submit({
+        name: 'apply_voucher',
+        value: '1',
+        formAction: '/checkout/voucher',
+        hasAttribute: (attribute) => attribute === 'data-commerce-voucher-submit',
+    }), true);
+    voucherCode.value = 'OTHER';
+    reply(requests[3], 0, 'old', 'empty');
+    await waitFor(5);
+    assert.equal(requests[4].url, '/checkout/voucher');
+    assert.equal(requests[4].body.get('apply_voucher'), '1');
+    assert.equal(requests[4].body.get('voucher_code'), 'HEMAT');
+    assert.equal(requests[4].body.get('password'), null);
+    assert.equal(requests[4].body.get('cf-turnstile-response'), null);
+
+    requests[4].resolve({ ok: false });
+    await settle();
+    assert.equal(update.hidden, false);
+    assert.equal(submit(button), true);
+    assert.equal(submit(update), false);
 });

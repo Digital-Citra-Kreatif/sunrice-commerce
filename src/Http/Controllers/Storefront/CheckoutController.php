@@ -8,9 +8,13 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Sunrice\Admin\Security\Captcha;
+use Sunrice\Commerce\Cart\Actions\ApplyVoucher;
+use Sunrice\Commerce\Cart\Actions\RemoveVoucher;
 use Sunrice\Commerce\Cart\Actions\UpdateCheckoutData;
+use Sunrice\Commerce\Cart\CartException;
 use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\Models\Cart;
@@ -137,6 +141,48 @@ class CheckoutController
         abort_if($cart === null, 404);
         $data = $this->postedData($request, $cart);
         $update->handle($cart, $data->toArray());
+
+        return $this->checkoutResponse($cart, $data);
+    }
+
+    public function voucher(Request $request, UpdateCheckoutData $update, ApplyVoucher $apply, RemoveVoucher $remove): JsonResponse|RedirectResponse
+    {
+        $cart = $this->carts()->current();
+        if ($cart === null || $cart->items()->doesntExist()) {
+            return $request->expectsJson() ? response()->json(['message' => __('commerce::checkout.errors.empty')], 404)
+                : redirect(StorefrontRoutes::url('commerce.cart'));
+        }
+
+        $data = $this->postedData($request, $cart, fullForm: true);
+        $update->handle($cart, $data->toArray());
+        $removing = $request->has('remove_voucher');
+        $field = $removing ? 'remove_voucher' : 'voucher_code';
+        $validator = Validator::make($request->only($field), [$field => ['required', 'string', 'max:64']]);
+        $feedback = [];
+        if ($validator->fails()) {
+            $feedback['voucherError'] = $validator->errors()->first($field);
+        } else {
+            $code = (string) $validator->validated()[$field];
+            try {
+                if ($removing) {
+                    $remove->handle($code);
+                    $feedback['voucherMessage'] = __('commerce::storefront.cart.voucher_removed');
+                } else {
+                    $applied = $apply->handle($code, $data->context());
+                    $feedback['voucherMessage'] = __('commerce::storefront.cart.voucher_applied', ['code' => $applied]);
+                }
+            } catch (CartException $e) {
+                $feedback = ['voucherError' => $e->getMessage(), 'voucherCode' => $code];
+            }
+        }
+
+        return $request->expectsJson() ? $this->checkoutResponse($cart, $data, $feedback)
+            : redirect(StorefrontRoutes::url('commerce.checkout').'#checkout-vouchers')->with($feedback);
+    }
+
+    /** @param  array<string, string>  $voucherFeedback */
+    private function checkoutResponse(Cart $cart, CheckoutData $data, array $voucherFeedback = []): JsonResponse
+    {
         $view = CartView::for($cart, $data->context());
         $props = $this->viewData($cart, $data, $view);
         $money = app(MoneyFormatter::class);
@@ -150,6 +196,7 @@ class CheckoutController
             'notices' => $view->state->notices,
             'rates_html' => view(Layout::view('partials.shipping-methods'), $props)->render(),
             'payments_html' => view(Layout::view('partials.payment-methods'), $props)->render(),
+            'vouchers_html' => $voucherFeedback === [] ? null : view(Layout::view('partials.checkout-vouchers'), [...$props, ...$voucherFeedback])->render(),
             'summary' => '<aside class="commerce-checkout__summary" id="summary" data-commerce-summary>'.view(Layout::view('partials.checkout-summary'), $props)->render().'</aside>',
         ]);
     }
@@ -177,7 +224,7 @@ class CheckoutController
         }
         $customer = Customer::forUser($user);
         $defaults = $data->email() === null ? ['email' => $customer->email, 'name' => $customer->name, 'phone' => $customer->phone] : [];
-        if ($data->shippingAddress() === null && ! $data->isPickup()) {
+        if ($data->shippingAddress() === null) {
             $address = $customer->addresses()->orderByDesc('default_shipping')->orderBy('id')->first();
             if ($address !== null) {
                 $defaults['shipping_address'] = $address->toAddress();

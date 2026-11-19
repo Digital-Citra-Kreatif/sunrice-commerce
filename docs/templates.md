@@ -377,13 +377,12 @@ attributes:
   posts normally. If the API response cannot confirm what happened, Commerce does not resend the
   request. The `partials.add-recovery` notice provides a link to check the cart. Include it in
   published overrides of the add-to-cart form for the same inline recovery.
-- **Checkout refresh** (`[data-commerce-checkout]`): on every change (except password, notes and
-  terms) it posts the form to `/checkout/refresh` and replaces the shipping rates, payment methods
-  and summary. It shows and hides the parts behind toggles (billing address, dropship), hides
-  the shipping address for pickup rates, fills the address from a saved one, and provides a status message near the submit button. It keeps
-  the latest selection when requests overlap and offers a retry or the regular "Update shipping"
-  form when refreshing fails. Theme overrides can include the `data-commerce-checkout-status`
-  and `data-commerce-checkout-retry` elements from the default checkout template.
+- **Checkout refresh** (`[data-commerce-checkout]`): changes to pricing inputs post the form to
+  `/checkout/refresh` and replace the shipping rates, payment methods and summary. Choosing pickup
+  keeps the shipping address visible and shows `data-commerce-pickup-note`. Applying or removing
+  a voucher updates both the voucher panel and totals. The checkout keeps the latest selections when
+  requests overlap, announces progress via `data-commerce-checkout-status` and shows the
+  `data-commerce-update` form button if refreshing fails.
 - **Copy buttons** (`[data-commerce-copy-button]`): copy the `data-commerce-copy` value next to them
   (amounts, account numbers) to the clipboard.
 - **Gallery**: when the variant picker picks a variant with its own image, that image replaces the
@@ -471,7 +470,7 @@ Rebuild the route cache (`php artisan route:cache`) after a change. Always build
 - Add to cart, the variant picker, wishlist and compare have standard form submissions. Product
   filters and My Account order filters use GET forms. Address summaries expand with native HTML
   and the address book opens the add or edit form through a normal link.
-- Checkout offers a standard **Update shipping** submission. Entering a new Indonesian address
+- Checkout offers a standard **Update total** submission. Entering a new Indonesian address
   in checkout or My Account requires JavaScript to load provinces, cities and districts. See
   [Regions](regions.md#the-regions-json-endpoint).
 - Inputs have labels; icon-only buttons (×) have an `aria-label`; the shop search has

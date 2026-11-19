@@ -56,7 +56,8 @@ with `general.pause_message` (or a default text).
 | Route | Name | What it does |
 | --- | --- | --- |
 | `GET /checkout` | `commerce.checkout` | Shows the page. Redirects to the cart when it is empty. |
-| `POST /checkout` | `commerce.checkout.submit` | Saves the form. With `action=place` it places the order; with `action=update` it saves and recalculates shipping (the no-JavaScript "Update shipping" button). |
+| `POST /checkout` | `commerce.checkout.submit` | Saves the form. With `action=place` it places the order; with `action=update` it saves and recalculates totals (the "Update total" button). |
+| `POST /checkout/voucher` | `commerce.checkout.voucher` | Applies or removes a voucher and recalculates totals when Vouchers are enabled. |
 | `POST /checkout/refresh` | `commerce.checkout.refresh` | JSON: saves what was entered and returns rates, payment methods, totals, notices, the new hash and rendered partials. |
 
 The path comes from `commerce.storefront.paths.checkout`; other languages get the `/{locale}`
@@ -70,13 +71,13 @@ The page has these sections, in order:
    a saved-address selector for signed-in customers, "save this address", "billing is the same".
    Pickup collects the contact details in the shipping section;
 3. billing address, when it differs;
-4. shipping method, with the "Update shipping" button;
-5. loyalty points for signed-in customers with a balance (when Loyalty is active), followed by
-   payment methods for the remaining total in Online store mode;
+4. shipping method;
+5. vouchers, followed by loyalty points for signed-in customers with a balance and payment
+   methods for the remaining total in Online store mode;
 6. order notes, dropshipper and extra fields;
 7. order summary (the first 10 lines, `commerce.cart.preview_lines`, and the rest behind "and 3
-   more"), voucher, marketing consent (guests), terms;
-8. the submit button: "Place order", "Request a quote" or "Order via WhatsApp".
+   more"), marketing consent (guests), terms;
+8. the "Update total" fallback and the submit button: "Place order", "Request a quote" or "Order via WhatsApp".
 
 What the customer types is kept on the cart (`commerce_carts.checkout`, see
 `Checkout\CheckoutData::KEYS`), so a reload keeps it. Passwords are never stored there. Signed-in
@@ -166,8 +167,7 @@ summary and a saved-address selector when available. **Add address** opens a dia
 **Use this address** applies the draft and refreshes shipping rates, while **Cancel** keeps the
 previous address. With JavaScript off, the form is inline and **Use saved address** applies the
 selection through a regular form submission. For separate billing, the
-billing address is used for any tax rules based on billing. The **Update shipping** form submission
-remains available to refresh the current selections without using AJAX.
+billing address is used for any tax rules based on billing. The **Update total** button appears when automatic refresh fails or JavaScript is off.
 
 ## Shipping and payment choice
 
@@ -176,15 +176,16 @@ remains available to refresh the current selections without using AJAX.
   - In Online store and WhatsApp modes a rate must be chosen, and it must be one of the current
     rates. "We can't ship to this address yet." shows when an address gets no rates.
   - In Quotation mode the rate is optional: staff can set shipping in the quote.
-  - Choosing a pickup rate (`pickup:…`) hides the shipping address. The order keeps no shipping
-    address and stores the location in `meta.pickup`.
+  - Choosing a pickup rate (`pickup:…`) keeps the address and delivery rates available in case
+    the customer switches back to delivery. The pickup order stores the location in `meta.pickup`
+    and has an empty shipping address.
 - **Payment** is chosen in Online store mode when the total is more than zero. The method must be
   available for the order (active, its module on, its rules met); see [payments.md](payments.md).
   The chosen method's fee is part of the totals. If a free cart gains a shipping charge, the
   checkout reveals the payment choice during the refresh without reloading the page.
 - Orders with nothing to ship (digital products) skip both the address and shipping.
 
-Vouchers are applied from the summary; see [pricing.md](pricing.md).
+Customers apply and remove vouchers in checkout, before choosing a payment method; see [pricing.md](pricing.md).
 
 The storefront sends `_form=checkout` with a full form refresh so unchecked boxes are cleared.
 A partial refresh without this marker keeps values that the request omits.

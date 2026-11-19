@@ -97,9 +97,20 @@
             var rate = form.querySelector('input[name=shipping_rate]:checked');
             var address = form.querySelector('[data-commerce-shipping-address]');
             var pickup = !!(rate && rate.dataset.pickup === '1');
-            if (address) address.hidden = pickup;
+            var pickupNote = form.querySelector('[data-commerce-pickup-note]');
+            if (pickupNote) pickupNote.hidden = !pickup;
+            if (address) address.hidden = !pickupNote && pickup;
             var pickupContact = form.querySelector('[data-commerce-pickup-contact]');
-            if (pickupContact) pickupContact.hidden = !pickup;
+            if (pickupContact) {
+                pickupContact.hidden = !pickup;
+                if (pickup) {
+                    ['name', 'phone'].forEach(function (field) {
+                        var input = pickupContact.querySelector('[name="' + field + '"]');
+                        var recipient = form.elements.namedItem('shipping_address[' + field + ']');
+                        if (input && !input.value && recipient?.value) input.value = recipient.value;
+                    });
+                }
+            }
         }
         var timer;
         var revision = 0;
@@ -110,7 +121,7 @@
         var update = form.querySelector('[data-commerce-update]');
         var submit = form.querySelector('button[name=action][value=place]');
         var status = form.querySelector('[data-commerce-checkout-status]');
-        var retry = form.querySelector('[data-commerce-checkout-retry]');
+        var voucherRequest = null;
         var paymentSection = form.querySelector('[data-commerce-payment-section]');
         var paymentStep = form.closest('.commerce-checkout-page')?.querySelector('[data-commerce-payment-step]');
 
@@ -242,7 +253,6 @@
 
         function showStatus(message) {
             if (status) status.textContent = status.dataset[message] || '';
-            if (retry) retry.hidden = !failed;
             if (submit) submit.setAttribute('aria-disabled', String(pending || failed || submitting));
         }
 
@@ -258,6 +268,9 @@
 
             if (details && replacement.querySelector('details')) replacement.querySelector('details').open = true;
             if (focused && focused.matches('summary')) replacement.querySelector('summary')?.focus({ preventScroll: true });
+            if (focused && selector === '[data-commerce-checkout-vouchers]' && !focused.matches('summary')) {
+                replacement.querySelector('[name=voucher_code]')?.focus({ preventScroll: true });
+            }
             if (focused && focused.type === 'radio') {
                 var radios = Array.from(replacement.querySelectorAll('input[type=radio]'));
                 var next = radios.find(function (radio) { return radio.value === focused.value; }) || radios[0];
@@ -281,12 +294,18 @@
 
             refreshing = true;
             var sent = revision;
+            var voucher = voucherRequest;
+            voucherRequest = null;
             var data = new FormData(form);
             data.delete('password');
             var captchaField = form.querySelector('[data-commerce-captcha]')?.dataset.commerceCaptcha;
             if (captchaField) data.delete(captchaField);
             data.set('_form', 'checkout');
-            fetch(form.dataset.refresh, {
+            if (voucher) {
+                data.set(voucher.name, voucher.value);
+                if (voucher.code !== null) data.set('voucher_code', voucher.code);
+            }
+            fetch(voucher ? voucher.formAction : form.dataset.refresh, {
                 method: 'POST',
                 headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
                 body: data,
@@ -298,6 +317,7 @@
                     return response.json();
                 })
                 .then(function (json) {
+                    if (voucher) replaceFragment('[data-commerce-checkout-vouchers]', json.vouchers_html);
                     if (sent !== revision) return;
                     if (typeof json.hash !== 'string' || !json.hash) throw new Error('Checkout total is missing');
 
@@ -341,17 +361,32 @@
                 if (pending || submitting) event.preventDefault();
                 return;
             }
-            if (pending || (failed && (retry || update)) || submitting) {
+            if (event.submitter?.hasAttribute?.('data-commerce-voucher-submit')) {
                 event.preventDefault();
+                if (submitting) return;
+                var button = event.submitter;
+                voucherRequest = {
+                    name: button.name,
+                    value: button.value,
+                    formAction: button.formAction,
+                    code: button.name === 'apply_voucher' ? form.elements.namedItem('voucher_code').value : null,
+                };
+                refresh();
                 return;
             }
 
+            if (pending || (failed && update) || submitting) {
+                event.preventDefault();
+                return;
+            }
             submitting = true;
             showStatus('submitting');
         });
-        if (retry) retry.addEventListener('click', function () {
-            refresh();
-            if (submit) submit.focus({ preventScroll: true });
+        form.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter' || event.target.name !== 'voucher_code') return;
+            event.preventDefault();
+            var apply = form.querySelector('[name=apply_voucher]');
+            if (apply) form.requestSubmit(apply);
         });
         window.addEventListener('pageshow', function (event) {
             if (!event.persisted) return;
@@ -369,7 +404,7 @@
                 }
             }
             syncToggles();
-            if (t.name === 'password' || t.name === 'notes' || t.name === 'terms') return;
+            if (['password', 'notes', 'terms', 'voucher_code'].includes(t.name)) return;
             refresh();
         });
         if (update) update.hidden = true;

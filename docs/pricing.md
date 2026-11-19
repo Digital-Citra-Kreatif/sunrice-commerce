@@ -208,8 +208,8 @@ On the storefront:
 ## Vouchers and automatic discounts
 
 Shop → Vouchers (`vouchers` module, permission `commerce.vouchers.manage`). A **voucher** has a code
-the customer enters. An **automatic discount** has no code and applies by itself when its conditions
-are met.
+the customer enters before choosing a payment method in checkout. An **automatic discount** has no
+code and applies by itself when its conditions are met.
 
 **Codes** are letters, digits, `-` and `_`, up to 64 characters, unique, and case-insensitive (they
 are stored in capitals). A new voucher gets a random 8-character code. Code attempts are limited to

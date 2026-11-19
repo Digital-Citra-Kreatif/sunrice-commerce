@@ -140,10 +140,12 @@ final class CheckoutData
      */
     public function context(): array
     {
-        $destination = $this->isPickup() ? null : $this->shippingAddress();
+        $shipping = $this->shippingAddress();
+        $destination = $this->isPickup() ? null : $shipping;
 
         return array_filter([
             'destination' => $destination,
+            'deliveryDestination' => $this->isPickup() ? $shipping : null,
             'billingAddress' => $this->billingAddress(),
             'shippingRate' => $this->shippingRate(),
             'paymentMethod' => $this->paymentMethod(),

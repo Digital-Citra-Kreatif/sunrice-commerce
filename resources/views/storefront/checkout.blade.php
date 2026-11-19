@@ -72,7 +72,8 @@
             @if ($needsAddress)
                 <fieldset class="commerce-checkout__section" id="shipping">
                     <legend>{{ __('commerce::checkout.sections.shipping') }}</legend>
-                    <div data-commerce-shipping-address @if ($data->isPickup()) hidden @endif>
+                    <div data-commerce-shipping-address>
+                        <p class="commerce-muted commerce-checkout__pickup-note" data-commerce-pickup-note @unless ($data->isPickup()) hidden @endunless>{{ __('commerce::checkout.pickup_address') }}</p>
                         @if ($savedAddresses->isNotEmpty())
                             <label class="commerce-field"><span>{{ __('commerce::checkout.saved_address') }}</span>
                                 <select name="address_id" data-commerce-saved-address>
@@ -104,7 +105,7 @@
                         <label class="commerce-check"><input type="checkbox" name="billing_same" value="1" @checked($data->billingSame()) data-commerce-toggle="billing"> {{ __('commerce::checkout.billing_same') }}</label>
                     </div>
                     <div data-commerce-pickup-contact @unless ($data->isPickup()) hidden @endunless>
-                        @include($L::view('partials.checkout-contact-fields'))
+                        @include($L::view('partials.checkout-contact-fields'), ['contactDefaults' => $data->shippingAddress() ?? []])
                     </div>
                     @foreach (collect($extraFields)->where('section', 'shipping') as $field)
                         @include($L::view('partials.checkout-field'), ['field' => $field])
@@ -119,7 +120,6 @@
                 <fieldset class="commerce-checkout__section" id="shipping-method">
                     <legend>{{ __('commerce::checkout.sections.shipping_method') }}</legend>
                     @include($L::view('partials.shipping-methods'))
-                    <button type="submit" name="action" value="update" class="commerce-button commerce-button--secondary" data-commerce-update>{{ __('commerce::checkout.update_shipping') }}</button>
                 </fieldset>
                 <x-commerce::slot name="checkout.after_shipping" :state="$state" />
             @else
@@ -137,6 +137,10 @@
                     </label>
                     <noscript><button type="submit" name="action" value="update_points" class="commerce-button commerce-button--secondary">{{ __('commerce::checkout.points.update') }}</button></noscript>
                 </fieldset>
+            @endif
+
+            @if (commerce_feature('vouchers'))
+                @include($L::view('partials.checkout-vouchers'))
             @endif
 
             @if ($mode->payment())
@@ -190,9 +194,6 @@
             </aside>
 
             <div class="commerce-checkout__place">
-            @if (commerce_feature('vouchers'))
-                <p class="commerce-checkout__voucher"><a href="{{ commerce_url('commerce.cart') }}">{{ __('commerce::checkout.voucher_link') }}</a></p>
-            @endif
             @if (commerce_feature('accounts') && $guest)
                 <label class="commerce-check"><input type="checkbox" name="accepts_marketing" value="1" @checked($data->get('accepts_marketing'))> {{ __('commerce::checkout.marketing') }}</label>
             @endif
@@ -210,7 +211,7 @@
                 data-updated="{{ __('commerce::checkout.refresh.updated') }}"
                 data-failed="{{ __('commerce::checkout.refresh.failed') }}"
                 data-submitting="{{ __('commerce::checkout.refresh.submitting') }}"></p>
-            <button type="button" class="commerce-button commerce-button--secondary" data-commerce-checkout-retry hidden>{{ __('commerce::checkout.refresh.retry') }}</button>
+            <button type="submit" name="action" value="update" class="commerce-link commerce-checkout__update" data-commerce-update>{{ __('commerce::checkout.refresh.update') }}</button>
             <button type="submit" name="action" value="place" class="commerce-button commerce-button--accent commerce-button--block commerce-checkout__submit">{{ $submitLabel }}</button>
             </div>
             </div>
