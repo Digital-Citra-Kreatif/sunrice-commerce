@@ -452,7 +452,9 @@ class StarterStoreSeeder extends Seeder
             return;
         }
         $t = fn (string $id, string $en) => ['id' => $id, 'en' => $en];
-        $java = ShippingZone::query()->create(['name' => 'Jawa & Bali']);
+        // A pre-existing country-wide demo zone must come after this regional zone.
+        ShippingZone::query()->increment('position', 2);
+        $java = ShippingZone::query()->create(['name' => 'Jawa & Bali', 'position' => 0]);
         foreach (['31', '32', '33', '34', '35', '36', '51'] as $province) {
             $java->regions()->create(['country' => 'ID', 'region_code' => $province]);
         }
@@ -463,7 +465,7 @@ class StarterStoreSeeder extends Seeder
         $java->methods()->create(['type' => 'free', 'title' => $t('Gratis ongkir', 'Free shipping'), 'etd' => $t('2–4 hari', '2–4 days'), 'active' => true,
             'settings' => ['requires' => 'min_subtotal', 'min_subtotal' => 500000]]);
 
-        $rest = ShippingZone::query()->create(['name' => 'Indonesia']);
+        $rest = ShippingZone::query()->create(['name' => 'Indonesia', 'position' => 1]);
         $rest->regions()->create(['country' => 'ID']);
         $rest->methods()->create(['type' => 'weight', 'title' => $t('Reguler', 'Regular'), 'etd' => $t('3–6 hari', '3–6 days'), 'active' => true,
             'settings' => ['mode' => 'table', 'table' => [['max' => 1, 'cost' => 25000], ['max' => 3, 'cost' => 45000], ['max' => 10, 'cost' => 90000]]]]);

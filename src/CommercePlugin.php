@@ -15,6 +15,7 @@ use Sunrice\Cms\Admin\ContentNavigation;
 use Sunrice\Cms\CmsPlugin;
 use Sunrice\Cms\Fields\FieldTypes;
 use Sunrice\Commerce\Admin\Dashboard\StoreCard;
+use Sunrice\Commerce\Admin\EditorPresentation;
 use Sunrice\Commerce\Admin\ShopNavigation;
 use Sunrice\Commerce\Http\Controllers\Admin\SettingsController;
 use Sunrice\Commerce\Http\Middleware\MarkProductNavigation;
@@ -57,9 +58,10 @@ final class CommercePlugin extends BasePlugin
         $panel->navigationUsing(fn (): array => ShopNavigation::attributeItems());
         // Products and their taxonomies are listed under Shop → Products, so not again under Content and Taxonomies.
         app(ContentNavigation::class)->listElsewhere(collections: ShopNavigation::collections(...), taxonomies: ShopNavigation::taxonomies(...));
-        // Settings → Store: one item in the Settings menu for anyone who may edit a section of it.
-        $panel->navigation(NavigationItem::make('commerce-settings')->label('Store')->url('commerce/settings')->icon('shopping-bag')
-            ->inSettings()->visible(fn (Authorizable $user): bool => SettingsController::menu($user) !== []));
+        // Keep a shortcut for site administrators without creating a second Settings entry for shop-only users.
+        $panel->navigation(NavigationItem::make('commerce-settings')->label('Store')->url('commerce/settings')->icon('shopping-bag')->inSettings()
+            ->visible(fn (Authorizable $user): bool => array_any(['sunrice.settings.branding', 'sunrice.settings.security', 'sunrice.settings.mail'], $user->can(...))
+                && SettingsController::menu($user) !== []));
         $panel->routes(function (): void {
             require __DIR__.'/../routes/admin.php';
         });
@@ -73,12 +75,10 @@ final class CommercePlugin extends BasePlugin
             ->sort(10)->permission('commerce.dashboard.view')
             ->data(fn (Authorizable $user): array => StoreCard::data($user)));
         // The store's money format, for the admin's money inputs and figures.
-        // On Settings → Store's pages, the panel's Settings menu too (SettingsLayout).
         $panel->share('commerce', fn (): array => [
             'currency' => (array) app(StoreSettings::class)->get('general.currency', []),
-            'settingsNav' => str_starts_with((string) request()->route()?->getName(), 'sunrice.admin.commerce.settings') && ($user = request()->user()) instanceof Authorizable
-                ? $panel->settingsNavigation($user) : [],
         ]);
+        $panel->share('cmsEditor', fn (): array => EditorPresentation::forRequest(request()));
         $panel->tools(...StoreTools::ALL);
         $panel->aiInstructions(StoreTools::INSTRUCTIONS);
         $panel->defaultRole('shop-manager', CommercePermissions::shopManager());

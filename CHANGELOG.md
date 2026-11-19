@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Keep Apply visible while catalog filters scroll, and offer a paginated table beside the grid view.
+- Make Store settings sections visible in a vertical menu and open the Shop overview for shop managers.
+- Identify saved bundle components that can no longer be sold and withhold incomplete price totals.
+- Show shipping zones that are wholly or partly covered by earlier zones. Put the regional starter zone first.
+- Show store defaults and active pricing rule links on category and brand editors in CMS versions that support editor presentation.
+
 - Reuse storefront collection and taxonomy records and preload category banners with other home media.
 
 - Default downloadable variants to one unit per order and name saved checkout addresses from the

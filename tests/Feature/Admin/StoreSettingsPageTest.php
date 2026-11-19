@@ -20,8 +20,7 @@ it('opens the first section the user may edit from the Store tab', function () {
         ->component('Commerce/Settings/Section', false)
         ->where('section.key', 'catalog')
         ->where('sections', [['key' => 'catalog', 'label' => 'Catalog', 'href' => 'commerce/settings/catalog'], ['key' => 'digital', 'label' => 'Digital products', 'href' => 'commerce/settings/digital']])
-        ->where('form.values.price_visibility', 'everyone')
-        ->where('commerce.settingsNav.0.url', 'commerce/settings'));
+        ->where('form.values.price_visibility', 'everyone'));
     $this->get('/admin/commerce/settings/general')->assertForbidden();
     $this->put('/admin/commerce/settings/general', ['values' => ['name' => 'X']])->assertForbidden();
 });

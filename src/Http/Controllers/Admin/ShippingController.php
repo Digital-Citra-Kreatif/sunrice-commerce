@@ -17,6 +17,7 @@ use Sunrice\Commerce\Shipping\Couriers;
 use Sunrice\Commerce\Shipping\Models\ShippingMethod;
 use Sunrice\Commerce\Shipping\Models\ShippingZone;
 use Sunrice\Commerce\Shipping\ShippingTypes;
+use Sunrice\Commerce\Shipping\ZoneMatcher;
 use Sunrice\Commerce\Support\ActivityRecorder;
 
 /** Settings → Store → Shipping: zones in order, their methods, courier presets. */
@@ -27,6 +28,28 @@ class ShippingController extends Controller
         $this->guard();
         $labels = $types->options();
         $zones = ShippingZone::query()->with(['regions', 'methods'])->orderBy('position')->orderBy('id')->get();
+        $coverage = [];
+        $warnings = [];
+        foreach ($zones as $zone) {
+            if ($zone->everywhere_else) {
+                continue;
+            }
+            $matched = [];
+            foreach ($zone->regions as $region) {
+                foreach ($coverage[$region->country] ?? [] as [$code, $name]) {
+                    if (ZoneMatcher::covers($code, $region->region_code)) {
+                        $matched[] = $name;
+                        break;
+                    }
+                }
+            }
+            if ($matched !== []) {
+                $warnings[$zone->id] = ['zones' => array_values(array_unique($matched)), 'all' => count($matched) === $zone->regions->count()];
+            }
+            foreach ($zone->regions as $region) {
+                $coverage[$region->country][] = [$region->region_code, $zone->name];
+            }
+        }
 
         return Inertia::render('Commerce/Settings/Shipping', [
             'sections' => SettingsController::menu($request->user()),
@@ -35,6 +58,7 @@ class ShippingController extends Controller
                 'name' => $zone->name,
                 'everywhere_else' => $zone->everywhere_else,
                 'regions' => $zone->everywhere_else ? [] : $this->regionLabels($zone),
+                'overlap' => $warnings[$zone->id] ?? null,
                 'edit_url' => "commerce/settings/shipping/zones/{$zone->id}/edit",
                 'methods' => $zone->methods->map(fn (ShippingMethod $m) => [
                     'id' => $m->id, 'title' => $m->titleFor(), 'type' => $labels[$m->type] ?? $m->type, 'active' => $m->active, 'etd' => $m->etdFor(),

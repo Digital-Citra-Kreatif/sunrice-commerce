@@ -40,3 +40,23 @@ it('refuses users without the permission', function () {
     actingAsUserWith(['commerce.settings.general']);
     $this->get('/admin/commerce/settings/shipping')->assertForbidden();
 });
+
+it('identifies fully and partly shadowed zones without treating the fallback as a match', function () {
+    actingAsUserWith(['commerce.settings.shipping']);
+    ShippingZone::query()->create(['name' => 'Elsewhere', 'everywhere_else' => true, 'position' => 0]);
+    $country = ShippingZone::query()->create(['name' => 'Indonesia', 'position' => 1]);
+    $country->regions()->create(['country' => 'ID']);
+    $java = ShippingZone::query()->create(['name' => 'Java', 'position' => 2]);
+    $java->regions()->create(['country' => 'ID', 'region_code' => '32']);
+    $mixed = ShippingZone::query()->create(['name' => 'Mixed', 'position' => 3]);
+    $mixed->regions()->create(['country' => 'ID', 'region_code' => '31']);
+    $mixed->regions()->create(['country' => 'SG']);
+
+    $this->get('/admin/commerce/settings/shipping')->assertOk()->assertInertia(fn ($page) => $page
+        ->where('zones.1.overlap', null)
+        ->where('zones.2.overlap', ['zones' => ['Indonesia'], 'all' => true])
+        ->where('zones.3.overlap', ['zones' => ['Indonesia'], 'all' => false]));
+    $this->post('/admin/commerce/settings/shipping/move', ['kind' => 'zone', 'id' => $java->id, 'direction' => 'up']);
+    $this->get('/admin/commerce/settings/shipping')->assertOk()->assertInertia(fn ($page) => $page
+        ->where('zones.1.name', 'Java')->where('zones.1.overlap', null));
+});

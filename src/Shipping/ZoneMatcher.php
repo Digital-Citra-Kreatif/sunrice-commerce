@@ -33,18 +33,20 @@ class ZoneMatcher
                 if ($region->country !== $destination->country()) {
                     continue;
                 }
-                if ($region->region_code === null || $region->region_code === '') {
+                if (array_any([null, ...$codes], fn (?string $code): bool => self::covers($region->region_code, $code))) {
                     return $zone;
-                }
-                foreach ($codes as $code) {
-                    if ($code === $region->region_code || str_starts_with($code, $region->region_code.'.')) {
-                        return $zone;
-                    }
                 }
             }
         }
 
         return $fallback;
+    }
+
+    /** Does the first region include every address in the second, within the same country? */
+    public static function covers(?string $broader, ?string $narrower): bool
+    {
+        return $broader === null || $broader === '' || ($narrower !== null
+            && ($narrower === $broader || str_starts_with($narrower, $broader.'.')));
     }
 
     /** @return Collection<int, ShippingZone> */

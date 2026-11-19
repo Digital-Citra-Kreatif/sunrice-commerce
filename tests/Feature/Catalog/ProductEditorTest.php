@@ -12,8 +12,11 @@ use Sunrice\Commerce\Catalog\CallToAction;
 use Sunrice\Commerce\Catalog\Catalog;
 use Sunrice\Commerce\Catalog\Models\DownloadFile;
 use Sunrice\Commerce\Catalog\Models\Product;
+use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Catalog\ProductValue;
 use Sunrice\Commerce\Http\Controllers\Admin\TargetLabels;
+use Sunrice\Commerce\Promotions\PriceRules\PriceRule;
+use Sunrice\Commerce\Settings\StoreSettings;
 
 beforeEach(function () {
     app(ScaffoldStore::class)->handle();
@@ -98,6 +101,36 @@ it('checks SKUs and searches variants for bundles', function () {
     $this->getJson('/admin/commerce/api/sku-check?sku=mug-01&entry=0')->assertJson(['available' => false, 'product' => 'Mug']);
     $this->getJson("/admin/commerce/api/sku-check?sku=MUG-01&entry={$taken->id}")->assertJson(['available' => true]);
     $this->getJson('/admin/commerce/api/variants?q=mug')->assertJsonPath('data.0.sku', 'MUG-01')->assertJsonPath('data.0.label', 'Mug');
+});
+
+it('identifies a saved bundle component after its variant was removed, while keeping it out of search', function () {
+    publishProduct(['variants' => [['id' => 'mug', 'sku' => 'OLD-MUG', 'price' => 50000]]], title: 'Gelas Kopi');
+    $variant = Variant::query()->where('sku', 'OLD-MUG')->firstOrFail();
+    $variant->delete();
+
+    $this->getJson("/admin/commerce/api/variants?bundle_components=1&ids[]={$variant->id}")
+        ->assertJsonPath('data.0.label', 'Gelas Kopi')->assertJsonPath('data.0.available', false)->assertJsonPath('data.0.price', 50000);
+    $this->getJson('/admin/commerce/api/variants?q=OLD-MUG')->assertJsonCount(0, 'data');
+});
+
+it('supplies product editor wording and active catalog context for categories and brands', function () {
+    $this->get('/admin/cms/collections/products/entries/create')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('cmsEditor.entry.create', 'New product')
+        ->where('cmsEditor.entry.pickers.brands.select', 'Select brand'));
+    $category = term('product_categories', 'Women');
+    $child = term('product_categories', 'Outerwear', $category);
+    $brand = term('brands', 'KAIN');
+    app(StoreSettings::class)->saveSection('catalog', ['category_defaults' => [['term' => $child->id, 'purchase_mode' => 'inquiry']]]);
+    $rule = PriceRule::query()->create(['name' => 'Women deal', 'scope' => 'categories', 'tiers' => [], 'active' => true]);
+    $rule->targets()->create(['target_type' => 'term', 'target_id' => $category->id]);
+    PriceRule::query()->create(['name' => 'Upcoming', 'scope' => 'all', 'tiers' => [], 'active' => true, 'starts_at' => now()->addWeek()]);
+
+    $this->get("/admin/cms/taxonomies/product_categories/terms/{$child->id}/edit")->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('cmsEditor.term.0.items.0.detail', 'Inquiry form · Override on this category')
+        ->where('cmsEditor.term.1.items.0.label', 'Women deal')
+        ->has('cmsEditor.term.1.items', 2));
+    $this->get("/admin/cms/taxonomies/brands/terms/{$brand->id}/edit")->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('cmsEditor.term.1.items.0.label', 'No active pricing rules target this brand.'));
 });
 
 it('keeps the product and target lookups to users who manage them', function () {

@@ -97,10 +97,11 @@ it('upgrades existing product blueprints without moving content or overwriting c
 
     $saved = $blueprint->fresh()->fields;
     expect(array_column($saved, 'handle'))->toBe(['product', 'commerce_presentation', 'gallery', 'custom'])
-        ->and($saved[0])->toBe($fields[0])
+        // JSON object keys can come back in a different order on MySQL.
+        ->and($saved[0])->toEqual($fields[0])
         ->and($saved[2]['type'])->toBe('commerce_gallery')
         ->and($saved[2]['label'])->toBe('Custom photos')
-        ->and($saved[3])->toBe($fields[2]);
+        ->and($saved[3])->toEqual($fields[2]);
 });
 
 it('appends variant-only photos once and maps each variant to its gallery slide', function () {

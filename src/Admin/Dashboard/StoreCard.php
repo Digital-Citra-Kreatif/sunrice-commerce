@@ -51,7 +51,7 @@ final class StoreCard
         $todo = array_sum(array_map(fn (array $t): int => (int) ($t['count'] ?? 1), $props['todo']));
         $parts = array_filter([
             isset($props['orders']) ? trans_choice(':count order today|:count orders today', $props['orders']) : null,
-            $todo > 0 ? trans_choice(':count to-do|:count to-dos', $todo) : null,
+            ...array_map(fn (array $task): ?string => isset($task['label']) ? $task['label'].' ('.($task['count'] ?? 1).')' : null, $props['todo']),
         ]);
 
         return ['value' => $props['sales'] ?? $todo, ...($parts === [] ? [] : ['description' => implode(' · ', $parts)])];

@@ -71,29 +71,36 @@ class ProductApiController extends Controller
     public function variants(Request $request): JsonResponse
     {
         // The bundle tab of the product editor, and the order editor.
-        if (! $request->user()?->can('commerce.orders.create') && ! $request->user()?->can('commerce.orders.edit')) {
+        $references = $request->boolean('bundle_components');
+        if ($references || (! $request->user()?->can('commerce.orders.create') && ! $request->user()?->can('commerce.orders.edit'))) {
             $this->authorizeProductEditing($request->user());
         }
         $q = trim((string) $request->query('q', ''));
         $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $q).'%';
         $ids = array_filter(array_map('intval', (array) $request->query('ids', [])));
+        if ($references && $ids === []) {
+            return response()->json(['data' => []]);
+        }
         $variants = Variant::query()
+            ->withTrashed()
             ->join('commerce_products', 'commerce_products.id', '=', 'commerce_variants.product_id')
-            ->join('sunrice_entry_translations as t', fn ($join) => $join->on('t.entry_id', '=', 'commerce_products.entry_id')->where('t.locale', Locales::default()))
+            ->leftJoin('sunrice_entry_translations as t', fn ($join) => $join->on('t.entry_id', '=', 'commerce_products.entry_id')->where('t.locale', Locales::default()))
             ->when(! $request->boolean('bundles'), fn ($query) => $query->where('commerce_products.type', '!=', 'bundle'))
-            ->where('commerce_variants.active', true)->whereNull('commerce_variants.deleted_at')
-            ->whereNull('commerce_products.removed_at')
+            ->when(! $references, fn ($query) => $query->where('commerce_variants.active', true)->whereNull('commerce_variants.deleted_at')
+                ->whereNull('commerce_products.removed_at')->whereNotNull('t.id'))
             ->when($ids !== [], fn ($query) => $query->whereIn('commerce_variants.id', $ids))
             ->when($q !== '', fn ($query) => $query->where(fn ($w) => $w->whereLike('t.title', $like)->orWhereLike('commerce_variants.sku', $like)))
             ->orderBy('t.title')->orderBy('commerce_variants.position')
             ->limit(30)
-            ->get(['commerce_variants.id', 'commerce_variants.sku', 'commerce_variants.title as variant', 'commerce_variants.price', 't.title as product']);
+            ->get(['commerce_variants.id', 'commerce_variants.sku', 'commerce_variants.title as variant', 'commerce_variants.price', 'commerce_variants.active',
+                'commerce_variants.deleted_at', 'commerce_products.removed_at', 't.title as product', 't.draft_title as draft']);
 
         return response()->json(['data' => $variants->map(fn ($v) => [
             'id' => $v->id,
-            'label' => trim($v->getAttribute('product').($v->getAttribute('variant') ? ' — '.$v->getAttribute('variant') : '')),
+            'label' => implode(' — ', array_filter([$v->getAttribute('product') ?: $v->getAttribute('draft') ?: $v->sku, $v->getAttribute('variant')])),
             'sku' => $v->sku,
             'price' => (int) $v->price,
+            'available' => $v->active && ! $v->trashed() && $v->getAttribute('removed_at') === null,
         ])]);
     }
 }
