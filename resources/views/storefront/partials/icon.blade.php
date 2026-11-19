@@ -1,7 +1,7 @@
 {{--
     A 24 px line icon (inline SVG, decorative: give its link or button a
     text label). $name: search, user, heart, bag, menu, close, filter,
-    chevron, arrow, compare, check, truck, store.
+    chevron, arrow, compare, check, truck, store, trash.
 --}}
 <svg class="commerce-icon commerce-icon--{{ $name }}" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true" focusable="false">
     @switch($name)
@@ -10,6 +10,7 @@
         @case('heart')<path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" stroke-linecap="round" stroke-linejoin="round"/>@break
         @case('bag')<path d="M5 8h14l-1 13H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>@break
         @case('menu')<path d="M3 6h18M3 12h18M3 18h18"/>@break
+        @case('trash')<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7" stroke-linecap="round" stroke-linejoin="round"/>@break
         @case('close')<path d="M5 5l14 14M19 5 5 19"/>@break
         @case('filter')<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>@break
         @case('chevron')<path d="m6 9 6 6 6-6"/>@break

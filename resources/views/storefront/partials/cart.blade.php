@@ -1,8 +1,7 @@
 {{--
     <x-commerce::cart>: $cart (Sunrice\Commerce\Cart\CartView), $lines (this page of $cart->lines, a paginator).
-    The lines on the left (a card per line on phones), the summary on the
-    right: voucher codes, totals, checkout; cross-sells below. Every form
-    posts without JavaScript.
+    The lines on the left, the summary and checkout on the right, and cross-sells
+    below. Every form posts without JavaScript.
 --}}
 @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
 @php($taxDisplay = app(\Sunrice\Commerce\Taxes\TaxDisplay::class))
@@ -27,20 +26,25 @@
                     <tbody>
                         @foreach ($lines as $row)
                             @php($line = $row['line'])
+                            @php($productName = $row['entry']?->title ?? $row['entry']?->draft_title ?? '')
+                            @php($itemName = implode(' · ', array_filter([$productName, $line->variant->title])))
                             <tr data-commerce-cart-line="{{ $row['item']->id }}">
                                 <td class="commerce-cart__product">
-                                    @php($image = $row['entry'] ? collect((commerce_values($row['entry'])['gallery'] ?? null) ?? [])->first() : null)
-                                    <span class="commerce-cart__thumb">@if (is_object($image))<img src="{{ $image->url() }}" alt="" width="96" height="120" loading="lazy">@endif</span>
-                                    <span class="commerce-cart__info">
-                                        <a href="{{ $row['entry']?->url() }}">{{ ($row['entry']?->title ?? $row['entry']?->draft_title) }}</a>
-                                        @if ($line->variant->title !== '')<span class="commerce-cart__variant">{{ $line->variant->title }}</span>@endif
-                                        @foreach (app(\Sunrice\Commerce\Cart\LineDetails::class)->for($line->meta) as $detail)<span class="commerce-cart__detail">{{ $detail }}</span>@endforeach
-                                        @if ($line->priceSource['type'] === 'flash_sale')<span class="commerce-badge commerce-badge--sale">{{ $line->priceSource['label'] ?? '' }}</span>@endif
-                                    </span>
-                                </td>
-                                <td class="commerce-cart__price">
-                                    @if ($line->regularUnitPrice > $line->unitPrice)<del>{{ $money->format($taxDisplay->line($line, $line->regularUnitPrice)) }}</del>@endif
-                                    {{ $money->format($taxDisplay->line($line, $line->unitPrice)) }}
+                                    <div class="commerce-cart__product-content">
+                                        @php($image = $row['entry'] ? collect((commerce_values($row['entry'])['gallery'] ?? null) ?? [])->first() : null)
+                                        <span class="commerce-cart__thumb">@if (is_object($image))<img src="{{ $image->url() }}" alt="" width="64" height="80" loading="lazy">@endif</span>
+                                        <span class="commerce-cart__info">
+                                            <a href="{{ $row['entry']?->url() }}">{{ $productName }}</a>
+                                            @if ($line->variant->title !== '')<span class="commerce-cart__variant">{{ $line->variant->title }}</span>@endif
+                                            @foreach (app(\Sunrice\Commerce\Cart\LineDetails::class)->for($line->meta) as $detail)<span class="commerce-cart__detail">{{ $detail }}</span>@endforeach
+                                            @if ($line->priceSource['type'] === 'flash_sale')<span class="commerce-badge commerce-badge--sale">{{ $line->priceSource['label'] ?? '' }}</span>@endif
+                                            <span class="commerce-cart__price">
+                                                <span class="commerce-visually-hidden">{{ __('commerce::storefront.cart.unit_price') }}</span>
+                                                @if ($line->regularUnitPrice > $line->unitPrice)<del>{{ $money->format($taxDisplay->line($line, $line->regularUnitPrice)) }}</del>@endif
+                                                {{ $money->format($taxDisplay->line($line, $line->unitPrice)) }}
+                                            </span>
+                                        </span>
+                                    </div>
                                 </td>
                                 <td class="commerce-cart__qty">
                                     <form method="POST" action="{{ commerce_url('commerce.cart.update', ['item' => $row['item']->id]) }}">
@@ -52,13 +56,21 @@
                                     </form>
                                 </td>
                                 <td class="commerce-cart__total">
+                                    <span class="commerce-visually-hidden">{{ __('commerce::storefront.cart.line_total') }}</span>
                                     @if ($line->discount() > 0)<del>{{ $money->format($taxDisplay->line($line, $line->subtotal)) }}</del>@endif
                                     {{ $money->format($taxDisplay->line($line, $line->net())) }}
                                 </td>
                                 <td class="commerce-cart__remove">
-                                    <form method="POST" action="{{ commerce_url('commerce.cart.remove', ['item' => $row['item']->id]) }}">
+                                    <form method="POST" action="{{ commerce_url('commerce.cart.remove', ['item' => $row['item']->id]) }}" data-commerce-cart-remove="{{ $itemName }}">
                                         @csrf @method('DELETE')
-                                        <button type="submit" aria-label="{{ __('commerce::storefront.cart.remove') }}">@include($L::view('partials.icon'), ['name' => 'close'])</button>
+                                        <details class="commerce-cart__remove-disclosure">
+                                            <summary class="commerce-cart__remove-trigger" data-commerce-cart-remove-trigger
+                                                aria-label="{{ __('commerce::storefront.cart.remove_item', ['item' => $itemName]) }}">@include($L::view('partials.icon'), ['name' => 'trash'])</summary>
+                                            <div class="commerce-cart__remove-fallback">
+                                                <p>{{ __('commerce::storefront.cart.remove_confirm') }}</p>
+                                                <button type="submit" class="commerce-button commerce-button--danger">{{ __('commerce::storefront.cart.remove') }}</button>
+                                            </div>
+                                        </details>
                                     </form>
                                 </td>
                             </tr>
@@ -88,6 +100,16 @@
                 </ul>
             </aside>
         </div>
+
+        <dialog class="commerce-cart__remove-dialog" data-commerce-cart-remove-dialog
+            aria-labelledby="commerce-cart-remove-title" aria-describedby="commerce-cart-remove-item">
+            <h2 id="commerce-cart-remove-title">{{ __('commerce::storefront.cart.remove_confirm') }}</h2>
+            <p id="commerce-cart-remove-item" data-commerce-cart-remove-item></p>
+            <form method="dialog" class="commerce-cart__remove-actions">
+                <button type="submit" value="cancel" class="commerce-button commerce-button--secondary" autofocus>{{ __('commerce::storefront.cart.remove_cancel') }}</button>
+                <button type="submit" value="remove" class="commerce-button commerce-button--danger">{{ __('commerce::storefront.cart.remove') }}</button>
+            </form>
+        </dialog>
 
         @php($crossSells = collect($cart->lines)->flatMap(fn ($row) => collect(($row['entry'] ? (commerce_values($row['entry'])['cross_sells'] ?? null) : null) ?? []))->filter()->unique('id')
             ->reject(fn ($entry) => collect($cart->lines)->contains(fn ($row) => $row['entry']?->entry_id === $entry->entry_id))->take(5))

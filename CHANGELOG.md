@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Cart items use denser rows, with a trash icon and a confirmation dialog before removal.
+  Merge the updated cart and icon partials, storefront translations and theme assets into published copies.
+
 - The add-to-cart success toast includes a shortcut to the cart. Merge the updated
   `partials/add-recovery.blade.php` and storefront theme assets into published copies.
 

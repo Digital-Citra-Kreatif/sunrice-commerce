@@ -120,6 +120,43 @@
             });
     });
 
+    document.querySelectorAll('[data-commerce-cart]').forEach(function (cart) {
+        var dialog = cart.querySelector('[data-commerce-cart-remove-dialog]');
+        if (typeof dialog?.showModal !== 'function') return;
+
+        var name = dialog.querySelector('[data-commerce-cart-remove-item]');
+        var form;
+        var trigger;
+        function close() {
+            dialog.close();
+            trigger?.focus();
+            form = null;
+            trigger = null;
+        }
+
+        cart.addEventListener('click', function (event) {
+            var opener = event.target.closest('[data-commerce-cart-remove-trigger]');
+            if (!opener) return;
+
+            event.preventDefault();
+            if (dialog.open) return;
+            trigger = opener;
+            form = opener.closest('form');
+            name.textContent = form.dataset.commerceCartRemove;
+            dialog.showModal();
+        });
+        dialog.addEventListener('submit', function (event) {
+            event.preventDefault();
+            var remove = form;
+            close();
+            if (event.submitter?.value === 'remove') remove?.submit();
+        });
+        dialog.addEventListener('cancel', function (event) {
+            event.preventDefault();
+            close();
+        });
+    });
+
     // Checkout: show/hide toggled parts, and refresh rates, payments and totals on change.
     document.querySelectorAll('[data-commerce-checkout]').forEach(function (form) {
         function syncToggles() {

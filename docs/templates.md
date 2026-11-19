@@ -377,6 +377,8 @@ attributes:
   successful add. A submit button named `buy_now` still posts normally. If the API response cannot
   confirm what happened, Commerce does not resend the request. Include `partials.add-recovery` in
   published add-to-cart forms for the success toast link and the inline recovery notice.
+- **Cart removal** uses a trash button and a shared confirmation dialog from `partials.cart`.
+  With JavaScript off, the trash control opens an inline confirmation.
 - **Checkout refresh** (`[data-commerce-checkout]`): changes to pricing inputs post the form to
   `/checkout/refresh` and replace the shipping rates, payment methods and summary. Choosing pickup
   keeps the shipping address visible and shows `data-commerce-pickup-note`. Applying or removing
