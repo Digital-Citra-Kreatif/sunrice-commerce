@@ -59,7 +59,7 @@ class PayController
         $order = Order::query()->where('order_key', $key)->first();
         abort_if($order === null, 404);
 
-        $payment = $order->payments()->latest('id')->first();
+        $payment = $order->payments()->reorder('id', 'desc')->first();
         $method = $payment !== null ? $payments->get($payment->method) : null;
         if ($payment !== null && $method instanceof HandlesReturn) {
             try {

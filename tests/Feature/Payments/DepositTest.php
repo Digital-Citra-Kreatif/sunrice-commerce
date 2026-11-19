@@ -9,6 +9,7 @@ use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
 use Sunrice\Commerce\Checkout\CheckoutData;
 use Sunrice\Commerce\Commerce;
 use Sunrice\Commerce\Orders\Actions\MarkOrderPaid;
+use Sunrice\Commerce\Orders\Actions\RecordRefund;
 use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\Events\BalanceOverdue;
 use Sunrice\Commerce\Orders\Events\DepositPaid;
@@ -79,6 +80,18 @@ it('is partially paid after the deposit, paid after the balance', function () {
         ->and($order->paid_at)->not->toBeNull()
         ->and($pay->payable($order))->toBeFalse();
     Event::assertDispatched(OrderPaid::class);
+});
+
+it('refunds the balance payment first, newest first', function () {
+    $order = placeDeposit($this->mug);
+    app(RecordPaymentResult::class)->handle($order->payments->sole(), PaymentResult::paid(18000, 'dp'));
+    app(PayWithMethod::class)->handle($order->fresh(), 'test_transfer');
+    [$deposit, $balance] = $order->payments()->get()->all();
+    app(RecordPaymentResult::class)->handle($balance, PaymentResult::paid(42000, 'lunas'));
+
+    app(RecordRefund::class)->handle($order->fresh(), 10000, [], 'Damaged', false, Actor::system());
+
+    expect([$deposit->fresh()->refunded_amount, $balance->fresh()->refunded_amount])->toBe([0, 10000]);
 });
 
 it('stays partially paid when the balance payment expires, without cancelling', function () {

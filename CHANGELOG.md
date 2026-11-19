@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 0.3.1 (2026-11-19)
+
+A fix for orders with more than one payment. Update with `composer update sunrice/commerce`; nothing
+else to run.
+
+- Fix: the newest payment of an order is used where it should be. `Order::payments()` is ordered by
+  id, so `->latest('id')` on it still returned the oldest payment: the gateway return checked an
+  earlier payment after the customer switched method or paid a deposit's balance, and Mark paid,
+  refunds via the gateway and payment confirmations could pick an older payment. Refunds were also
+  spread over the payments oldest first instead of newest first. They now use
+  `->reorder('id', 'desc')`.
+
 ## 0.3.0 (2026-11-19)
 
 **Upgrading from 0.2**: still on Sunrice 0.7. Run `composer require sunrice/commerce:^0.3 -W`, then

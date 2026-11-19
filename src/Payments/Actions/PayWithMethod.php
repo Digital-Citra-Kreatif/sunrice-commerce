@@ -67,7 +67,7 @@ class PayWithMethod
         }
 
         $payment = $this->balancePayment($order) ? $this->balance($order, $key, $method) : DB::transaction(function () use ($order, $key, $method): Payment {
-            $open = $order->payments()->whereIn('status', ['pending', 'failed'])->latest('id')->first();
+            $open = $order->payments()->whereIn('status', ['pending', 'failed'])->reorder('id', 'desc')->first();
             if ($open !== null && $open->method === $key && $open->status === 'pending') {
                 return $open;
             }
@@ -117,7 +117,7 @@ class PayWithMethod
     protected function balance(Order $order, string $key, PaymentMethod $method): Payment
     {
         return DB::transaction(function () use ($order, $key, $method): Payment {
-            $open = $order->payments()->whereIn('status', ['pending', 'failed'])->latest('id')->first();
+            $open = $order->payments()->whereIn('status', ['pending', 'failed'])->reorder('id', 'desc')->first();
             if ($open !== null && $open->method === $key && $open->status === 'pending' && $open->amount === $order->balanceDue()) {
                 return $open;
             }
