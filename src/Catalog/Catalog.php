@@ -10,7 +10,6 @@ use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Contracts\Inventory;
 use Sunrice\Commerce\Contracts\SaleLimits;
 use Sunrice\Commerce\Features\Features;
-use Sunrice\Commerce\Settings\StoreSettings;
 
 /**
  * Purchasability (ARCHITECTURE.md §7.3): one place deciding whether a
@@ -23,7 +22,7 @@ class Catalog
 
     public function __construct(
         protected Features $features,
-        protected StoreSettings $settings,
+        protected ProductDefaults $defaults,
         protected PriceVisibility $prices,
         protected Inventory $inventory,
         protected SaleLimits $saleLimits,
@@ -73,6 +72,7 @@ class Catalog
             }
         }
         $this->loadPublished($all);
+        $this->defaults->preload(array_map(fn (Product $product): int => $product->entry_id, $all));
     }
 
     /** Sunrice decides publication: the entry query returns only published, visible entries. */
@@ -97,8 +97,7 @@ class Catalog
         if (! $this->features->active('cart')) {
             return new Availability('feature_off');
         }
-        $mode = PurchaseModes::resolve((string) $this->settings->get('general.selling_mode', 'shop'), $product->purchase_mode, true,
-            (string) $this->settings->get('catalog.call_to_action', 'inquiry'), (array) $product->external_links);
+        $mode = $this->defaults->purchaseMode($product->entry_id, $product->purchase_mode, (array) $product->external_links)['type'];
         if ($mode !== 'cart') {
             return new Availability('purchase_mode');
         }

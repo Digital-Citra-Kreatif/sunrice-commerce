@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Catalog;
 
 use Sunrice\Commerce\Catalog\Models\Product;
-use Sunrice\Commerce\Features\Features;
-use Sunrice\Commerce\Settings\StoreSettings;
 
 /**
  * The button(s) a product shows: the resolved purchase mode with its
@@ -15,20 +13,14 @@ use Sunrice\Commerce\Settings\StoreSettings;
  */
 class CallToAction
 {
-    public function __construct(protected StoreSettings $settings, protected Features $features) {}
+    public function __construct(protected ProductDefaults $defaults) {}
 
     /**
      * @return array{type: string, label: string, url: string|null, links: array<int, array{label: string, url: string}>}
      */
     public function for(Product $product): array
     {
-        $type = PurchaseModes::resolve(
-            (string) $this->settings->get('general.selling_mode', 'shop'),
-            $product->purchase_mode,
-            $this->features->active('cart'),
-            (string) $this->settings->get('catalog.call_to_action', 'inquiry'),
-            (array) $product->external_links,
-        );
+        $type = $this->defaults->purchaseMode($product->entry_id, $product->purchase_mode, (array) $product->external_links)['type'];
         $go = fn (string $kind, array $query = []) => commerce_url('commerce.go', ['type' => $kind, 'entry' => $product->entry_id, ...$query]);
 
         return match ($type) {

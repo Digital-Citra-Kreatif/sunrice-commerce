@@ -38,7 +38,8 @@ export default function TargetsField({ field, value, onChange, id }: FieldProps<
                 </div>
             )}
             <div className="cm:relative">
-                <Input id={id} value={query} placeholder="Search products, SKUs, categories, brands…" onFocus={() => setOpen(true)}
+                <Input id={id} value={query} placeholder={config.types && (config.types as string[]).every((type) => type !== 'term')
+                    ? 'Search products, variants or SKUs…' : 'Search products, SKUs, categories, brands…'} onFocus={() => setOpen(true)}
                     onBlur={() => setTimeout(() => setOpen(false), 150)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)} />
                 {open && results.length > 0 && (
                     <ul className="cm:absolute cm:z-20 cm:mt-1 cm:max-h-72 cm:w-full cm:overflow-auto cm:rounded-md cm:border cm:bg-background cm:shadow">

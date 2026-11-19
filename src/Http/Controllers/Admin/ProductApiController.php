@@ -12,6 +12,7 @@ use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Catalog\ProductDefaults;
 use Sunrice\Commerce\Inventory\Actions\AdjustStock;
 
 /** JSON for the product editor control. */
@@ -44,11 +45,12 @@ class ProductApiController extends Controller
         $model = Entry::query()->findOrFail($entry);
         $this->authorize('view', $model);
         $product = Product::query()->where('entry_id', $entry)->first();
+        $preview = app(ProductDefaults::class)->purchasePreview($model);
         if ($product === null) {
-            return response()->json(['data' => null]);
+            return response()->json(['data' => null, 'purchase_default' => $preview]);
         }
 
-        return response()->json(['data' => [
+        return response()->json(['purchase_default' => $preview, 'data' => [
             'id' => $product->id,
             'sync_status' => $product->sync_status,
             'sync_error' => $product->sync_error,

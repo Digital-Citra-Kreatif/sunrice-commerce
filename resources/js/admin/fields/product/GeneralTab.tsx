@@ -4,20 +4,30 @@ import { SkuInput } from './SkuInput';
 import type { ProductValue, TabProps } from './types';
 
 const PURCHASE_MODES: Array<[string, string]> = [
-    ['default', 'Follow the store (selling mode)'],
     ['cart', 'Add to cart'],
     ['inquiry', 'Inquiry form'],
     ['whatsapp', 'Ask on WhatsApp'],
     ['external', 'Links to other shops'],
-    ['none', 'No button (display only)'],
+    ['none', 'No button'],
 ];
 
-export function GeneralTab({ value, update, updateVariant, config, entryId, path }: TabProps) {
+export function GeneralTab({ value, update, updateVariant, config, purchaseDefault, entryId, path }: TabProps) {
     const { Button } = ui;
     const types: Array<[ProductValue['type'], string]> = [['simple', 'Simple product']];
     if (config.features.variants || value.type === 'variable') types.push(['variable', 'Variable product (sizes, colors…)']);
     if (config.features.bundles || value.type === 'bundle') types.push(['bundle', 'Bundle of other products']);
     const single = value.variants[0];
+
+    const hasLinks = value.external_links.some((link) => link.url);
+    const inherited = hasLinks ? purchaseDefault?.with_links : purchaseDefault?.without_links;
+    const inheritedLabel = PURCHASE_MODES.find(([mode]) => mode === inherited?.type)?.[1];
+    const inheritedSource = inherited?.source_name ? `${inherited.source} settings (${inherited.source_name})` : `${inherited?.source ?? 'store'} settings`;
+    const inheritedOption = inheritedLabel ? `Default · ${inheritedLabel}` : 'Default · Inherit settings';
+    const hint = value.purchase_mode === 'default'
+        ? inheritedLabel ? `Inherited from ${inheritedSource}.` : 'Uses the closest saved setting in brand, category, or store.'
+        : 'This product overrides the inherited setting.';
+    const needsLinks = value.purchase_mode === 'external'
+        || (value.purchase_mode === 'default' && purchaseDefault?.with_links.type === 'external');
 
     return (
         <div className="cm:grid cm:gap-6">
@@ -25,8 +35,8 @@ export function GeneralTab({ value, update, updateVariant, config, entryId, path
                 <Row label="Product type" htmlFor={`${path}-type`}>
                     <NativeSelect id={`${path}-type`} value={value.type} options={types} onChange={(type) => update({ type })} />
                 </Row>
-                <Row label="Storefront button" htmlFor={`${path}-mode`} hint="Uses the selling mode in Store settings unless overridden here.">
-                    <NativeSelect id={`${path}-mode`} value={value.purchase_mode} options={PURCHASE_MODES} onChange={(purchase_mode) => update({ purchase_mode })} />
+                <Row label="Storefront button" htmlFor={`${path}-mode`} hint={hint}>
+                    <NativeSelect id={`${path}-mode`} value={value.purchase_mode} options={[[ 'default', inheritedOption ], ...PURCHASE_MODES]} onChange={(purchase_mode) => update({ purchase_mode })} />
                 </Row>
             </Grid>
 
@@ -41,7 +51,7 @@ export function GeneralTab({ value, update, updateVariant, config, entryId, path
                 </Section>
             )}
 
-            {(value.purchase_mode === 'external' || value.external_links.length > 0) && (
+            {(needsLinks || value.external_links.length > 0) && (
                 <Section title="Links to other shops" description="Buttons such as 'Buy on Tokopedia'."
                     actions={value.external_links.length < 10 && <Button type="button" variant="outline" size="sm" onClick={() => update({ external_links: [...value.external_links, { preset: 'tokopedia', label: null, url: null }] })}>Add link</Button>}>
                     {value.external_links.map((link, i) => {

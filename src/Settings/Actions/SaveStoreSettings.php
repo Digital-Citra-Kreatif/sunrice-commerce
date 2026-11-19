@@ -58,7 +58,7 @@ class SaveStoreSettings
 
         // The fields' own rules, then the section's.
         $form = SchemaForm::make($section->fields());
-        $rules = array_merge_recursive($form->rules(), $section->rules());
+        $rules = array_merge_recursive($form->rules($input), $section->rules());
         $values = Validator::make($input, $rules)->validate();
         // Only keys the section declares are stored.
         $keys = [...array_column($section->fields(), 'handle'), ...array_map(fn (string $k) => explode('.', $k)[0], array_keys($rules))];

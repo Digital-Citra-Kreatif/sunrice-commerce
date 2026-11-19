@@ -10,7 +10,7 @@ import { GeneralTab } from './GeneralTab';
 import { InventoryTab } from './InventoryTab';
 import { PricingTab } from './PricingTab';
 import { ShippingTab } from './ShippingTab';
-import { emptyVariant, type EditorConfig, type LiveProduct, type ProductValue, type TabProps, type Variant } from './types';
+import { emptyVariant, type EditorConfig, type LiveProduct, type ProductValue, type PurchaseDefaults, type TabProps, type Variant } from './types';
 import { VariantsTab } from './VariantsTab';
 
 function withDefaults(value: Partial<ProductValue> | null | undefined): ProductValue {
@@ -32,13 +32,14 @@ export default function ProductEditor({ field, value: raw, onChange, errors, id 
     const value = withDefaults(raw);
     const { props } = inertia.usePage<{ entry?: { id: number } | null }>();
     const entryId = props.entry?.id ?? null;
+    const [savedPurchaseDefault, setSavedPurchaseDefault] = React.useState<PurchaseDefaults>();
     const [live, setLive] = React.useState<LiveProduct | null>(null);
 
     React.useEffect(() => {
         if (!entryId) return;
         const request = new AbortController();
-        fetchJson<{ data: LiveProduct | null }>(adminUrl(`commerce/api/products/${entryId}`), { signal: request.signal })
-            .then((result) => { if (!request.signal.aborted) setLive(result.data); }).catch(() => undefined);
+        fetchJson<{ data: LiveProduct | null; purchase_default?: PurchaseDefaults }>(adminUrl(`commerce/api/products/${entryId}`), { signal: request.signal })
+            .then((result) => { if (!request.signal.aborted) { setLive(result.data); setSavedPurchaseDefault(result.purchase_default); } }).catch(() => undefined);
         return () => request.abort();
     }, [entryId, props.entry]); // refetch after saves (new page props)
 
@@ -75,7 +76,7 @@ export default function ProductEditor({ field, value: raw, onChange, errors, id 
             return { ...product, variants: { ...product.variants, [key]: { ...variant, stock_quantity: quantity } } };
         });
     };
-    const tabProps: TabProps = { value, update, updateVariant, config, live, updateLiveStock, entryId, path: id };
+    const tabProps: TabProps = { value, update, updateVariant, config, live, purchaseDefault: savedPurchaseDefault ?? config.purchase_default, updateLiveStock, entryId, path: id };
 
     return (
         <div className="cm:grid cm:gap-4 cm:rounded-lg cm:border cm:p-4">

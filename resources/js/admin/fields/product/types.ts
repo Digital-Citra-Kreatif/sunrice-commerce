@@ -42,7 +42,11 @@ export interface ProductValue {
     tiers: Tier[];
 }
 
+export type PurchasePreview = { type: string; source: string; source_name: string | null };
+export type PurchaseDefaults = { without_links: PurchasePreview; with_links: PurchasePreview };
+
 export interface EditorConfig {
+    purchase_default?: PurchaseDefaults;
     max_options: number;
     max_variants: number;
     link_presets: Record<string, string>;
@@ -66,6 +70,7 @@ export interface TabProps {
     updateVariant: (index: number, patch: Partial<Variant>) => void;
     config: EditorConfig;
     live: LiveProduct | null;
+    purchaseDefault?: PurchaseDefaults;
     updateLiveStock: (key: string, variantId: number, quantity: number) => void;
     entryId: number | null;
     path: string;

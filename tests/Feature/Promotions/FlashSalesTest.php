@@ -109,6 +109,21 @@ it('manages sales in the admin and refuses overlaps', function () {
     $this->delete("/admin/commerce/flash-sales/{$sale->id}")->assertRedirect();
 });
 
+it('applies a flash sale rule to every selected product and variant', function () {
+    actingAsSuperAdmin();
+    $variant = Variant::query()->where('sku', 'MUG')->firstOrFail();
+    $another = Product::factory()->create();
+    $values = ['name' => 'Bulk sale', 'active' => true,
+        'dates' => ['start' => now()->addDay()->toIso8601String(), 'end' => now()->addDays(2)->toIso8601String()],
+        'items' => [['target' => [
+            ['type' => 'variant', 'id' => $variant->id, 'label' => 'Mug'],
+            ['type' => 'product', 'id' => $another->id, 'label' => 'Another product'],
+        ], 'discount_type' => 'percent_off', 'percent' => 20, 'quantity_limit' => 5]]];
+    $this->post('/admin/commerce/flash-sales', ['values' => $values])->assertSessionHasNoErrors();
+    expect(FlashSaleItem::query()->orderBy('position')->pluck('product_id')->all())->toBe([$variant->product_id, $another->id])
+        ->and(FlashSaleItem::query()->pluck('discount_value')->all())->toBe([2000, 2000]);
+});
+
 it('refuses adding more than the per-customer limit while the sale price applies', function () {
     $this->withoutMiddleware(ValidateCsrfToken::class);
     config(['honeypot.enabled' => false]);

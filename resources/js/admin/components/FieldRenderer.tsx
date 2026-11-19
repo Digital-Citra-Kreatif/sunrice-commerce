@@ -210,7 +210,11 @@ function Repeater({ field, value, onChange, path, errors, label }: { field: Fiel
                 const key = keys.current[i];
                 const rowPath = `${path}.${i}`;
                 const failing = Object.keys(errors).some((k) => k === rowPath || k.startsWith(`${rowPath}.`));
-                const summary = (ui.cardSummary as unknown as (values: unknown[]) => string)(summaryValues(field.fields ?? [], row));
+                const summaryKey = field.config?.summary_targets;
+                const targets = typeof summaryKey === 'string' ? row[summaryKey] : null;
+                const names = Array.isArray(targets) ? targets.flatMap((target) => typeof target?.label === 'string' && target.label ? [target.label] : []) : [];
+                const targetSummary = names.length > 1 ? `${names[0]} +${names.length - 1}` : names[0];
+                const summary = targetSummary ?? (ui.cardSummary as unknown as (values: unknown[]) => string)(summaryValues(field.fields ?? [], row));
                 const shown = failing || open.has(key) || summary === '';
                 const toggle = () => setOpen((current) => {
                     const copy = new Set(current);
