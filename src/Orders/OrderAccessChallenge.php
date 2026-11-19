@@ -21,7 +21,7 @@ final class OrderAccessChallenge
     {
         $nonce = Str::random(40);
         $request->session()->put(self::SESSION_KEY, $nonce);
-        if ($order === null || $order->user_id !== null || ! filled($order->email)) {
+        if ($order === null || ! $this->canRecover($order)) {
             return;
         }
 
@@ -57,8 +57,8 @@ final class OrderAccessChallenge
             return null;
         }
 
-        $order = Order::query()->whereNull('user_id')->where('email', $challenge['email'])->find($challenge['order']);
-        if ($order === null || ! Cache::add($key.':used', true, 600)) {
+        $order = Order::query()->where('email', $challenge['email'])->find($challenge['order']);
+        if ($order === null || ! $this->canRecover($order) || ! Cache::add($key.':used', true, 600)) {
             return null;
         }
 
@@ -66,6 +66,31 @@ final class OrderAccessChallenge
         $request->session()->forget(self::SESSION_KEY);
 
         return ['order' => $order, 'confirm' => (bool) $challenge['confirm']];
+    }
+
+    private function canRecover(Order $order): bool
+    {
+        if (! filled($order->email)) {
+            return false;
+        }
+        if ($order->user_id === null) {
+            return true;
+        }
+        if (! $order->wasPlacedAsGuest()) {
+            return false;
+        }
+
+        $signedIn = commerce_customer();
+        if ($signedIn !== null && (int) $signedIn->getAuthIdentifier() !== (int) $order->user_id) {
+            return false;
+        }
+
+        $owner = $order->customer?->user();
+
+        return $owner !== null
+            && (int) $owner->getAuthIdentifier() === (int) $order->user_id
+            && $owner->getAttribute('email_verified_at') !== null
+            && mb_strtolower(trim((string) $owner->getAttribute('email'))) === $order->email;
     }
 
     private function key(string $nonce): string

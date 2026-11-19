@@ -2,10 +2,12 @@
 @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
 @php($i = (array) $payment->instructions)
 <div class="commerce-payment commerce-payment--bank-transfer">
-    <p class="commerce-payment__amount">
-        <strong data-commerce-copy="{{ $i['amount'] ?? $payment->amount }}">{{ $money->format((int) ($i['amount'] ?? $payment->amount)) }}</strong>
-        <button type="button" class="commerce-link" data-commerce-copy-button>{{ __('commerce::payments.copy') }}</button>
-    </p>
+    @if ($showAmount ?? true)
+        <p class="commerce-payment__amount">
+            <strong data-commerce-copy="{{ $i['amount'] ?? $payment->amount }}">{{ $money->format((int) ($i['amount'] ?? $payment->amount)) }}</strong>
+            <button type="button" class="commerce-link" data-commerce-copy-button>{{ __('commerce::payments.copy') }}</button>
+        </p>
+    @endif
     @if (! empty($i['unique_code']))
         <p class="commerce-payment__note">{{ __('commerce::payments.exact_amount', ['amount' => $money->format((int) ($i['amount'] ?? $payment->amount))]) }}</p>
     @endif

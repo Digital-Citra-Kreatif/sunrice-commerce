@@ -31,8 +31,13 @@ it('keeps a guest wishlist and shares it read-only', function () {
 
     $this->get("/wishlist/shared/{$wishlist->share_token}")->assertNotFound();
     $this->post('/wishlist/share', ['on' => 1]);
+    $shareNotice = __('commerce::storefront.wishlist.shared');
+    $sharedPage = $this->get('/wishlist')->assertOk()->assertSeeInOrder([
+        $shareNotice, 'id="commerce-share-link"', 'class="commerce-grid commerce-grid--wide"',
+    ], false);
+    expect(substr_count($sharedPage->getContent(), $shareNotice))->toBe(1);
     $this->flushSession();
-    $this->withCookies([])->get("/wishlist/shared/{$wishlist->share_token}")->assertOk()->assertSee('Mug')->assertDontSee('commerce.wishlist.remove');
+    $this->withCookies([])->get("/wishlist/shared/{$wishlist->share_token}")->assertOk()->assertSee('Mug')->assertDontSee('commerce.wishlist.remove')->assertDontSee('id="commerce-share-link"', false);
 
     $this->delete("/wishlist/items/{$this->teaId}");
     expect($wishlist->items()->count())->toBe(1);

@@ -218,6 +218,8 @@ return [
         'home' => 'Beranda',
         'breadcrumbs' => 'Navigasi halaman',
         'search' => 'Cari',
+        'search_matches' => '{0} Tidak ditemukan produk|[1,*] Ditemukan :count produk',
+        'search_view_results' => 'Lihat hasil',
         'search_placeholder' => 'Cari produk',
         'search_tips' => 'Periksa ejaannya, atau coba kata yang lebih umum seperti “kemeja” atau “jaket”.',
         'results_for' => 'Hasil untuk “:query”',

@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- When a guest checks out with an existing verified account's email, open the new order and
+  payment pages in the checkout browser and offer email-code recovery through Track order.
+
+- Preselect the first available payment method at checkout and include its fees in the initial total.
+
+- Show a localized product count and a results link after a one-second pause in storefront search.
+
+- Share a compact payment panel between the confirmation and account order pages. Simplify the
+  return form and surface the share link above the Wishlist products.
+
 - My Account opens Orders, with compact filters, a collapsible date range, and a back link from
   order details. Points has a balance summary, expiry and history. Staff can publish a localized
   announcement as the first tab or above or below account content. Update published account

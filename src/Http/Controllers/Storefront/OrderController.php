@@ -8,6 +8,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Customers\Auth\Throttle;
 use Sunrice\Commerce\Digital\Models\DownloadGrant;
 use Sunrice\Commerce\Documents\Documents;
@@ -129,6 +130,8 @@ class OrderController
         $order->load(['items.children', 'adjustments', 'payments', 'shipments']);
         $payment = $order->payment();
         $method = $payment !== null ? app(PaymentManager::class)->get($payment->method) : null;
+        $guestWithAccounts = commerce_customer() === null && $order->user_id === null && commerce_feature('accounts');
+        $accountRequested = $guestWithAccounts && $this->requestedAccountAtCheckout($order);
 
         return [
             'order' => $order,
@@ -141,8 +144,25 @@ class OrderController
             'downloads' => DownloadGrant::query()->with('file')->where('order_id', $order->id)->whereNull('revoked_at')->get(),
             'invoiceUrl' => $this->invoiceAvailable($order) ? commerce_url('commerce.order.invoice', ['key' => $order->order_key]) : null,
             'canCancel' => app(CancelOrderByCustomer::class)->allowed($order),
-            'invite' => commerce_customer() === null && $order->user_id === null && commerce_feature('accounts'),
+            'invite' => $guestWithAccounts && ! $accountRequested && app(StoreSettings::class)->get('accounts.registration', true),
+            'accountRequested' => $accountRequested,
             'registerUrl' => commerce_feature('accounts') ? StorefrontRoutes::url('commerce.account.register') : null,
         ];
+    }
+
+    private function requestedAccountAtCheckout(Order $order): bool
+    {
+        $recorded = $order->meta('checkout_account_requested');
+        if (is_bool($recorded)) {
+            return $recorded;
+        }
+
+        // Older checkouts may still have the submitted choice on their converted cart.
+        if ($order->checkout_token === null) {
+            return false;
+        }
+        $checkout = Cart::query()->where('order_id', $order->id)->value('checkout');
+
+        return (bool) data_get($checkout, 'create_account');
     }
 }

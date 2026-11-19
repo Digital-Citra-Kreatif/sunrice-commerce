@@ -22,6 +22,59 @@
         document.dispatchEvent(new CustomEvent('commerce:cart-updated', { detail: cart }));
     }
 
+    document.querySelectorAll('[data-commerce-product-search]').forEach(function (form) {
+        var input = form.querySelector('[name="q"]');
+        var result = form.querySelector('[data-commerce-search-result]');
+        var count = form.querySelector('[data-commerce-search-count]');
+        var link = form.querySelector('[data-commerce-search-link]');
+        if (!input || !result || !count || !link) return;
+
+        var timer;
+        var pending;
+        var revision = 0;
+
+        function clearResult() {
+            clearTimeout(timer);
+            pending?.abort();
+            revision++;
+            result.hidden = true;
+        }
+
+        function schedule(event) {
+            clearResult();
+            var query = input.value.trim();
+            if (!query || event.isComposing) return;
+
+            var current = revision;
+            timer = setTimeout(function () {
+                pending = new AbortController();
+                var endpoint = new URL(form.dataset.commerceProductSearch, form.action);
+                endpoint.searchParams.set('q', query);
+                fetch(endpoint, { headers: { Accept: 'application/json' }, signal: pending.signal })
+                    .then(function (response) {
+                        if (!response.ok) throw new Error('Product count unavailable');
+                        return response.json();
+                    })
+                    .then(function (data) {
+                        if (current !== revision || input.value.trim() !== query) return;
+                        var destination = new URL(form.action);
+                        destination.searchParams.set('q', query);
+                        count.textContent = data.message;
+                        link.href = destination.href;
+                        link.hidden = data.count === 0;
+                        result.hidden = false;
+                    })
+                    .catch(function () {});
+            }, 1000);
+        }
+
+        input.addEventListener('input', schedule);
+        input.addEventListener('compositionend', schedule);
+        form.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') clearResult();
+        });
+    });
+
     var buyBars = new WeakMap();
     var actionToast;
     function toast(message, isError, form) {
@@ -464,10 +517,9 @@
                         var paymentNeeded = json.totals.total.amount > 0;
                         if (paymentSection) paymentSection.hidden = !paymentNeeded;
                         if (paymentStep) paymentStep.hidden = !paymentNeeded;
-                        // A sole method can become selected when the rates or total change.
-                        // Confirm its fee before allowing the order to be placed.
+                        // The selected method must match the totals returned by the server.
                         var selectedPayment = form.querySelector('[data-commerce-payments] input[name=payment_method]:checked');
-                        if (paymentNeeded && selectedPayment && selectedPayment.value !== data.get('payment_method')) {
+                        if (paymentNeeded && selectedPayment && selectedPayment.value !== (json.selected_payment_method ?? data.get('payment_method'))) {
                             revision++;
                             return;
                         }

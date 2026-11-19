@@ -74,7 +74,7 @@
             @include('cms.partials.store-languages')
         </nav>
 
-        <form class="commerce-header__search" method="GET" action="{{ $searchUrl }}" role="search">
+        <form class="commerce-header__search" method="GET" action="{{ $searchUrl }}" role="search" data-commerce-product-search="{{ commerce_url('commerce.api.product-search.count') }}">
             <label class="commerce-visually-hidden" for="commerce-header-q">{{ __('commerce::storefront.listing.search') }}</label>
             <input id="commerce-header-q" type="search" name="q" value="{{ request()->url() === $searchUrl ? request('q') : '' }}"
                 placeholder="{{ __('commerce::storefront.theme.search_placeholder') }}" autocomplete="off" maxlength="100">
@@ -82,6 +82,7 @@
                 @include($L::view('partials.icon'), ['name' => 'search'])
                 <span class="commerce-visually-hidden">{{ __('commerce::storefront.theme.search') }}</span>
             </button>
+            @include($L::view('partials.product-search-feedback'))
         </form>
 
         @include($L::view('partials.header-links'))

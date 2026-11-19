@@ -18,10 +18,11 @@
                 ...($search !== '' ? [['label' => $title, 'url' => null]] : []),
             ]])
             <h1 class="commerce-listing__title">{{ $title }}</h1>
-            <form class="commerce-search" method="GET" action="{{ url()->current() }}" role="search">
+            <form class="commerce-search" method="GET" action="{{ url()->current() }}" role="search" data-commerce-product-search="{{ commerce_url('commerce.api.product-search.count') }}">
                 <label class="commerce-visually-hidden" for="commerce-shop-q">{{ __('commerce::storefront.listing.search') }}</label>
                 <input id="commerce-shop-q" type="search" name="q" value="{{ request('q') }}" placeholder="{{ __('commerce::storefront.listing.search') }}" aria-label="{{ __('commerce::storefront.listing.search') }}" maxlength="100">
                 <button type="submit" class="commerce-button commerce-button--primary">@include($L::view('partials.icon'), ['name' => 'search'])<span class="commerce-visually-hidden">{{ __('commerce::storefront.theme.search') }}</span></button>
+                @include($L::view('partials.product-search-feedback'))
             </form>
         </header>
         @include($L::view('partials.listing'), ['query' => \Sunrice\Commerce\Catalog\ProductQuery::fromRequest(request()), 'without' => ''])

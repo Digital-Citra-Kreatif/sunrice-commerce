@@ -139,6 +139,7 @@ return [
         'choose' => 'Pilih…',
     ],
     'returns' => [
+        'choose_reason' => 'Pilih alasan',
         'request' => 'Kembalikan barang',
         'items' => 'Barang apa yang ingin dikembalikan?',
         'of' => 'dari :count',

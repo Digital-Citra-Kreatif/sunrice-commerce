@@ -277,6 +277,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         Event::listen(array_keys(Webhooks\Listeners\SendWebhooks::MAP), Webhooks\Listeners\SendWebhooks::class);
         RateLimiter::for('commerce-feeds', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
         RateLimiter::for('commerce-stock-alerts', fn (Request $request) => Limit::perHour(20)->by($request->ip()));
+        RateLimiter::for('commerce-search', fn (Request $request) => Limit::perMinute(60)->by($request->ip()));
         RateLimiter::for('commerce-reviews', fn (Request $request) => Limit::perHour(5)->by($request->ip()));
         RateLimiter::for('commerce-downloads', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
         RateLimiter::for('commerce-webhooks', fn (Request $request) => Limit::perMinute(300)->by($request->ip()));

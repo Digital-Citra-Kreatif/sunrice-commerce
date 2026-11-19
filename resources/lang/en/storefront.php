@@ -218,6 +218,8 @@ return [
         'home' => 'Home',
         'breadcrumbs' => 'Breadcrumbs',
         'search' => 'Search',
+        'search_matches' => '{0} No products found|{1} 1 product found|[2,*] :count products found',
+        'search_view_results' => 'View results',
         'search_placeholder' => 'Search for products',
         'search_tips' => 'Check the spelling, or try a more general word like “shirt” or “jacket”.',
         'results_for' => 'Results for “:query”',

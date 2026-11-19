@@ -110,6 +110,8 @@ return [
         'pickup' => 'Ambil sendiri',
         'shipment' => 'Dikirim dengan :courier',
         'tracking' => 'Nomor resi',
+        'account_verification' => 'Jika Anda menerima email verifikasi, buka tautannya untuk menyelesaikan pembuatan akun.',
+        'account_sign_in' => 'Masuk jika Anda sudah punya akun.',
         'invite' => 'Ingin memantau semua pesanan di satu tempat?',
         'cancel' => 'Batalkan pesanan',
         'cancel_confirm' => 'Batalkan pesanan ini?',
@@ -132,7 +134,7 @@ return [
     ],
     'track' => [
         'verify_title' => 'Verifikasi pesanan',
-        'verify_intro' => 'Jika datanya cocok dengan pesanan tamu, kami mengirim kode delapan digit ke email yang dipakai saat memesan. Jika Anda memesan lewat akun, masuk untuk melihat pesanan.',
+        'verify_intro' => 'Jika datanya cocok dengan pesanan dari checkout tamu yang dapat diverifikasi, kami mengirim kode delapan digit ke email pesanan. Anda juga bisa masuk untuk melihat pesanan di akun Anda.',
         'code' => 'Kode verifikasi',
         'verify' => 'Verifikasi dan buka pesanan',
         'start_over' => 'Minta kode baru',

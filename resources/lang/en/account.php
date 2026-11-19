@@ -139,6 +139,7 @@ return [
         'choose' => 'Choose…',
     ],
     'returns' => [
+        'choose_reason' => 'Select a reason',
         'request' => 'Return items',
         'items' => 'What do you want to return?',
         'of' => 'of :count',

@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Testing\TestResponse;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Catalog\Models\Variant;
@@ -12,6 +14,9 @@ use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
 use Sunrice\Commerce\Checkout\CheckoutData;
 use Sunrice\Commerce\Checkout\CheckoutRefused;
 use Sunrice\Commerce\Customers\Actions\LinkGuestOrders;
+use Sunrice\Commerce\Customers\Models\Customer;
+use Sunrice\Commerce\Notifications\GuestOrderCode;
+use Sunrice\Commerce\Notifications\StoreEmail;
 use Sunrice\Commerce\Orders\Events\OrderPaid;
 use Sunrice\Commerce\Orders\Events\OrderPlaced;
 use Sunrice\Commerce\Orders\Events\QuoteRequested;
@@ -215,6 +220,42 @@ it('shows the order page in the checkout session and offers verification for oth
     $this->post('/track-order', ['number' => $order->number, 'email' => 'RINA@example.com'])->assertRedirect($order->url());
 });
 
+it('accepts a guest checkout for an existing verified account and lets the buyer reach their new order', function () {
+    Notification::fake();
+    $owner = User::query()->create(['name' => 'Rina', 'email' => 'rina@example.com', 'password' => 'secret-pass']);
+    $owner->forceFill(['email_verified_at' => now()])->save();
+    Customer::forUser($owner);
+    $other = User::query()->create(['name' => 'Other', 'email' => 'other@example.com', 'password' => 'secret-pass']);
+    $previous = makeOrder(['user_id' => $owner->id, 'email' => $owner->email]);
+    $cart = cartWith([[$this->mug, 1]]);
+    $placed = place($cart, ['email' => 'RINA@example.com']);
+    $order = Order::query()->where('checkout_token', hash('sha256', $cart->token))->sole();
+
+    expect($order->user_id)->toBe($owner->id)
+        ->and((new StoreEmail('order_received', $order, lang: 'id'))->data()['action']['url'])
+        ->toContain('/track-order?number='.rawurlencode($order->displayNumber()));
+    $placed->assertRedirect($order->url());
+    $this->assertGuest('commerce');
+    $this->get($order->url())->assertOk()->assertSee($order->number);
+    $this->get($order->url().'/pay')->assertOk();
+    $this->get($previous->url())->assertNotFound();
+    $accountUrl = '/account/orders/'.$order->id;
+    $this->get($accountUrl)->assertRedirect();
+
+    session()->flush();
+    $this->get($order->url())->assertNotFound();
+    $this->get($order->url().'/pay')->assertNotFound();
+    $this->post('/track-order', ['number' => $order->number, 'email' => 'other@example.com'])->assertRedirect('/track-order/code');
+    expect(Notification::sent(new AnonymousNotifiable, GuestOrderCode::class))->toBeEmpty();
+    $this->post('/track-order', ['number' => $order->number, 'email' => $order->email])->assertRedirect('/track-order/code');
+    $code = Notification::sent(new AnonymousNotifiable, GuestOrderCode::class)->sole()->code;
+    $this->post('/track-order/code', ['code' => $code])->assertRedirect($order->url());
+    $this->get($order->url().'/pay')->assertOk();
+
+    $this->actingAs($other, 'commerce')->get($order->url())->assertNotFound();
+    $this->actingAs($owner, 'commerce')->get($accountUrl)->assertOk()->assertSee($order->number);
+});
+
 it('refuses orders while paused', function () {
     app(StoreSettings::class)->saveSection('general', ['pause_orders' => true, 'pause_message' => 'Libur Lebaran']);
     $cart = cartWith([[$this->mug, 1]]);
@@ -245,4 +286,33 @@ it('puts the order in the account made at checkout when verification is off', fu
 
     $user = User::query()->where('email', 'rina@example.com')->sole();
     expect(Order::query()->sole()->user_id)->toBe($user->id);
+});
+
+it('shows verification guidance after a guest chooses to create an account at checkout', function () {
+    $cart = cartWith([[$this->mug, 1]]);
+    place($cart, ['create_account' => '1', 'password' => 'secret-pass-1'])->assertSessionHasNoErrors();
+    $order = Order::query()->sole();
+    $user = User::query()->where('email', 'rina@example.com')->sole();
+    expect($user->email_verified_at)->toBeNull()
+        ->and($order->user_id)->toBeNull()
+        ->and($order->meta('checkout_account_requested'))->toBeTrue();
+
+    $this->get($order->url())->assertOk()
+        ->assertSee(__('commerce::checkout.order.account_verification'))
+        ->assertDontSee(__('commerce::checkout.order.invite'));
+
+    // Orders placed before the flag was recorded still have their converted cart.
+    $order->update(['meta' => []]);
+    $this->get($order->url())->assertOk()
+        ->assertSee(__('commerce::checkout.order.account_verification'))
+        ->assertDontSee(__('commerce::checkout.order.invite'));
+});
+
+it('keeps the signup invitation for a guest who has not opted in', function () {
+    $cart = cartWith([[$this->mug, 1]]);
+    place($cart)->assertSessionHasNoErrors();
+    $order = Order::query()->sole();
+
+    $this->get($order->url())->assertOk()->assertSee(__('commerce::checkout.order.invite'))
+        ->assertDontSee(__('commerce::checkout.order.account_verification'));
 });

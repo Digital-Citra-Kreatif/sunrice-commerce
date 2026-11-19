@@ -32,7 +32,8 @@ beforeEach(function () {
 
 it('lets a customer ask to return items of a completed order, and tells staff', function () {
     Notification::fake();
-    $this->get("/account/orders/{$this->order->id}")->assertOk()->assertSee('Kembalikan barang')->assertSee('max="2"', false);
+    $this->get("/account/orders/{$this->order->id}")->assertOk()->assertSee('Kembalikan barang')->assertSee('max="2"', false)
+        ->assertSee('commerce-return-form__quantity', false)->assertSee('Pilih alasan');
 
     $this->post("/account/orders/{$this->order->id}/returns", ['items' => [$this->item->id => 3], 'reason' => 'damaged'])->assertSessionHasErrors('items');
     $this->post("/account/orders/{$this->order->id}/returns", ['items' => [$this->item->id => 0], 'reason' => 'damaged'])->assertSessionHasErrors('items');
