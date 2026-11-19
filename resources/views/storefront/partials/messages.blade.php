@@ -1,7 +1,7 @@
 {{--
     Flash messages (commerce.success, commerce.error).
 --}}
-@if (session('commerce.success'))
+@if (($showSuccess ?? true) && session('commerce.success'))
     <p class="commerce-message commerce-message--success" role="status">{{ session('commerce.success') }}</p>
 @endif
 @if (session('commerce.error'))

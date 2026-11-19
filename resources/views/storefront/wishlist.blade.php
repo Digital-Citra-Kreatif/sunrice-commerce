@@ -12,7 +12,26 @@
         <h1 class="commerce-page-title">{{ __('commerce::storefront.wishlist.title') }}
             @if ($products->isNotEmpty())<span class="commerce-page-title__meta">{{ trans_choice('commerce::storefront.theme.products_count', $products->count(), ['count' => $products->count()]) }}</span>@endif
         </h1>
-        @include($L::view('partials.messages'))
+        @php($sharedNotice = __('commerce::storefront.wishlist.shared'))
+        @include($L::view('partials.messages'), ['showSuccess' => ! $shareUrl || session('commerce.success') !== $sharedNotice])
+        @if (! $readOnly && ($shareUrl || $products->isNotEmpty()))
+            <div class="commerce-wishlist__share">
+                @if ($shareUrl)
+                    <p class="commerce-message commerce-message--success" id="commerce-wishlist-share-notice">{{ $sharedNotice }}</p>
+                    <div class="commerce-inline-form">
+                        <label class="commerce-visually-hidden" for="commerce-share-link">{{ __('commerce::storefront.wishlist.share_link') }}</label>
+                        <input id="commerce-share-link" type="text" readonly value="{{ $shareUrl }}" aria-describedby="commerce-wishlist-share-notice"
+                            data-commerce-copy="{{ $shareUrl }}" onclick="this.select()">
+                        <button type="button" class="commerce-button commerce-button--secondary" data-commerce-copy-button data-copied="{{ __('commerce::payments.copied') }}">{{ __('commerce::payments.copy') }}</button>
+                    </div>
+                @endif
+                <form method="POST" action="{{ commerce_url('commerce.wishlist.share') }}">
+                    @csrf
+                    <input type="hidden" name="on" value="{{ $shareUrl ? 0 : 1 }}">
+                    <button type="submit" @class(['commerce-link commerce-link--action' => $shareUrl, 'commerce-button commerce-button--secondary' => ! $shareUrl])>{{ $shareUrl ? __('commerce::storefront.wishlist.stop_sharing') : __('commerce::storefront.wishlist.share') }}</button>
+                </form>
+            </div>
+        @endif
         @if ($products->isEmpty())
             @include($L::view('partials.empty'), ['title' => __('commerce::storefront.wishlist.empty'), 'text' => __('commerce::storefront.theme.wishlist_empty_text'), 'icon' => 'heart',
                 'action' => ['url' => app(\Sunrice\Commerce\Storefront\ShoppingDestination::class)->url(), 'label' => __('commerce::storefront.cart.continue')]])
@@ -36,22 +55,6 @@
                     </div>
                 @endforeach
             </div>
-            @unless ($readOnly)
-                <div class="commerce-wishlist__share">
-                    <form method="POST" action="{{ commerce_url('commerce.wishlist.share') }}">
-                        @csrf
-                        <input type="hidden" name="on" value="{{ $shareUrl ? 0 : 1 }}">
-                        <button type="submit" @class(['commerce-link commerce-link--action' => $shareUrl, 'commerce-button commerce-button--secondary' => ! $shareUrl])>{{ $shareUrl ? __('commerce::storefront.wishlist.stop_sharing') : __('commerce::storefront.wishlist.share') }}</button>
-                    </form>
-                    @if ($shareUrl)
-                        <p class="commerce-inline-form">
-                            <label class="commerce-visually-hidden" for="commerce-share-link">{{ __('commerce::storefront.wishlist.share_link') }}</label>
-                            <input id="commerce-share-link" type="text" readonly value="{{ $shareUrl }}" data-commerce-copy="{{ $shareUrl }}" onclick="this.select()">
-                            <button type="button" class="commerce-button commerce-button--secondary" data-commerce-copy-button data-copied="{{ __('commerce::payments.copied') }}">{{ __('commerce::payments.copy') }}</button>
-                        </p>
-                    @endif
-                </div>
-            @endunless
         @endif
     </section>
 @endsection

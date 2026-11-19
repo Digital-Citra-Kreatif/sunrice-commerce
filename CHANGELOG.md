@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Share a compact payment panel between the confirmation and account order pages. Simplify the
+  return form and surface the share link above the Wishlist products.
+
 - My Account opens Orders, with compact filters, a collapsible date range, and a back link from
   order details. Points has a balance summary, expiry and history. Staff can publish a localized
   announcement as the first tab or above or below account content. Update published account

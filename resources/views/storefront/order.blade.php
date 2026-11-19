@@ -11,7 +11,6 @@
 @section('content')
     @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     @php($L = \Sunrice\Commerce\Storefront\Layout::class)
-    @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
     @php($S = \Sunrice\Commerce\Orders\OrderStatus::class)
     @php($cancelled = in_array($order->status, [$S::CANCELLED, $S::FAILED, $S::DECLINED, $S::EXPIRED], true))
     <section class="commerce-order-page" data-commerce-order="{{ $order->order_key }}">
@@ -50,34 +49,7 @@
                     @endif
                 @endif
 
-                @if ($order->isPartiallyPaid() && $order->status !== $S::CANCELLED)
-                    <div class="commerce-order__payment commerce-order__balance">
-                        <h2>{{ __('commerce::payments.pay_balance') }}</h2>
-                        <p>{{ $order->balance_due_at ? __('commerce::payments.balance_intro', ['amount' => $money->format($order->balanceDue()), 'date' => $order->balance_due_at->translatedFormat('j F Y')]) : __('commerce::payments.balance_intro_nodate', ['amount' => $money->format($order->balanceDue())]) }}</p>
-                        @if ($payment && in_array($payment->status, ['pending', 'awaiting_confirmation'], true))
-                            <p>{{ __('commerce::checkout.order.amount_due', ['amount' => $money->format($payment->amount)]) }}
-                                @if ($payment->expires_at) <strong class="commerce-order__deadline">{{ __('commerce::checkout.order.deadline', ['date' => $payment->expires_at->translatedFormat('j F Y H:i')]) }}</strong>@endif</p>
-                            @if ($instructionsView)
-                                @include($instructionsView, ['order' => $order, 'payment' => $payment])
-                            @endif
-                        @endif
-                        @if ($payUrl ?? null)
-                            <p><a href="{{ $payUrl }}" class="commerce-button">{{ __('commerce::payments.pay_balance') }}</a></p>
-                        @endif
-                    </div>
-                @elseif (($payment || ($payUrl ?? null)) && $order->isUnpaid() && $order->status !== $S::CANCELLED && $order->payment_method !== 'whatsapp')
-                    <div class="commerce-order__payment">
-                        <h2>{{ __('commerce::checkout.order.how_to_pay') }}</h2>
-                        <p>{{ __('commerce::checkout.order.amount_due', ['amount' => $money->format($payment?->amount ?? $order->total)]) }}
-                            @if ($payment?->expires_at) <strong class="commerce-order__deadline">{{ __('commerce::checkout.order.deadline', ['date' => $payment->expires_at->translatedFormat('j F Y H:i')]) }}</strong>@endif</p>
-                        @if ($instructionsView)
-                            @include($instructionsView, ['order' => $order, 'payment' => $payment])
-                        @endif
-                        @if ($payUrl ?? null)
-                            <p><a href="{{ $payUrl }}" class="commerce-button commerce-button--secondary">{{ __('commerce::payments.pay_again') }}</a></p>
-                        @endif
-                    </div>
-                @endif
+                @include($L::view('partials.order-payment'))
                 <x-commerce::slot name="order.after_payment" />
 
                 @if ($downloads->isNotEmpty())
