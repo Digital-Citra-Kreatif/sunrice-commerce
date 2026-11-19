@@ -27,7 +27,7 @@
                 <label class="commerce-check"><input type="checkbox" name="address[default_billing]" value="1" @checked(old('address.default_billing', $editing?->default_billing))> {{ __('commerce::account.addresses.default_billing') }}</label>
                 <div class="commerce-address-book__form-actions">
                     <button type="submit" class="commerce-button commerce-button--primary">{{ __('commerce::account.profile.save') }}</button>
-                    <a href="{{ $addressBookUrl }}" class="commerce-button commerce-button--secondary">{{ __('commerce::account.addresses.cancel') }}</a>
+                    <a href="{{ $addressBookUrl }}" class="commerce-link commerce-link--action">{{ __('commerce::account.addresses.cancel') }}</a>
                 </div>
             </form>
         </section>

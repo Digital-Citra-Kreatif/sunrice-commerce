@@ -68,7 +68,7 @@
                                                 aria-label="{{ __('commerce::storefront.cart.remove_item', ['item' => $itemName]) }}">@include($L::view('partials.icon'), ['name' => 'trash'])</summary>
                                             <div class="commerce-cart__remove-fallback">
                                                 <p>{{ __('commerce::storefront.cart.remove_confirm') }}</p>
-                                                <button type="submit" class="commerce-button commerce-button--danger">{{ __('commerce::storefront.cart.remove') }}</button>
+                                                <button type="submit" class="commerce-button commerce-button--accent">{{ __('commerce::storefront.cart.remove') }}</button>
                                             </div>
                                         </details>
                                     </form>
@@ -106,8 +106,8 @@
             <h2 id="commerce-cart-remove-title">{{ __('commerce::storefront.cart.remove_confirm') }}</h2>
             <p id="commerce-cart-remove-item" data-commerce-cart-remove-item></p>
             <form method="dialog" class="commerce-cart__remove-actions">
-                <button type="submit" value="cancel" class="commerce-button commerce-button--secondary" autofocus>{{ __('commerce::storefront.cart.remove_cancel') }}</button>
-                <button type="submit" value="remove" class="commerce-button commerce-button--danger">{{ __('commerce::storefront.cart.remove') }}</button>
+                <button type="submit" value="cancel" class="commerce-link commerce-link--action" autofocus>{{ __('commerce::storefront.cart.remove_cancel') }}</button>
+                <button type="submit" value="remove" class="commerce-button commerce-button--accent">{{ __('commerce::storefront.cart.remove') }}</button>
             </form>
         </dialog>
 

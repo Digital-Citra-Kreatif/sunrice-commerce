@@ -98,7 +98,7 @@
     <div class="commerce-filters__foot">
         <button type="submit" class="commerce-button commerce-button--primary">{{ __('commerce::storefront.listing.apply') }}</button>
         @if (count(request()->except(['page', 'q'])) > 0)
-            <a class="commerce-button commerce-button--secondary" href="{{ url()->current() }}{{ request()->filled('q') ? '?q='.urlencode(request('q')) : '' }}">{{ __('commerce::storefront.listing.reset') }}</a>
+            <a class="commerce-link commerce-link--action" href="{{ url()->current() }}{{ request()->filled('q') ? '?q='.urlencode(request('q')) : '' }}">{{ __('commerce::storefront.listing.reset') }}</a>
         @endif
     </div>
 </form>
