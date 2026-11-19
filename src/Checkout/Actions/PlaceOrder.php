@@ -288,9 +288,9 @@ class PlaceOrder
             'customer_note' => $this->settings->get('checkout.order_notes', true) ? $data->get('notes') : null,
             'dropship' => $this->settings->get('checkout.dropshipper', false) && $data->dropship()['enabled'] ? $data->dropship() : null,
             'fields' => $data->fields() ?: null,
-            'meta' => array_filter(['codes' => $state->appliedCodes ?: null, 'pickup' => $data->isPickup() ? ($rate['meta']['location'] ?? null) : null,
+            'meta' => ['checkout_account_requested' => commerce_customer() === null && $this->validator->createsAccount($data), ...array_filter(['codes' => $state->appliedCodes ?: null, 'pickup' => $data->isPickup() ? ($rate['meta']['location'] ?? null) : null,
                 // Shipped from somewhere else than the store (an extension's origin): carriers book it from there.
-                'shipping_origin' => $state->shipping['needed'] && ! $data->isPickup() ? app(ShippingOrigins::class)->custom($state)?->toArray() : null]),
+                'shipping_origin' => $state->shipping['needed'] && ! $data->isPickup() ? app(ShippingOrigins::class)->custom($state)?->toArray() : null])],
             'ip_address' => $client['ip_address'] ?? null,
             'user_agent' => isset($client['user_agent']) ? mb_substr((string) $client['user_agent'], 0, 255) : null,
             'placed_at' => now(),

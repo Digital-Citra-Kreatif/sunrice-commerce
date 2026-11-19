@@ -246,3 +246,32 @@ it('puts the order in the account made at checkout when verification is off', fu
     $user = User::query()->where('email', 'rina@example.com')->sole();
     expect(Order::query()->sole()->user_id)->toBe($user->id);
 });
+
+it('shows verification guidance after a guest chooses to create an account at checkout', function () {
+    $cart = cartWith([[$this->mug, 1]]);
+    place($cart, ['create_account' => '1', 'password' => 'secret-pass-1'])->assertSessionHasNoErrors();
+    $order = Order::query()->sole();
+    $user = User::query()->where('email', 'rina@example.com')->sole();
+    expect($user->email_verified_at)->toBeNull()
+        ->and($order->user_id)->toBeNull()
+        ->and($order->meta('checkout_account_requested'))->toBeTrue();
+
+    $this->get($order->url())->assertOk()
+        ->assertSee(__('commerce::checkout.order.account_verification'))
+        ->assertDontSee(__('commerce::checkout.order.invite'));
+
+    // Orders placed before the flag was recorded still have their converted cart.
+    $order->update(['meta' => []]);
+    $this->get($order->url())->assertOk()
+        ->assertSee(__('commerce::checkout.order.account_verification'))
+        ->assertDontSee(__('commerce::checkout.order.invite'));
+});
+
+it('keeps the signup invitation for a guest who has not opted in', function () {
+    $cart = cartWith([[$this->mug, 1]]);
+    place($cart)->assertSessionHasNoErrors();
+    $order = Order::query()->sole();
+
+    $this->get($order->url())->assertOk()->assertSee(__('commerce::checkout.order.invite'))
+        ->assertDontSee(__('commerce::checkout.order.account_verification'));
+});

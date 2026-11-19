@@ -110,6 +110,8 @@ return [
         'pickup' => 'Ambil sendiri',
         'shipment' => 'Dikirim dengan :courier',
         'tracking' => 'Nomor resi',
+        'account_verification' => 'Jika Anda menerima email verifikasi, buka tautannya untuk menyelesaikan pembuatan akun.',
+        'account_sign_in' => 'Masuk jika Anda sudah punya akun.',
         'invite' => 'Ingin memantau semua pesanan di satu tempat?',
         'cancel' => 'Batalkan pesanan',
         'cancel_confirm' => 'Batalkan pesanan ini?',

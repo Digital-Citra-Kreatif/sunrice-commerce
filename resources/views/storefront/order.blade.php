@@ -1,7 +1,7 @@
 {{--
     The order or quote page (by its key), also the thank-you page after checkout.
     $order, $payment, $instructionsView, $payUrl, $whatsappUrl, $openWhatsApp,
-    $downloads, $invoiceUrl, $canCancel, $invite, $registerUrl.
+    $downloads, $invoiceUrl, $canCancel, $accountRequested, $invite, $registerUrl.
     A confirmation header, then what to do next (how to pay, downloads),
     the items and totals, and a side column with the order's states,
     addresses, shipments and actions.
@@ -114,7 +114,11 @@
                     @endif
                 </div>
 
-                @if ($invite && $registerUrl)
+                @if ($accountRequested ?? false)
+                    <p class="commerce-order__invite">{{ __('commerce::checkout.order.account_verification') }}
+                        <a href="{{ commerce_url('commerce.account.login') }}">{{ __('commerce::checkout.order.account_sign_in') }}</a>
+                    </p>
+                @elseif ($invite && $registerUrl)
                     <p class="commerce-order__invite">{{ __('commerce::checkout.order.invite') }} <a href="{{ $registerUrl }}">{{ __('commerce::checkout.order.create_account') }}</a></p>
                 @endif
             </aside>

@@ -110,6 +110,8 @@ return [
         'pickup' => 'Pickup',
         'shipment' => 'Shipped with :courier',
         'tracking' => 'Tracking number',
+        'account_verification' => 'If you received a verification email, open it to finish setting up your account.',
+        'account_sign_in' => 'Sign in if you already have an account.',
         'invite' => 'Want to follow your orders in one place?',
         'cancel' => 'Cancel order',
         'cancel_confirm' => 'Cancel this order?',
