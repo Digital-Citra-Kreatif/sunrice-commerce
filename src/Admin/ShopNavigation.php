@@ -55,15 +55,16 @@ final class ShopNavigation
      * @param  list<array{group: string|null, items: list<array{key: string, label: string, url: string, icon: string, children: list<array{key: string, label: string, url: string, icon: string}>, matches?: list<string>}>}>  $navigation
      * @return list<array{group: string|null, items: list<array{key: string, label: string, url: string, icon: string, children: list<array{key: string, label: string, url: string, icon: string}>, matches?: list<string>}>}>
      */
-    public static function withProductEditorPaths(array $navigation): array
+    public static function withShopPaths(array $navigation, bool $productEditor): array
     {
         $paths = array_map(fn (string $handle): string => "cms/collections/{$handle}/entries", self::collections());
         foreach ($navigation as $groupIndex => $group) {
             foreach ($group['items'] as $itemIndex => $item) {
-                if ($item['key'] === 'commerce-products') {
+                if ($item['key'] === 'commerce-products' && $productEditor) {
                     $navigation[$groupIndex]['items'][$itemIndex]['matches'] = $paths;
-
-                    return $navigation;
+                }
+                if ($item['key'] === 'commerce-promotions' && isset($item['children'][0])) {
+                    $navigation[$groupIndex]['items'][$itemIndex]['url'] = $item['children'][0]['url'];
                 }
             }
         }

@@ -46,6 +46,9 @@ Indonesia a province, city/regency or district, and covers everything inside it.
 
 Region codes are prefixes of each other, so a zone for province `32` catches every address in
 West Java, and a zone for `32.73` placed above it catches Bandung first.
+The Shipping settings page warns when an earlier zone already covers all or some of a later
+zone's configured regions. Move the specific zone above the broader zone to give it priority.
+Pickup methods and the fallback zone still follow the rules below.
 
 ## Methods
 

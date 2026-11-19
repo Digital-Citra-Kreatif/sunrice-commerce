@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Inertia\Testing\AssertableInertia;
+use Spatie\Permission\Models\Role;
 use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
@@ -61,6 +62,17 @@ it('opens the first promotions page the user may see', function () {
 
     $this->get('/admin/commerce/promotions')->assertRedirect('/admin/commerce/flash-sales');
     expect(shopItems())->toContain('Promotions');
+});
+
+it('opens the shop dashboard for a shop manager and hides the duplicate settings entry', function () {
+    $manager = actingAsUserWith(['commerce.dashboard.view', 'commerce.settings.features']);
+    $manager->assignRole(Role::findOrCreate('shop-manager', 'web'));
+
+    $this->get('/admin')->assertRedirect('/admin/commerce');
+    $this->get('/admin/commerce/settings/features')->assertOk()->assertInertia(function (AssertableInertia $page) {
+        $items = collect($page->toArray()['props']['navigation'])->pluck('items')->collapse();
+        expect($items->pluck('key'))->toContain('commerce-store-settings')->not->toContain('settings');
+    });
 });
 
 it('lists products and their taxonomies once, under Shop, attributes included', function () {

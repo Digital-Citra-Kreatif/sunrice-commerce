@@ -5,7 +5,7 @@ import { EmptyState } from '../../components/EmptyState';
 import type { MenuItem } from '../../lib/store';
 
 interface MethodRow { id: number; title: string; type: string; active: boolean; etd: string | null; edit_url: string }
-interface ZoneRow { id: number; name: string; everywhere_else: boolean; regions: string[]; edit_url: string; methods: MethodRow[] }
+interface ZoneRow { id: number; name: string; everywhere_else: boolean; regions: string[]; edit_url: string; methods: MethodRow[]; overlap: { zones: string[]; all: boolean } | null }
 
 interface Props {
     sections: MenuItem[];
@@ -49,6 +49,12 @@ export default function Shipping({ sections, zones, types, couriers, moveUrl }: 
                         </div>
                     </CardHeader>
                     <CardContent className="cm:grid cm:gap-3">
+                        {zone.overlap && (
+                            <p className="cm:rounded-md cm:bg-muted cm:px-3 cm:py-2 cm:text-sm">
+                                <strong>{zone.overlap.all ? 'All addresses' : 'Some addresses'}</strong> in this zone match {zone.overlap.zones.join(', ')} first.
+                                Move this zone above {zone.overlap.zones.length === 1 ? 'that zone' : 'those zones'} if its delivery methods should take priority.
+                            </p>
+                        )}
                         {zone.methods.length === 0 && <p className="cm:text-sm cm:text-muted-foreground">No methods in this zone.</p>}
                         {zone.methods.length > 0 && (
                             <ul className="cm:divide-y cm:divide-border cm:rounded-md cm:border">
