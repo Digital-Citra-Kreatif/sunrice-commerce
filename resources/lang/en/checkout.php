@@ -30,6 +30,8 @@ return [
     'saved_address' => 'Saved address',
     'new_address' => 'A new address',
     'address_picker' => [
+        'label' => 'Address title (optional)',
+        'label_example' => 'e.g. Home or Office',
         'open' => 'Add address',
         'edit' => 'Edit address',
         'title' => 'Shipping address',

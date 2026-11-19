@@ -194,7 +194,7 @@ class PlaceOrder
         $customer->save();
 
         if ($user !== null && $data->get('save_address') && ($address = $data->shippingAddress()) !== null && ! $data->isPickup()) {
-            app(SaveAddress::class)->handle($customer, $address);
+            app(SaveAddress::class)->handle($customer, [...$address, 'label' => $data->get('shipping_address.label')]);
         }
 
         return $customer;

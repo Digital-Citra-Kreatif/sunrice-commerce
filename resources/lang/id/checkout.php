@@ -30,6 +30,8 @@ return [
     'saved_address' => 'Alamat tersimpan',
     'new_address' => 'Alamat baru',
     'address_picker' => [
+        'label' => 'Judul alamat (opsional)',
+        'label_example' => 'Contoh: Rumah atau Kantor',
         'open' => 'Tambah alamat',
         'edit' => 'Ubah alamat',
         'title' => 'Alamat pengiriman',

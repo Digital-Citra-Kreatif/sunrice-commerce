@@ -77,7 +77,7 @@
                         @if ($savedAddresses->isNotEmpty())
                             <label class="commerce-field"><span>{{ __('commerce::checkout.saved_address') }}</span>
                                 <select name="address_id" data-commerce-saved-address>
-                                    <option value="">{{ __('commerce::checkout.new_address') }}</option>
+                                    <option value="" data-placeholder="{{ __('commerce::checkout.new_address') }}">{{ $data->get('shipping_address.label', __('commerce::checkout.new_address')) }}</option>
                                     @foreach ($savedAddresses as $saved)
                                         <option value="{{ $saved->id }}" data-address='@json($saved->toAddress())' @selected((int) $data->get('address_id') === $saved->id)>{{ $saved->label ?: $saved->line1 }} · {{ $saved->name }}</option>
                                     @endforeach
@@ -94,6 +94,12 @@
                         <div data-commerce-address-editor @if ($errors->has('shipping_address') || $errors->has('shipping_address.*')) data-commerce-address-errors @endif
                             data-phone-required="{{ $settings->get('checkout.require_phone', true) ? '1' : '0' }}"
                             data-postal-required="{{ $settings->get('checkout.require_postal_code', false) ? '1' : '0' }}">
+                            <label class="commerce-field">
+                                <span>{{ __('commerce::checkout.address_picker.label') }}</span>
+                                <input type="text" name="shipping_address[label]" value="{{ $data->get('shipping_address.label') }}"
+                                    placeholder="{{ __('commerce::checkout.address_picker.label_example') }}" maxlength="60" autocomplete="off">
+                                @include($L::view('partials.field-error'), ['name' => 'shipping_address.label'])
+                            </label>
                             @include($L::view('partials.address-fields'), [
                                 'prefix' => 'shipping_address', 'address' => $data->shippingAddress() ?? ['name' => $data->get('name'), 'phone' => $data->phone()],
                                 'company' => false, 'line2' => (bool) $settings->get('checkout.address_line2', true),

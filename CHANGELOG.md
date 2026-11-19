@@ -20,6 +20,9 @@
 - Add space inside the scrollable catalog sidebar so checkbox borders and keyboard focus rings
   stay visible when zoomed.
 
+- New checkout addresses can have an editable title. The checkout uses the title in the address
+  picker and keeps it when the customer saves the address to their account.
+
 - Product buttons inherit across Store, Category, Brand, and Product. The product editor shows
   the inherited action and its source, and cart eligibility uses the same rule.
 - Flash Sale separates product selection, pricing and quantity limits. A rule now applies to
