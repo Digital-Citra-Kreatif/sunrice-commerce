@@ -29,6 +29,8 @@ return [
         'date' => 'Tanggal transfer',
         'account' => 'Ditransfer ke',
         'proof' => 'Bukti pembayaran',
+        'proof_invalid_image' => 'Gambar tidak bisa dibaca. Pilih gambar lain atau unggah PDF.',
+        'proof_pdf_required' => 'Unggahan gambar sedang tidak tersedia. Unggah PDF.',
         'proof_help' => 'Foto, tangkapan layar atau PDF, maksimal 5 MB.',
         'note' => 'Catatan',
         'submit' => 'Kirim konfirmasi',

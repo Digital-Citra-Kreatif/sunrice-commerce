@@ -1,33 +1,33 @@
-import { i as m, u as p, a as f, b as t, j as n, c as r, P as g, d as b, S as c } from "./main-BCUTrJ9y.js";
-import { D as x } from "./DataTable-C2xCUBWA.js";
+import { i as m, u as f, a as p, b as a, j as n, c as r, P as g, d as x, S as c } from "./main-DCDNiEU_.js";
+import { D as b } from "./DataTable-B8ICj1Pg.js";
 const C = { published: "ok", draft: "neutral", scheduled: "info", trashed: "error" };
-function P(a) {
-  const { Button: l, DropdownMenu: d, DropdownMenuTrigger: i, DropdownMenuContent: o, DropdownMenuItem: u } = b, { Link: s } = m;
-  return p(), f([{ label: "Shop", href: t("commerce") }, { label: "Products" }]), /* @__PURE__ */ n("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6", children: [
+function P(t) {
+  const { Button: l, DropdownMenu: s, DropdownMenuTrigger: i, DropdownMenuContent: o, DropdownMenuItem: u } = x, { Link: d } = m;
+  return f(), p([{ label: "Shop", href: a("commerce") }, { label: "Products" }]), /* @__PURE__ */ n("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6", children: [
     /* @__PURE__ */ r(
       g,
       {
         title: "Products",
         description: "Products are entries: opening one goes to the editor.",
-        primary: a.create.length === 1 ? /* @__PURE__ */ r(l, { asChild: !0, children: /* @__PURE__ */ r(s, { href: t(a.create[0].url), children: "New product" }) }) : a.create.length > 1 ? (
+        primary: t.create.length === 1 ? /* @__PURE__ */ r(l, { asChild: !0, children: /* @__PURE__ */ r(d, { href: a(t.create[0].url), children: "New product" }) }) : t.create.length > 1 ? (
           // Several product collections: choose which the product goes in.
-          /* @__PURE__ */ n(d, { children: [
+          /* @__PURE__ */ n(s, { children: [
             /* @__PURE__ */ r(i, { asChild: !0, children: /* @__PURE__ */ r(l, { children: "New product" }) }),
-            /* @__PURE__ */ r(o, { align: "end", children: a.create.map((e) => /* @__PURE__ */ r(u, { asChild: !0, children: /* @__PURE__ */ r(s, { href: t(e.url), children: e.label }) }, e.url)) })
+            /* @__PURE__ */ r(o, { align: "end", children: t.create.map((e) => /* @__PURE__ */ r(u, { asChild: !0, children: /* @__PURE__ */ r(d, { href: a(e.url), children: e.label }) }, e.url)) })
           ] })
         ) : void 0,
         menu: [
-          { label: "Export CSV", href: t("commerce/products/export"), download: !0 },
-          { label: "Import CSV", href: t("commerce/products/import") }
+          ...t.canExport ? [{ label: "Export CSV", href: a("commerce/products/export"), download: !0 }] : [],
+          ...t.canImport ? [{ label: "Import CSV", href: a("commerce/products/import") }] : []
         ]
       }
     ),
     /* @__PURE__ */ r(
-      x,
+      b,
       {
-        ...a,
+        ...t,
         searchPlaceholder: "Search titles or SKUs…",
-        rowHref: (e) => t(e.href),
+        rowHref: (e) => a(e.href),
         renderCell: (e, h) => {
           switch (h.key) {
             case "product_title":

@@ -6,6 +6,7 @@ namespace Sunrice\Commerce\Catalog;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\Commerce\Catalog\Models\PriceTier;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
@@ -97,6 +98,14 @@ final class ProductValue
                 'term_id' => self::int($v['term_id'] ?? null),
             ], fn ($x, $k) => $k === 'id' || $x !== null, ARRAY_FILTER_USE_BOTH), array_filter(self::list($option['values'] ?? []), 'is_array'))),
         ], array_filter(self::list($value['options'] ?? []), 'is_array')));
+
+        $unnamed = array_filter($out['options'], fn (array $option) => $option['name'] === '' && $option['taxonomy'] !== null);
+        if ($out['type'] === 'variable' && $unnamed !== []) {
+            $titles = Taxonomy::query()->whereIn('handle', array_unique(array_column($unnamed, 'taxonomy')))->pluck('title', 'handle');
+            foreach ($unnamed as $index => $option) {
+                $out['options'][$index]['name'] = mb_substr((string) ($titles[$option['taxonomy']] ?? ''), 0, 60);
+            }
+        }
 
         $variants = array_values(array_filter(self::list($value['variants'] ?? []), 'is_array'));
         $out['variants'] = array_map(fn (array $v) => self::normalizeVariant($v), $variants === [] ? [[]] : $variants);

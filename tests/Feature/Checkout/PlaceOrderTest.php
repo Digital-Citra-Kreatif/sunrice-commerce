@@ -347,7 +347,8 @@ it('keeps the signup invitation for a guest who has not opted in', function () {
 
 it('skips shipping for existing downloadable variants with shipping flags still set', function () {
     $this->mug->update(['downloadable' => true, 'requires_shipping' => true]);
-    $cart = cartWith([[$this->mug, 1]]);
+    $cart = cartWith([[$this->mug, 3]]);
+    $cart->items()->create(['variant_id' => $this->mug->id, 'quantity' => 1, 'meta' => ['legacy' => true]]);
 
     place($cart, ['shipping_address' => null, 'shipping_method' => null])->assertSessionHasNoErrors();
     $order = Order::query()->sole();
@@ -355,5 +356,6 @@ it('skips shipping for existing downloadable variants with shipping flags still 
         ->and($order->shipping_method)->toBeNull()
         ->and($order->shipping_total)->toBe(0)
         ->and($order->items->sole()->requires_shipping)->toBeFalse()
-        ->and($order->items->sole()->downloadable)->toBeTrue();
+        ->and($order->items->sole()->downloadable)->toBeTrue()
+        ->and($order->items->sole()->quantity)->toBe(1);
 });

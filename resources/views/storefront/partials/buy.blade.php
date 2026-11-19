@@ -43,7 +43,7 @@
                 <label class="commerce-add__qty">
                     <span>{{ __('commerce::storefront.product.quantity') }}</span>
                     <span class="commerce-stepper" data-commerce-stepper>
-                        <input type="number" name="quantity" value="{{ $default?->min_qty ?? 1 }}" min="{{ $default?->min_qty ?? 1 }}" step="{{ $default?->qty_step ?? 1 }}" @if ($default?->max_qty) max="{{ $default->max_qty }}" @endif inputmode="numeric" required aria-label="{{ __('commerce::storefront.product.quantity') }}">
+                        <input type="number" name="quantity" value="{{ $default?->minOrderQuantity() ?? 1 }}" min="{{ $default?->minOrderQuantity() ?? 1 }}" step="{{ $default?->qty_step ?? 1 }}" @if ($default?->maxOrderQuantity()) max="{{ $default->maxOrderQuantity() }}" @endif inputmode="numeric" required aria-label="{{ __('commerce::storefront.product.quantity') }}">
                     </span>
                 </label>
                 @if ($action !== null && $product->canAddToCart() && commerce_feature('cart'))

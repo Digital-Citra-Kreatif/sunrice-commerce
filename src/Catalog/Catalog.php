@@ -104,8 +104,13 @@ class Catalog
         if (! $this->prices->visibleTo($customer)) {
             return new Availability('price_hidden');
         }
-        if ($qty < $variant->min_qty || ($variant->max_qty !== null && $qty > $variant->max_qty) || ($qty - $variant->min_qty) % max(1, $variant->qty_step) !== 0) {
-            return new Availability('qty_rules', ['min' => $variant->min_qty, 'max' => $variant->max_qty, 'step' => $variant->qty_step]);
+        $min = $variant->minOrderQuantity();
+        $max = $variant->maxOrderQuantity();
+        if ($variant->limitsToOneDigitalUnit() && $qty > 1) {
+            return new Availability('digital_quantity_limit');
+        }
+        if ($qty < $min || ($max !== null && $qty > $max) || ($qty - $min) % max(1, $variant->qty_step) !== 0) {
+            return new Availability('qty_rules', ['min' => $min, 'max' => $max, 'step' => $variant->qty_step]);
         }
         $available = $product->isBundle() ? app(Bundles::class)->available($product) : $this->inventory->available($variant);
         if ($available < $qty) {

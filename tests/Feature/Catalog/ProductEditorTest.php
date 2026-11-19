@@ -12,6 +12,7 @@ use Sunrice\Commerce\Catalog\CallToAction;
 use Sunrice\Commerce\Catalog\Catalog;
 use Sunrice\Commerce\Catalog\Models\DownloadFile;
 use Sunrice\Commerce\Catalog\Models\Product;
+use Sunrice\Commerce\Catalog\ProductValue;
 use Sunrice\Commerce\Http\Controllers\Admin\TargetLabels;
 
 beforeEach(function () {
@@ -145,4 +146,16 @@ it('finds and labels category targets by their title', function () {
 
     $this->getJson('/admin/commerce/api/targets?q=kitch&types[]=term')->assertOk()->assertJsonFragment(['type' => 'term', 'id' => $kitchen->id, 'label' => 'Kitchen']);
     expect(TargetLabels::for([['type' => 'term', 'id' => $kitchen->id]]))->toContain(['type' => 'term', 'id' => $kitchen->id, 'label' => 'Kitchen']);
+});
+
+it('uses the source taxonomy title for an unnamed option and keeps an explicit name', function () {
+    Taxonomy::query()->create(['handle' => 'colours', 'title' => 'Colours']);
+    $value = ['type' => 'variable', 'options' => [
+        ['id' => 'colour', 'name' => '', 'taxonomy' => 'colours'],
+        ['id' => 'second', 'name' => 'Finish', 'taxonomy' => 'colours'],
+        ['id' => 'custom', 'name' => ''],
+    ]];
+
+    expect(array_column(ProductValue::normalize($value)['options'], 'name'))
+        ->toBe(['Colours', 'Finish', '']);
 });

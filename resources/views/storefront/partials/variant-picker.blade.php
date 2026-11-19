@@ -49,7 +49,7 @@
                     });
                     return out;
                 }
-                function update() {
+                function update(initial) {
                     var c = chosen();
                     var match = data.variants.find(function (v) { return Object.keys(c).every(function (k) { return v.options[k] === c[k]; }); });
                     var input = root.querySelector('[data-commerce-variant]');
@@ -91,7 +91,7 @@
                     }
                     var button = root.querySelector('button.commerce-add__button');
                     if (button) button.disabled = !match || status === 'out_of_stock';
-                    root.dispatchEvent(new CustomEvent('commerce:variant', { detail: match || null, bubbles: true }));
+                    root.dispatchEvent(new CustomEvent('commerce:variant', { detail: match ? { ...match, initial: Boolean(initial) } : null, bubbles: true }));
                 }
                 picker.addEventListener('change', function (event) {
                     var input = event.target;
@@ -99,7 +99,7 @@
                     if (chosen && input.dataset.label) chosen.textContent = input.dataset.label;
                     update();
                 });
-                update();
+                update(true);
             });
         </script>
     @endpush

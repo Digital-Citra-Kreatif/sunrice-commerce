@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\DB;
+use Sunrice\Admin\Media\Media;
 use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
@@ -190,4 +191,31 @@ it('places an order without reading each line\'s entry and options separately', 
 
     // Each line still writes its item and takes its stock (update, read back, movement) and refreshes its product's stock flag.
     expect(($ten - $two) / 8)->toBeLessThanOrEqual(6);
+});
+
+it('loads variant gallery images in a bounded number of queries', function () {
+    $measure = function (int $number, string $title): int {
+        $choices = [];
+        $variants = [];
+        foreach (range(1, $number) as $i) {
+            $media = Media::query()->create([
+                'disk' => 'public', 'path' => "variant-{$number}-photo-{$i}.png", 'filename' => "variant-{$number}-photo-{$i}.png",
+                'mime_type' => 'image/png', 'size' => 100, 'sizes' => [],
+            ]);
+            $choices[] = ['id' => "c{$i}", 'label' => "Colour {$i}"];
+            $variants[] = ['id' => "v{$i}", 'price' => 30000, 'options' => ['colour' => "c{$i}"], 'image' => $media->id];
+        }
+        $entry = publishProduct(['type' => 'variable', 'options' => [['id' => 'colour', 'name' => 'Colour', 'values' => $choices]], 'variants' => $variants], title: $title);
+        $url = $entry->mainTranslation()->url();
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $this->get($url)->assertOk()->assertSee("variant-{$number}-photo-{$number}.png");
+        $queries = collect(DB::getQueryLog())->filter(fn ($query) => str_contains($query['query'], 'sunrice_media'))->count();
+        DB::disableQueryLog();
+
+        return $queries;
+    };
+
+    expect($measure(8, 'Eight colours'))->toBe($measure(2, 'Two colours'))->toBeLessThanOrEqual(2);
 });

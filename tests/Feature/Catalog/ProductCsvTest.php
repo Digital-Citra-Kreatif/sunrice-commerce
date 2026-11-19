@@ -21,11 +21,18 @@ function csvUpload(string $csv): UploadedFile
     return UploadedFile::fake()->createWithContent('products.csv', $csv);
 }
 
-it('exports every variant for users who may see the products', function () {
+it('requires product export permission and collection access for cost exports', function () {
     actingAsUserWith(['commerce.orders.view']);
     $this->get('/admin/commerce/products/export')->assertForbidden();
 
     actingAsUserWith(["cms.entries.{$this->collection}.view"], 'viewer@example.com');
+    $this->get('/admin/commerce/products')->assertOk()->assertInertia(fn ($page) => $page->where('canExport', false));
+    $this->get('/admin/commerce/products/export')->assertForbidden();
+
+    actingAsUserWith(['commerce.products.export'], 'export-only@example.com');
+    $this->get('/admin/commerce/products/export')->assertForbidden();
+
+    actingAsUserWith(['commerce.products.export', "cms.entries.{$this->collection}.view"], 'exporter@example.com');
     $csv = $this->get('/admin/commerce/products/export')->assertOk()->streamedContent();
 
     expect($csv)->toContain('sku,product,variant,price,compare_at_price,cost,stock,weight,active')

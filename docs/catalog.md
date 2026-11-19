@@ -186,12 +186,15 @@ can override them:
 
 - **Requires shipping** (`requires_shipping`): a physical product. Lines with it need a shipping
   method at checkout. The editor shows the Shipping tab for weight and dimensions.
-- **Downloadable** (`downloadable`): a digital product. The editor turns off shipping and shows the Digital tab. Downloadable variants also skip shipping at checkout. See
+- **Downloadable** (`downloadable`): a digital product. The editor turns off shipping and shows the Digital tab. Downloadable variants also skip shipping at checkout. Their default limit is one unit per variant per order. A variant with an explicit maximum can use a different limit. See
   [Digital products](#digital-products).
 
 A product that is neither is **virtual**: a service, a ticket or a booking. There is no separate
 "digital" type: a digital product is a simple or variable product with Downloadable on (and usually
 Requires shipping off).
+
+Taxonomy-backed variant options default to the taxonomy title. You can edit the displayed option
+name for an individual product.
 
 ### Storefront content and media
 
@@ -207,7 +210,9 @@ On the product editor, **Display options and video** can hide each section or ov
 visibility. Previously saved size guide content appears once its effective visibility is **Show**.
 
 Drag the images in the product editor to reorder them. The first image is the cover. The product
-gallery extends the CMS media field and stores the same ordered list of image IDs. To publish a
+gallery extends the CMS media field and stores the same ordered list of image IDs. The storefront
+displays one photo at a time, with thumbnails and a lightbox. It appends each variant photo not
+already in the gallery. Choosing a variant jumps to its photo. To publish a
 product video, select a video in the Media Library or enter an HTTPS link under **Display options
 and video**. YouTube links use an embedded player. Other HTTPS sources open as links.
 
@@ -645,7 +650,8 @@ It prints each failure and exits with an error code when any failed.
   failed sync;
   searches title and SKU; bulk actions mark featured, unmark featured, and set the stock status.
   Opening a product goes to Sunrice's entry editor.
-- **Export CSV / Import CSV** on Shop → Products: the export has one row per variant of the
+- **Export CSV / Import CSV** on Shop → Products: export requires `commerce.products.export` and
+  access to view the product collection. It includes internal costs and has one row per variant of the
   products the user may see (`sku`, `product`, `variant`, `price`, `compare_at_price`, `cost`,
   `stock`, `weight`, `active`; bundles left out). An import matches rows by SKU and changes
   `price`, `compare_at_price`, `cost`, `stock`, `weight` and `active`: a blank cell keeps the value,

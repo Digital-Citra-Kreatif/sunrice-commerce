@@ -12,6 +12,8 @@ use Sunrice\Commerce\Analytics\Period;
 use Sunrice\Commerce\Analytics\Reports\Report;
 use Sunrice\Commerce\Analytics\Reports\Reports;
 use Sunrice\Commerce\Features\Features;
+use Sunrice\Commerce\Health\Checks\QueueCheck;
+use Sunrice\Commerce\Health\HealthResult;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\CsvExport;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -39,6 +41,7 @@ class ReportsController extends Controller
             'reports' => array_values(array_map(fn (Report $r) => ['key' => $r->key(), 'label' => $r->label()], $reports->available())),
             'period' => [...$period->toArray(), 'compare' => (string) $request->query('compare', 'previous')],
             'result' => $definition->run($period)->toArray(),
+            'dataMayBeDelayed' => $definition->usesDates() && app(QueueCheck::class)->run()->status === HealthResult::ERROR,
             'exportUrl' => $request->user()->can('commerce.reports.export')
                 ? route('sunrice.admin.commerce.reports.export', ['report' => $definition->key(), ...$request->query()], false) : null,
         ]);

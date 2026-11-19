@@ -17,20 +17,27 @@ function OptionEditor({ option, onChange, onRemove, config, path }: { option: Pr
         if (labels.length) onChange({ ...option, values: [...option.values, ...labels.map((label) => ({ id: newId(), label }))] });
         setDraft('');
     };
+    const sourceTitle = config.attribute_taxonomies.find((source) => source.handle === option.taxonomy)?.title.slice(0, 60);
+    const chooseSource = (taxonomy: string) => {
+        const title = config.attribute_taxonomies.find((source) => source.handle === taxonomy)?.title.slice(0, 60);
+        const useDefault = option.name.trim() === '' || option.name === sourceTitle;
+        onChange({ ...option, name: useDefault ? (title ?? '') : option.name, taxonomy: taxonomy || null, values: [] });
+    };
     const termIds = option.values.map((v) => v.term_id).filter((x): x is number => !!x);
 
     return (
         <div className="cm:grid cm:gap-3 cm:rounded-md cm:border cm:p-3">
             <div className="cm:grid cm:items-end cm:gap-3 cm:sm:grid-cols-[1fr_1fr_auto]">
-                <Row label="Option name" htmlFor={`${path}-name`}>
-                    <Input id={`${path}-name`} value={option.name} placeholder="Size" onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange({ ...option, name: e.target.value })} />
-                </Row>
-                {config.attribute_taxonomies.length > 0 ? (
+                {config.attribute_taxonomies.length > 0 && (
                     <Row label="Values from" htmlFor={`${path}-source`}>
-                        <NativeSelect id={`${path}-source`} value={option.taxonomy ?? ''} onChange={(taxonomy) => onChange({ ...option, taxonomy: taxonomy || null, values: [] })}
-                            options={[['', 'Custom values'], ...config.attribute_taxonomies.map((t) => [t.handle, t.title] as [string, string])]} />
+                        <NativeSelect id={`${path}-source`} value={option.taxonomy ?? ''} onChange={chooseSource}
+                            options={[[ '', 'Custom values' ], ...config.attribute_taxonomies.map((t) => [t.handle, t.title] as [string, string])]} />
                     </Row>
-                ) : <div />}
+                )}
+                <Row label="Option name" htmlFor={`${path}-name`}>
+                    <Input id={`${path}-name`} value={option.name} placeholder={sourceTitle ?? 'e.g. Size'}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange({ ...option, name: e.target.value })} />
+                </Row>
                 <Button type="button" variant="ghost" size="sm" onClick={onRemove}>Remove option</Button>
             </div>
             {option.taxonomy ? (

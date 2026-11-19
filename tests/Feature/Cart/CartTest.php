@@ -164,3 +164,28 @@ it('is gone while the cart module is off, and hides the voucher field without vo
     $this->post('/cart/items', ['variant' => $this->mug->id]);
     $this->withCookies(['commerce_cart' => Cart::query()->value('token')])->get('/cart')->assertOk()->assertDontSee('name="code"', false);
 });
+
+it('defaults downloadable variants to one unit across the storefront cart', function () {
+    $entry = publishProduct(['downloadable' => true, 'variants' => [['id' => 'digital-one', 'price' => 18000]]], title: 'Digital guide');
+    $variant = Variant::query()->whereHas('product', fn ($query) => $query->where('entry_id', $entry->id))->sole();
+    $page = $this->get('/products/digital-guide')->assertOk();
+    expect($page->getContent())->toMatch('/<input[^>]*name="quantity"[^>]*max="1"/');
+
+    $cart = cartWith([[$variant, 1]]);
+    $item = $cart->items()->sole();
+    $this->withCredentials()->postJson('/commerce/api/cart/items', ['variant' => $variant->id, 'quantity' => 1])
+        ->assertUnprocessable()->assertJsonPath('reason', 'digital_quantity_limit')->assertJsonPath('cart.count', 1);
+    $this->patchJson("/commerce/api/cart/items/{$item->id}", ['quantity' => 2])
+        ->assertUnprocessable()->assertJsonPath('reason', 'digital_quantity_limit');
+
+    $item->update(['quantity' => 3]);
+    $cart->items()->create(['variant_id' => $variant->id, 'quantity' => 1, 'meta' => ['legacy' => true]]);
+    $this->getJson('/commerce/api/cart')->assertOk()
+        ->assertJsonPath('cart.count', 1)->assertJsonCount(1, 'cart.lines')
+        ->assertJsonPath('cart.lines.0.max_qty', 1);
+
+    $variant->update(['max_qty' => 3]);
+    cartWith([]);
+    $this->postJson('/commerce/api/cart/items', ['variant' => $variant->id, 'quantity' => 3])
+        ->assertOk()->assertJsonPath('cart.count', 3);
+});

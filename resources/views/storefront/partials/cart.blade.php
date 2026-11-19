@@ -50,7 +50,7 @@
                                     <form method="POST" action="{{ commerce_url('commerce.cart.update', ['item' => $row['item']->id]) }}">
                                         @csrf @method('PATCH')
                                         <span class="commerce-stepper" data-commerce-stepper data-commerce-autosubmit>
-                                            <input type="number" name="quantity" value="{{ $line->quantity }}" min="{{ max(1, $line->variant->min_qty) }}" step="{{ $line->variant->qty_step }}" required @if ($line->variant->max_qty) max="{{ $line->variant->max_qty }}" @endif aria-label="{{ __('commerce::storefront.cart.quantity') }}">
+                                            <input type="number" name="quantity" value="{{ $line->quantity }}" min="{{ max(1, $line->variant->minOrderQuantity()) }}" step="{{ $line->variant->qty_step }}" required @if ($line->variant->maxOrderQuantity()) max="{{ $line->variant->maxOrderQuantity() }}" @endif aria-label="{{ __('commerce::storefront.cart.quantity') }}">
                                         </span>
                                         <button type="submit" class="commerce-cart__update">{{ __('commerce::storefront.cart.update') }}</button>
                                     </form>

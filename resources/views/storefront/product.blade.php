@@ -2,7 +2,7 @@
     Product page fallback (used when the app has no sunrice/products/show
     template). Publish and customize: php artisan commerce:install --templates
     $entry (from Sunrice). Breadcrumbs (category trail); the gallery (main
-    image and thumbnails, a swipeable row on phones); the summary: brand,
+    one image at a time with thumbnails and a lightbox); the summary: brand,
     title, excerpt, <x-commerce::product> (price, flash sale, bulk prices,
     variant picker, quantity, add to cart, stock), wishlist and compare,
     bundle contents and download details; the details as collapsible
@@ -11,8 +11,23 @@
 --}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
-@php($product = commerce_product($entry))
-@php($projectedProduct = $product && ! \Sunrice\Commerce\Catalog\LiveEntries::previewing($product->entry) ? $product->product : null)
+@php
+    $product = commerce_product($entry);
+    $projectedProduct = $product && ! \Sunrice\Commerce\Catalog\LiveEntries::previewing($product->entry) ? $product->product : null;
+    $gallery = collect((commerce_values($entry)['gallery'] ?? null) ?? [])->filter(fn ($image) => is_object($image))->values();
+    $imagesById = $gallery->keyBy('id');
+    $variantsWithImages = collect($product?->variants ?? [])->filter(fn ($variant) => $variant['image']);
+    $extraImageIds = $variantsWithImages->pluck('image')->unique()->diff($imagesById->keys());
+    if ($extraImageIds->isNotEmpty()) {
+        $imagesById = $imagesById->union(\Sunrice\Admin\Media\Media::query()->whereKey($extraImageIds->all())->get()->keyBy('id'));
+    }
+    // Keep gallery order, then append each remaining variant image once in variant order.
+    $photoIds = $gallery->pluck('id')->concat($variantsWithImages->pluck('image'))->unique()->values();
+    $gallery = $photoIds->map(fn ($id) => $imagesById->get($id))->filter()->values();
+    $photoIndexes = $gallery->pluck('id')->flip();
+    $variantImages = $variantsWithImages->filter(fn ($variant) => $photoIndexes->has($variant['image']))
+        ->mapWithKeys(fn ($variant) => [$variant['id'] => $photoIndexes->get($variant['image'])])->all();
+@endphp
 
 @push('head')
     @if ($product)
@@ -41,22 +56,38 @@
     ]])
     @include($L::view('partials.messages'))
     <article class="commerce-product">
-        @php($variantImages = $product ? collect($product->variants)->filter(fn ($v) => $v['image'])->mapWithKeys(fn ($v) => [$v['id'] => \Sunrice\Admin\Media\Media::query()->find($v['image'])?->url()])->filter()->all() : [])
-        @php($gallery = collect((commerce_values($entry)['gallery'] ?? null) ?? [])->filter(fn ($image) => is_object($image))->values())
         <div class="commerce-product__primary">
-            <div class="commerce-product__gallery" data-commerce-gallery="{{ json_encode($variantImages, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }}">
-                <div class="commerce-gallery__main">
-                    @foreach ($gallery as $image)
-                        <img src="{{ $image->url() }}" alt="{{ $image->altIn() ?? $entry->title }}" loading="{{ $loop->first ? 'eager' : 'lazy' }}" width="600" height="750" id="commerce-image-{{ $loop->index }}" data-commerce-gallery-image>
-                    @endforeach
-                </div>
-                @if ($gallery->count() > 1)
-                    <ul class="commerce-gallery__thumbs" aria-label="{{ __('commerce::storefront.theme.images') }}">
-                        @foreach ($gallery as $image)
-                            <li><a href="#commerce-image-{{ $loop->index }}" data-commerce-thumb="{{ $loop->index }}" @if ($loop->first) aria-current="true" @endif>
-                                <img src="{{ $image->url() }}" alt="{{ __('commerce::storefront.theme.image_n', ['n' => $loop->iteration]) }}" loading="lazy" width="120" height="150"></a></li>
-                        @endforeach
-                    </ul>
+            <div class="commerce-product__gallery" data-commerce-gallery="{{ json_encode((object) $variantImages, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }}">
+                @if ($gallery->isNotEmpty())
+                    <div class="commerce-gallery__stage">
+                        <div class="commerce-gallery__main">
+                            @foreach ($gallery as $image)
+                                <a href="{{ $image->url() }}" class="commerce-gallery__slide" id="commerce-image-{{ $loop->index }}" data-commerce-gallery-image>
+                                    <img src="{{ $image->url() }}" alt="{{ $image->altIn() ?: $entry->title }}" loading="{{ $loop->first ? 'eager' : 'lazy' }}" width="600" height="750">
+                                </a>
+                            @endforeach
+                        </div>
+                        @if ($gallery->count() > 1)
+                            <button type="button" class="commerce-gallery__arrow commerce-gallery__arrow--prev" data-commerce-gallery-step="-1" aria-label="{{ __('commerce::storefront.theme.previous') }}" hidden><span aria-hidden="true">‹</span></button>
+                            <button type="button" class="commerce-gallery__arrow commerce-gallery__arrow--next" data-commerce-gallery-step="1" aria-label="{{ __('commerce::storefront.theme.next') }}" hidden><span aria-hidden="true">›</span></button>
+                        @endif
+                    </div>
+                    @if ($gallery->count() > 1)
+                        <ul class="commerce-gallery__thumbs" aria-label="{{ __('commerce::storefront.theme.images') }}">
+                            @foreach ($gallery as $image)
+                                <li><a href="#commerce-image-{{ $loop->index }}" data-commerce-thumb="{{ $loop->index }}" @if ($loop->first) aria-current="true" @endif>
+                                    <img src="{{ $image->url('thumb') }}" alt="{{ __('commerce::storefront.theme.image_n', ['n' => $loop->iteration]) }}" loading="lazy" width="120" height="150"></a></li>
+                            @endforeach
+                        </ul>
+                    @endif
+                    <dialog class="commerce-gallery__lightbox" data-commerce-gallery-lightbox aria-label="{{ __('commerce::storefront.theme.images') }}">
+                        <img data-commerce-gallery-zoom alt="">
+                        <button type="button" class="commerce-gallery__close" data-commerce-gallery-close aria-label="{{ __('commerce::storefront.cart.close') }}" autofocus><span aria-hidden="true">×</span></button>
+                        @if ($gallery->count() > 1)
+                            <button type="button" class="commerce-gallery__arrow commerce-gallery__arrow--prev" data-commerce-gallery-step="-1" aria-label="{{ __('commerce::storefront.theme.previous') }}" hidden><span aria-hidden="true">‹</span></button>
+                            <button type="button" class="commerce-gallery__arrow commerce-gallery__arrow--next" data-commerce-gallery-step="1" aria-label="{{ __('commerce::storefront.theme.next') }}" hidden><span aria-hidden="true">›</span></button>
+                        @endif
+                    </dialog>
                 @endif
                 @if ($video = $content['video'])
                     <section class="commerce-product-video" aria-labelledby="product-video-title">

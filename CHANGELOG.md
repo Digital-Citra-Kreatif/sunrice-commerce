@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- Reuse storefront collection and taxonomy records and preload category banners with other home media.
+
+- Default downloadable variants to one unit per order and name saved checkout addresses from the
+  street when the shopper leaves the title blank.
+
+- Default the variant option name to the selected taxonomy title.
+- Show product and variant images in one carousel with thumbnails and a lightbox. Selecting a
+  variant opens its image in the carousel.
+
+- Require a dedicated permission for product CSV exports, which include internal cost. Sync
+  permissions and reseed the default shop manager role after upgrading.
+- Authenticate Commerce admin requests before resolving order and customer models.
+- Keep region API responses private to the browser and send the JSON no-sniff header.
+- Warn when dated reports may be stale due to a missing queue heartbeat.
+- Batch image queries on the starter homepage and product page, reject unreadable payment
+  images, and return successful reviews to their product page.
 - Show a localized stock message if inventory changes while placing an order or accepting a quote.
 
 - Group product settings separately from content. Reuse specifications, questions and size guides

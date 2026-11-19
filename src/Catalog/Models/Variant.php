@@ -110,6 +110,21 @@ class Variant extends Model
         return $this->downloadable ?? $this->product->downloadable;
     }
 
+    public function limitsToOneDigitalUnit(): bool
+    {
+        return ($this->max_qty === null || $this->max_qty === 1) && $this->isDownloadable();
+    }
+
+    public function minOrderQuantity(): int
+    {
+        return $this->limitsToOneDigitalUnit() ? 1 : $this->min_qty;
+    }
+
+    public function maxOrderQuantity(): ?int
+    {
+        return $this->limitsToOneDigitalUnit() ? 1 : $this->max_qty;
+    }
+
     /** On sale by its own compare-at price. */
     public function onSale(): bool
     {

@@ -117,3 +117,14 @@ it('re-encodes images, dropping what they carried', function () {
     $stored = app(ProofFiles::class)->store($file, 1);
     expect(Storage::disk($stored['disk'])->get($stored['path']))->not->toContain('<?php');
 });
+
+it('rejects an unreadable image without storing a proof or changing the payment', function () {
+    $proof = UploadedFile::fake()->createWithContent('proof.jpg', 'unreadable image');
+    $proof->mimeType('image/jpeg');
+
+    confirmPayment($this->order, proof: $proof)->assertSessionHasErrors('proof');
+
+    expect(Storage::disk('local')->allFiles('commerce/proofs'))->toBeEmpty()
+        ->and(PaymentConfirmation::query()->exists())->toBeFalse()
+        ->and($this->order->fresh()->payment_status)->toBe('unpaid');
+});

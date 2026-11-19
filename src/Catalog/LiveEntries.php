@@ -57,7 +57,14 @@ final class LiveEntries
         $live = array_flip(array_map('intval', self::ids($collection)->whereIn('sunrice_entry_translations.entry_id', $entryIds)->pluck('entry_id')->all()));
         $locale = Locales::current();
         $context = new HydrationContext($locale);
-        $entries = Entry::query()->with(['translations', 'collection'])->whereIn('id', array_keys($live))->get()->keyBy('id');
+        $entries = Entry::query()->with('translations')->whereIn('id', array_keys($live))->get()->keyBy('id');
+        $siteCollection = app(StorefrontStructure::class)->collection($collection);
+        foreach ($entries as $entry) {
+            if ($siteCollection !== null && $entry->collection_id === $siteCollection->id) {
+                $entry->setRelation('collection', $siteCollection);
+            }
+        }
+        $entries->loadMissing('collection');
         $shown = collect();
         foreach ($entryIds as $id) {
             $translation = isset($live[$id]) ? $entries->get($id)?->shownIn($locale) : null;

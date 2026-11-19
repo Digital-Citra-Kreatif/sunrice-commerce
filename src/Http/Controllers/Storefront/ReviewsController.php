@@ -17,6 +17,10 @@ class ReviewsController extends Controller
     public function store(Request $request, Product $product, CurrentCustomer $current, SubmitReview $submit): RedirectResponse
     {
         abort_if($product->removed_at !== null, 404);
+        $entry = $product->entry();
+        $url = $entry?->shownIn()?->url();
+        abort_if($url === null, 404);
+
         $customer = $current->get();
         $data = $request->validate([
             'rating' => ['required', 'integer', 'between:1,5'],
@@ -25,7 +29,7 @@ class ReviewsController extends Controller
         ]);
         $review = $submit->handle($product, ['rating' => (int) $data['rating'], ...$data], $customer, $request->ip());
 
-        return back()->withFragment('reviews')->with('commerce.success', __($review->status === 'approved'
+        return redirect()->to($url)->withFragment('reviews')->with('commerce.success', __($review->status === 'approved'
             ? 'commerce::storefront.reviews.published' : 'commerce::storefront.reviews.thanks'));
     }
 }

@@ -1,8 +1,8 @@
-import { i as w, a as k, b as l, j as t, c, P as y, d as v } from "./main-BCUTrJ9y.js";
-import { I as C } from "./InputError-B0K742lt.js";
+import { i as w, a as k, b as l, j as t, c, P as y, d as v, F as C } from "./main-DCDNiEU_.js";
+import { I as S } from "./InputError-BWveMiJv.js";
 const h = (r) => r === null || r === "" ? "—" : typeof r == "boolean" ? r ? "yes" : "no" : String(r);
-function I(r) {
-  const { Button: o, Input: g, Label: f } = v, { useForm: b, router: N, Link: x } = w;
+function P(r) {
+  const { Button: o, Input: g, Label: f } = v, { useForm: b, router: x, Link: N } = w;
   k([{ label: "Shop", href: l("commerce") }, { label: "Products", href: l("commerce/products") }, { label: "Import" }]);
   const a = b({ file: null, create: !1, publish: !1 }), i = r.preview ?? [], s = i.filter((e) => e.error === null && e.create), d = new Set(s.map((e) => e.create.product.toLowerCase())).size, n = i.filter((e) => e.error === null && (Object.keys(e.changes).length > 0 || e.create)), p = i.filter((e) => e.error !== null);
   return /* @__PURE__ */ t("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6 cm:max-w-5xl", children: [
@@ -37,9 +37,12 @@ function I(r) {
         }
       ),
       /* @__PURE__ */ t("p", { id: "import-help", className: "cm:text-sm cm:text-muted-foreground", children: [
-        "Start from ",
-        /* @__PURE__ */ c("a", { className: "cm:underline", href: l("commerce/products/export"), children: "the export" }),
-        ". Columns: ",
+        r.canExport && /* @__PURE__ */ t(C, { children: [
+          "Start from ",
+          /* @__PURE__ */ c("a", { className: "cm:underline", href: l("commerce/products/export"), children: "the export" }),
+          ". "
+        ] }),
+        "Columns: ",
         r.columns.join(", "),
         "; the import changes ",
         r.changeable.filter((e) => e !== "stock" || r.canAdjustStock).join(", "),
@@ -67,7 +70,7 @@ function I(r) {
           /* @__PURE__ */ c("span", { children: "Publish new products (otherwise they're drafts, to add photos first)" })
         ] })
       ] }),
-      /* @__PURE__ */ c(C, { message: a.errors.file }),
+      /* @__PURE__ */ c(S, { message: a.errors.file }),
       /* @__PURE__ */ c("div", { children: /* @__PURE__ */ c(o, { type: "submit", disabled: a.processing || a.data.file === null, children: "Preview changes" }) })
     ] }),
     r.preview !== null && /* @__PURE__ */ t("section", { className: "cm:grid cm:gap-3", "aria-labelledby": "preview-title", children: [
@@ -104,17 +107,17 @@ function I(r) {
         ] }, e.line)) })
       ] }) }),
       /* @__PURE__ */ t("div", { className: "cm:flex cm:gap-2", children: [
-        /* @__PURE__ */ t(o, { type: "button", disabled: n.length === 0, onClick: () => N.post(l("commerce/products/import/apply"), { token: r.token }), children: [
+        /* @__PURE__ */ t(o, { type: "button", disabled: n.length === 0, onClick: () => x.post(l("commerce/products/import/apply"), { token: r.token }), children: [
           "Apply ",
           n.length,
           " ",
           n.length === 1 ? "change" : "changes"
         ] }),
-        /* @__PURE__ */ c(o, { asChild: !0, variant: "outline", children: /* @__PURE__ */ c(x, { href: l("commerce/products"), children: "Cancel" }) })
+        /* @__PURE__ */ c(o, { asChild: !0, variant: "outline", children: /* @__PURE__ */ c(N, { href: l("commerce/products"), children: "Cancel" }) })
       ] })
     ] })
   ] });
 }
 export {
-  I as default
+  P as default
 };

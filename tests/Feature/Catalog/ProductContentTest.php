@@ -102,3 +102,32 @@ it('upgrades existing product blueprints without moving content or overwriting c
         ->and($saved[2]['label'])->toBe('Custom photos')
         ->and($saved[3])->toBe($fields[2]);
 });
+
+it('appends variant-only photos once and maps each variant to its gallery slide', function () {
+    $media = fn (string $name) => Media::query()->create([
+        'disk' => 'public', 'path' => $name, 'filename' => $name, 'mime_type' => 'image/png', 'size' => 10, 'sizes' => [],
+    ]);
+    $cover = $media('gallery-cover.png');
+    $other = $media('gallery-second.png');
+    $variantPhoto = $media('gallery-variant.png');
+    $entry = saveCatalogContentProduct('Catalogue gallery', [
+        'gallery' => [$cover->id, $other->id],
+        'product' => [
+            'type' => 'variable', 'options' => [['id' => 'colour', 'name' => 'Colour', 'values' => [
+                ['id' => 'blue', 'label' => 'Blue'], ['id' => 'black', 'label' => 'Black'], ['id' => 'grey', 'label' => 'Grey'],
+            ]]],
+            'variants' => [
+                ['id' => 'one', 'price' => 20000, 'image' => $cover->id, 'options' => ['colour' => 'blue']],
+                ['id' => 'two', 'price' => 20000, 'image' => $variantPhoto->id, 'options' => ['colour' => 'black']],
+                ['id' => 'three', 'price' => 20000, 'image' => $variantPhoto->id, 'options' => ['colour' => 'grey']],
+            ],
+        ],
+    ]);
+    $variants = Product::query()->where('entry_id', $entry->id)->firstOrFail()->variants->keyBy('uid');
+    $response = $this->get('/products/catalogue-gallery')->assertOk()
+        ->assertSeeInOrder(['gallery-cover.png', 'gallery-second.png', 'gallery-variant.png'])
+        ->assertSee('data-commerce-gallery-lightbox', false);
+
+    expect(substr_count($response->getContent(), 'data-commerce-gallery-image'))->toBe(3);
+    $response->assertSee(json_encode((object) [$variants['one']->id => 0, $variants['two']->id => 2, $variants['three']->id => 2]));
+});

@@ -206,6 +206,7 @@ return [
         'out_of_stock' => 'Stok :product habis.',
         'stock_changed' => 'Stok produk berubah. Periksa kembali jumlah di keranjang atau pesanan Anda.',
         'not_enough_stock' => 'Stok :product tinggal :count.',
+        'digital_quantity_limit' => 'Hanya satu unit :product per pesanan.',
         'qty_rules' => ':product: pilih jumlah yang valid.',
         'flash_sale_limit' => 'Anda bisa membeli :count lagi :product dengan harga promo.',
     ],

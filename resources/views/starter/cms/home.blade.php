@@ -17,13 +17,29 @@
     $L = \Sunrice\Commerce\Storefront\Layout::class;
     $values = commerce_values($entry);
     $heroImage = $values['hero_image'] ?? null;
-    $categoryTaxonomy = \Sunrice\Cms\Models\Taxonomy::query()->where('handle', config('commerce.catalog.category_taxonomy', 'product_categories'))->first();
+    $structure = app(\Sunrice\Commerce\Catalog\StorefrontStructure::class);
+    $categoryTaxonomy = $structure->taxonomy((string) config('commerce.catalog.category_taxonomy', 'product_categories'));
     $departments = $categoryTaxonomy === null ? collect() : \Sunrice\Cms\Models\Term::query()->where('taxonomy_id', $categoryTaxonomy->id)->whereNull('parent_id')
         ->with(['translations', 'children.translations'])->orderBy('sort_order')->orderBy('id')->get();
     $categories = $departments->flatMap(fn ($department) => $department->children->sortBy('sort_order'))->take(12);
-    $brandTaxonomy = commerce_feature('brands') ? \Sunrice\Cms\Models\Taxonomy::query()->where('handle', config('commerce.catalog.brand_taxonomy', 'brands'))->first() : null;
+    $brandTaxonomy = commerce_feature('brands') ? $structure->taxonomy((string) config('commerce.catalog.brand_taxonomy', 'brands')) : null;
     $brands = $brandTaxonomy === null ? collect() : \Sunrice\Cms\Models\Term::query()->where('taxonomy_id', $brandTaxonomy->id)->with('translations')->orderBy('sort_order')->orderBy('id')->limit(12)->get();
-    $shop = \Sunrice\Cms\Models\Collection::query()->where('handle', (string) (config('commerce.catalog.collections', ['products'])[0] ?? 'products'))->first();
+    foreach ($departments as $department) {
+        $department->setRelation('taxonomy', $categoryTaxonomy);
+        foreach ($department->children as $child) {
+            $child->setRelation('taxonomy', $categoryTaxonomy)->setRelation('parent', $department);
+        }
+    }
+    $brands->each(fn ($brand) => $brand->setRelation('taxonomy', $brandTaxonomy));
+    $tiles = $departments->take(4)->concat($categories)->concat($brands);
+    $termContext = new \Sunrice\Cms\Fields\HydrationContext(app()->getLocale());
+    $termContext->preloadMedia($tiles->flatMap(fn ($term) => $term->translations
+        ->flatMap(fn ($translation) => [$translation->data['image'] ?? null, $translation->data['banner'] ?? null, $translation->data['logo'] ?? null]))
+        ->filter(fn ($id) => is_int($id))->unique()->values()->all());
+    $tileValues = $tiles->mapWithKeys(fn ($term) => [
+        $term->id => $term->translation()?->setRelation('term', $term)->values($termContext) ?? [],
+    ]);
+    $shop = $structure->collection((string) (config('commerce.catalog.collections', ['products'])[0] ?? 'products'));
     $shopUrl = $shop?->listingUrl() ?? url('/products');
 @endphp
 
@@ -49,7 +65,7 @@
             <h2 class="commerce-section__title" id="commerce-departments">{{ __('commerce::storefront.theme.departments') }}</h2>
             <ul class="commerce-tiles commerce-tiles--large">
                 @foreach ($departments->take(4) as $department)
-                    @php($image = (commerce_values($department)['image'] ?? null))
+                    @php($image = ($tileValues[$department->id]['image'] ?? null))
                     <li class="commerce-tile">
                         <a href="{{ $department->url() }}">
                             @if (is_object($image))<img src="{{ $image->url() }}" alt="" loading="lazy" width="600" height="600">@endif
@@ -68,7 +84,7 @@
             </div>
             <ul class="commerce-tiles commerce-tiles--small">
                 @foreach ($categories as $category)
-                    @php($image = (commerce_values($category)['image'] ?? null))
+                    @php($image = ($tileValues[$category->id]['image'] ?? null))
                     <li class="commerce-tile">
                         <a href="{{ $category->url() }}">
                             @if (is_object($image))<img src="{{ $image->url() }}" alt="" loading="lazy" width="600" height="600">@endif
@@ -112,7 +128,7 @@
             </div>
             <ul class="commerce-logos">
                 @foreach ($brands as $brand)
-                    @php($logo = (commerce_values($brand)['logo'] ?? null))
+                    @php($logo = ($tileValues[$brand->id]['logo'] ?? null))
                     <li>
                         <a href="{{ $brand->url() }}">
                             @if (is_object($logo))<img src="{{ $logo->url() }}" alt="" loading="lazy" width="200" height="100">@endif

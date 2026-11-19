@@ -210,7 +210,7 @@ order page or My Account (with the order key), or by order number and email.
 
 The form has a honeypot, a rate limit of 10 an hour per order and IP, and a captcha when Sunrice
 has one configured. Proofs are stored on the private `commerce.payments.proof_disk` (images are
-re-encoded) and deleted by `commerce:prune` after `proof_retention_days` (365).
+re-encoded with PHP GD or Imagick before saving) and deleted by `commerce:prune` after `proof_retention_days` (365).
 
 `Payments\Actions\SubmitPaymentConfirmation` creates the `PaymentConfirmation` (`submitted`) and
 records the payment as **Awaiting confirmation**, which pauses its deadline. The customer is
