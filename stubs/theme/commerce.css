@@ -264,9 +264,13 @@
 .commerce-status--processing, .commerce-status--quoted, .commerce-status--accepted { background: #e8eef7; color: #1d3f72; }
 .commerce-status--pending, .commerce-status--requested, .commerce-status--on_hold { background: #fbf1dd; color: #6e4300; }
 .commerce-status--cancelled, .commerce-status--failed, .commerce-status--refunded, .commerce-status--declined, .commerce-status--expired { background: #f0f0f0; color: var(--commerce-muted); }
-.commerce-search { display: flex; gap: 0; max-width: 560px; margin: 0 0 16px; }
+.commerce-search { position: relative; display: flex; gap: 0; max-width: 560px; margin: 0 0 16px; }
 .commerce-search input[type=search] { flex: 1; min-width: 0; }
 .commerce-search .commerce-button { min-height: 44px; padding: 8px 16px; }
+.commerce-search__feedback { position: absolute; z-index: 2; top: calc(100% + 4px); inset-inline: 0; }
+.commerce-search__result:not([hidden]) { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; }
+.commerce-search__result { padding: 10px 12px; border: 1px solid var(--commerce-line); color: var(--commerce-fg); background: var(--commerce-bg); font-size: 13px; box-shadow: 0 4px 12px #0001; }
+.commerce-search__result a { font-weight: 700; }
 .commerce-inline-form { display: flex; gap: 8px; align-items: stretch; }
 .commerce-inline-form input { flex: 1; min-width: 0; }
 .commerce-inline-form .commerce-button { min-height: 44px; padding: 8px 16px; }

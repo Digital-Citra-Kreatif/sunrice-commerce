@@ -15,6 +15,9 @@ use Sunrice\Commerce\Storefront\StorefrontRoutes;
 /** @var string $suffix */
 Route::prefix(StorefrontRoutes::path('api'))->group(function () use ($suffix): void {
     Route::get('regions', Api\RegionsController::class)->name('commerce.api.regions'.$suffix);
+    Route::get('product-search/count', Api\ProductSearchCountController::class)
+        ->middleware(['commerce.feature:catalog', 'commerce.noindex', 'throttle:commerce-search'])
+        ->name('commerce.api.product-search.count'.$suffix);
 
     Route::middleware(['commerce.feature:cart', 'throttle:commerce-cart', 'commerce.noindex'])->group(function () use ($suffix): void {
         Route::get('cart', [Api\CartApiController::class, 'show'])->name('commerce.api.cart'.$suffix);
