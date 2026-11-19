@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reuse storefront collection and taxonomy records and preload category banners with other home media.
+
 - Default downloadable variants to one unit per order and name saved checkout addresses from the
   street when the shopper leaves the title blank.
 
