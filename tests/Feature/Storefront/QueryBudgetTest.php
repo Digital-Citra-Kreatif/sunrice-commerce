@@ -199,7 +199,7 @@ it('loads variant gallery images in a bounded number of queries', function () {
         $variants = [];
         foreach (range(1, $number) as $i) {
             $media = Media::query()->create([
-                'disk' => 'public', 'path' => "variant-photo-{$i}.png", 'filename' => "variant-photo-{$i}.png",
+                'disk' => 'public', 'path' => "variant-{$number}-photo-{$i}.png", 'filename' => "variant-{$number}-photo-{$i}.png",
                 'mime_type' => 'image/png', 'size' => 100, 'sizes' => [],
             ]);
             $choices[] = ['id' => "c{$i}", 'label' => "Colour {$i}"];
@@ -210,7 +210,7 @@ it('loads variant gallery images in a bounded number of queries', function () {
 
         DB::flushQueryLog();
         DB::enableQueryLog();
-        $this->get($url)->assertOk()->assertSee("variant-photo-{$number}.png");
+        $this->get($url)->assertOk()->assertSee("variant-{$number}-photo-{$number}.png");
         $queries = collect(DB::getQueryLog())->filter(fn ($query) => str_contains($query['query'], 'sunrice_media'))->count();
         DB::disableQueryLog();
 
