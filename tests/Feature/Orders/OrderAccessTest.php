@@ -67,3 +67,18 @@ it('opens payment confirmation only after verifying the guest code', function ()
     $this->post('/track-order/code', ['code' => $code])->assertRedirect('/confirm-payment?order='.$order->order_key);
     $this->get('/confirm-payment?order='.$order->order_key)->assertOk();
 });
+
+it('rejects expired codes and does not issue access codes for account orders', function () {
+    Notification::fake();
+    $owner = User::query()->create(['name' => 'Buyer', 'email' => 'buyer@example.com', 'password' => 'secret-pass']);
+    $accountOrder = makeOrder(['user_id' => $owner->id]);
+    $this->post('/track-order', ['number' => $accountOrder->number, 'email' => $accountOrder->email])->assertRedirect('/track-order/code');
+    Notification::assertNothingSent();
+
+    $guestOrder = makeOrder(['email' => 'guest@example.com']);
+    $this->post('/track-order', ['number' => $guestOrder->number, 'email' => $guestOrder->email])->assertRedirect('/track-order/code');
+    $code = Notification::sent(new AnonymousNotifiable, GuestOrderCode::class)->sole()->code;
+    $this->travel(11)->minutes();
+    $this->from('/track-order/code')->post('/track-order/code', ['code' => $code])->assertSessionHasErrors('code');
+    $this->get('/order/'.$guestOrder->order_key)->assertNotFound();
+});
