@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Checkout shows an address summary and lets shoppers pick a saved address or enter a new one in a
+  dialog. Merge the updated `checkout.blade.php`, checkout translations and storefront theme assets
+  into published copies.
+
 - The option to pay with loyalty points now sits next to the payment methods at checkout. The
   cart shows the order before payment choices. Merge your published `checkout.blade.php`,
   `partials/cart.blade.php` and the checkout and account translations to show the new option.

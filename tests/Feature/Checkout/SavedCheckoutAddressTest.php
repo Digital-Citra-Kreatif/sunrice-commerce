@@ -19,6 +19,11 @@ it('renders the saved address with canonical region codes and saves a sparse rep
     $replacement = $save->handle($customer, [...$address, 'label' => 'Kantor', 'line1' => 'Jl. Sarijadi 2']);
 
     $cart = cartWith([[$mug, 1]]);
+    $this->get('/checkout')->assertOk()
+        ->assertSee('value="'.$original->id.'" data-address=', false)
+        ->assertSee('id="checkout-address-dialog"', false)
+        ->assertSee('Kirim ke alamat lain');
+
     $cart->update(['customer_id' => $customer->id, 'checkout' => checkoutInput(['shipping_address' => $original->toAddress()])]);
 
     $this->get('/checkout')->assertOk()
@@ -41,4 +46,13 @@ it('renders the saved address with canonical region codes and saves a sparse rep
             'city_code' => '32.73',
             'district_code' => '32.73.01',
         ]);
+
+    $this->post('/checkout', ['action' => 'use_saved_address', 'address_id' => $original->id, 'save_address' => '1'])
+        ->assertRedirect('/checkout#shipping');
+    expect($cart->fresh()->checkout)->toMatchArray(['address_id' => $original->id, 'save_address' => false])
+        ->and($cart->fresh()->checkout['shipping_address']['line2'])->toBe('Apartment 2');
+
+    $this->post('/checkout', ['action' => 'use_saved_address', 'address_id' => 9999])
+        ->assertRedirect('/checkout#shipping')->assertSessionHas('commerce.error');
+    expect($cart->fresh()->checkout['address_id'])->toBe($original->id);
 });

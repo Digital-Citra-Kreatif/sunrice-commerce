@@ -111,6 +111,130 @@
         var paymentSection = form.querySelector('[data-commerce-payment-section]');
         var paymentStep = form.closest('.commerce-checkout-page')?.querySelector('[data-commerce-payment-step]');
 
+        function fillShippingAddress(address, fields) {
+            fields.forEach(function (input) {
+                var key = input.name.slice('shipping_address['.length, -1);
+                var value = String(address[key] ?? '');
+                if (input.hasAttribute('data-commerce-region')) {
+                    input.length = 1;
+                    input.dataset.value = '';
+                    if (value) input.add(new Option(address[input.dataset.commerceRegion] || value, value));
+                }
+                input.value = value;
+            });
+            // Resync the country and reload its region choices, keeping the selected codes.
+            fields.find(function (input) { return input.name === 'shipping_address[country]'; })?.dispatchEvent(new Event('change'));
+        }
+
+        function enhanceShippingAddress() {
+            var editor = form.querySelector('[data-commerce-address-editor]');
+            var dialog = form.closest('.commerce-checkout-page')?.querySelector('[data-commerce-address-dialog]');
+            if (!editor || typeof dialog?.showModal !== 'function') return null;
+
+            var fields = Array.from(editor.querySelectorAll('[name^="shipping_address["]'));
+            var saved = form.querySelector('[data-commerce-saved-address]');
+            var save = editor.querySelector('[name=save_address]');
+            var card = form.querySelector('[data-commerce-address-card]');
+            var summary = card.querySelector('[data-commerce-address-summary]');
+            var open = card.querySelector('[data-commerce-open-address]');
+            var error = dialog.querySelector('[data-commerce-address-dialog-error]');
+            // Keep the draft outside the checkout form so a refresh only sees the applied address.
+            var committed = document.createElement('div');
+            committed.hidden = true;
+            editor.before(committed);
+            dialog.querySelector('[data-commerce-address-dialog-body]').append(editor);
+            var inputs = (save ? [...fields, save] : fields).map(function (field) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = field.name;
+                committed.append(input);
+                return input;
+            });
+            var activeAddress;
+            var activeId;
+            var shouldSave;
+
+            function apply() {
+                activeAddress = {};
+                fields.forEach(function (field, index) {
+                    var key = field.name.slice('shipping_address['.length, -1);
+                    inputs[index].value = field.disabled ? '' : field.value;
+                    activeAddress[key] = inputs[index].value;
+                    if (field.dataset.commerceRegion) {
+                        activeAddress[field.dataset.commerceRegion] = activeAddress[key] ? field.selectedOptions[0]?.text : '';
+                    }
+                });
+                activeAddress.countryLabel = fields.find(function (field) {
+                    return field.name === 'shipping_address[country]';
+                })?.selectedOptions[0]?.text;
+                activeId = saved?.value || '';
+                shouldSave = save?.checked ?? false;
+                if (save) inputs[fields.length].value = shouldSave ? '1' : '0';
+                var locality = [activeAddress.village, activeAddress.district, activeAddress.city,
+                    activeAddress.country === 'ID' ? activeAddress.province : activeAddress.state,
+                    activeAddress.postal_code].filter(Boolean).join(', ');
+                summary.textContent = [activeAddress.name, activeAddress.line1, activeAddress.line2,
+                    locality, activeAddress.countryLabel].filter(Boolean).join('\n');
+                summary.hidden = !activeAddress.line1;
+                open.textContent = summary.hidden ? open.dataset.addLabel : open.dataset.changeLabel;
+            }
+
+            function showEditor(startNew) {
+                var draft = startNew && activeId ? {
+                    country: activeAddress.country,
+                    name: form.elements.name?.value,
+                    phone: form.elements.phone?.value,
+                } : activeAddress;
+                fillShippingAddress(draft, fields);
+                if (save) save.checked = draft === activeAddress && shouldSave;
+                error.hidden = true;
+                dialog.showModal();
+            }
+
+            var fallback = form.querySelector('[data-commerce-address-fallback]');
+            if (fallback) fallback.hidden = true;
+            card.hidden = false;
+            apply();
+            open.addEventListener('click', function () { showEditor(true); });
+            dialog.querySelector('[data-commerce-cancel-address]').addEventListener('click', function () { dialog.close(); });
+            dialog.addEventListener('close', function () { open.focus({ preventScroll: true }); });
+            dialog.querySelector('[data-commerce-apply-address]').addEventListener('click', function () {
+                var country = editor.querySelector('[data-commerce-country]').value;
+                var missing = fields.find(function (field) {
+                    var key = field.name.slice('shipping_address['.length, -1);
+                    var required = ['name', 'line1', 'country'].includes(key)
+                        || (key === 'phone' && editor.dataset.phoneRequired === '1')
+                        || (key === 'postal_code' && editor.dataset.postalRequired === '1')
+                        || (country === 'ID' ? field.hasAttribute('data-commerce-region') : key === 'city');
+                    return required && !field.value.trim();
+                });
+                error.hidden = !missing;
+                if (missing) {
+                    missing.focus();
+                    return;
+                }
+                if (saved) saved.value = '';
+                apply();
+                dialog.close();
+                refresh();
+            });
+            if (editor.hasAttribute('data-commerce-address-errors') && !form.querySelector('[data-commerce-shipping-address]').hidden) showEditor(false);
+
+            return function (option) {
+                if (!option?.dataset.address) {
+                    saved.value = activeId;
+                    showEditor(true);
+                    return false;
+                }
+                fillShippingAddress(JSON.parse(option.dataset.address), fields);
+                if (save) save.checked = false;
+                apply();
+                return true;
+            };
+        }
+
+        var chooseSavedAddress = enhanceShippingAddress();
+
         function showStatus(message) {
             if (status) status.textContent = status.dataset[message] || '';
             if (retry) retry.hidden = !failed;
@@ -229,20 +353,13 @@
         });
         form.addEventListener('change', function (event) {
             var t = event.target;
-            if (t.matches('[data-commerce-saved-address]') && t.selectedOptions[0] && t.selectedOptions[0].dataset.address) {
-                var address = JSON.parse(t.selectedOptions[0].dataset.address);
-                form.querySelectorAll('[name^="shipping_address["]').forEach(function (input) {
-                    var key = input.name.slice('shipping_address['.length, -1);
-                    var value = String(address[key] ?? '');
-                    if (input.hasAttribute('data-commerce-region')) {
-                        input.length = 1;
-                        input.dataset.value = '';
-                        if (value) input.add(new Option(address[input.dataset.commerceRegion] || value, value));
-                    }
-                    input.value = value;
-                });
-                // Update visibility and reload this region chain before the form is read.
-                form.querySelector('[name="shipping_address[country]"]')?.dispatchEvent(new Event('change'));
+            if (t.matches('[data-commerce-saved-address]')) {
+                var option = t.selectedOptions[0];
+                if (chooseSavedAddress) {
+                    if (!chooseSavedAddress(option)) return;
+                } else if (option?.dataset.address) {
+                    fillShippingAddress(JSON.parse(option.dataset.address), Array.from(form.querySelectorAll('[name^="shipping_address["]')));
+                }
             }
             syncToggles();
             if (t.name === 'password' || t.name === 'notes' || t.name === 'terms') return;

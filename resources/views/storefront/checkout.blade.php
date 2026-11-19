@@ -77,24 +77,35 @@
             @if ($needsAddress)
                 <fieldset class="commerce-checkout__section" id="shipping">
                     <legend>{{ __('commerce::checkout.sections.shipping') }}</legend>
-                    @if ($savedAddresses->isNotEmpty())
-                        <label class="commerce-field"><span>{{ __('commerce::checkout.saved_address') }}</span>
-                            <select name="address_id" data-commerce-saved-address>
-                                <option value="">{{ __('commerce::checkout.new_address') }}</option>
-                                @foreach ($savedAddresses as $saved)
-                                    <option value="{{ $saved->id }}" data-address='@json($saved->toAddress())' @selected((int) $data->get('address_id') === $saved->id)>{{ $saved->label ?: \Sunrice\Commerce\Support\Address::fromArray($saved->toAddress())->format(null, ', ') }}</option>
-                                @endforeach
-                            </select>
-                        </label>
-                    @endif
                     <div data-commerce-shipping-address @if ($data->isPickup()) hidden @endif>
-                        @include($L::view('partials.address-fields'), [
-                            'prefix' => 'shipping_address', 'address' => $data->shippingAddress() ?? [],
-                            'company' => false, 'line2' => (bool) $settings->get('checkout.address_line2', true),
-                        ])
-                        @unless ($guest)
-                            <label class="commerce-check"><input type="checkbox" name="save_address" value="1" @checked($data->get('save_address'))> {{ __('commerce::checkout.save_address') }}</label>
-                        @endunless
+                        @if ($savedAddresses->isNotEmpty())
+                            <label class="commerce-field"><span>{{ __('commerce::checkout.saved_address') }}</span>
+                                <select name="address_id" data-commerce-saved-address>
+                                    <option value="">{{ __('commerce::checkout.new_address') }}</option>
+                                    @foreach ($savedAddresses as $saved)
+                                        <option value="{{ $saved->id }}" data-address='@json($saved->toAddress())' @selected((int) $data->get('address_id') === $saved->id)>{{ $saved->label ?: \Sunrice\Commerce\Support\Address::fromArray($saved->toAddress())->format(null, ', ') }}</option>
+                                    @endforeach
+                                </select>
+                            </label>
+                            <button type="submit" name="action" value="use_saved_address" class="commerce-button commerce-button--secondary" data-commerce-address-fallback>{{ __('commerce::checkout.address_picker.use_saved') }}</button>
+                        @endif
+                        <div class="commerce-checkout-address" data-commerce-address-card hidden>
+                            <address data-commerce-address-summary aria-live="polite" hidden></address>
+                            <button type="button" class="commerce-button commerce-button--secondary" data-commerce-open-address
+                                data-add-label="{{ __('commerce::checkout.address_picker.add') }}" data-change-label="{{ __('commerce::checkout.address_picker.open') }}"
+                                aria-haspopup="dialog" aria-controls="checkout-address-dialog">{{ __('commerce::checkout.address_picker.open') }}</button>
+                        </div>
+                        <div data-commerce-address-editor @if ($errors->has('shipping_address') || $errors->has('shipping_address.*')) data-commerce-address-errors @endif
+                            data-phone-required="{{ $settings->get('checkout.require_phone', true) ? '1' : '0' }}"
+                            data-postal-required="{{ $settings->get('checkout.require_postal_code', false) ? '1' : '0' }}">
+                            @include($L::view('partials.address-fields'), [
+                                'prefix' => 'shipping_address', 'address' => $data->shippingAddress() ?? [],
+                                'company' => false, 'line2' => (bool) $settings->get('checkout.address_line2', true),
+                            ])
+                            @unless ($guest)
+                                <label class="commerce-check"><input type="checkbox" name="save_address" value="1" @checked($data->get('save_address'))> {{ __('commerce::checkout.save_address') }}</label>
+                            @endunless
+                        </div>
                         <label class="commerce-check"><input type="checkbox" name="billing_same" value="1" @checked($data->billingSame()) data-commerce-toggle="billing"> {{ __('commerce::checkout.billing_same') }}</label>
                     </div>
                     @foreach (collect($extraFields)->where('section', 'shipping') as $field)
@@ -199,5 +210,16 @@
             </div>
             </div>
         </form>
+        @if ($needsAddress)
+            <dialog id="checkout-address-dialog" class="commerce-checkout-address-dialog" data-commerce-address-dialog aria-labelledby="checkout-address-title">
+                <header><h2 id="checkout-address-title" tabindex="-1" autofocus>{{ __('commerce::checkout.address_picker.title') }}</h2></header>
+                <div class="commerce-checkout-address-dialog__body" data-commerce-address-dialog-body></div>
+                <p class="commerce-field__error commerce-checkout-address-dialog__error" data-commerce-address-dialog-error role="alert" hidden>{{ __('commerce::checkout.address_picker.incomplete') }}</p>
+                <footer>
+                    <button type="button" class="commerce-button commerce-button--secondary" data-commerce-cancel-address>{{ __('commerce::account.addresses.cancel') }}</button>
+                    <button type="button" class="commerce-button commerce-button--primary" data-commerce-apply-address>{{ __('commerce::checkout.address_picker.apply') }}</button>
+                </footer>
+            </dialog>
+        @endif
     </section>
 @endsection

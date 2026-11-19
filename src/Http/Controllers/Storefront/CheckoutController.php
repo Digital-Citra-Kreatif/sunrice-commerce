@@ -87,6 +87,15 @@ class CheckoutController
             return redirect(StorefrontRoutes::url('commerce.cart'));
         }
         $data = $this->postedData($request, $cart, fullForm: true);
+        if ($request->input('action') === 'use_saved_address') {
+            $user = commerce_customer();
+            $address = $user !== null ? Customer::forUser($user)->addresses()->find($request->integer('address_id')) : null;
+            if ($address === null) {
+                return redirect(StorefrontRoutes::url('commerce.checkout').'#shipping')
+                    ->with('commerce.error', __('commerce::checkout.address_picker.choose_saved'));
+            }
+            $data = $data->merge(['shipping_address' => $address->toAddress(), 'save_address' => false]);
+        }
         $update->handle($cart, $data->toArray());
 
         if ($request->input('action') !== 'place') {
@@ -152,18 +161,20 @@ class CheckoutController
     {
         $data = CheckoutData::fromCart($cart);
         $user = commerce_customer();
-        if ($user === null || $data->email() !== null) {
+        if ($user === null) {
             return $data;
         }
         $customer = Customer::forUser($user);
-        $address = $customer->addresses()->orderByDesc('default_shipping')->first();
+        $defaults = $data->email() === null ? ['email' => $customer->email, 'name' => $customer->name, 'phone' => $customer->phone] : [];
+        if ($data->shippingAddress() === null && ! $data->isPickup()) {
+            $address = $customer->addresses()->orderByDesc('default_shipping')->orderBy('id')->first();
+            if ($address !== null) {
+                $defaults['shipping_address'] = $address->toAddress();
+                $defaults['address_id'] = $address->id;
+            }
+        }
 
-        return $data->merge(array_filter([
-            'email' => $customer->email,
-            'name' => $customer->name,
-            'phone' => $customer->phone,
-            'shipping_address' => $address?->toAddress(),
-        ]));
+        return $data->merge(array_filter($defaults));
     }
 
     /** @return array<string, mixed> */
@@ -188,7 +199,7 @@ class CheckoutController
             'settings' => $this->settings(),
             'needsAddress' => $state->shipping['needed'] && $this->mode()->shipping(),
             'paymentMethods' => $methods,
-            'savedAddresses' => $customer?->addresses()->get() ?? collect(),
+            'savedAddresses' => $customer?->addresses()->orderByDesc('default_shipping')->orderBy('id')->get() ?? collect(),
             'loyaltyPoints' => commerce_feature('loyalty') ? (int) ($customer->loyalty_points ?? 0) : 0,
             'guest' => $user === null,
             'offerAccount' => $user === null && commerce_feature('accounts') && $this->settings()->get('accounts.registration', true)

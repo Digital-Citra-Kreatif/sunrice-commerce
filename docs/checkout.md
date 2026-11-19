@@ -159,7 +159,11 @@ $address = AddressRules::normalize($input); // names from the region table, phon
 The order keeps the address as a snapshot, codes and names together. See [regions.md](regions.md).
 
 At checkout, choosing a saved address fills both its fields and its region codes. Switching
-addresses also clears optional values missing from the new selection. For separate billing, the
+addresses also clears optional values missing from the new selection. The shipping section shows a
+summary and a saved-address selector when available. **Ship to another address** opens a dialog.
+**Use this address** applies the draft and refreshes shipping rates, while **Cancel** keeps the
+previous address. With JavaScript off, the form is inline and **Use saved address** applies the
+selection through a regular form submission. For separate billing, the
 billing address is used for any tax rules based on billing. The **Update shipping** form submission
 remains available to refresh the current selections without using AJAX.
 
