@@ -72,6 +72,7 @@ it('lets customers cancel only while unpaid, with the setting on', function () {
     $paid = placedOrder([[$this->mug, 1]], ['email' => 'budi@example.com']);
     app(RecordPaymentResult::class)->handle($paid->payments->sole(), PaymentResult::paid(), Actor::admin());
 
+    authorizeGuestOrders($order, $paid);
     $this->get($order->url())->assertSee('commerce-order__cancel', false);
     $this->get($paid->fresh()->url())->assertDontSee('commerce-order__cancel', false);
     $this->post("/order/{$paid->order_key}/cancel")->assertSessionHas('commerce.error');

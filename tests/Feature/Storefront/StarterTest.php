@@ -100,7 +100,8 @@ it('fills the load test fixtures on top of the starter store and can be rerun', 
 
 it('renders every starter page with the demo data', function () {
     starterStore();
-    $order = Order::query()->where('status', 'pending')->firstOrFail();
+    $order = makeOrder();
+    authorizeGuestOrders($order);
     $sale = FlashSale::query()->firstOrFail();
 
     foreach (['/', '/products', '/products?q=kaus', '/products?q=tidak-ada-apa-apa', '/products/category/women', '/products/category/women-t-shirts?sort=price',

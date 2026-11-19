@@ -61,7 +61,7 @@ it('assigns the invoice number once and regenerates after an edit', function () 
     expect($doc->order_version)->toBe(2)->and($doc->number)->toBe($first)->and(Storage::disk('local')->exists($doc->path))->toBeTrue();
 });
 
-it('serves documents to staff with the permission and invoices to customers by key', function () {
+it('serves documents to staff with permission and invoices to verified customers', function () {
     actingAsUserWith(['commerce.orders.view']);
     $this->get("/admin/commerce/orders/{$this->order->id}/documents/invoice")->assertForbidden();
     actingAsUserWith(['commerce.orders.view', 'commerce.documents.view'], 'docs@example.com');
@@ -71,6 +71,7 @@ it('serves documents to staff with the permission and invoices to customers by k
     expect(substr((string) $response->getContent(), 0, 5))->toBe('%PDF-');
     $this->post('/admin/commerce/orders/bulk', ['action' => 'packing_slips', 'ids' => [$this->order->id]])->assertRedirect();
 
+    authorizeGuestOrders($this->order);
     $this->get("/order/{$this->order->order_key}/invoice")->assertNotFound(); // unpaid
     $this->order->forceFill(['payment_status' => 'paid', 'status' => 'processing'])->save();
     $this->get("/order/{$this->order->order_key}/invoice")->assertOk()->assertHeader('Content-Type', 'application/pdf');

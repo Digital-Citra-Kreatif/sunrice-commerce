@@ -153,6 +153,16 @@ function checkoutStore(array $mug = []): Variant
     return Variant::query()->where('sku', 'MUG')->firstOrFail();
 }
 
+/** Simulate access earned by a guest through checkout or email verification. */
+function authorizeGuestOrders(Order ...$orders): void
+{
+    $grants = [];
+    foreach ($orders as $order) {
+        $grants[$order->id] = ['key' => $order->order_key, 'until' => now()->addHour()->timestamp];
+    }
+    test()->withSession(['commerce.orders' => $grants]);
+}
+
 /** Checkout input for a Bandung address with the flat rate and the test transfer. @return array<string, mixed> */
 function checkoutInput(array $overrides = []): array
 {
