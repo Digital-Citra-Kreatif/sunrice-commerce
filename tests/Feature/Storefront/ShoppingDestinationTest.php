@@ -35,6 +35,15 @@ it('uses a CMS page for the shared link and falls back when it is unpublished', 
         $this->get($path)->assertOk()->assertSee('href="'.url('/products/mug').'"', false);
     }
 
+    expect($this->blade('<x-commerce::mini-cart />')->__toString())
+        ->toContain(
+            '<template data-commerce-drawer-empty>',
+            __('commerce::storefront.cart.empty'),
+            __('commerce::storefront.theme.cart_empty_text'),
+            'href="'.url('/products/mug').'"',
+            'data-commerce-drawer-footer hidden',
+        );
+
     unpublishEntry($entry);
     $this->get('/compare')->assertOk()->assertSee('href="'.url('/products').'"', false)
         ->assertDontSee('href="'.url('/products/mug').'"', false);

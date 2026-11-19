@@ -13,8 +13,7 @@
 
     @if ($cart->isEmpty())
         <div class="commerce-cart__empty">
-            @include($L::view('partials.empty'), ['title' => __('commerce::storefront.cart.empty'), 'text' => __('commerce::storefront.theme.cart_empty_text'), 'icon' => 'bag',
-                'action' => ['url' => $continueShopping, 'label' => __('commerce::storefront.cart.continue')]])
+            @include($L::view('cart.empty'))
         </div>
     @else
         <div class="commerce-cart__layout">

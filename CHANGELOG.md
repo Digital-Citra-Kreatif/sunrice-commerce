@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Share the empty cart message and Continue shopping link with the cart drawer, and hide its checkout actions when empty.
+
 - Make checkout, cart, product, account, and order sections individually overridable and load an optional app CSS skin.
 - Select the first available delivery option when checkout has no valid delivery selection, keeping store pickup explicit.
 - List payment confirmations in the standard admin table and reuse the review dialog in order detail.

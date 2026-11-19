@@ -203,6 +203,7 @@ with slashes and add `.blade.php`.
 | `checkout.submit` | `$data`, `$guest`, `$termsUrl`, `$termsContent`, `$captcha`, `$submitLabel`. Terms, CAPTCHA, status and submit controls. |
 | `checkout.terms-dialog` | `$termsContent`. Published CMS title, locale, intro and sanitized body. The checkout terms link opens this dialog. |
 | `cart`, `partials.cart` | The page and cart component frame. The component receives `$cart` and the paginated `$lines`. |
+| `cart.empty` | Shared empty state for the cart page and drawer. `$continueShopping` is optional and defaults to the configured shopping destination. |
 | `cart.items`, `cart.line` | The paginated lines and one row. A row receives `$row` with `line`, `item` and `entry`, plus `$money`, `$taxDisplay` and `$variantImages` keyed by media ID. The first product photo is the fallback. |
 | `cart.summary`, `partials.totals` | The checkout link and cart summary use `$cart`. The shared totals view takes `$state`. |
 | `cart.remove-dialog`, `cart.cross-sells` | The shared confirmation dialog and the recommendations resolved from `$cart`. |
@@ -497,7 +498,9 @@ attributes:
 - **Mini-cart drawer**: a click on `[data-commerce-mini-cart]` loads the cart from the API and opens
   the `<dialog>` with its first lines (`data-commerce-drawer-lines` on the dialog, from
   `commerce.cart.preview_lines`), "and 3 more" linking to the cart page, and the total. Ctrl- or
-  Cmd-click opens the cart page. On an error it goes to the cart page.
+  Cmd-click opens the cart page. On an error it goes to the cart page. An empty cart uses the
+  `data-commerce-drawer-empty` template and hides the footer marked `data-commerce-drawer-footer`.
+  Update published mini-cart markup, JavaScript, and CSS together.
 
 After an AJAX add, it dispatches `commerce:cart-updated` (and the older `commerce:cart`) on
 `document`, with the cart as `detail`:

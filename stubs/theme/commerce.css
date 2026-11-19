@@ -512,6 +512,7 @@
 .commerce-drawer__more { display: block; margin: 12px 0; color: var(--commerce-muted); font-size: 13px; }
 .commerce-drawer__total { font-weight: 800; font-size: 18px; text-align: right; margin: 16px 0; }
 .commerce-drawer__footer { display: grid; gap: 8px; padding: 12px 20px 16px; border-top: 1px solid var(--commerce-line); }
+.commerce-drawer__footer[hidden] { display: none; }
 .commerce-drawer__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .commerce-drawer__actions > .commerce-button { flex: 1 1 auto; }
 

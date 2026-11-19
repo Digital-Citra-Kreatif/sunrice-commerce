@@ -735,33 +735,42 @@
             .then(function (json) {
                 var cart = json.cart || json;
                 body.textContent = '';
-                var list = document.createElement('ul');
-                list.className = 'commerce-drawer__lines';
-                (cart.lines || []).slice(0, shown).forEach(function (line) {
-                    var li = document.createElement('li');
-                    var a = document.createElement('a');
-                    a.href = line.url || '#';
-                    a.textContent = line.quantity + ' × ' + line.title;
-                    var price = document.createElement('span');
-                    price.textContent = line.total.formatted;
-                    li.appendChild(a);
-                    li.appendChild(price);
-                    list.appendChild(li);
-                });
-                body.appendChild(list);
-                var more = (cart.line_count || 0) - list.children.length;
-                if (more > 0) {
-                    var rest = document.createElement('a');
-                    rest.className = 'commerce-drawer__more';
-                    rest.href = link.href;
-                    rest.textContent = (drawer.dataset.commerceDrawerMore || '+:count').replace(':count', more);
-                    body.appendChild(rest);
-                }
-                if (cart.totals) {
-                    var total = document.createElement('p');
-                    total.className = 'commerce-drawer__total';
-                    total.textContent = cart.totals.total.formatted;
-                    body.appendChild(total);
+                var empty = cart.count === 0;
+                var footer = drawer.querySelector('[data-commerce-drawer-footer], .commerce-drawer__footer');
+                if (footer) footer.hidden = empty;
+                if (empty) {
+                    var template = drawer.querySelector('[data-commerce-drawer-empty]');
+                    if (!template) throw new Error('Cart empty state unavailable');
+                    body.appendChild(template.content.cloneNode(true));
+                } else {
+                    var list = document.createElement('ul');
+                    list.className = 'commerce-drawer__lines';
+                    (cart.lines || []).slice(0, shown).forEach(function (line) {
+                        var li = document.createElement('li');
+                        var a = document.createElement('a');
+                        a.href = line.url || '#';
+                        a.textContent = line.quantity + ' × ' + line.title;
+                        var price = document.createElement('span');
+                        price.textContent = line.total.formatted;
+                        li.appendChild(a);
+                        li.appendChild(price);
+                        list.appendChild(li);
+                    });
+                    body.appendChild(list);
+                    var more = (cart.line_count || 0) - list.children.length;
+                    if (more > 0) {
+                        var rest = document.createElement('a');
+                        rest.className = 'commerce-drawer__more';
+                        rest.href = link.href;
+                        rest.textContent = (drawer.dataset.commerceDrawerMore || '+:count').replace(':count', more);
+                        body.appendChild(rest);
+                    }
+                    if (cart.totals) {
+                        var total = document.createElement('p');
+                        total.className = 'commerce-drawer__total';
+                        total.textContent = cart.totals.total.formatted;
+                        body.appendChild(total);
+                    }
                 }
                 drawer.showModal();
                 var close = drawer.querySelector('[data-commerce-drawer-close]');
