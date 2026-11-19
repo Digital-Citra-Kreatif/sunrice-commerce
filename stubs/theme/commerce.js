@@ -278,6 +278,7 @@
 
             var fields = Array.from(editor.querySelectorAll('[name^="shipping_address["]'));
             var saved = form.querySelector('[data-commerce-saved-address]');
+            var newAddressOption = saved?.querySelector('option[value=""]');
             var save = editor.querySelector('[name=save_address]');
             var card = form.querySelector('[data-commerce-address-card]');
             var summary = card.querySelector('[data-commerce-address-summary]');
@@ -315,13 +316,17 @@
                 activeId = saved?.value || '';
                 shouldSave = save?.checked ?? false;
                 if (save) inputs[fields.length].value = shouldSave ? '1' : '0';
+                var title = activeAddress.label?.trim() || '';
+                if (newAddressOption?.dataset.placeholder) {
+                    newAddressOption.textContent = (!activeId && title) || newAddressOption.dataset.placeholder;
+                }
                 var locality = [activeAddress.village, activeAddress.district, activeAddress.city,
                     activeAddress.country === 'ID' ? activeAddress.province : activeAddress.state,
                     activeAddress.postal_code].filter(Boolean).join(', ');
                 var recipient = [activeId ? '' : activeAddress.name, activeAddress.phone].filter(Boolean).join(' · ');
                 var street = [activeAddress.line1, activeAddress.line2, locality,
                     activeAddress.country === 'ID' ? '' : activeAddress.countryLabel].filter(Boolean).join(', ');
-                summary.textContent = [recipient, street].filter(Boolean).join('\n');
+                summary.textContent = [saved ? '' : title, recipient, street].filter(Boolean).join('\n');
                 summary.hidden = !activeAddress.line1;
                 open.textContent = summary.hidden || activeId ? open.dataset.addLabel : open.dataset.changeLabel;
             }

@@ -163,7 +163,9 @@ The order keeps the address as a snapshot, codes and names together. See [region
 
 At checkout, choosing a saved address fills both its fields and its region codes. Switching
 addresses also clears optional values missing from the new selection. The shipping section shows a
-summary and a saved-address selector when available. **Add address** opens a dialog.
+summary and a saved-address selector when available. **Add address** opens a dialog. Give the
+address an optional title to identify it in the selector. Use **Edit address** to revise the title
+before placing the order. If you save the address to your account, the title is saved with it.
 **Use this address** applies the draft and refreshes shipping rates, while **Cancel** keeps the
 previous address. With JavaScript off, the form is inline and **Use saved address** applies the
 selection through a regular form submission. For separate billing, the
