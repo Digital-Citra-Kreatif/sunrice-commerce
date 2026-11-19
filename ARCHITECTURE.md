@@ -1379,18 +1379,19 @@ interface BooksShipments  { public function book(Order $order, Shipment $shipmen
 ## 17. Digital delivery
 
 - **Uploads** go through an admin endpoint used by the product field control. They are stored on
-  `commerce.downloads.disk` (default `local`) under `commerce/downloads/{random}/{filename}`, as
-  `commerce_download_files` rows with `attached = false` until a projection references them.
-  `commerce:prune` deletes unattached files older than 7 days.
-- **`GrantDownloads`**: for each downloadable item, a grant per file (variant files, else product
-  files), with limits and expiry from the product's delivery settings.
-- **`DeliverDownloads`** (after granting):
-  - email links (`/downloads/{token}`), and attachments when the attachment mode is on and the total
-    size ≤ `digital.attachment_max_mb`;
+  `commerce.downloads.disk` (default `local`) under `commerce/downloads/{year}/{month}/` with a
+  random filename, as `commerce_download_files` rows with `attached = false` until a projection
+  references them. `commerce:prune` deletes unassigned uploads older than 7 days.
+- **`GrantDownloads`**: for each downloadable item, create one grant for each shared product file
+  and each file assigned to the purchased variant, using product limits and expiry or store defaults.
+- **`DownloadsGranted`** triggers the `downloads_ready` email through `SendStoreEmails`:
+  - email links (`/downloads/{token}`), and attachments when the attachment mode is on and the file
+    is at most `commerce.downloads.attachment_max_mb`;
   - the account library lists the grants of the signed-in customer's orders.
 - **`DownloadController`**:
-  - checks the token, revocation, expiry and remaining count;
-  - increments the count and logs the download;
+  - checks the token, revocation, expiry and remaining count. Possession of a valid token is
+    sufficient for access, including for guests;
+  - updates the count atomically and logs the request before serving the file or redirecting;
   - streams from the disk (`Storage::download`, or a 5-minute `temporaryUrl()` redirect when the
     disk supports it);
   - external URL grants redirect.

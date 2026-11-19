@@ -34,6 +34,7 @@ use Sunrice\Commerce\Orders\Actions\TrashOrder;
 use Sunrice\Commerce\Orders\Actions\UpdateOrderAddresses;
 use Sunrice\Commerce\Orders\Actions\UpdateShipment;
 use Sunrice\Commerce\Orders\Actor;
+use Sunrice\Commerce\Orders\AdminOrderScopes;
 use Sunrice\Commerce\Orders\Events\PaymentLinkRequested;
 use Sunrice\Commerce\Orders\InvalidTransition;
 use Sunrice\Commerce\Orders\Models\Order;
@@ -78,6 +79,7 @@ class OrdersController extends Controller
             ...$this->tableProps(self::TABLE, $table, $columns, $rows->through(fn (Model $o) => $o instanceof Order ? $this->row($o, $money) : []),
                 $this->filters(), $this->bulkActions($request)),
             'visibleColumns' => $saved['columns'] ?? ['number', 'date', 'customer', 'status', 'payment', 'fulfillment', 'total'],
+            'mobileBadgeColumns' => ['status', 'payment', 'fulfillment'],
             'bulkUrl' => route('sunrice.admin.commerce.orders.bulk', [], false),
             'exportUrl' => $request->user()->can('commerce.orders.export') ? route('sunrice.admin.commerce.orders.export', [], false) : null,
             'searchPlaceholder' => 'Number, name, email, phone or SKU…',
@@ -150,7 +152,7 @@ class OrdersController extends Controller
         $this->authorize($data['action'] === 'trash' ? 'commerce.orders.delete' : 'commerce.orders.edit');
         $done = 0;
         $skipped = 0;
-        foreach (Order::query()->whereIn('id', $data['ids'])->get() as $order) {
+        foreach (app(AdminOrderScopes::class)->apply(Order::query()->whereIn('id', $data['ids']))->get() as $order) {
             if ($data['action'] === 'trash') {
                 app(TrashOrder::class)->trash($order);
                 $done++;
@@ -293,7 +295,7 @@ class OrdersController extends Controller
     public function preview(Request $request, StaffPricing $pricing, MoneyFormatter $money): JsonResponse
     {
         $this->guard();
-        $order = $request->filled('order') ? Order::query()->find($request->integer('order')) : null;
+        $order = $request->filled('order') ? app(AdminOrderScopes::class)->apply(Order::query())->find($request->integer('order')) : null;
         $lines = array_values(array_filter((array) $request->input('lines', []), fn ($l) => is_array($l) && isset($l['variant_id'])));
         if ($order !== null) {
             $items = $order->items()->whereNull('parent_id')->get()->keyBy('id');
@@ -330,7 +332,7 @@ class OrdersController extends Controller
         $this->authorize('commerce.orders.edit');
         abort_unless($order->isUnpaid() && ! $order->isQuote(), 422);
         PaymentLinkRequested::dispatch($order);
-        app(Timeline::class)->record($order, 'email', 'Payment link sent', [], Actor::admin($request->user()), 'customer');
+        app(Timeline::class)->record($order, 'email', Timeline::text('commerce::orders.timeline.payment_link_sent'), [], Actor::admin($request->user()), 'customer');
 
         return back()->with('success', 'Payment link sent to the customer.');
     }
@@ -378,7 +380,7 @@ class OrdersController extends Controller
                 'payment_method_title' => $order->payment_method_title,
                 'customer_note' => $order->customer_note, 'dropship' => $order->dropship, 'fields' => $order->fields,
                 'items' => $order->items->whereNull('parent_id')->values()->map(fn (OrderItem $i) => [
-                    'id' => $i->id, 'name' => $i->name, 'variant_title' => $i->variant_title, 'sku' => $i->sku, 'options' => $i->options,
+                    'id' => $i->id, 'name' => $i->name, 'variant_title' => $i->variant_title, 'sku' => $i->sku, 'options' => $i->options, 'details' => $i->details(),
                     'quantity' => $i->quantity, 'fulfilled_quantity' => $i->fulfilled_quantity, 'refunded_quantity' => $i->refunded_quantity,
                     'unfulfilled' => $i->unfulfilled(), 'requires_shipping' => $i->requires_shipping,
                     'unit_price' => $i->unit_price, 'unit_price_formatted' => $f($i->unit_price),
@@ -393,6 +395,8 @@ class OrdersController extends Controller
                     'shipping' => $order->needsShipping() ? $f($order->shipping_total) : null, 'fees' => $order->fee_total > 0 ? $f($order->fee_total) : null,
                     'tax' => $order->tax_total > 0 ? $f($order->tax_total) : null, 'tax_included' => $order->prices_include_tax,
                     'total' => $f($order->total), 'total_amount' => $order->total, 'paid' => $f($order->paid_total), 'refunded' => $order->refunded_total > 0 ? $f($order->refunded_total) : null,
+                    'deposit' => $order->deposit_total > 0 ? $f($order->deposit_total) : null,
+                    'balance' => $order->isPartiallyPaid() ? $f($order->balanceDue()) : null, 'balance_due_at' => $order->balance_due_at?->toIso8601String(),
                     'refundable' => max(0, $order->paid_total - $order->refunded_total) + app(Loyalty::class)->refundable($order),
                 ],
                 'adjustments' => $order->adjustments->map(fn ($a) => ['kind' => $a->kind, 'label' => $a->label, 'code' => $a->code, 'source' => $a->source_type,
@@ -420,7 +424,7 @@ class OrdersController extends Controller
                     $order->isQuote() ? ['type' => 'quotation', 'label' => 'Quotation', 'number' => $order->quote_number, 'url' => route('sunrice.admin.commerce.orders.document', [$order, 'quotation'], false)] : null,
                 ])) : [],
                 'timeline' => $order->events->sortByDesc('id')->values()->map(fn (OrderEvent $e) => ['id' => $e->id, 'type' => $e->type, 'visibility' => $e->visibility,
-                    'message' => $e->message, 'source' => $e->source, 'actor' => $e->data['actor'] ?? null, 'created_at' => $e->created_at?->toIso8601String()])->all(),
+                    'message' => $e->text(), 'source' => $e->source, 'actor' => $e->data['actor'] ?? null, 'created_at' => $e->created_at?->toIso8601String()])->all(),
                 'storefront_url' => $order->url(),
             ],
             'transitions' => collect(OrderStateMachine::TRANSITIONS[$order->type][$order->status] ?? [])
@@ -622,7 +626,7 @@ class OrdersController extends Controller
         $this->authorizeFeature('documents');
         $this->authorize('commerce.documents.view');
         $ids = array_slice(array_filter(array_map('intval', explode(',', (string) $request->query('ids')))), 0, 200);
-        $orders = Order::query()->whereIn('id', $ids)->orderBy('id')->get();
+        $orders = app(AdminOrderScopes::class)->apply(Order::query()->whereIn('id', $ids))->orderBy('id')->get();
         abort_if($orders->isEmpty(), 404);
 
         return response($documents->bulkPdf($orders), 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="packing-slips.pdf"']);
@@ -669,7 +673,7 @@ class OrdersController extends Controller
 
     protected function table(Request $request): TableQuery
     {
-        $table = TableQuery::for(Order::query()->withTrashed()->with('customer'))
+        $table = TableQuery::for(app(AdminOrderScopes::class)->apply(Order::query()->withTrashed()->with('customer')))
             ->searchUsing(function (Builder $q, string $term): void {
                 $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $term).'%';
                 $q->where(fn (Builder $w) => $w->whereLike('number', $like)->orWhereLike('quote_number', $like)->orWhereLike('customer_name', $like)

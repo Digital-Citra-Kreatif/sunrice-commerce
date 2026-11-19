@@ -26,6 +26,7 @@ beforeEach(function () {
     app()->forgetScopedInstances();
     $cart = cartWith([[$this->mug, 1]]);
     $this->order = app(PlaceOrder::class)->handle($cart, CheckoutData::fromCart($cart)->merge(checkoutInput(['payment_method' => 'bank_transfer'])), null)->order;
+    authorizeGuestOrders($this->order);
 });
 
 function confirmPayment(Order $order, array $overrides = [], ?UploadedFile $proof = null): TestResponse
@@ -79,6 +80,7 @@ it('needs "approve anyway" for less than expected, and rejecting resumes the dea
         ->and($confirmation->fresh()->review_note)->toBe('Belum masuk');
 
     // A new confirmation, approved anyway.
+    authorizeGuestOrders($this->order);
     confirmPayment($this->order, ['amount' => 10000]);
     $again = PaymentConfirmation::query()->latest('id')->first();
     $this->post("/admin/commerce/confirmations/{$again->id}/approve", ['anyway' => true])->assertSessionHas('success');

@@ -116,6 +116,7 @@ changed).
 | Customers | `compare` | Product comparison | `catalog` | all | on |
 | Customers | `marketing` | Marketing emails: campaigns, automations, open and click tracking ([marketing.md](marketing.md)) | `catalog` | all | off |
 | Insights & AI | `analytics` | Store analytics | `catalog` | all | on |
+| Insights & AI | `webhooks` | Webhooks ([webhooks.md](webhooks.md)) | `orders` | all | **off** |
 | Insights & AI | `ai_tools` | Store tools for AI agents | `catalog` | all | on |
 
 Extension packages add their own modules, usually in the Integrations group (see
@@ -164,13 +165,14 @@ now off still shows its saved instructions.
 | `flash_sales` | Sale prices stop applying; `/flash-sale` and sale pages answer 404; `<x-commerce::flash-sale>` renders nothing. Shop → Flash sales is hidden. |
 | `vouchers` | The voucher endpoints answer 404, codes already on a cart are reported as not found, and automatic discounts stop. Shop → Vouchers is hidden. |
 | `accounts` | My Account and the sign-in and register pages answer 404; checkout doesn't offer an account. |
-| `loyalty` | Orders stop earning, carts stop paying with points, My Account → Points and Shop → Loyalty points answer 404; balances are kept. |
+| `loyalty` | Orders stop earning, checkout stops offering payment with points, My Account → Points and Shop → Loyalty points answer 404; balances are kept. |
 | `passwordless_login` | The sign-in code pages answer 404. They also answer 404 while the user model lacks the `HasOneTimePasswords` trait; the store health check reports it. |
 | `google_login` | The Google sign-in routes answer 404. They also answer 404 until `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set. |
 | `wishlist` | Wishlist pages answer 404 and `<x-commerce::wishlist-button>` renders nothing. |
 | `compare` | Compare pages answer 404 and `<x-commerce::compare-button>` renders nothing. |
 | `marketing` | Shop → Marketing is hidden and its pages answer 404; scheduled campaigns and automations wait. Tracking and unsubscribe links in emails already sent keep working. |
 | `analytics` | Shop → Reports and the dashboard figures are hidden; product views are not recorded. |
+| `webhooks` | Settings → Webhooks answers 404 and nothing is sent; endpoints and their log are kept. |
 | `ai_tools` | Commerce's MCP tools are not available (see [ai-agents.md](ai-agents.md)). |
 
 ## Checking modules in code

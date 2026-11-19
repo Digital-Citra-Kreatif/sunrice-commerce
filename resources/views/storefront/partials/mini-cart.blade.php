@@ -18,10 +18,13 @@
         </div>
         <div class="commerce-drawer__body" data-commerce-drawer-body aria-live="polite"></div>
         <div class="commerce-drawer__footer">
-            <a class="commerce-button commerce-button--secondary" href="{{ commerce_url('commerce.cart') }}">{{ __('commerce::storefront.cart.view') }}</a>
-            @if (\Illuminate\Support\Facades\Route::has('commerce.checkout'))
-                <a class="commerce-button commerce-button--primary" href="{{ commerce_url('commerce.checkout') }}">{{ __('commerce::storefront.cart.checkout') }}</a>
-            @endif
+            @php($hasCheckout = \Illuminate\Support\Facades\Route::has('commerce.checkout') && commerce_feature('checkout'))
+            <div class="commerce-drawer__actions">
+                <a @class(['commerce-link commerce-link--action' => $hasCheckout, 'commerce-button commerce-button--secondary' => ! $hasCheckout]) href="{{ commerce_url('commerce.cart') }}">{{ __('commerce::storefront.cart.view') }}</a>
+                @if ($hasCheckout)
+                    <a class="commerce-button commerce-button--primary" href="{{ commerce_url('commerce.checkout') }}">{{ __('commerce::storefront.cart.checkout') }}</a>
+                @endif
+            </div>
             <x-commerce::slot name="mini_cart.footer" />
         </div>
     </dialog>

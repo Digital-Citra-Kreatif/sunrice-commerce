@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Inventory;
 
 use RuntimeException;
-use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Catalog\Availability;
 use Sunrice\Commerce\Catalog\Models\Variant;
 
@@ -26,15 +25,12 @@ class OutOfStock extends RuntimeException
      */
     public function customerMessage(): string
     {
-        return (new Availability('out_of_stock', ['available' => $this->available]))->message($this->productTitle());
-    }
+        $title = $this->variant->loadMissing('product')->product?->entry()?->shownIn()?->title;
+        if (blank($title)) {
+            return __('commerce::storefront.availability.stock_changed');
+        }
+        $label = $this->variant->title !== '' ? $title.' ('.$this->variant->title.')' : $title;
 
-    protected function productTitle(): string
-    {
-        $entry = $this->variant->loadMissing('product')->product?->entry();
-        $translation = $entry?->translation(Locales::current()) ?? $entry?->mainTranslation();
-        $title = (string) ($translation->title ?? $translation->draft_title ?? $this->variant->sku ?? '');
-
-        return trim($title.((string) $this->variant->title !== '' ? ' ('.$this->variant->title.')' : ''));
+        return (new Availability('out_of_stock', ['available' => $this->available]))->message($label);
     }
 }

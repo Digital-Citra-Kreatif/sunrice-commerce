@@ -16,7 +16,7 @@ final class CheckoutData
 {
     public const KEYS = [
         'email', 'phone', 'name', 'shipping_address', 'billing_same', 'billing_address', 'shipping_rate', 'payment_method',
-        'notes', 'dropship', 'terms', 'create_account', 'accepts_marketing', 'fields', 'save_address', 'address_id',
+        'notes', 'dropship', 'terms', 'create_account', 'accepts_marketing', 'fields', 'save_address', 'address_id', 'use_points',
     ];
 
     /** @param  array<string, mixed>  $values */
@@ -42,8 +42,9 @@ final class CheckoutData
             }
             $value = $input[$key];
             $values[$key] = match ($key) {
-                'shipping_address', 'billing_address' => is_array($value) ? AddressRules::normalize($value)->toArray() : null,
-                'billing_same', 'terms', 'create_account', 'accepts_marketing', 'save_address' => filter_var($value, FILTER_VALIDATE_BOOLEAN),
+                'shipping_address' => is_array($value) ? self::normalizeShippingAddress($value) : null,
+                'billing_address' => is_array($value) ? AddressRules::normalize($value)->toArray() : null,
+                'billing_same', 'terms', 'create_account', 'accepts_marketing', 'save_address', 'use_points' => filter_var($value, FILTER_VALIDATE_BOOLEAN),
                 'email' => is_string($value) ? mb_strtolower(trim($value)) : null,
                 'dropship', 'fields' => is_array($value) ? $value : [],
                 'address_id' => is_numeric($value) ? (int) $value : null,
@@ -55,10 +56,27 @@ final class CheckoutData
             foreach (['billing_same', 'terms', 'create_account', 'accepts_marketing', 'save_address'] as $flag) {
                 $values[$flag] = filter_var($input[$flag] ?? false, FILTER_VALIDATE_BOOLEAN);
             }
+            if (! array_key_exists('payment_method', $input)) {
+                $values['payment_method'] = null;
+            }
             $values['dropship'] = (array) ($input['dropship'] ?? []);
         }
 
         return new self($values);
+    }
+
+    /** @param  array<string, mixed>  $input
+     * @return array<string, string|null>
+     */
+    private static function normalizeShippingAddress(array $input): array
+    {
+        $address = AddressRules::normalize($input)->toArray();
+        $label = is_string($input['label'] ?? null) ? trim($input['label']) : '';
+        if ($label !== '') {
+            $address['label'] = $label;
+        }
+
+        return $address;
     }
 
     public function get(string $key, mixed $default = null): mixed
@@ -83,7 +101,12 @@ final class CheckoutData
     {
         $address = $this->get('shipping_address');
 
-        return is_array($address) && array_filter($address) !== [] ? $address : null;
+        if (! is_array($address)) {
+            return null;
+        }
+        unset($address['label']);
+
+        return array_filter($address) !== [] ? $address : null;
     }
 
     public function billingSame(): bool
@@ -134,21 +157,24 @@ final class CheckoutData
     /**
      * The pricing context changes this data implies: destination (none
      * for pickup), billing address, chosen rate and payment method, email
-     * and phone.
+     * and phone, and whether to redeem points.
      *
      * @return array<string, mixed>
      */
     public function context(): array
     {
-        $destination = $this->isPickup() ? null : $this->shippingAddress();
+        $shipping = $this->shippingAddress();
+        $destination = $this->isPickup() ? null : $shipping;
 
         return array_filter([
             'destination' => $destination,
+            'deliveryDestination' => $this->isPickup() ? $shipping : null,
             'billingAddress' => $this->billingAddress(),
             'shippingRate' => $this->shippingRate(),
             'paymentMethod' => $this->paymentMethod(),
             'email' => $this->email(),
-            'phone' => $this->phone(),
+            'phone' => $destination['phone'] ?? $this->phone(),
+            'usePoints' => (bool) $this->get('use_points', false),
         ], fn ($v) => $v !== null);
     }
 

@@ -20,9 +20,9 @@ class WishlistButton extends Component
 
     public bool $saved;
 
-    public function __construct(Entry|EntryTranslation $entry)
+    public function __construct(Entry|EntryTranslation $entry, ?Product $projectedProduct = null)
     {
-        $this->productId = Product::query()->where('entry_id', LiveEntries::id($entry))->value('id');
+        $this->productId = $projectedProduct->id ?? Product::query()->where('entry_id', LiveEntries::id($entry))->value('id');
         $this->saved = $this->productId !== null && app(WishlistManager::class)->has($this->productId);
     }
 

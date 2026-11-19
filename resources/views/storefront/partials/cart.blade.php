@@ -1,13 +1,12 @@
 {{--
     <x-commerce::cart>: $cart (Sunrice\Commerce\Cart\CartView), $lines (this page of $cart->lines, a paginator).
-    The lines on the left (a card per line on phones), the summary on the
-    right: voucher codes, totals, checkout; cross-sells below. Every form
-    posts without JavaScript.
+    The lines on the left, the summary and checkout on the right, and cross-sells
+    below. Every form posts without JavaScript.
 --}}
 @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
 @php($taxDisplay = app(\Sunrice\Commerce\Taxes\TaxDisplay::class))
 @php($L = \Sunrice\Commerce\Storefront\Layout::class)
-@php($home = \Illuminate\Support\Facades\Route::has('sunrice.frontend.home') ? route('sunrice.frontend.home') : url('/'))
+@php($continueShopping = app(\Sunrice\Commerce\Storefront\ShoppingDestination::class)->url())
 <div class="commerce-cart" data-commerce-cart>
     @include($L::view('partials.messages'))
     @foreach (collect($cart->state->notices)->whereNotIn('code', ['voucher_conditional']) as $notice)
@@ -17,7 +16,7 @@
     @if ($cart->isEmpty())
         <div class="commerce-cart__empty">
             @include($L::view('partials.empty'), ['title' => __('commerce::storefront.cart.empty'), 'text' => __('commerce::storefront.theme.cart_empty_text'), 'icon' => 'bag',
-                'action' => ['url' => $home, 'label' => __('commerce::storefront.cart.continue')]])
+                'action' => ['url' => $continueShopping, 'label' => __('commerce::storefront.cart.continue')]])
         </div>
     @else
         <div class="commerce-cart__layout">
@@ -27,37 +26,51 @@
                     <tbody>
                         @foreach ($lines as $row)
                             @php($line = $row['line'])
+                            @php($productName = $row['entry']?->title ?? $row['entry']?->draft_title ?? '')
+                            @php($itemName = implode(' · ', array_filter([$productName, $line->variant->title])))
                             <tr data-commerce-cart-line="{{ $row['item']->id }}">
                                 <td class="commerce-cart__product">
-                                    @php($image = $row['entry'] ? collect((commerce_values($row['entry'])['gallery'] ?? null) ?? [])->first() : null)
-                                    <span class="commerce-cart__thumb">@if (is_object($image))<img src="{{ $image->url() }}" alt="" width="96" height="120" loading="lazy">@endif</span>
-                                    <span class="commerce-cart__info">
-                                        <a href="{{ $row['entry']?->url() }}">{{ ($row['entry']?->title ?? $row['entry']?->draft_title) }}</a>
-                                        @if ($line->variant->title !== '')<span class="commerce-cart__variant">{{ $line->variant->title }}</span>@endif
-                                        @if ($line->priceSource['type'] === 'flash_sale')<span class="commerce-badge commerce-badge--sale">{{ $line->priceSource['label'] ?? '' }}</span>@endif
-                                    </span>
-                                </td>
-                                <td class="commerce-cart__price">
-                                    @if ($line->regularUnitPrice > $line->unitPrice)<del>{{ $money->format($taxDisplay->line($line, $line->regularUnitPrice)) }}</del>@endif
-                                    {{ $money->format($taxDisplay->line($line, $line->unitPrice)) }}
+                                    <div class="commerce-cart__product-content">
+                                        @php($image = $row['entry'] ? collect((commerce_values($row['entry'])['gallery'] ?? null) ?? [])->first() : null)
+                                        <span class="commerce-cart__thumb">@if (is_object($image))<img src="{{ $image->url() }}" alt="" width="64" height="80" loading="lazy">@endif</span>
+                                        <span class="commerce-cart__info">
+                                            <a href="{{ $row['entry']?->url() }}">{{ $productName }}</a>
+                                            @if ($line->variant->title !== '')<span class="commerce-cart__variant">{{ $line->variant->title }}</span>@endif
+                                            @foreach (app(\Sunrice\Commerce\Cart\LineDetails::class)->for($line->meta) as $detail)<span class="commerce-cart__detail">{{ $detail }}</span>@endforeach
+                                            @if ($line->priceSource['type'] === 'flash_sale')<span class="commerce-badge commerce-badge--sale">{{ $line->priceSource['label'] ?? '' }}</span>@endif
+                                            <span class="commerce-cart__price">
+                                                <span class="commerce-visually-hidden">{{ __('commerce::storefront.cart.unit_price') }}</span>
+                                                @if ($line->regularUnitPrice > $line->unitPrice)<del>{{ $money->format($taxDisplay->line($line, $line->regularUnitPrice)) }}</del>@endif
+                                                {{ $money->format($taxDisplay->line($line, $line->unitPrice)) }}
+                                            </span>
+                                        </span>
+                                    </div>
                                 </td>
                                 <td class="commerce-cart__qty">
                                     <form method="POST" action="{{ commerce_url('commerce.cart.update', ['item' => $row['item']->id]) }}">
                                         @csrf @method('PATCH')
                                         <span class="commerce-stepper" data-commerce-stepper data-commerce-autosubmit>
-                                            <input type="number" name="quantity" value="{{ $line->quantity }}" min="0" step="{{ $line->variant->qty_step }}" @if ($line->variant->max_qty) max="{{ $line->variant->max_qty }}" @endif aria-label="{{ __('commerce::storefront.cart.quantity') }}">
+                                            <input type="number" name="quantity" value="{{ $line->quantity }}" min="{{ max(1, $line->variant->min_qty) }}" step="{{ $line->variant->qty_step }}" required @if ($line->variant->max_qty) max="{{ $line->variant->max_qty }}" @endif aria-label="{{ __('commerce::storefront.cart.quantity') }}">
                                         </span>
                                         <button type="submit" class="commerce-cart__update">{{ __('commerce::storefront.cart.update') }}</button>
                                     </form>
                                 </td>
                                 <td class="commerce-cart__total">
+                                    <span class="commerce-visually-hidden">{{ __('commerce::storefront.cart.line_total') }}</span>
                                     @if ($line->discount() > 0)<del>{{ $money->format($taxDisplay->line($line, $line->subtotal)) }}</del>@endif
                                     {{ $money->format($taxDisplay->line($line, $line->net())) }}
                                 </td>
                                 <td class="commerce-cart__remove">
-                                    <form method="POST" action="{{ commerce_url('commerce.cart.remove', ['item' => $row['item']->id]) }}">
+                                    <form method="POST" action="{{ commerce_url('commerce.cart.remove', ['item' => $row['item']->id]) }}" data-commerce-cart-remove="{{ $itemName }}">
                                         @csrf @method('DELETE')
-                                        <button type="submit" aria-label="{{ __('commerce::storefront.cart.remove') }}">@include($L::view('partials.icon'), ['name' => 'close'])</button>
+                                        <details class="commerce-cart__remove-disclosure">
+                                            <summary class="commerce-cart__remove-trigger" data-commerce-cart-remove-trigger
+                                                aria-label="{{ __('commerce::storefront.cart.remove_item', ['item' => $itemName]) }}">@include($L::view('partials.icon'), ['name' => 'trash'])</summary>
+                                            <div class="commerce-cart__remove-fallback">
+                                                <p>{{ __('commerce::storefront.cart.remove_confirm') }}</p>
+                                                <button type="submit" class="commerce-button commerce-button--accent">{{ __('commerce::storefront.cart.remove') }}</button>
+                                            </div>
+                                        </details>
                                     </form>
                                 </td>
                             </tr>
@@ -70,44 +83,11 @@
                     </nav>
                 @endif
                 <x-commerce::slot name="cart.after_items" :cart="$cart" />
-                <p class="commerce-cart__continue"><a href="{{ $home }}">← {{ __('commerce::storefront.cart.continue') }}</a></p>
+                <p class="commerce-cart__continue"><a href="{{ $continueShopping }}">← {{ __('commerce::storefront.cart.continue') }}</a></p>
             </div>
 
             <aside class="commerce-cart__summary" aria-labelledby="commerce-cart-summary">
                 <h2 class="commerce-cart__summary-title" id="commerce-cart-summary">{{ __('commerce::storefront.theme.order_summary') }}</h2>
-                @if (commerce_feature('vouchers'))
-                    <div class="commerce-cart__vouchers">
-                        @foreach ($cart->state->appliedCodes as $code)
-                            <form method="POST" action="{{ commerce_url('commerce.cart.voucher.remove', ['code' => $code]) }}" class="commerce-voucher-chip">
-                                @csrf @method('DELETE')
-                                <span>{{ $code }}</span> <button type="submit" aria-label="{{ __('commerce::storefront.cart.remove') }}">×</button>
-                            </form>
-                        @endforeach
-                        @foreach (collect($cart->state->notices)->where('code', 'voucher_conditional') as $notice)
-                            <p class="commerce-notice">{{ $notice['message'] }}</p>
-                        @endforeach
-                        <form method="POST" action="{{ commerce_url('commerce.cart.voucher') }}" class="commerce-voucher-form" data-commerce-voucher-form>
-                            @csrf
-                            <label for="commerce-voucher-code">{{ __('commerce::storefront.cart.voucher') }}</label>
-                            <span class="commerce-inline-form">
-                                <input type="text" id="commerce-voucher-code" name="code" autocomplete="off" maxlength="64" autocapitalize="characters">
-                                <button type="submit" class="commerce-button commerce-button--secondary">{{ __('commerce::storefront.cart.apply') }}</button>
-                            </span>
-                        </form>
-                    </div>
-                @endif
-
-                @php($wallet = commerce_feature('loyalty') && commerce_customer() !== null ? (int) (app(\Sunrice\Commerce\Customers\CurrentCustomer::class)->get()?->loyalty_points ?? 0) : 0)
-                @if ($wallet > 0 && \Illuminate\Support\Facades\Route::has('commerce.cart.points'))
-                    {{-- Pay with loyalty points: after tax, up to the balance. --}}
-                    <form method="POST" action="{{ commerce_url('commerce.cart.points') }}" class="commerce-cart__points">
-                        @csrf
-                        <input type="hidden" name="use" value="{{ $cart->state->ctx->usePoints ? '0' : '1' }}">
-                        <p>{{ __('commerce::storefront.cart.points_balance', ['points' => number_format($wallet, 0, ',', '.'), 'value' => $money->format($wallet)]) }}</p>
-                        <button type="submit" class="commerce-button commerce-button--secondary">{{ $cart->state->ctx->usePoints ? __('commerce::storefront.cart.points_stop') : __('commerce::storefront.cart.points_use') }}</button>
-                    </form>
-                @endif
-
                 @include($L::view('partials.totals'), ['state' => $cart->state])
                 <x-commerce::slot name="cart.totals_after" :cart="$cart" />
 
@@ -120,6 +100,16 @@
                 </ul>
             </aside>
         </div>
+
+        <dialog class="commerce-cart__remove-dialog" data-commerce-cart-remove-dialog
+            aria-labelledby="commerce-cart-remove-title" aria-describedby="commerce-cart-remove-item">
+            <h2 id="commerce-cart-remove-title">{{ __('commerce::storefront.cart.remove_confirm') }}</h2>
+            <p id="commerce-cart-remove-item" data-commerce-cart-remove-item></p>
+            <form method="dialog" class="commerce-cart__remove-actions">
+                <button type="submit" value="cancel" class="commerce-link commerce-link--action" autofocus>{{ __('commerce::storefront.cart.remove_cancel') }}</button>
+                <button type="submit" value="remove" class="commerce-button commerce-button--accent">{{ __('commerce::storefront.cart.remove') }}</button>
+            </form>
+        </dialog>
 
         @php($crossSells = collect($cart->lines)->flatMap(fn ($row) => collect(($row['entry'] ? (commerce_values($row['entry'])['cross_sells'] ?? null) : null) ?? []))->filter()->unique('id')
             ->reject(fn ($entry) => collect($cart->lines)->contains(fn ($row) => $row['entry']?->entry_id === $entry->entry_id))->take(5))

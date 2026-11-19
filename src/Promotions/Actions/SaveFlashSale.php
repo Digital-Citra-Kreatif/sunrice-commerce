@@ -11,6 +11,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Admin\SchemaForm;
+use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Http\Controllers\Admin\TargetLabels;
 use Sunrice\Commerce\Promotions\FlashSales\FlashSale;
@@ -39,27 +40,32 @@ class SaveFlashSale
         $descriptions = array_map(fn (string $l) => ['handle' => $l, 'type' => 'textarea', 'label' => Locales::name($l), 'translatable' => false, 'config' => ['max' => 2000]], Locales::all());
 
         return [
-            ['handle' => 'name', 'type' => 'text', 'label' => 'Name', 'required' => true, 'translatable' => false, 'config' => ['max' => 120]],
-            ['handle' => 'slug', 'type' => 'text', 'label' => 'URL slug', 'translatable' => false, 'instructions' => 'Its page: /flash-sale/{slug}. Empty: from the name.', 'validation' => ['regex:/^[a-z0-9-]*$/', 'max:120']],
-            ['handle' => 'active', 'type' => 'toggle', 'label' => 'Active'],
-            ['handle' => 'dates', 'type' => 'commerce_datetime_range', 'label' => 'When', 'required' => true, 'config' => ['require_start' => true, 'require_end' => true]],
-            ['handle' => 'badge', 'type' => 'text', 'label' => 'Badge', 'translatable' => false, 'instructions' => 'e.g. "12.12"', 'config' => ['max' => 40]],
-            ['handle' => 'description', 'type' => 'group', 'label' => 'Description', 'config' => ['fields' => $descriptions]],
-            ['handle' => 'banner', 'type' => 'asset', 'label' => 'Banner', 'config' => ['image_only' => true]],
-            ['handle' => 'show_countdown', 'type' => 'toggle', 'label' => 'Show a countdown'],
-            ['handle' => 'show_progress', 'type' => 'toggle', 'label' => 'Show how much is sold (items with a cap)'],
-            ['handle' => 'show_teaser', 'type' => 'toggle', 'label' => 'Announce it before it starts'],
-            ['handle' => 'per_customer_limit', 'type' => 'number', 'label' => 'Units per customer', 'instructions' => 'At the sale price, per item. Empty: no limit.', 'config' => ['min' => 1], 'validation' => ['integer']],
-            ['handle' => 'items', 'type' => 'repeater', 'label' => 'Products', 'required' => true, 'config' => ['min' => 1, 'max' => 200, 'fields' => [
-                ['handle' => 'target', 'type' => 'commerce_targets', 'label' => 'Product or variant', 'required' => true, 'config' => ['types' => ['product', 'variant']]],
-                ['handle' => 'discount_type', 'type' => 'select', 'label' => 'Sale price', 'required' => true, 'config' => ['options' => [
-                    ['value' => 'percent_off', 'label' => 'Percent off'], ['value' => 'amount_off', 'label' => 'Amount off'], ['value' => 'fixed_price', 'label' => 'Fixed price'],
+            ['handle' => 'name', 'section' => 'Sale', 'width' => 50, 'type' => 'text', 'label' => 'Name', 'required' => true, 'translatable' => false, 'config' => ['max' => 120]],
+            ['handle' => 'slug', 'section' => 'Sale', 'width' => 50, 'type' => 'text', 'label' => 'URL slug', 'translatable' => false, 'instructions' => 'Its page: /flash-sale/{slug}. Empty: from the name.', 'validation' => ['regex:/^[a-z0-9-]*$/', 'max:120']],
+            ['handle' => 'active', 'section' => 'Sale', 'width' => 50, 'type' => 'toggle', 'label' => 'Active'],
+            ['handle' => 'dates', 'section' => 'Sale', 'type' => 'commerce_datetime_range', 'label' => 'When', 'required' => true, 'config' => ['require_start' => true, 'require_end' => true]],
+            ['handle' => 'badge', 'section' => 'Sale', 'width' => 50, 'type' => 'text', 'label' => 'Badge', 'translatable' => false, 'instructions' => 'e.g. "12.12"', 'config' => ['max' => 40]],
+            ['handle' => 'description', 'section' => 'Sale page', 'type' => 'group', 'label' => 'Description', 'config' => ['fields' => $descriptions]],
+            ['handle' => 'banner', 'section' => 'Sale page', 'type' => 'asset', 'label' => 'Banner', 'config' => ['image_only' => true]],
+            ['handle' => 'show_countdown', 'section' => 'Sale page', 'type' => 'toggle', 'label' => 'Show a countdown'],
+            ['handle' => 'show_progress', 'section' => 'Sale page', 'type' => 'toggle', 'label' => 'Show how much is sold (items with a cap)'],
+            ['handle' => 'show_teaser', 'section' => 'Sale page', 'type' => 'toggle', 'label' => 'Announce it before it starts'],
+            ['handle' => 'per_customer_limit', 'section' => 'Sale', 'width' => 50, 'type' => 'number', 'label' => 'Units per customer', 'instructions' => 'At the sale price, per item. Empty: no limit.', 'config' => ['min' => 1], 'validation' => ['integer']],
+            ['handle' => 'items', 'section' => 'Products', 'type' => 'repeater', 'label' => 'Product rule', 'required' => true,
+                'config' => ['min' => 1, 'max' => 200, 'summary_targets' => 'target', 'fields' => [
+                    ['handle' => 'target', 'width' => 100, 'type' => 'commerce_targets', 'label' => 'Products and variants', 'instructions' => 'Each selection gets its own price and limits.', 'required' => true, 'config' => ['types' => ['product', 'variant']]],
+                    ['handle' => 'discount_type', 'width' => 50, 'type' => 'select', 'label' => 'Discount method', 'required' => true, 'config' => ['options' => [
+                        ['value' => 'percent_off', 'label' => 'Percent off'], ['value' => 'amount_off', 'label' => 'Amount off'], ['value' => 'fixed_price', 'label' => 'Fixed price'],
+                    ]]],
+                    ['handle' => 'percent', 'width' => 50, 'condition' => ['field' => 'discount_type', 'operator' => 'equals', 'value' => 'percent_off'], 'type' => 'number', 'label' => 'Discount (%)', 'required' => true, 'config' => ['min' => 0, 'max' => 100]],
+                    ['handle' => 'amount', 'width' => 50, 'condition' => ['match' => 'any', 'rules' => [
+                        ['field' => 'discount_type', 'operator' => 'equals', 'value' => 'amount_off'],
+                        ['field' => 'discount_type', 'operator' => 'equals', 'value' => 'fixed_price'],
+                    ]], 'type' => 'commerce_money', 'required' => true, 'label' => 'Amount',
+                        'instructions' => 'Enter the discount amount for Amount off, or the selling price for Fixed price.'],
+                    ['handle' => 'quantity_limit', 'width' => 50, 'type' => 'number', 'label' => 'Total units at this price', 'instructions' => 'Leave blank for no total limit.', 'config' => ['min' => 1], 'validation' => ['integer']],
+                    ['handle' => 'per_customer_limit', 'width' => 50, 'type' => 'number', 'label' => 'Units per customer', 'instructions' => 'Leave blank to use the sale-wide limit.', 'config' => ['min' => 1], 'validation' => ['integer']],
                 ]]],
-                ['handle' => 'percent', 'type' => 'number', 'label' => 'Percent', 'config' => ['min' => 0, 'max' => 100]],
-                ['handle' => 'amount', 'type' => 'commerce_money', 'label' => 'Amount or price'],
-                ['handle' => 'quantity_limit', 'type' => 'number', 'label' => 'Units at this price (cap)', 'config' => ['min' => 1], 'validation' => ['integer']],
-                ['handle' => 'per_customer_limit', 'type' => 'number', 'label' => 'Units per customer', 'config' => ['min' => 1], 'validation' => ['integer']],
-            ]]],
         ];
     }
 
@@ -94,24 +100,41 @@ class SaveFlashSale
         $values = SchemaForm::make($this->fields())->validate($input, [
             'slug' => [Rule::unique('commerce_flash_sales', 'slug')->ignore($sale->id)],
         ]);
+        $targets = collect((array) $values['items'])->flatMap(fn (array $row): array => $row['target'] ?? []);
+        $products = Product::query()->whereNull('removed_at')->findMany($targets->where('type', 'product')->pluck('id')->unique()->values())->keyBy('id');
+        $variants = Variant::query()->whereHas('product', fn ($query) => $query->whereNull('removed_at'))
+            ->findMany($targets->where('type', 'variant')->pluck('id')->unique()->values())->keyBy('id');
         $items = [];
         foreach ((array) $values['items'] as $i => $item) {
-            $target = $item['target'][0] ?? null;
-            if ($target === null) {
-                throw SchemaForm::prefixed(ValidationException::withMessages(["items.{$i}.target" => 'Choose a product or variant.']));
+            if (empty($item['target'])) {
+                throw SchemaForm::prefixed(ValidationException::withMessages(["items.{$i}.target" => 'Choose at least one product or variant.']));
             }
-            $variant = $target['type'] === 'variant' ? Variant::query()->find($target['id']) : null;
             $type = (string) $item['discount_type'];
             $value = $type === 'percent_off' ? (int) round((float) ($item['percent'] ?? 0) * 100) : (int) ($item['amount'] ?? 0);
             if ($type === 'percent_off' && ($value <= 0 || $value > 10000)) {
                 throw SchemaForm::prefixed(ValidationException::withMessages(["items.{$i}.percent" => 'Enter a percentage between 0 and 100.']));
             }
-            $items[] = [
-                'product_id' => $variant->product_id ?? (int) $target['id'], 'variant_id' => $variant?->id,
-                'discount_type' => $type, 'discount_value' => $value,
-                'quantity_limit' => $item['quantity_limit'] ?? null, 'per_customer_limit' => $item['per_customer_limit'] ?? null, 'position' => $i,
-            ];
+            foreach ($item['target'] as $target) {
+                $variant = $target['type'] === 'variant' ? $variants->get($target['id']) : null;
+                $productId = $variant->product_id ?? ($target['type'] === 'product' ? $products->get($target['id'])?->id : null);
+                if ($productId === null) {
+                    throw SchemaForm::prefixed(ValidationException::withMessages(["items.{$i}.target" => 'Choose an existing product or variant.']));
+                }
+                $key = $productId.':'.$variant?->id;
+                if (isset($items[$key])) {
+                    throw SchemaForm::prefixed(ValidationException::withMessages(["items.{$i}.target" => 'This product or variant already has a rule in this sale.']));
+                }
+                $items[$key] = [
+                    'product_id' => $productId, 'variant_id' => $variant?->id,
+                    'discount_type' => $type, 'discount_value' => $value,
+                    'quantity_limit' => $item['quantity_limit'] ?? null, 'per_customer_limit' => $item['per_customer_limit'] ?? null, 'position' => count($items),
+                ];
+            }
         }
+        if (count($items) > 200) {
+            throw SchemaForm::prefixed(ValidationException::withMessages(['items' => 'Choose at most 200 products and variants.']));
+        }
+        $items = array_values($items);
         $starts = Carbon::parse($values['dates']['start']);
         $ends = Carbon::parse($values['dates']['end']);
         if ((bool) $values['active'] && ($other = OverlapCheck::conflict($items, $starts, $ends, $sale->id)) !== null) {

@@ -9,14 +9,15 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
+use Sunrice\Cms\Actions\Entries\CreateEntry;
 use Sunrice\Cms\Actions\Entries\PublishEntry;
-use Sunrice\Cms\Actions\Entries\SaveDraft;
+use Sunrice\Cms\Actions\Terms\CreateTerm;
 use Sunrice\Cms\Models\Collection;
-use Sunrice\Cms\Models\Entry;
 use Sunrice\Cms\Models\Taxonomy;
-use Sunrice\Cms\Models\Term;
+use Sunrice\Cms\Models\TermTranslation;
 use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Promotions\Actions\SaveFlashSale;
 use Sunrice\Commerce\Promotions\Actions\SavePricingRule;
 use Sunrice\Commerce\Promotions\Actions\SaveVoucher;
@@ -57,7 +58,7 @@ class LoadTestSeeder extends Seeder
         mt_srand((int) env('LOADTEST_SEED', 42));
         DB::disableQueryLog();
 
-        if (Variant::query()->where('sku', 'DEMO-MUG')->doesntExist()) {
+        if (Variant::query()->where('sku', 'like', 'KN-%')->doesntExist()) {
             $this->call(DemoStoreSeeder::class);
         }
         if (Variant::query()->where('sku', 'like', 'LT-%')->exists()) {
@@ -110,7 +111,7 @@ class LoadTestSeeder extends Seeder
             'sizes' => ['XS', 'S', 'M', 'L', 'XL', 'XXL'], 'materials' => ['Katun', 'Linen', 'Poliester', 'Wol', 'Bambu']];
         $products = Collection::query()->where('handle', 'products')->firstOrFail();
         foreach ($attributes as $handle => $names) {
-            $taxonomy = Taxonomy::query()->firstOrCreate(['handle' => $handle], ['title' => Str::title($handle), 'settings' => []]);
+            $taxonomy = Taxonomy::query()->firstOrCreate(['handle' => $handle], ['title' => Str::title($handle)]);
             $products->taxonomies()->syncWithoutDetaching([$taxonomy->id]);
             foreach ($names as $name) {
                 $this->terms[$handle][] = $this->term($handle, $name);
@@ -122,11 +123,12 @@ class LoadTestSeeder extends Seeder
 
     protected function term(string $taxonomy, string $name, ?int $parent = null): int
     {
-        $taxonomyId = (int) Taxonomy::query()->where('handle', $taxonomy)->value('id');
-        $term = Term::query()->create(['taxonomy_id' => $taxonomyId, 'parent_id' => $parent, 'sort_order' => 0]);
-        $term->translations()->create(['taxonomy_id' => $taxonomyId, 'locale' => Locales::default(), 'name' => $name, 'slug' => Str::slug($name), 'data' => [], 'is_ready' => true]);
+        $model = Taxonomy::query()->where('handle', $taxonomy)->firstOrFail();
+        $slug = Str::slug($name);
+        $locale = Locales::default();
+        $id = TermTranslation::query()->where('taxonomy_id', $model->id)->where('locale', $locale)->where('slug', $slug)->value('term_id');
 
-        return (int) $term->id;
+        return (int) ($id ?? app(CreateTerm::class)->handle($model, ['title' => $name, 'slug' => $slug, 'parent_id' => $parent], $locale)->id);
     }
 
     /** Simple (55%), variable (30%, up to three options and 100 variants), digital (8%) and bundles (7%). */
@@ -165,17 +167,18 @@ class LoadTestSeeder extends Seeder
             }
             $value['featured'] = mt_rand(1, 40) === 1;
 
-            $entry = Entry::query()->create(['collection_id' => $collection->id, 'status' => 'draft', 'sort_order' => 0]);
             $slug = Str::slug(Str::limit($title, 80, ''))."-{$n}";
-            $translation = $entry->translations()->create(['locale' => Locales::default(), 'collection_id' => $collection->id, 'title' => $title,
-                'slug' => $slug, 'data' => [], 'seo' => []]);
-            $entry->terms()->sync(array_values(array_unique([
-                $this->pick('leaf'), $this->pick('brands'), ...array_map(fn () => $this->pick('product_tags'), range(0, mt_rand(0, 3))),
-            ])));
-            app(SaveDraft::class)->handle($translation, ['title' => $title, 'slug' => $slug, 'data' => [
-                'excerpt' => "Produk uji {$n}: {$kind}.", 'product' => $value,
-            ]]);
-            app(PublishEntry::class)->handle($translation->fresh());
+            $translation = app(CreateEntry::class)->handle($collection, [
+                'title' => $title,
+                'slug' => $slug,
+                'data' => ['excerpt' => "Produk uji {$n}: {$kind}.", 'product' => $value],
+                'terms' => [
+                    'product_categories' => [$this->pick('leaf')],
+                    'brands' => [$this->pick('brands')],
+                    'product_tags' => array_values(array_unique(array_map(fn () => $this->pick('product_tags'), range(0, mt_rand(0, 3))))),
+                ],
+            ]);
+            app(PublishEntry::class)->handle($translation);
             if ($kind === 'simple') {
                 $simple[] = (int) Variant::query()->where('sku', $sku)->value('id');
             }
@@ -299,10 +302,11 @@ class LoadTestSeeder extends Seeder
         $now = now();
         $customerUser = User::query()->firstOrCreate(['email' => 'customer@example.com'], ['name' => 'Pelanggan Uji', 'password' => bcrypt('password')]);
         $customerUser->assignRole(Role::findOrCreate('Customer', Staff::guard()));
+        Customer::forUser($customerUser);
         $rows = [];
-        for ($i = 1; $i <= $this->customers; $i++) {
-            $rows[] = ['user_id' => $i === 1 ? $customerUser->id : null, 'email' => $i === 1 ? 'customer@example.com' : "pelanggan{$i}@example.com",
-                'name' => $i === 1 ? 'Pelanggan Uji' : 'Pelanggan '.Str::title(Str::random(6)), 'phone' => '+62812'.str_pad((string) $i, 8, '0', STR_PAD_LEFT),
+        for ($i = 2; $i <= $this->customers; $i++) {
+            $rows[] = ['user_id' => null, 'email' => "pelanggan{$i}@example.com",
+                'name' => 'Pelanggan '.Str::title(Str::random(6)), 'phone' => '+62812'.str_pad((string) $i, 8, '0', STR_PAD_LEFT),
                 'accepts_marketing' => $i % 3 === 0, 'created_at' => $now->copy()->subDays(mt_rand(0, 400)), 'updated_at' => $now];
             if (count($rows) === 1000) {
                 DB::table('commerce_customers')->insert($rows);
@@ -470,10 +474,10 @@ class LoadTestSeeder extends Seeder
                 $rows[] = ['date' => $date, 'product_id' => $id, 'views' => mt_rand(1, 300), 'add_to_carts' => mt_rand(0, 20)];
             }
             if (count($rows) >= 3000) {
-                DB::table('commerce_product_stats_daily')->insert($rows);
+                DB::table('commerce_product_stats_daily')->insertOrIgnore($rows);
                 $rows = [];
             }
         }
-        DB::table('commerce_product_stats_daily')->insert($rows);
+        DB::table('commerce_product_stats_daily')->insertOrIgnore($rows);
     }
 }

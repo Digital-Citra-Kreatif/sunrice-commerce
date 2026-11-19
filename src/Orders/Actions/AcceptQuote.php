@@ -64,7 +64,7 @@ class AcceptQuote
                 'placed_at' => now(),
                 'version' => $quote->version + 1,
             ])->setMeta('reserved.stock', true)->save();
-            $this->timeline->record($quote, 'status', __('commerce::orders.timeline.quote_accepted'), ['to' => $quote->status], $actor);
+            $this->timeline->record($quote, 'status', Timeline::text('commerce::orders.timeline.quote_accepted'), ['to' => $quote->status], $actor);
         });
         DB::afterCommit(function () use ($quote): void {
             QuoteAccepted::dispatch($quote);

@@ -7,24 +7,35 @@
 
 @section('account')
     <h1>{{ __('commerce::account.points.title') }}</h1>
-    <p class="commerce-points__balance">{{ __('commerce::account.points.balance', ['points' => number_format($balance, 0, ',', '.'), 'value' => $money->format($balance)]) }}</p>
-    @if ($percent > 0)
-        <p>{{ __('commerce::account.points.how', ['percent' => rtrim(rtrim(number_format($percent, 2, ',', '.'), '0'), ',')]) }}</p>
-    @endif
-    @if ($expiring)
-        <p class="commerce-notice">{{ __('commerce::account.points.expiring', ['points' => number_format($expiring->remaining, 0, ',', '.'), 'date' => $expiring->expires_at?->isoFormat('D MMMM YYYY')]) }}</p>
-    @endif
+    <div class="commerce-points__summary">
+        <div class="commerce-points__card">
+            <p>{{ __('commerce::account.points.available') }}</p>
+            <p class="commerce-points__amount">{{ number_format($balance, 0, ',', '.') }} <span>{{ __('commerce::account.points.points') }}</span></p>
+            <p>{{ __('commerce::account.points.value', ['value' => $money->format($balance)]) }}</p>
+        </div>
+        @if ($percent > 0 || $expiring)
+            <div class="commerce-points__notes">
+                @if ($percent > 0)
+                    <p>{{ __('commerce::account.points.how', ['percent' => rtrim(rtrim(number_format($percent, 2, ',', '.'), '0'), ',')]) }}</p>
+                @endif
+                @if ($expiring)
+                    <p class="commerce-points__expiry">{{ __('commerce::account.points.expiring', ['points' => number_format($expiring->remaining, 0, ',', '.'), 'date' => $expiring->expires_at?->isoFormat('D MMMM YYYY')]) }}</p>
+                @endif
+            </div>
+        @endif
+    </div>
+    <h2>{{ __('commerce::account.points.history') }}</h2>
     @if ($history->isEmpty())
         <p>{{ __('commerce::account.points.none') }}</p>
     @else
-        <table class="commerce-table">
+        <table class="commerce-account__orders commerce-points__history">
             <thead><tr><th>{{ __('commerce::account.points.date') }}</th><th>{{ __('commerce::account.points.what') }}</th><th class="commerce-num">{{ __('commerce::account.points.points') }}</th></tr></thead>
             <tbody>
                 @foreach ($history as $row)
                     <tr>
-                        <td>{{ $row->created_at?->isoFormat('D MMM YYYY') }}</td>
-                        <td>{{ __('commerce::account.points.kinds.'.$row->kind) }}@if ($row->order) · <a href="{{ commerce_url('commerce.account.order', ['order' => $row->order->id]) }}">{{ $row->order->displayNumber() }}</a>@endif</td>
-                        <td class="commerce-num">{{ $row->points > 0 ? '+' : '' }}{{ number_format($row->points, 0, ',', '.') }}</td>
+                        <td data-label="{{ __('commerce::account.points.date') }}">{{ $row->created_at?->isoFormat('D MMM YYYY') }}</td>
+                        <td data-label="{{ __('commerce::account.points.what') }}">{{ __('commerce::account.points.kinds.'.$row->kind) }}@if ($row->order) · <a href="{{ commerce_url('commerce.account.order', ['order' => $row->order->id]) }}">{{ $row->order->displayNumber() }}</a>@endif</td>
+                        <td class="commerce-num" data-label="{{ __('commerce::account.points.points') }}">{{ $row->points > 0 ? '+' : '' }}{{ number_format($row->points, 0, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>

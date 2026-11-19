@@ -94,6 +94,17 @@ See [marketing.md](marketing.md#sending-queue-batches-and-limits).
 | `downloads.attachment_max_mb` | `10` | Files up to this size can be attached to emails |
 | `downloads.max_upload_mb` | `512` | Largest upload in the product editor |
 
+### webhooks
+
+| Key | Default | |
+| --- | --- | --- |
+| `webhooks.timeout` | `10` | Seconds an endpoint has to answer a delivery |
+| `webhooks.keep_days` | `30` | Days the delivery log is kept (`commerce:prune`) |
+| `webhooks.disable_after` | `20` | Failed deliveries in a row after which an endpoint is switched off |
+| `webhooks.allow_private` | `false` | Allow `http://` and local or private addresses as endpoints (development only) |
+
+See [webhooks.md](webhooks.md).
+
 ### payments
 
 | Key | Default | |
@@ -115,6 +126,16 @@ See [marketing.md](marketing.md#sending-queue-batches-and-limits).
 | Key | Default | |
 | --- | --- | --- |
 | `documents.batch_size` | `25` | Bulk packing slips are rendered this many orders at a time into one PDF ([documents.md](documents.md#in-the-admin)) |
+
+### downloads
+
+| Key | Default | |
+| --- | --- | --- |
+| `downloads.disk` | `local` | Disk for digital product uploads. Use private storage outside the public web root. |
+| `downloads.max_upload_mb` | `512` | Maximum digital file upload size in MB |
+| `downloads.attachment_max_mb` | `10` | Maximum digital file size in MB for email attachments |
+
+See [Digital products](catalog.md#digital-products) for how files are served and links are shared.
 
 ### analytics and privacy
 

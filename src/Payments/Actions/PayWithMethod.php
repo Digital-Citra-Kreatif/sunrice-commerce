@@ -10,6 +10,7 @@ use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\OrderStatus;
 use Sunrice\Commerce\Orders\Timeline;
 use Sunrice\Commerce\Payments\Contracts\AddsUniqueCode;
+use Sunrice\Commerce\Payments\Contracts\PaymentMethod;
 use Sunrice\Commerce\Payments\Models\Payment;
 use Sunrice\Commerce\Payments\PaymentContext;
 use Sunrice\Commerce\Payments\PaymentManager;
@@ -24,6 +25,10 @@ use Sunrice\Commerce\Support\DomainException;
  * available method). An open payment with a different method is
  * cancelled, the method's fee replaces the old one in the totals, and a
  * new payment is started.
+ *
+ * After a deposit, the balance is paid here too: a payment for what is
+ * left, with the chosen method. The totals stay as they are (no fee or
+ * unique code changes once part is paid), and the order keeps its status.
  */
 class PayWithMethod
 {
@@ -31,9 +36,22 @@ class PayWithMethod
 
     public function payable(Order $order): bool
     {
+        return $this->firstPayment($order) || $this->balancePayment($order);
+    }
+
+    /** Nothing is paid yet. */
+    protected function firstPayment(Order $order): bool
+    {
         return ! $order->isQuote() && $order->total > 0 && $order->paid_total === 0
             && in_array($order->status, [OrderStatus::PENDING, OrderStatus::FAILED], true)
             && in_array($order->payment_status, [OrderStatus::UNPAID, OrderStatus::PAYMENT_FAILED], true);
+    }
+
+    /** A deposit is paid and the balance is due (while the order is open). */
+    protected function balancePayment(Order $order): bool
+    {
+        return ! $order->isQuote() && $order->isPartiallyPaid() && $order->balanceDue() > 0
+            && in_array($order->status, [OrderStatus::PENDING, OrderStatus::ON_HOLD, OrderStatus::PROCESSING], true);
     }
 
     /** @throws DomainException */
@@ -48,7 +66,7 @@ class PayWithMethod
             throw new DomainException(__('commerce::checkout.errors.payment'));
         }
 
-        $payment = DB::transaction(function () use ($order, $key, $method): Payment {
+        $payment = $this->balancePayment($order) ? $this->balance($order, $key, $method) : DB::transaction(function () use ($order, $key, $method): Payment {
             $open = $order->payments()->whereIn('status', ['pending', 'failed'])->latest('id')->first();
             if ($open !== null && $open->method === $key && $open->status === 'pending') {
                 return $open;
@@ -84,7 +102,7 @@ class PayWithMethod
             ]);
             $deadline = $method->deadline($order);
             $order->forceFill(['expires_at' => $deadline])->save();
-            $this->timeline->record($order, 'payment', __('commerce::payments.method_chosen', ['method' => $order->payment_method_title]), ['method' => $key], Actor::customer());
+            $this->timeline->record($order, 'payment', Timeline::text('commerce::payments.method_chosen', ['method' => $order->payment_method_title]), ['method' => $key], Actor::customer());
 
             return Payment::query()->create([
                 'order_id' => $order->id, 'method' => $key, 'method_title' => $order->payment_method_title, 'amount' => $order->total,
@@ -93,6 +111,27 @@ class PayWithMethod
         });
 
         return app(StartPayment::class)->handle($order, $payment) ?? PaymentStart::instructions();
+    }
+
+    /** A payment for the balance; an open one with the same method is kept. */
+    protected function balance(Order $order, string $key, PaymentMethod $method): Payment
+    {
+        return DB::transaction(function () use ($order, $key, $method): Payment {
+            $open = $order->payments()->whereIn('status', ['pending', 'failed'])->latest('id')->first();
+            if ($open !== null && $open->method === $key && $open->status === 'pending' && $open->amount === $order->balanceDue()) {
+                return $open;
+            }
+            if ($open !== null) {
+                app(RecordPaymentResult::class)->handle($open, PaymentResult::cancelled(), Actor::customer());
+            }
+            $title = PaymentManager::titleOf($method);
+            $this->timeline->record($order, 'payment', Timeline::text('commerce::payments.method_chosen', ['method' => $title]), ['method' => $key, 'part' => 'balance'], Actor::customer());
+
+            return Payment::query()->create([
+                'order_id' => $order->id, 'method' => $key, 'method_title' => $title, 'amount' => $order->balanceDue(),
+                'currency' => $order->currency, 'status' => 'pending', 'expires_at' => $method->deadline($order), 'meta' => ['part' => 'balance'],
+            ]);
+        });
     }
 
     /**

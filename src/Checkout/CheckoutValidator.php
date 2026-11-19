@@ -49,11 +49,7 @@ class CheckoutValidator
     {
         $s = $this->settings;
         $guest = commerce_customer() === null;
-        $rules = [
-            'name' => ['required', 'string', 'max:120'],
-            'email' => ['required', 'string', 'email:rfc', 'max:190'],
-            'phone' => [$s->get('checkout.require_phone', true) ? 'required' : 'nullable', 'string', 'max:30'],
-        ];
+        $rules = ['email' => ['required', 'string', 'email:rfc', 'max:190']];
 
         $require = [
             'phone' => (bool) $s->get('checkout.require_phone', true),
@@ -62,9 +58,13 @@ class CheckoutValidator
         ];
         if ($this->needsAddress($data, $state)) {
             $rules += AddressRules::rules('shipping_address', $require);
-        }
-        if ($this->needsAddress($data, $state) && ! $data->billingSame()) {
-            $rules += AddressRules::rules('billing_address', $require);
+            $rules['shipping_address.label'] = ['nullable', 'string', 'max:60'];
+            if (! $data->billingSame()) {
+                $rules += AddressRules::rules('billing_address', $require);
+            }
+        } else {
+            $rules['name'] = ['required', 'string', 'max:120'];
+            $rules['phone'] = [$require['phone'] ? 'required' : 'nullable', 'string', 'max:30'];
         }
         if ($s->get('checkout.company_fields', false)) {
             $rules['fields.company'] = ['nullable', 'string', 'max:120'];
@@ -153,6 +153,7 @@ class CheckoutValidator
         foreach (['name', 'email', 'phone', 'password', 'notes'] as $field) {
             $attributes[$field] = __('commerce::checkout.fields.'.$field);
         }
+        $attributes['shipping_address.label'] = __('commerce::checkout.address_picker.label');
         $attributes['terms'] = __('commerce::checkout.terms_link');
         foreach (['shipping_address', 'billing_address'] as $prefix) {
             foreach (['name', 'phone', 'company', 'country', 'province_code', 'city_code', 'district_code', 'village_code', 'city', 'postal_code', 'line1'] as $field) {

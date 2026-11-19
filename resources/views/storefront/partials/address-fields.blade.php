@@ -72,41 +72,67 @@
                 var api = box.dataset.api;
                 var levels = Array.prototype.slice.call(box.querySelectorAll('[data-commerce-region]'));
                 var country = box.querySelector('[data-commerce-country]');
+                var requests = levels.map(function () { return 0; });
+
+                function clearAfter(index) {
+                    for (var i = index + 1; i < levels.length; i++) {
+                        requests[i]++;
+                        levels[i].dataset.value = '';
+                        levels[i].length = 1;
+                        levels[i].disabled = true;
+                    }
+                }
+
                 function load(index, parent) {
                     var select = levels[index];
                     if (!select) return;
-                    var keep = select.dataset.value;
-                    select.disabled = index > 0 && !parent;
-                    if (index > 0 && !parent) { select.length = 1; return; }
+                    var request = ++requests[index];
+                    var keep = select.value || select.dataset.value;
                     fetch(api + (parent ? '?parent=' + encodeURIComponent(parent) : ''), { headers: { Accept: 'application/json' } })
                         .then(function (r) { return r.json(); })
                         .then(function (json) {
+                            if (request !== requests[index] || !Array.isArray(json.data)) return;
                             select.length = 1;
                             json.data.forEach(function (region) {
                                 var option = new Option(region.name, region.code, false, region.code === keep);
                                 if (region.postal_code) option.dataset.postal = region.postal_code;
                                 select.add(option);
                             });
+                            select.dataset.value = '';
+                            select.disabled = false;
                             if (select.value) load(index + 1, select.value);
-                        });
+                            else clearAfter(index);
+                        })
+                        .catch(function () { /* Keep the current selection on a network failure. */ });
                 }
+
                 levels.forEach(function (select, index) {
                     select.addEventListener('change', function () {
-                        for (var i = index + 1; i < levels.length; i++) { levels[i].dataset.value = ''; levels[i].length = 1; }
+                        requests[index]++;
+                        clearAfter(index);
                         var postal = select.selectedOptions[0] && select.selectedOptions[0].dataset.postal;
                         var postalInput = box.querySelector('[data-commerce-postal]');
                         if (postal && postalInput && !postalInput.value) postalInput.value = postal;
-                        load(index + 1, select.value);
+                        if (select.value) load(index + 1, select.value);
                     });
                 });
-                function toggle() {
+
+                function syncCountry() {
                     var id = country.value === 'ID';
                     box.querySelectorAll('[data-commerce-region-level]').forEach(function (el) { el.hidden = !id; });
-                    box.querySelectorAll('[data-commerce-abroad]').forEach(function (el) { el.hidden = id; });
+                    box.querySelectorAll('[data-commerce-abroad]').forEach(function (el) {
+                        el.hidden = id;
+                        el.querySelector('input').disabled = id;
+                    });
+                    levels.forEach(function (select, index) {
+                        requests[index]++;
+                        select.disabled = !id || (index > 0 && !levels[index - 1].value);
+                    });
+                    if (id) load(0, null);
                 }
-                country.addEventListener('change', toggle);
-                toggle();
-                if (country.value === 'ID') load(0, null);
+
+                country.addEventListener('change', syncCountry);
+                syncCountry();
             });
         </script>
     @endpush

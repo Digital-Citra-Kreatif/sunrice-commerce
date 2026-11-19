@@ -49,8 +49,9 @@ it('keeps the listing flat in the number of products', function () {
 it('keeps the product page under budget', function () {
     $this->get('/products/mug')->assertOk();
 
-    // 16 to render, plus 2 after the response to count the view.
-    expect(queriesFor(fn () => $this->get('/products/mug')->assertOk()))->toBeLessThanOrEqual(18);
+    // The buttons and reviews share the already loaded product.
+    // Allow up to 14 queries to render, plus 2 to count the view.
+    expect(queriesFor(fn () => $this->get('/products/mug')->assertOk()))->toBeLessThanOrEqual(16);
 });
 
 it('keeps the cart and checkout flat in the number of lines', function () {

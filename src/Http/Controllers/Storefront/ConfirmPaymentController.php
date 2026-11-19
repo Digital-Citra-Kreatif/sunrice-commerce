@@ -8,11 +8,9 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Sunrice\Admin\Security\Captcha;
-use Sunrice\Commerce\Customers\Auth\Throttle;
-use Sunrice\Commerce\Orders\Models\Order;
+use Sunrice\Commerce\Orders\OrderAccess;
 use Sunrice\Commerce\Payments\Actions\SubmitPaymentConfirmation;
 use Sunrice\Commerce\Storefront\Layout;
-use Sunrice\Commerce\Storefront\StorefrontRoutes;
 
 /**
  * /confirm-payment: "I have paid" for an order, reached from the order
@@ -20,10 +18,10 @@ use Sunrice\Commerce\Storefront\StorefrontRoutes;
  */
 class ConfirmPaymentController
 {
-    public function show(Request $request): View
+    public function show(Request $request, OrderAccess $access): View
     {
         $key = (string) $request->query('order', '');
-        $order = strlen($key) === 40 ? Order::query()->where('order_key', $key)->first() : null;
+        $order = $key !== '' ? $access->find($request, $key) : null;
         $payment = $order?->payments()->where('status', 'pending')->latest('id')->first();
 
         return view(Layout::view('confirm-payment'), [
@@ -36,25 +34,15 @@ class ConfirmPaymentController
         ]);
     }
 
-    public function lookup(Request $request): RedirectResponse
+    public function lookup(Request $request, OrderController $orders): RedirectResponse
     {
-        $data = $request->validate(['number' => ['required', 'string', 'max:60'], 'email' => ['required', 'email', 'max:190']]);
-        Throttle::check('commerce-confirm-lookup', $request, mb_strtolower($data['email']), 10, 20, 600, 'number');
-        $order = Order::query()->where('type', 'order')->where('number', trim($data['number']))->where('email', mb_strtolower(trim($data['email'])))->first();
-        if ($order === null) {
-            Throttle::hit('commerce-confirm-lookup', $request, mb_strtolower($data['email']), 600);
-
-            return back()->withInput()->withErrors(['number' => __('commerce::checkout.track.not_found')]);
-        }
-
-        return redirect(StorefrontRoutes::url('commerce.confirm-payment').'?order='.$order->order_key);
+        return $orders->requestAccess($request, confirm: true);
     }
 
-    public function submit(Request $request, SubmitPaymentConfirmation $submit): RedirectResponse
+    public function submit(Request $request, SubmitPaymentConfirmation $submit, OrderAccess $access): RedirectResponse
     {
         $key = (string) $request->input('order');
-        $order = strlen($key) === 40 ? Order::query()->where('order_key', $key)->first() : null;
-        abort_if($order === null, 404);
+        $order = $access->find($request, $key);
         if (! app(Captcha::class)->passes($request)) {
             return back()->withInput()->withErrors(['captcha' => __('commerce::payments.confirm.captcha')]);
         }

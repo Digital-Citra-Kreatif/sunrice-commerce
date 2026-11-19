@@ -380,7 +380,7 @@ and totals are sums of lines.
 - One store-wide rule (Settings → Loyalty): a percentage of the products after discounts, products
   or categories to include or leave out, a minimum order, and an expiry in days (0: never).
 - Points are earned when an order is completed and taken back in proportion when it's refunded.
-- Signed-in customers pay with their points in the cart, after tax, up to the balance, with no cap;
+- Signed-in customers pay with their points at checkout, after tax, up to the balance, with no cap;
   an order paid in full is placed as paid. Points are taken when the order is placed and given back
   if it's cancelled; refunds go to the money paid first, then back onto the wallet.
 - My Account → Points shows the balance, the next expiry and the history; staff see balances, the
@@ -445,9 +445,11 @@ and totals are sums of lines.
 
 - **Storage**: each visitor has one cart, stored in the database and identified by a cookie holding
   a long random token. Signed-in customers keep their cart across devices.
-- **Signing in**: a guest cart merges into the customer's cart. Quantities are added together,
-  within stock and quantity rules.
-- **Lines** are a variant and a quantity. Adding a line checks the product is purchasable:
+- **Signing in**: a guest cart merges into the customer's cart. Quantities of the same line are
+  added together, within stock and quantity rules.
+- **Lines** are a variant, a quantity and optional meta set by an extension (a rental's dates, for
+  example). The same variant with other meta is another line; stock and quantity rules count every
+  line of the variant. Adding a line checks the product is purchasable:
   published, purchase mode cart, price visible, variant active, stock, quantity rules and flash sale
   limits.
 - **Mini cart**: a count and subtotal in the header, with a drawer or list loaded from a small JSON
@@ -494,7 +496,8 @@ One page, in sections:
 **Addresses**
 
 - Indonesia uses cascading selects: province → city/regency → district (kecamatan) → village
-  (kelurahan/desa; optional, per settings). The postal code is suggested from the village.
+  (kelurahan/desa; optional, per settings). The storefront loads the choices for a new address
+  with JavaScript. The postal code is suggested from the village.
 - Other countries use free text for state, city and postal code.
 - Signed-in customers can pick one of their saved addresses.
 
@@ -530,8 +533,12 @@ an "Update shipping" button does the same.
   - downloads, once paid;
   - the WhatsApp button (WhatsApp mode);
   - an invitation to create an account (guests).
-- Its URL contains a long random key, so no sign-in is needed. It is `noindex`.
-- Guests can also look up an order at `/track-order` with the order number and email.
+- A random URL key identifies the order. The signed-in owner or an authorized guest session can open it. The response is private and `noindex`.
+- Guests can recover access at `/track-order` with the order number and an eight-digit code sent
+  to the order email. A guest checkout can open its own new order and payment page in the
+  same browser for one hour, even when the order joins an existing verified account. That order
+  can also use email recovery if the order email still matches the verified account email.
+  Orders placed while signed in require the signed-in owner.
 
 ### Orders (`orders`)
 
@@ -629,6 +636,16 @@ set their own). While a payment confirmation awaits review, the deadline is paus
     instructions, for QRIS, e-wallets or anything else. Confirmation works as for bank transfer.
   - **Cash on delivery**: an optional extra fee, limited to chosen destinations and shipping
     methods. The order goes to Processing unpaid; staff mark it paid when the cash arrives.
+
+**Deposits**
+
+- An extension can ask for a deposit at checkout instead of the whole total, with a due date for
+  the balance (for example a rental: part now, the rest before the pickup day). The cart and
+  checkout show the deposit and the balance.
+- Once the deposit is paid, the order is Partially paid and is processed. The balance is paid on
+  the pay page with any available method, or marked paid by staff. Then the order is Paid.
+- The customer is reminded a set number of days before the balance is due (Settings → Checkout).
+  Staff are told when it passes unpaid. Nothing is cancelled automatically after the deposit.
 
 **Payment confirmation** (bank transfer and instructions methods)
 
@@ -750,13 +767,19 @@ Google), earlier guest orders with that email join the account.
 
 **My Account (`/account`)**
 
-- Overview: recent orders and quick links.
-- Orders: the list, and each order's details:
+- Orders is the default account page. If Orders is disabled, the account opens Profile.
+- Staff can enable an account announcement under Settings → Store → Accounts and choose the
+  first tab, above page content, or below page content. The first-tab placement becomes the
+  default account page. Announcements have a localized title and message.
+- Orders: the customer's orders, searchable by order number or product name and filterable by
+  status and date, 10 per page. The date fields expand on demand. Each order's details include:
+  - a link back to the full order list;
   - timeline, payment instructions and payment confirmation;
   - tracking and invoice download;
   - buy again, and cancel (if allowed).
 - Downloads: the digital library.
-- Addresses: add, edit and delete; set defaults.
+- Addresses: expandable summaries for saved addresses, an add form opened by the customer, edit
+  and delete actions, and defaults for shipping and billing.
 - Profile:
   - name and phone;
   - email, with re-verification when changed;
@@ -783,16 +806,18 @@ Google), earlier guest orders with that email join the account.
 - **Files** belong to a product or a variant. They are uploads to a private disk (never public URLs)
   or external links (for example a course URL).
 - **Delivery**: the store sets a default and each product can override it. One or more of:
-  - **Email attachment**: files are attached to the "your downloads" email when their total size is
-    under a limit (default 10 MB); above it, links are sent instead.
+  - **Email attachment**: files up to the per-file limit (default 10 MB) are attached to the
+    "your downloads" email. Larger files are sent as links.
   - **Email link**: personal download links.
   - **My Account library**: downloads are listed under Account → Downloads. Guests are invited to
     create an account; their email links keep working.
 - **Access** starts when the order is paid (setting: or when it is completed).
 - **Limits**: downloads per file (default unlimited) and expiry in days (default never). Per order,
   staff can resend, extend, reset counts or revoke.
-- **Links** are long random tokens. Files stream through the app; S3-type disks use temporary URLs.
-  Every download is logged with its time and IP.
+- **Links** use random tokens and can be opened without signing in. Anyone holding a valid link
+  can use it, including someone to whom it was forwarded. Local files stream through the app;
+  cloud disks that support temporary URLs use a five-minute URL. Every download request that
+  claims a use is logged with its time and IP.
 - Orders with only digital or virtual items skip shipping and can complete automatically when paid
   (setting).
 
@@ -876,16 +901,15 @@ Google), earlier guest orders with that email join the account.
 ### Reviews (`reviews`)
 
 - Customers rate a product 1–5 and write a review (optional title, text) on its page.
-- Who may write one: everyone (guests give a name and an email, never shown), signed-in customers,
-  or customers who bought the product. A review from a customer with a processing or completed
-  order for it is a verified purchase. One review per customer and product; writing again replaces
-  it.
-- Reviews show once approved, at once from buyers, or at once, by setting. Staff approve, reject,
-  reply to and delete them in Shop → Products → Reviews.
+- Only signed-in customers with a paid processing or completed order for the product can submit
+  a review. One review per customer and product; writing again replaces it.
+- Reviews show once approved or immediately, by setting. In Shop → Products → Reviews, staff
+  can record a review on behalf of a buyer using the paid order number and product. Staff can edit
+  the rating, title and text, approve or reject, reply, and delete reviews.
 - The product page shows the average, a breakdown by rating, the approved reviews (newest first,
   paged) with the store's replies and the form; cards and the product title show the rating;
   JSON-LD gets `aggregateRating`.
-- Spam: a honeypot, the panel's captcha for guests, and 5 reviews an hour per address.
+- Spam: a honeypot and 5 reviews an hour per address.
 - Anonymising a customer removes their name, email and address from their reviews.
 
 ### Marketing emails (`marketing`)
@@ -1029,8 +1053,9 @@ Reports take a date range and a comparison period, and export to CSV (`commerce.
 - Interface text ships in Indonesian and English, as publishable translations.
 - Cart, checkout, order, account, wishlist and compare pages are `noindex`.
 
-**JavaScript is optional.** Forms post normally. `commerce.js` adds AJAX add-to-cart, mini cart
-refresh, variant picking, region selects, countdowns and shipping rate refresh.
+**JavaScript.** Standard forms cover add to cart, variant selection, order filters and manual
+shipping refresh. The storefront also uses JavaScript for AJAX, countdowns and interactive
+controls. Entering a new Indonesian address requires JavaScript to load the region choices.
 
 **For developers**: Blade components that contain logic only (the markup is in the templates, as in
 Sunrice) and helpers, all documented:
@@ -1041,6 +1066,20 @@ Sunrice) and helpers, all documented:
 - `commerce_product($entry)`, `commerce_cart()`, `commerce_customer()`, `commerce_money($amount)`,
   `commerce_url($name)`;
 - `@commerceFeature('wishlist') … @endcommerceFeature`.
+
+### Webhooks (`webhooks`)
+
+- Settings → Webhooks (`commerce.settings.webhooks`) lists endpoints: a name, a public `https://`
+  URL, the events it receives and a signing secret made when it is saved (and replaced on request).
+- Events: `order.placed`, `order.paid`, `order.status_changed`, `order.cancelled`,
+  `order.completed`, `order.refunded` (staff refunds and refunds the payment provider reports, each
+  sent once), `shipment.created`, `shipment.delivered`, `stock.low`, `stock.out`, `stock.back_in`.
+- Each is a queued, signed JSON `POST` (`X-Sunrice-Signature: t=<time>,v1=<HMAC-SHA256 of
+  "<time>.<body>">`) sent once the change that caused it is saved; nothing is sent for a change that
+  is rolled back. A delivery without a 2xx answer is retried (seven attempts over about 11 hours);
+  after `commerce.webhooks.disable_after` failed deliveries in a row the endpoint is switched off.
+- Local, private and reserved addresses are refused when saving and before each delivery; redirects
+  are not followed. The delivery log is kept for `commerce.webhooks.keep_days`.
 
 ### AI agents (MCP)
 
@@ -1212,9 +1251,11 @@ Deliberately not used:
 - Subscriptions, memberships and gift cards; loyalty tiers and referral rewards.
 - Price-drop alerts.
 - Configurable bundles (customer-picked components), product add-ons and personalization fields,
-  deposits and installments.
+  installments (more than a deposit and a balance). Deposits themselves are in: an extension asks
+  for one, see Payments.
 - Exchanges, and refunds started from a return (they're recorded on the order).
-- Creating products from CSV (the import changes existing variants by SKU).
+- Creating products from CSV beyond one option per product (the import creates simple products and
+  products with one option, such as Size).
 - A headless/REST API (the MCP server and the Blade components are the interfaces); search engines
   (Scout).
 - e-Faktur/Coretax tax invoices and accounting integrations (separate packages).

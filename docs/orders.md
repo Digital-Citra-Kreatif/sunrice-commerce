@@ -32,7 +32,7 @@ Each order has three states, kept and shown apart (`Orders\OrderStatus`):
 | State | Column | Values |
 | --- | --- | --- |
 | Status | `status` | `pending` (Pending payment), `on_hold`, `processing`, `completed`, `cancelled`, `refunded`, `failed` |
-| Payment | `payment_status` | `unpaid`, `awaiting_confirmation`, `paid`, `partially_refunded`, `refunded`, `failed` |
+| Payment | `payment_status` | `unpaid`, `awaiting_confirmation`, `partially_paid`, `paid`, `partially_refunded`, `refunded`, `failed` |
 | Fulfilment | `fulfillment_status` | `unfulfilled`, `partially_shipped`, `shipped`, `not_required` |
 
 Quotes (`type` `quote`) use their own statuses: `requested`, `quoted`, `accepted`, `declined`,
@@ -120,6 +120,12 @@ The fulfilment status follows the shipments: Shipped when every line that ships 
 Deadlines come from the payment method (24 hours by default; see
 [payments.md](payments.md#deadlines)). Orders without a payment deadline (cash on delivery,
 WhatsApp orders) never expire on their own.
+
+**Releases that didn't finish.** Cancelling gives back stock, flash sale quantities, voucher uses
+and what extensions reserved (`Orders\Listeners\ReleaseReservations`); each part runs once, and
+`meta.released.done` is set when all are back. If the release fails (a deadlock, an extension's
+error), `commerce:tick` runs it again for orders cancelled in the last 30 days without that flag
+(`Orders\ReleaseRetries`), so nothing stays held.
 
 ## Numbers
 
@@ -302,16 +308,20 @@ refused for orders that received a payment, so the books stay complete.
 
 ## The customer's side
 
-- **Order page** `/order/{key}` (`commerce.order`): the 40-character random `order_key` in the URL
-  is the access, so no sign-in is needed; it is `noindex`. It shows the number, status, payment,
-  items and totals, how to pay (instructions, amount, deadline, "I have paid"), a "pay again" link,
-  downloads, shipments with tracking links, the invoice, cancel, and an invitation to create an
-  account for guests. Quotes live at `/quote/{key}` with Accept and Decline.
+- **Order page** `/order/{key}` (`commerce.order`) and the pay, invoice, payment confirmation,
+  cancellation and quote routes require the signed-in order owner or an authorized guest session.
+  The key in the URL identifies the order. The response uses private, no-store caching.
 - **Track order** `/track-order` (`commerce.track-order`): a guest enters the order number and
-  email and is sent to the order page.
+  email, then the eight-digit code sent to that email. The code expires after 10 minutes and
+  authorizes that browser for the selected order for one hour. A guest checkout can open
+  its new order and payment page immediately in the same browser, including when the order
+  joins an existing verified account. Email recovery for that linked order requires the order
+  email to still match the verified account email. The store uses the tracking page in emails
+  for guest checkouts.
 - **My Account** → Orders and Quotes: the signed-in customer's own orders (guest orders join once
   the email is verified), the same order page, "buy again" (adds the lines to the cart) and cancel.
-  See [accounts.md](accounts.md).
+  Orders can be searched by order number or product name and filtered by order status and date.
+  Filters stay on when paging through the results. See [My Account](accounts.md#my-account).
 - **Cancelling**: with `checkout.customer_cancel` on (default), a customer can cancel an order
   that is Pending payment or Failed with nothing paid. `Orders\Actions\CancelOrderByCustomer`
   checks this (`allowed()`) and cancels with an optional reason.
@@ -333,8 +343,14 @@ Every change says who made it with an `Orders\Actor`:
 `customer`). Staff notes go through `Orders\Actions\AddOrderNote`; a note to the customer is
 emailed.
 
+Pass what your package says as `Timeline::text($key, $replace)`, an `Orders\TimelineText`: the entry
+keeps the translation key and its values, so staff read it in their own language whatever language
+the store was in when it was recorded. A value may be another `TimelineText` (`TimelineText::status($to)`
+for a status's label), and `->then($more)` adds text as it is. Text someone wrote (a note) is passed
+as a plain string. `OrderEvent::text($locale = null)` gives an entry's words.
+
 ```php
-app(Timeline::class)->record($order, 'loyalty', 'Earned 120 points', ['points' => 120], Actor::system());
+app(Timeline::class)->record($order, 'loyalty', Timeline::text('loyalty::timeline.earned', ['points' => 120]), ['points' => 120], Actor::system());
 ```
 
 ## Events

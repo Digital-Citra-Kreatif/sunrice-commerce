@@ -1,7 +1,7 @@
 {{--
     The starter store header: an announcement bar, then a sticky bar with
     the menu button (small screens), the logo, the department menu with its
-    mega panels, the product search and the account, wishlist and cart
+    mega panels, the product search and the account, wishlist, comparison and cart
     icons (partials.header-links).
 
     Admin setup it reads (all optional):
@@ -47,6 +47,11 @@
                     <span class="commerce-visually-hidden">{{ __('commerce::storefront.cart.close') }}</span>
                 </button>
             </div>
+            @if (commerce_feature('compare') && \Illuminate\Support\Facades\Route::has('commerce.compare'))
+                <div class="commerce-nav__item commerce-nav__compare">
+                    <a class="commerce-nav__link" href="{{ commerce_url('commerce.compare') }}">{{ __('commerce::storefront.compare.title') }}</a>
+                </div>
+            @endif
             @if ($mainMenu !== [])
                 <ul class="commerce-nav__list">
                     @foreach ($mainMenu as $item)
@@ -69,7 +74,7 @@
             @include('cms.partials.store-languages')
         </nav>
 
-        <form class="commerce-header__search" method="GET" action="{{ $searchUrl }}" role="search">
+        <form class="commerce-header__search" method="GET" action="{{ $searchUrl }}" role="search" data-commerce-product-search="{{ commerce_url('commerce.api.product-search.count') }}">
             <label class="commerce-visually-hidden" for="commerce-header-q">{{ __('commerce::storefront.listing.search') }}</label>
             <input id="commerce-header-q" type="search" name="q" value="{{ request()->url() === $searchUrl ? request('q') : '' }}"
                 placeholder="{{ __('commerce::storefront.theme.search_placeholder') }}" autocomplete="off" maxlength="100">
@@ -77,6 +82,7 @@
                 @include($L::view('partials.icon'), ['name' => 'search'])
                 <span class="commerce-visually-hidden">{{ __('commerce::storefront.theme.search') }}</span>
             </button>
+            @include($L::view('partials.product-search-feedback'))
         </form>
 
         @include($L::view('partials.header-links'))

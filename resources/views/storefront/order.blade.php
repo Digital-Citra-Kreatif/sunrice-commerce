@@ -1,7 +1,7 @@
 {{--
     The order or quote page (by its key), also the thank-you page after checkout.
     $order, $payment, $instructionsView, $payUrl, $whatsappUrl, $openWhatsApp,
-    $downloads, $invoiceUrl, $canCancel, $invite, $registerUrl.
+    $downloads, $invoiceUrl, $canCancel, $accountRequested, $invite, $registerUrl.
     A confirmation header, then what to do next (how to pay, downloads),
     the items and totals, and a side column with the order's states,
     addresses, shipments and actions.
@@ -11,7 +11,6 @@
 @section('content')
     @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     @php($L = \Sunrice\Commerce\Storefront\Layout::class)
-    @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
     @php($S = \Sunrice\Commerce\Orders\OrderStatus::class)
     @php($cancelled = in_array($order->status, [$S::CANCELLED, $S::FAILED, $S::DECLINED, $S::EXPIRED], true))
     <section class="commerce-order-page" data-commerce-order="{{ $order->order_key }}">
@@ -28,7 +27,7 @@
                         <form method="POST" action="{{ commerce_url('commerce.quote.accept', ['key' => $order->order_key]) }}">@csrf
                             <button type="submit" class="commerce-button commerce-button--primary">{{ __('commerce::checkout.quote.accept') }}</button></form>
                         <form method="POST" action="{{ commerce_url('commerce.quote.decline', ['key' => $order->order_key]) }}" onsubmit="return confirm(@js(__('commerce::checkout.quote.decline_confirm')))">@csrf
-                            <button type="submit" class="commerce-button commerce-button--secondary">{{ __('commerce::checkout.quote.decline') }}</button></form>
+                            <button type="submit" class="commerce-link commerce-link--action">{{ __('commerce::checkout.quote.decline') }}</button></form>
                     </div>
                 @endif
             @elseif ($order->isQuote() && $order->status === $S::REQUESTED)
@@ -50,19 +49,7 @@
                     @endif
                 @endif
 
-                @if (($payment || ($payUrl ?? null)) && $order->isUnpaid() && $order->status !== $S::CANCELLED && $order->payment_method !== 'whatsapp')
-                    <div class="commerce-order__payment">
-                        <h2>{{ __('commerce::checkout.order.how_to_pay') }}</h2>
-                        <p>{{ __('commerce::checkout.order.amount_due', ['amount' => $money->format($payment?->amount ?? $order->total)]) }}
-                            @if ($payment?->expires_at) <strong class="commerce-order__deadline">{{ __('commerce::checkout.order.deadline', ['date' => $payment->expires_at->translatedFormat('j F Y H:i')]) }}</strong>@endif</p>
-                        @if ($instructionsView)
-                            @include($instructionsView, ['order' => $order, 'payment' => $payment])
-                        @endif
-                        @if ($payUrl ?? null)
-                            <p><a href="{{ $payUrl }}" class="commerce-button commerce-button--secondary">{{ __('commerce::payments.pay_again') }}</a></p>
-                        @endif
-                    </div>
-                @endif
+                @include($L::view('partials.order-payment'))
                 <x-commerce::slot name="order.after_payment" />
 
                 @if ($downloads->isNotEmpty())
@@ -122,17 +109,21 @@
                         <form method="POST" action="{{ commerce_url('commerce.order.cancel', ['key' => $order->order_key]) }}" class="commerce-order__cancel"
                             onsubmit="return confirm(@js(__('commerce::checkout.order.cancel_confirm')))">
                             @csrf
-                            <button type="submit" class="commerce-button commerce-button--secondary">{{ __('commerce::checkout.order.cancel') }}</button>
+                            <button type="submit" class="commerce-link commerce-link--action">{{ __('commerce::checkout.order.cancel') }}</button>
                         </form>
                     @endif
                 </div>
 
-                @if ($invite && $registerUrl)
+                @if ($accountRequested ?? false)
+                    <p class="commerce-order__invite">{{ __('commerce::checkout.order.account_verification') }}
+                        <a href="{{ commerce_url('commerce.account.login') }}">{{ __('commerce::checkout.order.account_sign_in') }}</a>
+                    </p>
+                @elseif ($invite && $registerUrl)
                     <p class="commerce-order__invite">{{ __('commerce::checkout.order.invite') }} <a href="{{ $registerUrl }}">{{ __('commerce::checkout.order.create_account') }}</a></p>
                 @endif
             </aside>
         </div>
         <x-commerce::slot name="order.after" />
-        <p class="commerce-order__continue"><a class="commerce-button commerce-button--primary" href="{{ url(\Sunrice\Cms\Support\Locales::prefix(app()->getLocale()) ?: '/') }}">{{ __('commerce::storefront.cart.continue') }}</a></p>
+        <p class="commerce-order__continue"><a class="commerce-button commerce-button--primary" href="{{ app(\Sunrice\Commerce\Storefront\ShoppingDestination::class)->url() }}">{{ __('commerce::storefront.cart.continue') }}</a></p>
     </section>
 @endsection

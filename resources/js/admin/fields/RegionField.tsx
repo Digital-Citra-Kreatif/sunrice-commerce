@@ -1,5 +1,6 @@
 import { React, fetchJson, ui } from '../lib/sunrice';
 import type { FieldProps } from '../sunrice';
+import { SELECT_NONE } from '../lib/fields';
 
 type Region = { country: string; province_code: string | null; city_code: string | null; district_code: string | null; village_code: string | null };
 type Option = { code: string; name: string };
@@ -22,11 +23,9 @@ function children(api: string, parent: string | null): Promise<Option[]> {
     return cache.get(url)!;
 }
 
-const selectClass = 'cm:h-9 cm:w-full cm:rounded-md cm:border cm:border-border cm:bg-background cm:px-3 cm:text-sm cm:disabled:opacity-50';
-
 /** commerce_region: country, then province → city → district (→ village) in Indonesia. */
 export default function RegionField({ field, value, onChange, id }: FieldProps<Partial<Region> | null>) {
-    const { Label } = ui;
+    const { Label, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } = ui;
     const config = field.config ?? {};
     const api = String(config.api ?? '');
     const depth = DEPTHS[(config.depth as keyof typeof DEPTHS) ?? 'district'] ?? 3;
@@ -54,24 +53,30 @@ export default function RegionField({ field, value, onChange, id }: FieldProps<P
     };
 
     return (
-        <div className="cm:grid cm:gap-3 cm:sm:grid-cols-2">
+        <div className="cm:grid cm:gap-x-5 cm:gap-y-4 cm:sm:grid-cols-2">
             {countries.length > 0 && (
-                <div className="cm:grid cm:gap-1">
+                <div className="cm:grid cm:gap-1.5">
                     <Label htmlFor={`${id}-country`}>Country</Label>
-                    <select id={`${id}-country`} className={selectClass} value={region.country}
-                        onChange={(e) => onChange({ country: e.target.value, province_code: null, city_code: null, district_code: null, village_code: null })}>
-                        {countries.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                    </select>
+                    <Select value={region.country}
+                        onValueChange={(country: string) => onChange({ country, province_code: null, city_code: null, district_code: null, village_code: null })}>
+                        <SelectTrigger id={`${id}-country`} className="cm:w-full"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                            {countries.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
                 </div>
             )}
             {region.country === 'ID' && levels.map((level, i) => (
-                <div key={level.key} className="cm:grid cm:gap-1">
+                <div key={level.key} className="cm:grid cm:gap-1.5">
                     <Label htmlFor={`${id}-${level.key}`}>{level.label}</Label>
-                    <select id={`${id}-${level.key}`} className={selectClass} value={region[level.key] ?? ''}
-                        disabled={i > 0 && !parents[i]} onChange={(e) => set(i, e.target.value)}>
-                        <option value="">Choose…</option>
-                        {(options[level.key] ?? []).map((o) => <option key={o.code} value={o.code}>{o.name}</option>)}
-                    </select>
+                    <Select value={region[level.key] ?? SELECT_NONE} disabled={i > 0 && !parents[i]}
+                        onValueChange={(code: string) => set(i, code === SELECT_NONE ? '' : code)}>
+                        <SelectTrigger id={`${id}-${level.key}`} className="cm:w-full"><SelectValue placeholder="Choose…" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={SELECT_NONE}>Choose…</SelectItem>
+                            {(options[level.key] ?? []).map((o) => <SelectItem key={o.code} value={o.code}>{o.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
                 </div>
             ))}
         </div>

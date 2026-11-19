@@ -8,7 +8,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\HtmlString;
 use Illuminate\View\Component;
-use Sunrice\Admin\Security\Captcha;
 use Sunrice\Cms\Models\Entry;
 use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\LiveEntries;
@@ -17,7 +16,6 @@ use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Reviews\Actions\SubmitReview;
 use Sunrice\Commerce\Reviews\Models\Review;
 use Sunrice\Commerce\Reviews\ProductRating;
-use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\Layout;
 
 /**
@@ -37,13 +35,14 @@ class Reviews extends Component
     /** sign_in | buyers_only | null (the form shows) */
     public ?string $blocked = null;
 
-    public bool $guest = true;
+    /** Kept for published review templates from earlier versions. */
+    public bool $guest = false;
 
     public ?HtmlString $captcha = null;
 
-    public function __construct(Entry|EntryTranslation $entry)
+    public function __construct(Entry|EntryTranslation $entry, ?Product $projectedProduct = null)
     {
-        $this->product = Product::query()->where('entry_id', LiveEntries::id($entry))->first();
+        $this->product = $projectedProduct ?? Product::query()->where('entry_id', LiveEntries::id($entry))->first();
         if (! $this->shouldRender() || $this->product === null) {
             return;
         }
@@ -52,14 +51,11 @@ class Reviews extends Component
         $this->breakdown = $this->product->rating_count > 0 ? ProductRating::breakdown($this->product->id) : [];
 
         $customer = app(CurrentCustomer::class)->get();
-        $this->guest = $customer === null;
-        $who = (string) app(StoreSettings::class)->get('catalog.reviews_who', 'everyone');
         $this->blocked = match (true) {
-            $who !== 'everyone' && $customer === null => 'sign_in',
-            $who === 'buyers' && $customer !== null && app(SubmitReview::class)->purchase($this->product, $customer) === null => 'buyers_only',
+            $customer === null => commerce_feature('accounts') ? 'sign_in' : 'buyers_only',
+            app(SubmitReview::class)->purchase($this->product, $customer) === null => 'buyers_only',
             default => null,
         };
-        $this->captcha = $this->guest && $this->blocked === null ? app(Captcha::class)->widget(app()->getLocale()) : null;
     }
 
     public function shouldRender(): bool

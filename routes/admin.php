@@ -5,13 +5,14 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use Sunrice\Commerce\Admin\ShopNavigation;
 use Sunrice\Commerce\Http\Controllers\Admin;
+use Sunrice\Commerce\Http\Middleware\ScopeAdminOrders;
 
 /*
 | Shop admin pages, under Sunrice's admin path and middleware
 | (names sunrice.admin.commerce.*).
 */
 
-Route::prefix('commerce')->name('commerce.')->group(function (): void {
+Route::prefix('commerce')->name('commerce.')->middleware(ScopeAdminOrders::class)->group(function (): void {
     Route::get('/', Admin\DashboardController::class)->name('dashboard');
     Route::get('promotions', [ShopNavigation::class, 'promotions'])->name('promotions');
 
@@ -110,6 +111,8 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::get('returns/{return}', [Admin\ReturnsController::class, 'edit'])->whereNumber('return')->name('returns.edit');
     Route::put('returns/{return}', [Admin\ReturnsController::class, 'update'])->whereNumber('return')->name('returns.update');
     Route::get('reviews', [Admin\ReviewsController::class, 'index'])->name('reviews');
+    Route::get('reviews/create', [Admin\ReviewsController::class, 'create'])->name('reviews.create');
+    Route::post('reviews', [Admin\ReviewsController::class, 'store'])->name('reviews.store');
     Route::post('reviews/bulk', [Admin\ReviewsController::class, 'bulk'])->name('reviews.bulk');
     Route::get('reviews/{review}', [Admin\ReviewsController::class, 'edit'])->whereNumber('review')->name('reviews.edit');
     Route::put('reviews/{review}', [Admin\ReviewsController::class, 'update'])->whereNumber('review')->name('reviews.update');
@@ -132,6 +135,12 @@ Route::prefix('commerce')->name('commerce.')->group(function (): void {
     Route::post('customers/{customer}/anonymize', [Admin\CustomersController::class, 'anonymize'])->name('customers.anonymize');
 
     Route::get('settings', [Admin\SettingsController::class, 'index'])->name('settings');
+    Route::get('settings/webhooks', [Admin\WebhooksController::class, 'index'])->name('settings.webhooks');
+    Route::get('settings/webhooks/create', [Admin\WebhooksController::class, 'create'])->name('settings.webhooks.create');
+    Route::post('settings/webhooks', [Admin\WebhooksController::class, 'store'])->name('settings.webhooks.store');
+    Route::get('settings/webhooks/{webhook}/edit', [Admin\WebhooksController::class, 'edit'])->whereNumber('webhook')->name('settings.webhooks.edit');
+    Route::put('settings/webhooks/{webhook}', [Admin\WebhooksController::class, 'update'])->whereNumber('webhook')->name('settings.webhooks.update');
+    Route::delete('settings/webhooks/{webhook}', [Admin\WebhooksController::class, 'destroy'])->whereNumber('webhook')->name('settings.webhooks.destroy');
     Route::get('settings/features', [Admin\FeaturesController::class, 'index'])->name('settings.features');
     Route::put('settings/features/{feature}', [Admin\FeaturesController::class, 'update'])->name('settings.features.update');
     Route::get('settings/tax-rates', [Admin\TaxRatesController::class, 'edit'])->name('settings.tax-rates');

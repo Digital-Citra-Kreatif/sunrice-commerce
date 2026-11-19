@@ -31,11 +31,35 @@ it('keeps a guest wishlist and shares it read-only', function () {
 
     $this->get("/wishlist/shared/{$wishlist->share_token}")->assertNotFound();
     $this->post('/wishlist/share', ['on' => 1]);
+    $shareNotice = __('commerce::storefront.wishlist.shared');
+    $sharedPage = $this->get('/wishlist')->assertOk()->assertSeeInOrder([
+        $shareNotice, 'id="commerce-share-link"', 'class="commerce-grid commerce-grid--wide"',
+    ], false);
+    expect(substr_count($sharedPage->getContent(), $shareNotice))->toBe(1);
     $this->flushSession();
-    $this->withCookies([])->get("/wishlist/shared/{$wishlist->share_token}")->assertOk()->assertSee('Mug')->assertDontSee('commerce.wishlist.remove');
+    $this->withCookies([])->get("/wishlist/shared/{$wishlist->share_token}")->assertOk()->assertSee('Mug')->assertDontSee('commerce.wishlist.remove')->assertDontSee('id="commerce-share-link"', false);
 
     $this->delete("/wishlist/items/{$this->teaId}");
     expect($wishlist->items()->count())->toBe(1);
+});
+
+it('renders collection shortcuts and accepts both add and remove in AJAX form posts', function () {
+    $this->get('/products/mug')->assertOk()
+        ->assertSee('data-commerce-collection="wishlist"', false)
+        ->assertSee('data-commerce-collection="compare"', false)
+        ->assertSee('aria-label="Lihat wishlist"', false)
+        ->assertSee('aria-label="Lihat perbandingan"', false);
+
+    $this->withCredentials()->postJson('/wishlist/items', ['product' => $this->mugId])
+        ->assertOk()->assertJsonPath('message', 'Disimpan ke wishlist.')->assertJsonPath('count', 1);
+    $token = Wishlist::query()->value('token');
+    $this->withCookies(['commerce_wishlist' => $token])->post("/wishlist/items/{$this->mugId}", ['_method' => 'DELETE'], ['Accept' => 'application/json'])
+        ->assertOk()->assertJsonPath('count', 0);
+
+    $this->postJson('/compare/items', ['product' => $this->mugId])
+        ->assertOk()->assertJsonPath('message', 'Ditambahkan ke perbandingan.')->assertJsonPath('count', 1);
+    $this->post("/compare/items/{$this->mugId}", ['_method' => 'DELETE'], ['Accept' => 'application/json'])
+        ->assertOk()->assertJsonPath('count', 0);
 });
 
 it('merges a guest wishlist into the customer\'s', function () {

@@ -10,7 +10,7 @@
         @include(\Sunrice\Commerce\Storefront\Layout::view('partials.messages'))
         @if ($entries->isEmpty())
             @include(\Sunrice\Commerce\Storefront\Layout::view('partials.empty'), ['title' => __('commerce::storefront.compare.empty'), 'icon' => 'compare',
-                'action' => ['url' => url(\Sunrice\Cms\Support\Locales::prefix(app()->getLocale()) ?: '/'), 'label' => __('commerce::storefront.cart.continue')]])
+                'action' => ['url' => app(\Sunrice\Commerce\Storefront\ShoppingDestination::class)->url(), 'label' => __('commerce::storefront.cart.continue')]])
         @else
             @php($views = $entries->mapWithKeys(fn ($e) => [$e->entry_id => commerce_product($e)]))
             <div class="commerce-compare__scroll">
@@ -61,7 +61,7 @@
                             <tr>
                                 <th scope="row">{{ $label }}</th>
                                 @foreach ($entries as $entry)
-                                    <td>{{ data_get(collect((commerce_values($entry)['specifications'] ?? null) ?? [])->first(fn ($row) => mb_strtolower(trim((string) data_get($row, 'label', ''))) === mb_strtolower($label)), 'value') ?? '—' }}</td>
+                                    <td>{{ $specValues[$entry->entry_id][mb_strtolower($label)] ?? '—' }}</td>
                                 @endforeach
                             </tr>
                         @endforeach

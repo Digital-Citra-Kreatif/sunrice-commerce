@@ -149,7 +149,7 @@ class EditOrder
             if ($oldTotal !== $order->total) {
                 $diff[] = 'Total: '.$money->format($oldTotal).' → '.$money->format($order->total);
             }
-            $this->timeline->record($order, 'edit', __('commerce::orders.timeline.edited').($diff !== [] ? "\n".implode("\n", $diff) : ''), ['changes' => $diff], $actor);
+            $this->timeline->record($order, 'edit', Timeline::text('commerce::orders.timeline.edited')->then($diff !== [] ? "\n".implode("\n", $diff) : ''), ['changes' => $diff], $actor);
             $changes = $diff;
         });
         DB::afterCommit(fn () => OrderEdited::dispatch($order, $changes, $notify));

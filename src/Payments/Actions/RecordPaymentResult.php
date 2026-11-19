@@ -7,11 +7,13 @@ namespace Sunrice\Commerce\Payments\Actions;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Sunrice\Commerce\Orders\Actor;
+use Sunrice\Commerce\Orders\Events\DepositPaid;
 use Sunrice\Commerce\Orders\Events\OrderPaid;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\OrderStateMachine;
 use Sunrice\Commerce\Orders\OrderStatus;
 use Sunrice\Commerce\Orders\Timeline;
+use Sunrice\Commerce\Orders\TimelineText;
 use Sunrice\Commerce\Payments\Events\PaymentAfterCancellation;
 use Sunrice\Commerce\Payments\Events\PaymentExpired;
 use Sunrice\Commerce\Payments\Events\PaymentFailed;
@@ -26,6 +28,10 @@ use Sunrice\Commerce\Support\MoneyFormatter;
  * the order's payment status, paid_total and refunded_total. Results that
  * don't move a payment forward are ignored, so webhooks, returns and
  * staff can report the same thing twice.
+ *
+ * An order paid in parts (a deposit, then the balance) is Partially paid
+ * while something is paid and something is left: OrderPaid fires once,
+ * when the total is paid; DepositPaid when the first part is.
  */
 class RecordPaymentResult
 {
@@ -62,7 +68,7 @@ class RecordPaymentResult
             // A gateway reporting less than was due doesn't settle the payment: staff can mark it paid.
             if ($result->status === 'paid' && $result->amount !== null && $result->amount < $locked->amount) {
                 $money = app(MoneyFormatter::class);
-                $this->timeline->record($order, 'note', __('commerce::orders.timeline.underpaid', [
+                $this->timeline->record($order, 'note', Timeline::text('commerce::orders.timeline.underpaid', [
                     'method' => $locked->method_title ?? $locked->method, 'amount' => $money->format($result->amount), 'expected' => $money->format($locked->amount),
                 ]), array_filter(['payment_id' => $locked->id, 'reference' => $result->reference, 'amount' => $result->amount]), $actor);
 
@@ -71,26 +77,31 @@ class RecordPaymentResult
             $afterCancellation = $result->status === 'paid' && $order->status === OrderStatus::CANCELLED;
 
             $this->apply($locked, $order, $result);
+            $this->partly($order, $result);
             $locked->save();
             $order->version++;
             $order->save();
 
             $money = app(MoneyFormatter::class);
-            $this->timeline->record($order, 'payment', __('commerce::orders.timeline.payment', [
-                'status' => OrderStatus::label($locked->status, 'payment'),
+            $this->timeline->record($order, 'payment', Timeline::text('commerce::orders.timeline.payment', [
+                'status' => TimelineText::status($locked->status, 'payment'),
                 'amount' => $money->format($result->status === 'refunded' ? (int) $result->amount : ($result->amount ?? $locked->amount)),
             ]), array_filter(['payment_id' => $locked->id, 'method' => $locked->method, 'status' => $result->status, 'reference' => $result->reference]), $actor);
 
             if ($afterCancellation) {
                 // Its stock, sale quantities and vouchers were released: nothing is fulfilled until staff decide.
-                $this->timeline->record($order, 'note', __('commerce::orders.timeline.paid_after_cancel', [
+                $this->timeline->record($order, 'note', Timeline::text('commerce::orders.timeline.paid_after_cancel', [
                     'amount' => $money->format($result->amount ?? $locked->amount),
                 ]), ['payment_id' => $locked->id], $actor);
             }
             $this->moveOrder($order, $result->status, $actor);
             $payment->setRawAttributes($locked->getAttributes(), true);
 
-            return $afterCancellation ? 'after_cancellation' : true;
+            if ($afterCancellation) {
+                return 'after_cancellation';
+            }
+
+            return $result->status === 'paid' && $order->payment_status === OrderStatus::PARTIALLY_PAID ? 'partly' : true;
         });
 
         if ($changed !== false) {
@@ -98,9 +109,11 @@ class RecordPaymentResult
                 $order = Order::withTrashed()->findOrFail($payment->order_id);
                 PaymentRecorded::dispatch($payment, $result);
                 match ($result->status) {
-                    'paid' => $changed === 'after_cancellation'
-                        ? [PaymentSucceeded::dispatch($payment, $result), PaymentAfterCancellation::dispatch($payment, $result, $order)]
-                        : [PaymentSucceeded::dispatch($payment, $result), OrderPaid::dispatch($order)],
+                    'paid' => match ($changed) {
+                        'after_cancellation' => [PaymentSucceeded::dispatch($payment, $result), PaymentAfterCancellation::dispatch($payment, $result, $order)],
+                        'partly' => [PaymentSucceeded::dispatch($payment, $result), DepositPaid::dispatch($order, $payment)],
+                        default => [PaymentSucceeded::dispatch($payment, $result), OrderPaid::dispatch($order)],
+                    },
                     'failed' => PaymentFailed::dispatch($payment, $result),
                     'expired' => PaymentExpired::dispatch($payment, $result),
                     default => null,
@@ -149,6 +162,22 @@ class RecordPaymentResult
         }
         if ($result->raw !== []) {
             $payment->meta = [...(array) $payment->meta, 'last_result' => $result->raw];
+        }
+    }
+
+    /**
+     * Between nothing paid and all paid, the order is Partially paid, whatever
+     * the open payment for the balance is doing (pending, awaiting
+     * confirmation, failed, expired). Refunds keep their own statuses.
+     */
+    protected function partly(Order $order, PaymentResult $result): void
+    {
+        if ($result->status === 'refunded' || $order->refunded_total > 0) {
+            return;
+        }
+        if ($order->paid_total > 0 && $order->paid_total < $order->total) {
+            $order->payment_status = OrderStatus::PARTIALLY_PAID;
+            $order->paid_at = null; // set when the total is paid
         }
     }
 

@@ -7,6 +7,10 @@
 @section('account')
     @php($L = \Sunrice\Commerce\Storefront\Layout::class)
     @php($S = \Sunrice\Commerce\Orders\OrderStatus::class)
+    <a class="commerce-link commerce-link--action commerce-account__back"
+       href="{{ commerce_url($order->isQuote() ? 'commerce.account.quotes' : 'commerce.account.orders') }}">
+        <span aria-hidden="true">←</span> {{ __('commerce::account.orders.'.($order->isQuote() ? 'back_to_quotes' : 'back_to_orders')) }}
+    </a>
     <h1>{{ $order->isQuote() ? __('commerce::checkout.order.quote_title', ['number' => $order->displayNumber()]) : __('commerce::checkout.order.title', ['number' => $order->displayNumber()]) }}</h1>
     <dl class="commerce-order__states">
         <div><dt>{{ __('commerce::checkout.order.status') }}</dt><dd>{{ $S::label($order->status) }}</dd></div>
@@ -15,6 +19,7 @@
         @endunless
         <div><dt>{{ __('commerce::checkout.order.date') }}</dt><dd>{{ $order->placed_at?->translatedFormat('j F Y H:i') }}</dd></div>
     </dl>
+    @include($L::view('partials.order-payment'))
     @include($L::view('partials.order-items'), ['order' => $order])
     @foreach ($order->shipments as $shipment)
         <p>{{ __('commerce::checkout.order.shipment', ['courier' => $shipment->courier_name ?? $shipment->courier]) }}
@@ -24,11 +29,11 @@
         <a href="{{ $order->url() }}" class="commerce-button commerce-button--secondary">{{ __('commerce::account.orders.details') }}</a>
         @if (! $order->isQuote() && commerce_feature('cart'))
             <form method="POST" action="{{ commerce_url('commerce.account.order.again', ['order' => $order->id]) }}">@csrf
-                <button type="submit" class="commerce-button commerce-button--secondary">{{ __('commerce::account.orders.buy_again') }}</button></form>
+                <button type="submit" class="commerce-link commerce-link--action">{{ __('commerce::account.orders.buy_again') }}</button></form>
         @endif
         @if ($canCancel)
             <form method="POST" action="{{ commerce_url('commerce.account.order.cancel', ['order' => $order->id]) }}" onsubmit="return confirm(@js(__('commerce::checkout.order.cancel_confirm')))">@csrf
-                <button type="submit" class="commerce-button commerce-button--secondary">{{ __('commerce::checkout.order.cancel') }}</button></form>
+                <button type="submit" class="commerce-link commerce-link--action">{{ __('commerce::checkout.order.cancel') }}</button></form>
         @endif
     </div>
 
@@ -38,28 +43,39 @@
     @endforeach
     @if ($returnable !== null)
         @php($lines = $order->items->whereNull('parent_id')->keyBy('id'))
-        <details class="commerce-accordion commerce-return-form" @if ($errors->hasAny(['items', 'reason', 'return'])) open @endif>
+        <details class="commerce-accordion commerce-return-form" @if ($errors->hasAny(['items', 'items.*', 'reason', 'details', 'return'])) open @endif>
             <summary>{{ __('commerce::account.returns.request') }}</summary>
-            <form method="POST" action="{{ commerce_url('commerce.account.order.return', ['order' => $order->id]) }}">@csrf
+            <form class="commerce-return-form__fields" method="POST" action="{{ commerce_url('commerce.account.order.return', ['order' => $order->id]) }}">@csrf
                 @include($L::view('partials.field-error'), ['name' => 'return'])
-                <fieldset class="commerce-field">
+                <fieldset class="commerce-return-form__items">
                     <legend>{{ __('commerce::account.returns.items') }}</legend>
                     @foreach ($returnable as $itemId => $max)
-                        <label for="return-{{ $itemId }}"><span>{{ $lines[$itemId]?->title() }}</span>
-                            <input id="return-{{ $itemId }}" type="number" name="items[{{ $itemId }}]" min="0" max="{{ $max }}" value="{{ old('items.'.$itemId, 0) }}" inputmode="numeric">
-                            <small>{{ __('commerce::account.returns.of', ['count' => $max]) }}</small></label>
+                        <div class="commerce-return-form__row">
+                            <label for="return-{{ $itemId }}">{{ $lines[$itemId]?->title() }}</label>
+                            <div class="commerce-return-form__quantity">
+                                <input id="return-{{ $itemId }}" type="number" name="items[{{ $itemId }}]" min="0" max="{{ $max }}"
+                                    value="{{ old('items.'.$itemId, 0) }}" inputmode="numeric" aria-describedby="return-limit-{{ $itemId }}">
+                                <small id="return-limit-{{ $itemId }}">{{ __('commerce::account.returns.of', ['count' => $max]) }}</small>
+                            </div>
+                            @include($L::view('partials.field-error'), ['name' => 'items.'.$itemId])
+                        </div>
                     @endforeach
                     @include($L::view('partials.field-error'), ['name' => 'items'])
                 </fieldset>
                 <label class="commerce-field" for="return-reason"><span>{{ __('commerce::account.returns.reason') }}</span>
                     <select id="return-reason" name="reason" required>
+                        <option value="" disabled @selected(!old('reason'))>{{ __('commerce::account.returns.choose_reason') }}</option>
                         @foreach (\Sunrice\Commerce\Returns\Models\ReturnRequest::REASONS as $reason)
                             <option value="{{ $reason }}" @selected(old('reason') === $reason)>{{ __('commerce::account.returns.reasons.'.$reason) }}</option>
                         @endforeach
-                    </select></label>
+                    </select>
+                    @include($L::view('partials.field-error'), ['name' => 'reason'])
+                </label>
                 <label class="commerce-field" for="return-details"><span>{{ __('commerce::account.returns.details') }}</span>
-                    <textarea id="return-details" name="details" rows="3" maxlength="2000">{{ old('details') }}</textarea></label>
-                <button type="submit" class="commerce-button">{{ __('commerce::account.returns.submit') }}</button>
+                    <textarea id="return-details" name="details" rows="3" maxlength="2000">{{ old('details') }}</textarea>
+                    @include($L::view('partials.field-error'), ['name' => 'details'])
+                </label>
+                <button type="submit" class="commerce-button commerce-button--primary">{{ __('commerce::account.returns.submit') }}</button>
             </form>
         </details>
     @endif

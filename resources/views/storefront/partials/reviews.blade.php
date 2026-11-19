@@ -2,7 +2,7 @@
     <x-commerce::reviews>: the product's rating, its approved reviews and the
     form. $product (rating_count, rating_average), $reviews (paginator),
     $breakdown (rating => count), $blocked (sign_in | buyers_only | null),
-    $guest, $captcha (widget or null).
+    The form is available to signed-in buyers.
 --}}
 @php($L = \Sunrice\Commerce\Storefront\Layout::class)
 @php($stars = fn (float $rating) => str_repeat('★', (int) round($rating)).str_repeat('☆', 5 - (int) round($rating)))
@@ -63,25 +63,12 @@
                 @endforeach
                 @include($L::view('partials.field-error'), ['name' => 'rating'])
             </fieldset>
-            @if ($guest)
-                <label class="commerce-field" for="review-name"><span>{{ __('commerce::storefront.reviews.name') }} *</span>
-                    <input id="review-name" name="name" value="{{ old('name') }}" maxlength="120" required autocomplete="name">
-                    @include($L::view('partials.field-error'), ['name' => 'name'])</label>
-                <label class="commerce-field" for="review-email"><span>{{ __('commerce::storefront.reviews.email') }} *</span>
-                    <input id="review-email" type="email" name="email" value="{{ old('email') }}" maxlength="255" required autocomplete="email">
-                    <small>{{ __('commerce::storefront.reviews.email_private') }}</small>
-                    @include($L::view('partials.field-error'), ['name' => 'email'])</label>
-            @endif
             <label class="commerce-field" for="review-title"><span>{{ __('commerce::storefront.reviews.review_title') }}</span>
                 <input id="review-title" name="title" value="{{ old('title') }}" maxlength="150">
                 @include($L::view('partials.field-error'), ['name' => 'title'])</label>
             <label class="commerce-field" for="review-body"><span>{{ __('commerce::storefront.reviews.body') }} *</span>
                 <textarea id="review-body" name="body" rows="5" minlength="10" maxlength="5000" required>{{ old('body') }}</textarea>
                 @include($L::view('partials.field-error'), ['name' => 'body'])</label>
-            @if (filled((string) $captcha))
-                {{ $captcha }}
-                @include($L::view('partials.field-error'), ['name' => 'captcha'])
-            @endif
             <button type="submit" class="commerce-button">{{ __('commerce::storefront.reviews.submit') }}</button>
         </form>
     @endif

@@ -48,7 +48,12 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->scoped(Settings\StoreSettings::class);
         $this->app->scoped(Features\Features::class);
         $this->app->scoped(Support\MoneyFormatter::class);
+        $this->app->scoped(Webhooks\Webhooks::class);
         $this->app->singleton(Storefront\Slots::class);
+        $this->app->singleton(Shipping\ShippingOrigins::class);
+        $this->app->singleton(Orders\AdminOrderScopes::class);
+        $this->app->singleton(Catalog\CatalogFilters::class);
+        $this->app->singleton(Cart\LineDetails::class);
         $this->app->singleton(Health\HealthRegistry::class);
         $this->app->singleton(Admin\Setup\SetupChecklist::class);
         $this->app->singleton(Admin\Dashboard\DashboardCards::class);
@@ -65,6 +70,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->callAfterResolving(Admin\Dashboard\DashboardCards::class, fn (Admin\Dashboard\DashboardCards $cards) => Admin\Dashboard\BuiltinTodos::register($cards));
         $this->app->singleton(Catalog\PriceIndex::class);
         $this->app->scoped(Catalog\Catalog::class);
+        $this->app->scoped(Catalog\ProductDefaults::class);
         $this->app->scoped(Catalog\ProductViewFactory::class);
         $this->app->scoped(Catalog\BundleComponents::class);
         $this->app->singleton(Catalog\ProductViewHooks::class);
@@ -187,7 +193,8 @@ class CommerceServiceProvider extends PackageServiceProvider
     {
         Event::listen(Login::class, Customers\Listeners\MergeOnSignIn::class);
         $nav = $this->app->make(Customers\AccountNavigation::class);
-        $nav->register('overview', fn () => __('commerce::account.overview.title'), 'commerce.account', position: 10);
+        $nav->register('announcement', fn () => __('commerce::account.announcement.title'), 'commerce.account.announcement',
+            fn (): bool => $this->app->make(Customers\AccountAnnouncement::class)->position() === 'tab', position: 10);
         $nav->register('profile', fn () => __('commerce::account.profile.title'), 'commerce.account.profile', position: 80);
         $nav->register('orders', fn () => __('commerce::account.orders.title'), 'commerce.account.orders', 'orders', position: 20);
         $nav->register('quotes', fn () => __('commerce::account.orders.quotes'), 'commerce.account.quotes',
@@ -219,6 +226,9 @@ class CommerceServiceProvider extends PackageServiceProvider
         Event::listen(Orders\Events\OrderPaid::class, Orders\Listeners\RecordSalesCount::class);
         Event::listen(Orders\Events\OrderRefunded::class, Orders\Listeners\RecordSalesCount::class);
         $this->app->make(Commerce::class)->onTick('order expiry', fn () => (new Orders\Expiry)());
+        $this->app->make(Commerce::class)->onTick('release retries', fn () => (new Orders\ReleaseRetries)());
+        $this->app->make(Commerce::class)->onTick('confirmation reminders', fn () => commerce_feature('manual_payments') ? (new Payments\ConfirmationReminders)() : 0);
+        $this->app->make(Commerce::class)->onTick('balances', fn () => commerce_feature('payments') ? (new Orders\Balances)() : 0);
         $this->app->make(Commerce::class)->onTick('shipment tracking', fn () => $this->app->make(Shipping\ShipmentTracker::class)());
         RateLimiter::for('commerce-confirm', fn (Request $request) => Limit::perHour(10)->by((string) $request->input('order').'|'.$request->ip()));
         // Personal data with a shelf life: IP addresses (and user agents) on orders, downloads and confirmations.
@@ -234,6 +244,8 @@ class CommerceServiceProvider extends PackageServiceProvider
         // Stock alerts: a month after they were sent, half a year when the product never came back.
         // Loyalty points past their expiry leave the wallets.
         $commerce->onPrune('loyalty points', fn (): int => commerce_feature('loyalty') ? $this->app->make(Loyalty\Wallet::class)->expireDue() : 0);
+        $commerce->onPrune('webhook deliveries', fn (): int => Webhooks\Models\WebhookDelivery::query()
+            ->where('created_at', '<', now()->subDays(max(1, (int) config('commerce.webhooks.keep_days', 30))))->delete());
         $commerce->onPrune('stock alerts', fn (): int => StockAlerts\Models\StockAlert::query()
             ->where(fn ($q) => $q->where('notified_at', '<', now()->subDays(30))->orWhere(fn ($q) => $q->whereNull('notified_at')->where('created_at', '<', now()->subDays(180))))
             ->delete());
@@ -262,8 +274,10 @@ class CommerceServiceProvider extends PackageServiceProvider
         Event::listen(Orders\Events\OrderCompleted::class, Loyalty\Listeners\EarnPoints::class);
         Event::listen(Orders\Events\OrderRefunded::class, Loyalty\Listeners\RevokePoints::class);
         Event::listen(Payments\Events\PaymentRecorded::class, Loyalty\Listeners\RevokePoints::class);
+        Event::listen(array_keys(Webhooks\Listeners\SendWebhooks::MAP), Webhooks\Listeners\SendWebhooks::class);
         RateLimiter::for('commerce-feeds', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
         RateLimiter::for('commerce-stock-alerts', fn (Request $request) => Limit::perHour(20)->by($request->ip()));
+        RateLimiter::for('commerce-search', fn (Request $request) => Limit::perMinute(60)->by($request->ip()));
         RateLimiter::for('commerce-reviews', fn (Request $request) => Limit::perHour(5)->by($request->ip()));
         RateLimiter::for('commerce-downloads', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
         RateLimiter::for('commerce-webhooks', fn (Request $request) => Limit::perMinute(300)->by($request->ip()));

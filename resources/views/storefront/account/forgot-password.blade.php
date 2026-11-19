@@ -14,6 +14,7 @@
                 <input type="email" name="email" value="{{ old('email') }}" required autocomplete="email">
                 @include(\Sunrice\Commerce\Storefront\Layout::view('partials.field-error'), ['name' => 'email'])
             </label>
+            @include(\Sunrice\Commerce\Storefront\Layout::view('partials.captcha'))
             <button type="submit" class="commerce-button commerce-button--primary commerce-button--block">{{ __('commerce::account.reset.send') }}</button>
         </form>
     </section>

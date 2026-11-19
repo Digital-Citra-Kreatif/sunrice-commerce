@@ -1,18 +1,41 @@
 import type { ReactNode } from 'react';
-import { inertia } from '../lib/sunrice';
+import { inertia, ui } from '../lib/sunrice';
 
-/** Page title, description and actions; also sets the document title. */
-export function PageHeader({ title, description, actions }: { title: string; description?: ReactNode; actions?: ReactNode }) {
+export interface HeaderMenuItem {
+    label: ReactNode;
+    href?: string;
+    onSelect?: () => void;
+    icon?: ReactNode;
+    external?: boolean;
+    download?: boolean;
+    group?: string;
+    destructive?: boolean;
+}
+
+/**
+ * The panel's page header (title in the display style, description, back
+ * button) with commerce's actions: `primary`, the one prominent button,
+ * `menu`, the secondary actions in a "⋮" menu, and `actions`, other
+ * buttons before them. Also sets the document title.
+ */
+export function PageHeader({ title, description, actions, primary, menu, back, children }: {
+    title: string;
+    description?: ReactNode;
+    actions?: ReactNode;
+    primary?: ReactNode;
+    menu?: HeaderMenuItem[];
+    back?: { href: string; label: string };
+    children?: ReactNode;
+}) {
     const { Head } = inertia;
+    const { PageHeader: PanelHeader } = ui;
 
     return (
-        <div className="cm:flex cm:flex-wrap cm:items-start cm:justify-between cm:gap-4">
+        <>
             <Head title={title} />
-            <div className="cm:grid cm:gap-1">
-                <h1 className="cm:text-xl cm:font-semibold cm:tracking-tight">{title}</h1>
-                {description && <p className="cm:text-sm cm:text-muted-foreground">{description}</p>}
-            </div>
-            {actions && <div className="cm:flex cm:flex-wrap cm:items-center cm:gap-2">{actions}</div>}
-        </div>
+            <PanelHeader title={title} description={description} actions={actions} primary={primary} menu={menu?.length ? menu : undefined} back={back}>
+                {children}
+            </PanelHeader>
+        </>
     );
 }

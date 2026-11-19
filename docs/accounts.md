@@ -87,8 +87,10 @@ an optional phone number (or a required one, in settings), a password, and marke
   an account.
 - When a terms page is set (Settings → Store → Checkout → Terms page), customers tick that they
   agree to it, as at checkout.
-- The forms have a honeypot. With Sunrice's captcha configured (`sunrice.forms.captcha`: Turnstile,
-  reCAPTCHA or hCaptcha), registration also shows the captcha. Registration is limited to 5 per
+- The forms have a honeypot. With Sunrice's captcha configured (`sunrice-admin.captcha`: Turnstile,
+  reCAPTCHA v2 or hCaptcha), registration, password sign-in and password reset requests also
+  verify the captcha on the server. Set `SUNRICE_CAPTCHA_PROVIDER`, `SUNRICE_CAPTCHA_SITE_KEY` and
+  `SUNRICE_CAPTCHA_SECRET_KEY` in the host app. Registration is limited to 5 per
   hour per IP address.
 
 Laravel's `Illuminate\Auth\Events\Registered` is dispatched for new accounts.
@@ -243,26 +245,40 @@ The customer's language is also remembered at the first sign-in, for their email
 
 | Page | Route | Shows |
 | --- | --- | --- |
-| Overview | `commerce.account` | A greeting, the `account.overview` slot, the three latest orders (needs `orders`), quick links to the other pages and the default shipping address |
-| Orders | `commerce.account.orders` | The customer's orders, 10 per page (needs `orders`) |
+| Account entry | `commerce.account` | Redirects to Orders, to the announcement when it is configured as the first tab, or to Profile when Orders is off |
+| Announcement | `commerce.account.announcement` | Shown as a tab when the enabled announcement uses the first-tab placement |
+| Orders | `commerce.account.orders` | Search and filter the customer's orders, 10 per page (needs `orders`) |
 | An order | `commerce.account.order` | Timeline, payment instructions and confirmation, tracking, invoice download, downloads, buy again, cancel |
 | Quotes | `commerce.account.quotes` | Quote requests (shown in Quotation mode) |
 | Downloads | `commerce.account.downloads` | The digital library (shown once the customer has downloads) |
 | Points | `commerce.account.points` | The loyalty balance, how points are earned, the next expiry and the history (needs `loyalty`; see [pricing.md](pricing.md#loyalty-points)) |
 | Wishlist | `commerce.wishlist` | The wishlist page (needs `wishlist`) |
-| Addresses | `commerce.account.addresses` | Add, edit and delete addresses; default shipping and billing |
+| Addresses | `commerce.account.addresses` | An expandable address book with shipping and billing defaults |
 | Profile | `commerce.account.profile` | Name, email, phone, marketing consent, the linked Google account, password, account deletion |
 
 Details:
 
+- **Orders** can be searched by all or part of the order number or product name. Combine the search
+  with an order status or open the date range to enter either or both dates. Both dates are
+  inclusive in the store's timezone. Order details link back to the full list.
+  The filter values stay selected on the next page. **Reset filters** returns to the full order
+  list. The GET parameters are `q`, `status`, `date_from`, `date_to` and `page`; dates use
+  `YYYY-MM-DD`.
 - **Buy again** puts the order's items back in the cart. Items that can't be bought any more are
   named.
 - **Cancel** follows the checkout setting "Customers can cancel unpaid orders". See
   [orders.md](orders.md).
 - **Invoice download** shows on paid orders when the `documents` feature and the setting are on. See
   [documents.md](documents.md).
-- **Addresses** are checked against the region list. The first address becomes the default for both
-  shipping and billing.
+- **Addresses** start collapsed if the customer has several. Each summary shows the label or street,
+  the locality when available, and any shipping or billing default. Open an address to see its
+  details and the Edit and Delete actions. With one address, its details are open by default.
+  **Add an address** opens the form. Save or Cancel returns to the list. The first saved address
+  becomes the default for shipping and billing. New Indonesian addresses require JavaScript to
+  populate the region choices. See [Regions](regions.md#the-regions-json-endpoint).
+- **Downloads** lists grants for orders belonging to the signed-in customer. The file itself is
+  served through a personal link. See [Digital products](catalog.md#digital-products) for how
+  those links work for both account holders and guests.
 - **Password**: changing it needs the current password. Accounts made with a code or Google set
   their first password without one.
 - **Account deletion**: the customer ticks a box and asks. Staff are emailed and anonymize the account
@@ -270,7 +286,7 @@ Details:
   dispatched.
 - **Sign out** is a button in the menu. It signs out of the storefront only.
 
-Templates are in `storefront/account/` (`overview`, `orders`, `order`, `quotes`, `downloads`,
+Templates are in `storefront/account/` (`announcement`, `announcement-banner`, `orders`, `order`, `quotes`, `downloads`,
 `addresses`, `profile`, `login`, `register`, `code`, `forgot-password`, `reset-password` and the
 `layout` with the menu). Publish them with `php artisan vendor:publish --tag=commerce-templates`;
 see [templates.md](templates.md).
@@ -278,6 +294,11 @@ see [templates.md](templates.md).
 ## Settings → Store → Accounts
 
 Shown while accounts are on, for users with `commerce.settings.accounts`.
+
+In **Account announcement**, enable the announcement, pick the first tab or a position above or
+below account page content, and enter the title and message in the store languages. The message
+is rendered as text, with the main language used when a translation is empty. The announcement
+stays hidden until it has a message.
 
 | Setting | Key | Default |
 | --- | --- | --- |

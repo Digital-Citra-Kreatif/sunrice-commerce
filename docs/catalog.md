@@ -186,12 +186,34 @@ can override them:
 
 - **Requires shipping** (`requires_shipping`): a physical product. Lines with it need a shipping
   method at checkout. The editor shows the Shipping tab for weight and dimensions.
-- **Downloadable** (`downloadable`): a digital product. The editor shows the Digital tab. See
+- **Downloadable** (`downloadable`): a digital product. The editor turns off shipping and shows the Digital tab. Downloadable variants also skip shipping at checkout. See
   [Digital products](#digital-products).
 
 A product that is neither is **virtual**: a service, a ticket or a booking. There is no separate
 "digital" type: a digital product is a simple or variable product with Downloadable on (and usually
 Requires shipping off).
+
+### Storefront content and media
+
+Use **Shop → Settings → Catalog** to set store defaults for specifications, questions and answers,
+and the size guide. Category and brand rules are on the same page. Each field follows the closest
+nonempty setting, in this order: product, brand, category, store. If several rules in the same scope
+match, the first rule with a value for that field wins. A local specification or FAQ list overrides
+the inherited list in full. Compare uses the same specifications as the product page.
+
+The size guide starts hidden. Set its visibility to **Show** and provide content at that scope or
+inherit a guide from a broader scope. Visibility can be set independently from the guide content.
+On the product editor, **Display options and video** can hide each section or override size guide
+visibility. Previously saved size guide content appears once its effective visibility is **Show**.
+
+Drag the images in the product editor to reorder them. The first image is the cover. The product
+gallery extends the CMS media field and stores the same ordered list of image IDs. To publish a
+product video, select a video in the Media Library or enter an HTTPS link under **Display options
+and video**. YouTube links use an embedded player. Other HTTPS sources open as links.
+
+Run migrations when upgrading. The existing product blueprint gains the display and video group and
+sortable gallery while keeping existing field handles and saved content. Update published product
+and compare templates and the starter stylesheet to pick up the storefront changes.
 
 Products can also be **featured** (`featured`): they sort first in the default listing order and
 get the `featured` badge.
@@ -221,8 +243,8 @@ follow the chosen variant.
 
 | Purchase mode | Button |
 | --- | --- |
-| `default` | Add to cart in modes with a cart; otherwise the store's call to action |
-| `cart` | The same as `default` |
+| `default` | Use the first applicable rule in Brand, Category, or Store settings |
+| `cart` | Add to cart when available, otherwise use the store's Catalog-mode call to action |
 | `inquiry` | The inquiry form |
 | `whatsapp` | A WhatsApp chat about the product |
 | `external` | Links to other shops (`external_links`); the store's call to action when the product has no links |
@@ -231,6 +253,16 @@ follow the chosen variant.
 Modes with a cart are Online store, Quotation and WhatsApp order, while the Cart module is active
 (see [features.md](features.md#selling-modes)). So in Online store mode one product can show "Ask
 for a price" (inquiry) or "Buy on Tokopedia" (external) instead of Add to cart.
+
+Set the store default and the category and brand rules in **Settings → Store → Catalog →
+Product button defaults**. An explicit product choice wins, then an assigned brand, then an assigned
+category, then the store default. When several assigned terms have rules in the same scope, the
+first matching rule in that list wins. The editor shows the inherited action and its source using
+the saved draft classifications. The storefront and cart use published classifications.
+
+The default store selection follows the selling mode. Choosing **Links to other shops** still
+uses each product's own links. An inherited rule can choose the button type, and the product
+editor exposes the links when that type requires them.
 
 The store's call to action is Settings → Store → Catalog → **Call to action in Catalog mode**
 (`catalog.call_to_action`): `inquiry` (default), `whatsapp`, `external` or `none`. `external` uses
@@ -307,9 +339,9 @@ threshold dispatches `StockLow`, reaching zero `StockOut`, and going back above 
 | Low stock at | `catalog.low_stock_threshold` | `5` |
 | Hide out-of-stock products from listings | `catalog.hide_out_of_stock` | off |
 
-**Back-in-stock alerts** (`stock_alerts` module, needs Stock tracking): under the stock line of a
-sold-out product, a form asks for an email (none for signed-in customers) and, for a variable
-product, which of the sold-out variants (`partials.stock-alert`). Within a minute of the variant
+**Back-in-stock alerts** (`stock_alerts` module, needs Stock tracking): the form appears under the
+stock line when the selected variant is sold out and asks guests for an email
+(`partials.stock-alert`). Within a minute of the variant
 becoming available again (in stock or on backorder, by any route: a stock adjustment, an order
 cancelled, the product editor), `commerce:tick` sends the "Back in stock" email
 ([emails.md](emails.md)) once to everyone waiting, 200 a minute. Shop → Inventory shows how many
@@ -358,9 +390,11 @@ files on the Digital tab:
 "delivery": { "modes": ["link", "account"], "download_limit": 3, "expiry_days": 30 }
 ```
 
-- **Files** are uploads to a private disk (`commerce.downloads.disk`, default `local`; up to
-  `commerce.downloads.max_upload_mb`, default 512) or external links. A file can belong to the
-  product or to one variant (`variants.*.downloads`). Files are never served from a public URL.
+- **Files** are uploaded to `commerce.downloads.disk` (default `local`), up to
+  `commerce.downloads.max_upload_mb` (default 512), or entered as external links. A file can
+  belong to the product or to one variant (`variants.*.downloads`). Keep the upload disk outside
+  the public web root and keep cloud objects private. External links follow the destination's
+  access rules.
 - **Delivery** (`delivery.modes`), any of: `attachment` (attached to the "your downloads" email
   when the file is at most `commerce.downloads.attachment_max_mb`, default 10 MB; otherwise a link
   is sent), `link` (a personal link in the email), `account` (My Account → Downloads). Without
@@ -379,10 +413,18 @@ Store defaults, Settings → Store → Digital products:
 | Downloads per file | `digital.download_limit` | unlimited |
 | Links expire after (days) | `digital.expiry_days` | never |
 
-Downloads go through `/downloads/{token}`: each download is counted against the limit and logged
-with its time and IP. Links redirect; cloud disks redirect to a five-minute URL; local files stream
-through the app. A revoked, expired or used-up grant answers 410. This route keeps working while
-the module is off, so bought files stay available.
+**Download access.** My Account → Downloads lists files for orders belonging to the signed-in
+customer. The order page also shows its download links. The download endpoint,
+`/downloads/{token}`, checks the grant, records the request and deducts one use from the remaining
+limit, if set. It streams local files or redirects to a five-minute cloud URL when the disk
+supports temporary URLs. External files redirect to their configured destination. Revoked,
+expired and used-up grants return HTTP 410. This route stays available when the Digital products
+module is off.
+
+The token itself grants access, so guests can download from email without signing in. Anyone
+who receives a forwarded link can use it while the grant is valid. If a store requires proof of
+the buyer's identity on every download, it needs an additional ownership or email verification
+check before serving the file.
 
 On the order page staff can resend the links, extend a grant by some days, reset its count or
 revoke it (`Digital\Actions\ManageGrant`). Each action goes on the order timeline.
@@ -515,26 +557,33 @@ on cards and the product page, and a page at `/wishlist`.
 
 Both pages are `noindex`.
 
+## Continue shopping
+
+In Settings → Store → Catalog, **Continue shopping** sets one destination for Compare, Wishlist,
+Cart and order confirmation. **Automatic** uses the first available catalog listing in the
+shopper’s language. Without one, it uses that language’s homepage. **Choose a page** can point to
+a CMS page or collection listing. If the chosen page becomes unavailable, the button uses
+the automatic destination.
+
 ## Reviews
 
-**Reviews** (`reviews` module, on by default): customers rate a product from 1 to 5 stars and write
-a review on its page (`<x-commerce::reviews :entry="$entry" />`); staff approve, reject, reply to
-and delete them in Shop → Products → Reviews (permission `commerce.reviews.manage`).
+**Reviews** (`reviews` module, on by default): verified buyers rate a product from 1 to 5 stars and
+write a review on its page (`<x-commerce::reviews :entry="$entry" />`).
 
-- Settings → Store → Catalog: **Who may review products** (`catalog.reviews_who`: `everyone`,
-  `customers` signed in, or `buyers`) and **Reviews show** (`catalog.reviews_approval`: `manual`,
-  `buyers` at once and others once approved, or `none`, at once).
-- A review by a customer with a processing or completed order for the product is a **verified
-  purchase**. A customer has one review per product: writing again replaces it, and it's checked
-  again under the approval setting.
-- Guests give a name and an email (never shown), and answer the panel's captcha when one is set up.
-  The form has a honeypot and takes 5 reviews an hour from an address.
+- Buyers must sign in and have a paid order for that product in Processing or Completed status.
+  Writing again replaces the buyer's existing review and applies the approval setting again.
+- Settings → Store → Catalog → **Reviews show** (`catalog.reviews_approval`) controls publication
+  after approval (`manual`) or immediately (`none`). Existing `buyers` values still publish immediately.
+- Staff with `commerce.reviews.manage` can record a review from a buyer in Shop → Products → Reviews.
+  Enter the paid order number and select its product. The system takes the buyer identity from the
+  order. Staff can edit the rating, title, text, reply and status, or delete a review.
+- The storefront form has a honeypot and takes 5 reviews an hour from an address.
 - Approved reviews make the product's rating (`commerce_products.rating_count` and
   `rating_average`), shown on cards, under the product's title and in its JSON-LD
   (`aggregateRating`).
 - When a customer is anonymised, their reviews stay without their name, email and address; review
   IP addresses are pruned with the others (`commerce.privacy.ip_retention_days`).
-- `Reviews\Events\ReviewSubmitted` fires for every review written.
+- `Reviews\Events\ReviewSubmitted` fires for storefront submissions. Staff changes are recorded in the activity log.
 
 ## Product feeds
 
@@ -609,6 +658,17 @@ It prints each failure and exits with an error code when any failed.
   above the price) before **Apply**; a cell the export wrote with a leading apostrophe (so a
   spreadsheet doesn't read `-2` as a formula) is read without it; the changes go into the
   product field's live value and its draft, as the bulk actions do. Up to 5,000 rows.
+  Apply compares the current values with the preview under a database lock. If a regular order,
+  stock adjustment, or another edit changes a value after the preview, the affected row is skipped
+  and the import page explains which SKU needs a fresh preview.
+- **Creating products by import**: with **Create products for SKUs no product has** ticked (for
+  users who may create products), a row whose SKU no product has and that names a `product` is a
+  new product. Rows with the same `product` are one product; `variant` names each one's option
+  value (S, M…) and `option` the option (Size by default); one row without a variant is a simple
+  product. `price` is required; `compare_at_price`, `cost`, `weight`, `stock` (a tracked variant's
+  starting stock) and `active` are used as for updates, and `category` files the product under a
+  category by its name or slug. New products are drafts (to add photos first) unless **Publish
+  new products** is ticked; a draft's SKUs reach the store when it's published.
 - **The Product data field** has tabs: General, Variants (variable products), Bundle (bundles),
   Inventory, Shipping (when it requires shipping), Bulk prices and Digital (when downloadable).
   Extensions add tabs with `api.registerProductTab()` (see

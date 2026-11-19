@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Http\Controllers\Account;
 
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Sunrice\Commerce\Analytics\Day;
 use Sunrice\Commerce\Cart\Actions\AddToCart;
 use Sunrice\Commerce\Cart\CartException;
 use Sunrice\Commerce\Customers\CurrentCustomer;
@@ -17,6 +21,7 @@ use Sunrice\Commerce\Orders\Actions\CancelOrderByCustomer;
 use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\InvalidTransition;
 use Sunrice\Commerce\Orders\Models\Order;
+use Sunrice\Commerce\Orders\OrderStatus;
 use Sunrice\Commerce\Returns\Actions\RequestReturn;
 use Sunrice\Commerce\Returns\Models\ReturnRequest;
 use Sunrice\Commerce\Returns\Returns;
@@ -36,12 +41,54 @@ class OrdersController
 
     public function index(Request $request, AccountController $account): View
     {
-        return $this->list($account, 'order', 'orders');
+        $input = Arr::only($request->query(), ['q', 'status', 'date_from', 'date_to']);
+        $validator = Validator::make($input, [
+            'q' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', Rule::in(OrderStatus::ORDER_STATUSES)],
+            'date_from' => ['nullable', 'date_format:Y-m-d'],
+            'date_to' => ['nullable', 'date_format:Y-m-d', Rule::when($request->filled('date_from'), 'after_or_equal:date_from')],
+        ], [
+            'q.string' => __('commerce::account.orders.filters.invalid_search'),
+            'q.max' => __('commerce::account.orders.filters.invalid_search'),
+            'status.in' => __('commerce::account.orders.filters.invalid_status'),
+            'date_from.date_format' => __('commerce::account.orders.filters.invalid_from'),
+            'date_to.date_format' => __('commerce::account.orders.filters.invalid_to'),
+            'date_to.after_or_equal' => __('commerce::account.orders.filters.invalid_range'),
+        ]);
+        $filters = array_filter($validator->valid(), fn (mixed $value): bool => $value !== null && $value !== '');
+        $orders = $this->customerOrders('order');
+        if (isset($filters['q'])) {
+            $like = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], mb_strtolower($filters['q'])).'%';
+            $orders->where(fn (Builder $query) => $query
+                ->whereRaw("LOWER(number) LIKE ? ESCAPE '!'", [$like])
+                ->orWhereRaw("LOWER(quote_number) LIKE ? ESCAPE '!'", [$like])
+                ->orWhereHas('items', fn (Builder $items) => $items->whereRaw("LOWER(name) LIKE ? ESCAPE '!'", [$like])));
+        }
+        if (isset($filters['status'])) {
+            $orders->where('status', $filters['status']);
+        }
+        if (isset($filters['date_from'])) {
+            $orders->where('placed_at', '>=', Day::bounds($filters['date_from'])[0]);
+        }
+        if (isset($filters['date_to'])) {
+            $orders->where('placed_at', '<', Day::bounds($filters['date_to'])[1]);
+        }
+
+        return $account->page('orders', __('commerce::account.orders.title'), [
+            'orders' => $orders->paginate(10)->appends($filters),
+            'type' => 'order',
+            'orderFilters' => array_filter($input, 'is_string'),
+            'orderFilterErrors' => $validator->errors(),
+            'filtersActive' => $filters !== [],
+        ]);
     }
 
     public function quotes(Request $request, AccountController $account): View
     {
-        return $this->list($account, 'quote', 'quotes');
+        return $account->page('quotes', __('commerce::account.orders.quotes'), [
+            'orders' => $this->customerOrders('quote')->paginate(10),
+            'type' => 'quote',
+        ]);
     }
 
     public function show(Request $request, int $order, AccountController $account, OrderController $orders): View
@@ -125,12 +172,11 @@ class OrdersController
         return $account->page('downloads', __('commerce::digital.title'), ['grants' => $grants]);
     }
 
-    protected function list(AccountController $account, string $type, string $page): View
+    /** @return Builder<Order> */
+    protected function customerOrders(string $type): Builder
     {
-        $orders = Order::query()->where('user_id', $this->current()->user()?->getAuthIdentifier())->where('type', $type)
-            ->latest('placed_at')->latest('id')->paginate(10);
-
-        return $account->page($page, __('commerce::account.orders.'.($type === 'quote' ? 'quotes' : 'title')), ['orders' => $orders, 'type' => $type]);
+        return Order::query()->where('user_id', $this->current()->user()?->getAuthIdentifier())->where('type', $type)
+            ->latest('placed_at')->latest('id');
     }
 
     /** One of the signed-in customer's orders (404 for anyone else's). */

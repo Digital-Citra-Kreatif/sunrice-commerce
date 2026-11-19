@@ -46,7 +46,7 @@ class Notifier
             );
         }
         if ($order !== null && $recipients !== []) {
-            $this->timeline->record($order, 'email', __('commerce::emails.sent', ['email' => $email->label]), ['email' => $key, 'to' => array_keys($recipients)],
+            $this->timeline->record($order, 'email', Timeline::text('commerce::emails.sent', ['email' => $email->label]), ['email' => $key, 'to' => array_keys($recipients)],
                 Actor::system(), $email->audience === 'customer' ? 'customer' : 'internal');
         }
 

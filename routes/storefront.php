@@ -51,6 +51,7 @@ Route::middleware(['commerce.feature:checkout', 'commerce.noindex'])->prefix(Sto
     Route::get('/', [Storefront\CheckoutController::class, 'show'])->name('commerce.checkout'.$suffix);
     Route::post('/', [Storefront\CheckoutController::class, 'submit'])->middleware('throttle:commerce-checkout')->name('commerce.checkout.submit'.$suffix);
     Route::post('refresh', [Storefront\CheckoutController::class, 'refresh'])->middleware('throttle:commerce-cart')->name('commerce.checkout.refresh'.$suffix);
+    Route::post('voucher', [Storefront\CheckoutController::class, 'voucher'])->middleware(['commerce.feature:vouchers', 'throttle:commerce-voucher'])->name('commerce.checkout.voucher'.$suffix);
 });
 
 Route::middleware(['commerce.feature:orders', 'commerce.noindex'])->group(function () use ($suffix): void {
@@ -65,6 +66,8 @@ Route::middleware(['commerce.feature:orders', 'commerce.noindex'])->group(functi
     Route::post(StorefrontRoutes::path('quote').'/{key}/decline', [Storefront\QuoteController::class, 'decline'])->middleware('throttle:commerce-cart')->name('commerce.quote.decline'.$suffix);
     Route::get(StorefrontRoutes::path('track_order'), [Storefront\OrderController::class, 'trackForm'])->name('commerce.track-order'.$suffix);
     Route::post(StorefrontRoutes::path('track_order'), [Storefront\OrderController::class, 'track'])->middleware(ProtectAgainstSpam::class)->name('commerce.track-order.submit'.$suffix);
+    Route::get(StorefrontRoutes::path('track_order').'/code', [Storefront\OrderController::class, 'code'])->name('commerce.track-order.code'.$suffix);
+    Route::post(StorefrontRoutes::path('track_order').'/code', [Storefront\OrderController::class, 'verify'])->middleware('throttle:commerce-checkout')->name('commerce.track-order.verify'.$suffix);
 });
 
 Route::middleware(['commerce.feature:manual_payments', 'commerce.noindex'])->prefix(StorefrontRoutes::path('confirm_payment'))->group(function () use ($suffix): void {

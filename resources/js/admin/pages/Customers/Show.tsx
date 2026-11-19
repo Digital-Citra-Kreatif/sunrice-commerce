@@ -28,7 +28,7 @@ export default function CustomerShow({ customer, account, roleOptions, orders, c
     const post = (path: string) => router.post(adminUrl(`commerce/customers/${customer.id}/${path}`), {}, { preserveScroll: true });
 
     return (
-        <div className="cm:mx-auto cm:grid cm:w-full cm:max-w-5xl cm:gap-6 cm:p-4 cm:md:p-6">
+        <div className="cm:flex cm:min-w-0 cm:flex-col cm:gap-6">
             <PageHeader title={customer.name ?? customer.email} description={<>{customer.email}{customer.phone ? ` · ${customer.phone}` : ''}</>}
                 actions={<>
                     {customer.deletion_requested_at && <StatusBadge tone="warning">Deletion requested {date(customer.deletion_requested_at)}</StatusBadge>}

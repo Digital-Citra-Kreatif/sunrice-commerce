@@ -86,6 +86,14 @@ it('lists only the sold-out variants of a variable product', function () {
     $page = $this->get('/products/tee')->assertOk();
     expect($page->getContent())->toContain('<option value="'.$small->id.'"')
         ->not->toContain('<option value="'.Variant::query()->where('sku', 'TS-M')->value('id').'"');
+    expect($page->getContent())->not->toMatch('/data-commerce-stock-alert\s+hidden/');
+
+    $inStock = $this->get('/products/tee?variant=v-m')->assertOk();
+    expect($inStock->getContent())->toMatch('/data-commerce-stock-alert\s+hidden/');
+
+    $this->from('/products/tee?variant=v-m')->post('/stock-alerts', ['variant' => $small->id, 'email' => 'invalid'])
+        ->assertSessionHasErrors('email');
+    expect($this->get('/products/tee?variant=v-m')->getContent())->not->toMatch('/data-commerce-stock-alert\s+hidden/');
 });
 
 it('prunes sent and stale alerts, and takes none while the module is off', function () {

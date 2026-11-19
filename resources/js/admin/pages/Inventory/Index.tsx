@@ -77,7 +77,7 @@ export default function InventoryIndex(props: DataTableProps & { can: { adjust: 
     useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Inventory' }]);
 
     return (
-        <div className="cm:grid cm:gap-6 cm:p-4 cm:md:p-6">
+        <div className="cm:flex cm:min-w-0 cm:flex-col cm:gap-6">
             <PageHeader title="Inventory" description="Stock of every product variant. Every change is recorded." />
             <DataTable
                 {...props}

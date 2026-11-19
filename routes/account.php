@@ -29,7 +29,8 @@ Route::middleware(['commerce.feature:accounts', 'commerce.noindex'])->prefix(Sto
     Route::get('login/google', [Account\GoogleController::class, 'redirect'])->name('commerce.account.google'.$suffix);
 
     Route::middleware('commerce.auth')->group(function () use ($suffix): void {
-        Route::get('/', [Account\AccountController::class, 'overview'])->name('commerce.account'.$suffix);
+        Route::get('/', [Account\AccountController::class, 'landing'])->name('commerce.account'.$suffix);
+        Route::get('announcement', [Account\AccountController::class, 'announcement'])->name('commerce.account.announcement'.$suffix);
         Route::get('profile', [Account\AccountController::class, 'profile'])->name('commerce.account.profile'.$suffix);
         Route::put('profile', [Account\AccountController::class, 'updateProfile'])->name('commerce.account.profile.update'.$suffix);
         Route::put('password', [Account\AccountController::class, 'updatePassword'])->name('commerce.account.password'.$suffix);

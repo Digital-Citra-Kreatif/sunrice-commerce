@@ -170,6 +170,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Webhooks
+    |--------------------------------------------------------------------------
+    |
+    | Outgoing webhooks (Settings → Webhooks): how long a delivery may take,
+    | how long the delivery log is kept, and after how many failed deliveries
+    | in a row an endpoint is switched off. Endpoints must be public HTTPS
+    | URLs; allow_private lets them be local or private addresses (only for
+    | development).
+    |
+    */
+
+    'webhooks' => [
+        'timeout' => 10,
+        'keep_days' => 30,
+        'disable_after' => 20,
+        'allow_private' => false,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Payments
     |--------------------------------------------------------------------------
     |
@@ -306,14 +326,24 @@ return [
         'catalog' => [
             'price_visibility' => 'everyone',
             'price_visibility_roles' => [],
+            'default_purchase_mode' => 'default',
+            'specifications' => [],
+            'faq' => [],
+            'size_guide_visibility' => 'hide',
+            'size_guide' => null,
+            'category_defaults' => [],
+            'brand_defaults' => [],
             'call_to_action' => 'inquiry',
             'show_stock' => 'low',
             'low_stock_threshold' => 5,
             'hide_out_of_stock' => false,
             'new_badge_days' => 14,
+            'continue_shopping_mode' => 'auto',
+            'continue_shopping_target' => 'entry',
+            'continue_shopping_page' => null,
+            'continue_shopping_collection' => null,
             'compare_max' => 4,
             'compare_fields' => [],
-            'reviews_who' => 'everyone',
             'reviews_approval' => 'manual',
             'price_range' => 'range',
             'attribute_taxonomies' => [],
@@ -332,6 +362,8 @@ return [
             'terms_page' => null,
             'free_shipping_combines' => true,
             'customer_cancel' => true,
+            'balance_reminder_days' => 2,
+            'confirmation_reminder_hours' => 24,
             'returns_days' => 14,
             'order_number_format' => 'ORD-{Y}{m}{d}-{seq:4}',
             'order_number_reset' => 'daily',
@@ -347,6 +379,10 @@ return [
             'require_phone' => false,
             'customer_roles' => ['Customer'],
             'code_minutes' => 10,
+            'announcement_enabled' => false,
+            'announcement_position' => 'tab',
+            'announcement_title' => [],
+            'announcement_message' => [],
         ],
         'taxes' => [
             'prices_include_tax' => true,

@@ -8,8 +8,13 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Sunrice\Admin\Security\Captcha;
+use Sunrice\Commerce\Cart\Actions\ApplyVoucher;
+use Sunrice\Commerce\Cart\Actions\RemoveVoucher;
 use Sunrice\Commerce\Cart\Actions\UpdateCheckoutData;
+use Sunrice\Commerce\Cart\CartException;
 use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\Models\Cart;
@@ -23,8 +28,11 @@ use Sunrice\Commerce\Checkout\CheckoutValidator;
 use Sunrice\Commerce\Checkout\Events\CheckoutStarted;
 use Sunrice\Commerce\Checkout\TermsPage;
 use Sunrice\Commerce\Customers\Models\Customer;
+use Sunrice\Commerce\Orders\OrderAccess;
+use Sunrice\Commerce\Payments\Contracts\PaymentMethod;
 use Sunrice\Commerce\Payments\PaymentContext;
 use Sunrice\Commerce\Payments\PaymentManager;
+use Sunrice\Commerce\Pricing\CalculationState;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
@@ -74,10 +82,14 @@ class CheckoutController
             app(UpdateCheckoutData::class)->handle($cart, ['started_at' => now()->toIso8601String()]);
             CheckoutStarted::dispatch($cart);
         }
-        $view = CartView::for($cart, $data->context());
+        [$data, $view] = $this->resolvePaymentSelection($cart, $data);
         $view->acknowledgePrices();
 
-        return view(Layout::view('checkout'), [...$this->viewData($cart, $data, $view), 'seoTitle' => __('commerce::checkout.title')]);
+        return view(Layout::view('checkout'), [
+            ...$this->viewData($cart, $data, $view),
+            'seoTitle' => __('commerce::checkout.title'),
+            'captcha' => app(Captcha::class)->widget(app()->getLocale()),
+        ]);
     }
 
     public function submit(Request $request, PlaceOrder $place, UpdateCheckoutData $update): RedirectResponse
@@ -86,12 +98,29 @@ class CheckoutController
         if ($cart === null) {
             return redirect(StorefrontRoutes::url('commerce.cart'));
         }
-        $data = CheckoutData::fromCart($cart)->merge([...$request->except(['password', 'totals_hash', 'action']), '_form' => 'checkout']);
+        $data = $this->postedData($request, $cart, fullForm: true);
+        if ($request->input('action') === 'use_saved_address') {
+            $user = commerce_customer();
+            $address = $user !== null ? Customer::forUser($user)->addresses()->find($request->integer('address_id')) : null;
+            if ($address === null) {
+                return redirect(StorefrontRoutes::url('commerce.checkout').'#shipping')
+                    ->with('commerce.error', __('commerce::checkout.address_picker.choose_saved'));
+            }
+            $data = $data->merge(['shipping_address' => $address->toAddress(), 'save_address' => false]);
+        }
         $update->handle($cart, $data->toArray());
 
         if ($request->input('action') !== 'place') {
-            return redirect(StorefrontRoutes::url('commerce.checkout').'#shipping');
+            $section = $request->input('action') === 'update_points' ? '#checkout-points' : '#shipping';
+
+            return redirect(StorefrontRoutes::url('commerce.checkout').$section);
         }
+        $captcha = app(Captcha::class);
+        if (! $captcha->passes($request)) {
+            return redirect(StorefrontRoutes::url('commerce.checkout').'#checkout-captcha')
+                ->withErrors(['captcha' => __('commerce::payments.confirm.captcha')]);
+        }
+        $guestCheckout = commerce_customer() === null;
         try {
             $placed = $place->handle($cart, $data, (string) $request->input('totals_hash'), $request->only('password'),
                 ['ip_address' => $request->ip(), 'user_agent' => $request->userAgent()]);
@@ -100,10 +129,13 @@ class CheckoutController
         } catch (CheckoutRefused $e) {
             return redirect(StorefrontRoutes::url('commerce.checkout'))->with('commerce.error', $e->getMessage());
         } catch (ValidationException $e) {
-            return redirect(StorefrontRoutes::url('commerce.checkout'))->withErrors($e->errors())->withInput($request->except('password'));
+            return redirect(StorefrontRoutes::url('commerce.checkout'))->withErrors($e->errors())
+                ->withInput($request->except(['password', $captcha->field()]));
         }
         $this->carts()->forget();
-        $request->session()->put('commerce.orders.'.$placed->order->id, $placed->order->order_key);
+        if ($guestCheckout) {
+            app(OrderAccess::class)->grantGuest($request, $placed->order);
+        }
 
         return redirect($placed->response->url)->with('commerce.success', $placed->response->message);
     }
@@ -113,9 +145,51 @@ class CheckoutController
     {
         $cart = $this->carts()->current();
         abort_if($cart === null, 404);
-        $data = CheckoutData::fromCart($cart)->merge($request->except(['password', 'totals_hash', 'action']));
+        $data = $this->postedData($request, $cart);
         $update->handle($cart, $data->toArray());
-        $view = CartView::for($cart, $data->context());
+
+        return $this->checkoutResponse($cart, $data);
+    }
+
+    public function voucher(Request $request, UpdateCheckoutData $update, ApplyVoucher $apply, RemoveVoucher $remove): JsonResponse|RedirectResponse
+    {
+        $cart = $this->carts()->current();
+        if ($cart === null || $cart->items()->doesntExist()) {
+            return $request->expectsJson() ? response()->json(['message' => __('commerce::checkout.errors.empty')], 404)
+                : redirect(StorefrontRoutes::url('commerce.cart'));
+        }
+
+        $data = $this->postedData($request, $cart, fullForm: true);
+        $update->handle($cart, $data->toArray());
+        $removing = $request->has('remove_voucher');
+        $field = $removing ? 'remove_voucher' : 'voucher_code';
+        $validator = Validator::make($request->only($field), [$field => ['required', 'string', 'max:64']]);
+        $feedback = [];
+        if ($validator->fails()) {
+            $feedback['voucherError'] = $validator->errors()->first($field);
+        } else {
+            $code = (string) $validator->validated()[$field];
+            try {
+                if ($removing) {
+                    $remove->handle($code);
+                    $feedback['voucherMessage'] = __('commerce::storefront.cart.voucher_removed');
+                } else {
+                    $applied = $apply->handle($code, $data->context());
+                    $feedback['voucherMessage'] = __('commerce::storefront.cart.voucher_applied', ['code' => $applied]);
+                }
+            } catch (CartException $e) {
+                $feedback = ['voucherError' => $e->getMessage(), 'voucherCode' => $code];
+            }
+        }
+
+        return $request->expectsJson() ? $this->checkoutResponse($cart, $data, $feedback)
+            : redirect(StorefrontRoutes::url('commerce.checkout').'#checkout-vouchers')->with($feedback);
+    }
+
+    /** @param  array<string, string>  $voucherFeedback */
+    private function checkoutResponse(Cart $cart, CheckoutData $data, array $voucherFeedback = []): JsonResponse
+    {
+        [$data, $view] = $this->resolvePaymentSelection($cart, $data);
         $props = $this->viewData($cart, $data, $view);
         $money = app(MoneyFormatter::class);
 
@@ -123,13 +197,28 @@ class CheckoutController
             'rates' => array_map(fn (array $r) => [...$r, 'cost_formatted' => $money->format((int) $r['cost'])], $view->state->shipping['rates']),
             'selected_rate' => $view->state->shipping['rate']['id'] ?? null,
             'payment_methods' => $props['paymentMethods'],
+            'selected_payment_method' => $data->paymentMethod(),
             'totals' => array_map(fn (int $a) => ['amount' => $a, 'formatted' => $money->format($a)], $view->state->totals),
             'hash' => $view->state->hash(),
             'notices' => $view->state->notices,
             'rates_html' => view(Layout::view('partials.shipping-methods'), $props)->render(),
             'payments_html' => view(Layout::view('partials.payment-methods'), $props)->render(),
+            'vouchers_html' => $voucherFeedback === [] ? null : view(Layout::view('partials.checkout-vouchers'), [...$props, ...$voucherFeedback])->render(),
             'summary' => '<aside class="commerce-checkout__summary" id="summary" data-commerce-summary>'.view(Layout::view('partials.checkout-summary'), $props)->render().'</aside>',
         ]);
+    }
+
+    private function postedData(Request $request, Cart $cart, bool $fullForm = false): CheckoutData
+    {
+        $input = $request->except(['password', 'totals_hash', 'action']);
+        if ($fullForm) {
+            $input['_form'] = 'checkout';
+        }
+        if (commerce_customer() === null || ! commerce_feature('loyalty')) {
+            $input['use_points'] = false;
+        }
+
+        return CheckoutData::fromCart($cart)->merge($input);
     }
 
     /** Signed-in customers start with their profile and default address. */
@@ -137,18 +226,45 @@ class CheckoutController
     {
         $data = CheckoutData::fromCart($cart);
         $user = commerce_customer();
-        if ($user === null || $data->email() !== null) {
+        if ($user === null) {
             return $data;
         }
         $customer = Customer::forUser($user);
-        $address = $customer->addresses()->orderByDesc('default_shipping')->first();
+        $defaults = $data->email() === null ? ['email' => $customer->email, 'name' => $customer->name, 'phone' => $customer->phone] : [];
+        if ($data->shippingAddress() === null) {
+            $address = $customer->addresses()->orderByDesc('default_shipping')->orderBy('id')->first();
+            if ($address !== null) {
+                $defaults['shipping_address'] = $address->toAddress();
+                $defaults['address_id'] = $address->id;
+            }
+        }
 
-        return $data->merge(array_filter([
-            'email' => $customer->email,
-            'name' => $customer->name,
-            'phone' => $customer->phone,
-            'shipping_address' => $address?->toAddress(),
-        ]));
+        return $data->merge(array_filter($defaults));
+    }
+
+    /** @return array{CheckoutData, CartView} */
+    private function resolvePaymentSelection(Cart $cart, CheckoutData $data): array
+    {
+        $view = CartView::for($cart, $data->context());
+        $available = $this->availablePayments($view->state);
+        $selected = $data->paymentMethod();
+        if ($selected === null || ! isset($available[$selected])) {
+            $default = array_key_first($available);
+            if ($selected !== $default) {
+                $data = $data->merge(['payment_method' => $default]);
+                $view = CartView::for($cart, $data->context());
+            }
+        }
+
+        return [$data, $view];
+    }
+
+    /** @return array<string, PaymentMethod> */
+    private function availablePayments(CalculationState $state): array
+    {
+        $context = PaymentContext::fromState($state);
+
+        return $this->mode()->payment() && $context->amount > 0 ? $this->payments()->available($context) : [];
     }
 
     /** @return array<string, mixed> */
@@ -156,11 +272,10 @@ class CheckoutController
     {
         $state = $view->state;
         $user = commerce_customer();
+        $customer = $user !== null ? Customer::forUser($user) : null;
         $methods = [];
-        if ($this->mode()->payment() && $state->totals['total'] > 0) {
-            foreach ($this->payments()->available(PaymentContext::fromState($state)) as $key => $method) {
-                $methods[] = ['key' => $key, 'title' => PaymentManager::titleOf($method), 'description' => method_exists($method, 'description') ? $method->description() : null];
-            }
+        foreach ($this->availablePayments($state) as $key => $method) {
+            $methods[] = ['key' => $key, 'title' => PaymentManager::titleOf($method), 'description' => method_exists($method, 'description') ? $method->description() : null];
         }
         $validator = app(CheckoutValidator::class);
 
@@ -172,7 +287,8 @@ class CheckoutController
             'settings' => $this->settings(),
             'needsAddress' => $state->shipping['needed'] && $this->mode()->shipping(),
             'paymentMethods' => $methods,
-            'savedAddresses' => $user !== null ? Customer::forUser($user)->addresses()->get() : collect(),
+            'savedAddresses' => $customer?->addresses()->orderByDesc('default_shipping')->orderBy('id')->get() ?? collect(),
+            'loyaltyPoints' => commerce_feature('loyalty') ? (int) ($customer->loyalty_points ?? 0) : 0,
             'guest' => $user === null,
             'offerAccount' => $user === null && commerce_feature('accounts') && $this->settings()->get('accounts.registration', true)
                 && $this->settings()->get('checkout.create_account', 'offer') !== 'never',

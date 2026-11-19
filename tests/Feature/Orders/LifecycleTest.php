@@ -51,7 +51,7 @@ it('expires unpaid orders past the deadline and releases everything once', funct
         ->and($this->mug->fresh()->stock_quantity)->toBe(5)
         ->and($item->fresh()->sold_quantity)->toBe(0)
         ->and(Voucher::query()->value('times_used'))->toBe(0)
-        ->and($order->meta('released'))->toEqual(['stock' => true, 'flash' => true, 'vouchers' => true]);
+        ->and($order->meta('released'))->toEqual(['stock' => true, 'flash' => true, 'vouchers' => true, 'done' => true]);
 
     // A repeated release (a retried listener) gives nothing back twice.
     app(ReleaseReservations::class)->release($order);
@@ -72,6 +72,7 @@ it('lets customers cancel only while unpaid, with the setting on', function () {
     $paid = placedOrder([[$this->mug, 1]], ['email' => 'budi@example.com']);
     app(RecordPaymentResult::class)->handle($paid->payments->sole(), PaymentResult::paid(), Actor::admin());
 
+    authorizeGuestOrders($order, $paid);
     $this->get($order->url())->assertSee('commerce-order__cancel', false);
     $this->get($paid->fresh()->url())->assertDontSee('commerce-order__cancel', false);
     $this->post("/order/{$paid->order_key}/cancel")->assertSessionHas('commerce.error');

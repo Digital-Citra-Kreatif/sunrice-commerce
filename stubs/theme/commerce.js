@@ -22,35 +22,252 @@
         document.dispatchEvent(new CustomEvent('commerce:cart-updated', { detail: cart }));
     }
 
-    function toast(message, isError) {
+    document.querySelectorAll('[data-commerce-product-search]').forEach(function (form) {
+        var input = form.querySelector('[name="q"]');
+        var result = form.querySelector('[data-commerce-search-result]');
+        var count = form.querySelector('[data-commerce-search-count]');
+        var link = form.querySelector('[data-commerce-search-link]');
+        if (!input || !result || !count || !link) return;
+
+        var timer;
+        var pending;
+        var revision = 0;
+
+        function clearResult() {
+            clearTimeout(timer);
+            pending?.abort();
+            revision++;
+            result.hidden = true;
+        }
+
+        function schedule(event) {
+            clearResult();
+            var query = input.value.trim();
+            if (!query || event.isComposing) return;
+
+            var current = revision;
+            timer = setTimeout(function () {
+                pending = new AbortController();
+                var endpoint = new URL(form.dataset.commerceProductSearch, form.action);
+                endpoint.searchParams.set('q', query);
+                fetch(endpoint, { headers: { Accept: 'application/json' }, signal: pending.signal })
+                    .then(function (response) {
+                        if (!response.ok) throw new Error('Product count unavailable');
+                        return response.json();
+                    })
+                    .then(function (data) {
+                        if (current !== revision || input.value.trim() !== query) return;
+                        var destination = new URL(form.action);
+                        destination.searchParams.set('q', query);
+                        count.textContent = data.message;
+                        link.href = destination.href;
+                        link.hidden = data.count === 0;
+                        result.hidden = false;
+                    })
+                    .catch(function () {});
+            }, 1000);
+        }
+
+        input.addEventListener('input', schedule);
+        input.addEventListener('compositionend', schedule);
+        form.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') clearResult();
+        });
+    });
+
+    var buyBars = new WeakMap();
+    var actionToast;
+    function toast(message, isError, form) {
         var el = document.createElement('div');
         el.className = 'commerce-toast' + (isError ? ' commerce-toast--error' : '');
-        el.setAttribute('role', isError ? 'alert' : 'status');
-        el.textContent = message;
-        document.body.appendChild(el);
-        setTimeout(function () { el.remove(); }, 4000);
+        if (form) {
+            el.classList.add(form.dataset.commerceCollection ? 'commerce-toast--collection-success' : 'commerce-toast--cart-success');
+            var header = document.querySelector('.commerce-header');
+            if (header) el.style.setProperty('--commerce-toast-top', Math.max(16, header.getBoundingClientRect().bottom + 12) + 'px');
+        }
+        var actionSelector = form?.dataset.commerceCollection
+            ? '[data-commerce-collection-success-action]' : '[data-commerce-add-success-action]';
+        var action = form?.querySelector(actionSelector)?.content.firstElementChild;
+        if (!action) {
+            el.setAttribute('role', isError ? 'alert' : 'status');
+            el.textContent = message;
+            document.body.appendChild(el);
+            setTimeout(function () { el.remove(); }, 4000);
+            return;
+        }
+
+        actionToast?.remove();
+        actionToast = el;
+        el.classList.add('commerce-toast--with-action');
+        var text = document.createElement('span');
+        text.className = 'commerce-toast__message';
+        text.setAttribute('role', 'status');
+        text.textContent = message;
+        el.append(text, action.cloneNode(true));
+        var bar = buyBars.get(form);
+        var origin = bar?.contains(document.activeElement) ? bar : form;
+        origin.after(el);
+
+        var timer;
+        function dismissLater() {
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                el.remove();
+                if (actionToast === el) actionToast = null;
+            }, 8000);
+        }
+
+        el.addEventListener('pointerenter', function () { clearTimeout(timer); });
+        el.addEventListener('focusin', function () { clearTimeout(timer); });
+        el.addEventListener('pointerleave', function () {
+            if (!el.contains(document.activeElement)) dismissLater();
+        });
+        el.addEventListener('focusout', function (event) {
+            if (!el.contains(event.relatedTarget) && !el.matches(':hover')) dismissLater();
+        });
+        dismissLater();
     }
 
+    // A failed response may arrive after the server already added the item.
+    var activeAdds = new WeakSet();
     document.addEventListener('submit', function (event) {
         var form = event.target.closest('[data-commerce-add]');
-        if (!form || !form.dataset.commerceCartApi || event.submitter && event.submitter.name === 'buy_now') return;
+        if (!form || !form.dataset.commerceCartApi) return;
+        if (activeAdds.has(form)) {
+            event.preventDefault();
+            return;
+        }
+        if (event.submitter && event.submitter.name === 'buy_now') return;
+
         event.preventDefault();
-        var data = new FormData(form);
-        var button = form.querySelector('button[type=submit]');
-        if (button) button.disabled = true;
+        activeAdds.add(form);
+        var button = event.submitter || form.querySelector('button[type=submit]');
+        if (button) button.setAttribute('aria-disabled', 'true');
         fetch(form.dataset.commerceCartApi, {
             method: 'POST',
             headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
-            body: data,
+            body: new FormData(form),
             credentials: 'same-origin',
+            signal: AbortSignal.timeout(12000),
         })
-            .then(function (response) { return response.json().then(function (json) { return { ok: response.ok, json: json }; }); })
-            .then(function (result) {
-                if (result.json.cart) updateMiniCart(result.json.cart);
-                toast(result.json.message || '', !result.ok);
+            .then(function (response) {
+                if (response.status >= 500) throw new Error('Cart result is unknown');
+                return response.json().then(function (json) {
+                    if (!json || typeof json.message !== 'string' || (response.ok && !Number.isInteger(json.cart?.count))) {
+                        throw new Error('Unexpected cart response');
+                    }
+                    return { ok: response.ok, json: json };
+                });
             })
-            .catch(function () { form.submit(); })
-            .finally(function () { if (button) button.disabled = false; });
+            .then(function (result) {
+                activeAdds.delete(form);
+                if (button) button.removeAttribute('aria-disabled');
+                if (Number.isInteger(result.json.cart?.count)) updateMiniCart(result.json.cart);
+                toast(result.json.message, !result.ok, result.ok ? form : null);
+            })
+            .catch(function () {
+                var recovery = form.querySelector('[data-commerce-add-recovery]');
+                if (recovery) {
+                    recovery.hidden = false;
+                    if (form.contains(document.activeElement) || buyBars.get(form)?.classList.contains('is-visible')) {
+                        recovery.querySelector('a')?.focus();
+                    }
+                } else {
+                    // Older published templates still get a safe recovery path.
+                    var cart = document.querySelector('[data-commerce-mini-cart]');
+                    if (cart && cart.href) window.location.assign(cart.href);
+                    else {
+                        activeAdds.delete(form);
+                        if (button) button.removeAttribute('aria-disabled');
+                        toast('Check your cart before trying again.', true);
+                    }
+                }
+            });
+    });
+
+    // Leaving the list pages as regular forms lets the server render removed rows and empty states.
+    var collectionForms = Array.from(document.querySelectorAll('[data-commerce-collection]')).filter(function (form) {
+        return !form.closest('.commerce-wishlist, .commerce-compare');
+    });
+    var updatingCollection = false;
+    collectionForms.forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            if (updatingCollection) return;
+
+            var button = form.querySelector('button[type=submit]');
+            var method = form.querySelector('[name=_method]');
+            var selecting = method.disabled;
+            updatingCollection = true;
+            button.setAttribute('aria-disabled', 'true');
+            fetch(form.action, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
+                body: new FormData(form),
+                credentials: 'same-origin',
+                signal: AbortSignal.timeout(12000),
+            })
+                .then(function (response) {
+                    if (response.status >= 500) throw new Error('Collection result is unknown');
+                    return response.json().then(function (json) {
+                        if (typeof json?.message !== 'string' || (response.ok && !Number.isInteger(json.count))) {
+                            throw new Error('Unexpected collection response');
+                        }
+                        if (response.ok) {
+                            collectionForms.forEach(function (peer) {
+                                if (peer.dataset.commerceCollection !== form.dataset.commerceCollection || peer.dataset.productId !== form.dataset.productId) return;
+                                peer.action = selecting ? peer.dataset.removeUrl : peer.dataset.addUrl;
+                                peer.querySelector('[name=_method]').disabled = !selecting;
+                                peer.querySelector('button[type=submit]').setAttribute('aria-pressed', String(selecting));
+                                peer.querySelector('[data-commerce-collection-label]').textContent = selecting ? peer.dataset.removeLabel : peer.dataset.addLabel;
+                            });
+                        }
+                        toast(json.message, !response.ok, response.ok ? form : null);
+                    });
+                })
+                .catch(function () { toast(form.dataset.unconfirmed, true); })
+                .finally(function () {
+                    updatingCollection = false;
+                    button.removeAttribute('aria-disabled');
+                });
+        });
+    });
+
+    document.querySelectorAll('[data-commerce-cart]').forEach(function (cart) {
+        var dialog = cart.querySelector('[data-commerce-cart-remove-dialog]');
+        if (typeof dialog?.showModal !== 'function') return;
+
+        var name = dialog.querySelector('[data-commerce-cart-remove-item]');
+        var form;
+        var trigger;
+        function close() {
+            dialog.close();
+            trigger?.focus();
+            form = null;
+            trigger = null;
+        }
+
+        cart.addEventListener('click', function (event) {
+            var opener = event.target.closest('[data-commerce-cart-remove-trigger]');
+            if (!opener) return;
+
+            event.preventDefault();
+            if (dialog.open) return;
+            trigger = opener;
+            form = opener.closest('form');
+            name.textContent = form.dataset.commerceCartRemove;
+            dialog.showModal();
+        });
+        dialog.addEventListener('submit', function (event) {
+            event.preventDefault();
+            var remove = form;
+            close();
+            if (event.submitter?.value === 'remove') remove?.submit();
+        });
+        dialog.addEventListener('cancel', function (event) {
+            event.preventDefault();
+            close();
+        });
     });
 
     // Checkout: show/hide toggled parts, and refresh rates, payments and totals on change.
@@ -63,51 +280,321 @@
             });
             var rate = form.querySelector('input[name=shipping_rate]:checked');
             var address = form.querySelector('[data-commerce-shipping-address]');
-            if (address) address.hidden = !!(rate && rate.dataset.pickup === '1');
+            var pickup = !!(rate && rate.dataset.pickup === '1');
+            var pickupNote = form.querySelector('[data-commerce-pickup-note]');
+            if (pickupNote) pickupNote.hidden = !pickup;
+            if (address) address.hidden = !pickupNote && pickup;
+            var pickupContact = form.querySelector('[data-commerce-pickup-contact]');
+            if (pickupContact) {
+                pickupContact.hidden = !pickup;
+                if (pickup) {
+                    ['name', 'phone'].forEach(function (field) {
+                        var input = pickupContact.querySelector('[name="' + field + '"]');
+                        var recipient = form.elements.namedItem('shipping_address[' + field + ']');
+                        if (input && !input.value && recipient?.value) input.value = recipient.value;
+                    });
+                }
+            }
         }
-        var timer = null;
+        var timer;
+        var revision = 0;
+        var refreshing = false;
+        var pending = false;
+        var failed = false;
+        var submitting = false;
+        var update = form.querySelector('[data-commerce-update]');
+        var submit = form.querySelector('button[name=action][value=place]');
+        var status = form.querySelector('[data-commerce-checkout-status]');
+        var voucherRequest = null;
+        var paymentSection = form.querySelector('[data-commerce-payment-section]');
+        var paymentStep = form.closest('.commerce-checkout-page')?.querySelector('[data-commerce-payment-step]');
+
+        function fillShippingAddress(address, fields) {
+            fields.forEach(function (input) {
+                var key = input.name.slice('shipping_address['.length, -1);
+                var value = String(address[key] ?? '');
+                if (input.hasAttribute('data-commerce-region')) {
+                    input.length = 1;
+                    input.dataset.value = '';
+                    if (value) input.add(new Option(address[input.dataset.commerceRegion] || value, value));
+                }
+                input.value = value;
+            });
+            // Resync the country and reload its region choices, keeping the selected codes.
+            fields.find(function (input) { return input.name === 'shipping_address[country]'; })?.dispatchEvent(new Event('change'));
+        }
+
+        function enhanceShippingAddress() {
+            var editor = form.querySelector('[data-commerce-address-editor]');
+            var dialog = form.closest('.commerce-checkout-page')?.querySelector('[data-commerce-address-dialog]');
+            if (!editor || typeof dialog?.showModal !== 'function') return null;
+
+            var fields = Array.from(editor.querySelectorAll('[name^="shipping_address["]'));
+            var saved = form.querySelector('[data-commerce-saved-address]');
+            var newAddressOption = saved?.querySelector('option[value=""]');
+            var save = editor.querySelector('[name=save_address]');
+            var card = form.querySelector('[data-commerce-address-card]');
+            var summary = card.querySelector('[data-commerce-address-summary]');
+            var open = card.querySelector('[data-commerce-open-address]');
+            var error = dialog.querySelector('[data-commerce-address-dialog-error]');
+            // Keep the draft outside the checkout form so a refresh only sees the applied address.
+            var committed = document.createElement('div');
+            committed.hidden = true;
+            editor.before(committed);
+            dialog.querySelector('[data-commerce-address-dialog-body]').append(editor);
+            var inputs = (save ? [...fields, save] : fields).map(function (field) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = field.name;
+                committed.append(input);
+                return input;
+            });
+            var activeAddress;
+            var activeId;
+            var shouldSave;
+
+            function apply() {
+                activeAddress = {};
+                fields.forEach(function (field, index) {
+                    var key = field.name.slice('shipping_address['.length, -1);
+                    inputs[index].value = field.disabled ? '' : field.value;
+                    activeAddress[key] = inputs[index].value;
+                    if (field.dataset.commerceRegion) {
+                        activeAddress[field.dataset.commerceRegion] = activeAddress[key] ? field.selectedOptions[0]?.text : '';
+                    }
+                });
+                activeAddress.countryLabel = fields.find(function (field) {
+                    return field.name === 'shipping_address[country]';
+                })?.selectedOptions[0]?.text;
+                activeId = saved?.value || '';
+                shouldSave = save?.checked ?? false;
+                if (save) inputs[fields.length].value = shouldSave ? '1' : '0';
+                var title = activeAddress.label?.trim() || '';
+                if (newAddressOption?.dataset.placeholder) {
+                    newAddressOption.textContent = (!activeId && title) || newAddressOption.dataset.placeholder;
+                }
+                var locality = [activeAddress.village, activeAddress.district, activeAddress.city,
+                    activeAddress.country === 'ID' ? activeAddress.province : activeAddress.state,
+                    activeAddress.postal_code].filter(Boolean).join(', ');
+                var recipient = [activeId ? '' : activeAddress.name, activeAddress.phone].filter(Boolean).join(' · ');
+                var street = [activeAddress.line1, activeAddress.line2, locality,
+                    activeAddress.country === 'ID' ? '' : activeAddress.countryLabel].filter(Boolean).join(', ');
+                summary.textContent = [saved ? '' : title, recipient, street].filter(Boolean).join('\n');
+                summary.hidden = !activeAddress.line1;
+                open.textContent = summary.hidden || activeId ? open.dataset.addLabel : open.dataset.changeLabel;
+            }
+
+            function showEditor(startNew) {
+                var draft = startNew && activeId ? {
+                    country: activeAddress.country,
+                    name: activeAddress.name || form.elements.name?.value,
+                    phone: activeAddress.phone || form.elements.phone?.value,
+                } : activeAddress;
+                fillShippingAddress(draft, fields);
+                if (save) save.checked = draft === activeAddress && shouldSave;
+                error.hidden = true;
+                dialog.showModal();
+            }
+
+            var fallback = form.querySelector('[data-commerce-address-fallback]');
+            if (fallback) fallback.hidden = true;
+            card.hidden = false;
+            apply();
+            open.addEventListener('click', function () { showEditor(true); });
+            dialog.querySelector('[data-commerce-cancel-address]').addEventListener('click', function () { dialog.close(); });
+            dialog.addEventListener('close', function () { open.focus({ preventScroll: true }); });
+            dialog.querySelector('[data-commerce-apply-address]').addEventListener('click', function () {
+                var country = editor.querySelector('[data-commerce-country]').value;
+                var missing = fields.find(function (field) {
+                    var key = field.name.slice('shipping_address['.length, -1);
+                    var required = ['name', 'line1', 'country'].includes(key)
+                        || (key === 'phone' && editor.dataset.phoneRequired === '1')
+                        || (key === 'postal_code' && editor.dataset.postalRequired === '1')
+                        || (country === 'ID' ? field.hasAttribute('data-commerce-region') : key === 'city');
+                    return required && !field.value.trim();
+                });
+                error.hidden = !missing;
+                if (missing) {
+                    missing.focus();
+                    return;
+                }
+                if (saved) saved.value = '';
+                apply();
+                dialog.close();
+                refresh();
+            });
+            if (editor.hasAttribute('data-commerce-address-errors') && !form.querySelector('[data-commerce-shipping-address]').hidden) showEditor(false);
+
+            return function (option) {
+                if (!option?.dataset.address) {
+                    saved.value = activeId;
+                    showEditor(true);
+                    return false;
+                }
+                fillShippingAddress(JSON.parse(option.dataset.address), fields);
+                if (save) save.checked = false;
+                apply();
+                return true;
+            };
+        }
+
+        var chooseSavedAddress = enhanceShippingAddress();
+
+        function showStatus(message) {
+            if (status) status.textContent = status.dataset[message] || '';
+            if (submit) submit.setAttribute('aria-disabled', String(pending || failed || submitting));
+        }
+
+        function replaceFragment(selector, html) {
+            var el = form.querySelector(selector);
+            if (!el || typeof html !== 'string' || el.outerHTML === html) return;
+
+            var focused = el.contains(document.activeElement) ? document.activeElement : null;
+            var details = el.querySelector('details[open]');
+            el.outerHTML = html;
+            var replacement = form.querySelector(selector);
+            if (!replacement) return;
+
+            if (details && replacement.querySelector('details')) replacement.querySelector('details').open = true;
+            if (focused && focused.matches('summary')) replacement.querySelector('summary')?.focus({ preventScroll: true });
+            if (focused && selector === '[data-commerce-checkout-vouchers]') {
+                replacement.querySelector('[name=voucher_code]')?.focus({ preventScroll: true });
+            }
+            if (focused && focused.type === 'radio') {
+                var radios = Array.from(replacement.querySelectorAll('input[type=radio]'));
+                var next = radios.find(function (radio) { return radio.value === focused.value; }) || radios[0];
+                if (next) next.focus({ preventScroll: true });
+                else submit?.focus({ preventScroll: true });
+            }
+        }
+
         function refresh() {
             clearTimeout(timer);
-            timer = setTimeout(function () {
-                var data = new FormData(form);
-                data.delete('password');
-                fetch(form.dataset.refresh, {
-                    method: 'POST',
-                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
-                    body: data,
-                    credentials: 'same-origin',
-                })
-                    .then(function (response) { return response.json(); })
-                    .then(function (json) {
-                        [['[data-commerce-rates]', json.rates_html], ['[data-commerce-payments]', json.payments_html], ['[data-commerce-summary]', json.summary]].forEach(function (pair) {
-                            var el = form.querySelector(pair[0]);
-                            if (el && typeof pair[1] === 'string') el.outerHTML = pair[1];
-                        });
-                        var hash = form.querySelector('[data-commerce-hash]');
-                        if (hash) hash.value = json.hash;
-                        syncToggles();
-                    })
-                    .catch(function () { /* the "Update shipping" button still works */ });
-            }, 300);
+            revision++;
+            pending = true;
+            failed = false;
+            showStatus('updating');
+            timer = setTimeout(sendRefresh, 300);
         }
+
+        function sendRefresh() {
+            clearTimeout(timer);
+            if (refreshing) return;
+
+            refreshing = true;
+            var sent = revision;
+            var voucher = voucherRequest;
+            voucherRequest = null;
+            var data = new FormData(form);
+            data.delete('password');
+            var captchaField = form.querySelector('[data-commerce-captcha]')?.dataset.commerceCaptcha;
+            if (captchaField) data.delete(captchaField);
+            data.set('_form', 'checkout');
+            if (voucher) {
+                data.set(voucher.name, voucher.value);
+                if (voucher.code !== null) data.set('voucher_code', voucher.code);
+            }
+            fetch(voucher ? voucher.formAction : form.dataset.refresh, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
+                body: data,
+                signal: AbortSignal.timeout(12000),
+                credentials: 'same-origin',
+            })
+                .then(function (response) {
+                    if (!response.ok) throw new Error('Checkout refresh failed');
+                    return response.json();
+                })
+                .then(function (json) {
+                    if (voucher) replaceFragment('[data-commerce-checkout-vouchers]', json.vouchers_html);
+                    if (sent !== revision) return;
+                    if (typeof json.hash !== 'string' || !json.hash) throw new Error('Checkout total is missing');
+
+                    replaceFragment('[data-commerce-rates]', json.rates_html);
+                    replaceFragment('[data-commerce-payments]', json.payments_html);
+                    replaceFragment('[data-commerce-summary]', json.summary);
+                    if (typeof json.totals?.total?.amount === 'number') {
+                        var paymentNeeded = json.totals.total.amount > 0;
+                        if (paymentSection) paymentSection.hidden = !paymentNeeded;
+                        if (paymentStep) paymentStep.hidden = !paymentNeeded;
+                        // The selected method must match the totals returned by the server.
+                        var selectedPayment = form.querySelector('[data-commerce-payments] input[name=payment_method]:checked');
+                        if (paymentNeeded && selectedPayment && selectedPayment.value !== (json.selected_payment_method ?? data.get('payment_method'))) {
+                            revision++;
+                            return;
+                        }
+                    }
+                    var hash = form.querySelector('[data-commerce-hash]');
+                    if (hash) hash.value = json.hash;
+                    syncToggles();
+                })
+                .catch(function () {
+                    if (sent === revision) failed = true;
+                })
+                .finally(function () {
+                    refreshing = false;
+                    if (sent !== revision) {
+                        sendRefresh();
+                        return;
+                    }
+
+                    pending = false;
+                    if (update) update.hidden = !failed;
+                    showStatus(failed ? 'failed' : 'updated');
+                });
+        }
+
+        form.addEventListener('submit', function (event) {
+            if (event.submitter === update && update) {
+                if (pending || submitting) event.preventDefault();
+                return;
+            }
+            if (event.submitter?.hasAttribute?.('data-commerce-voucher-submit')) {
+                event.preventDefault();
+                if (submitting) return;
+                var button = event.submitter;
+                voucherRequest = {
+                    name: button.name,
+                    value: button.value,
+                    formAction: button.formAction,
+                    code: button.name === 'apply_voucher' ? form.elements.namedItem('voucher_code').value : null,
+                };
+                refresh();
+                return;
+            }
+
+            if (pending || (failed && update) || submitting) {
+                event.preventDefault();
+                return;
+            }
+            submitting = true;
+            showStatus('submitting');
+        });
+        form.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter' || event.target.name !== 'voucher_code') return;
+            event.preventDefault();
+            var apply = form.querySelector('[name=apply_voucher]');
+            if (apply) form.requestSubmit(apply);
+        });
+        window.addEventListener('pageshow', function (event) {
+            if (!event.persisted) return;
+            submitting = false;
+            showStatus(pending ? 'updating' : failed ? 'failed' : '');
+        });
         form.addEventListener('change', function (event) {
             var t = event.target;
-            if (t.matches('[data-commerce-saved-address]') && t.selectedOptions[0] && t.selectedOptions[0].dataset.address) {
-                var address = JSON.parse(t.selectedOptions[0].dataset.address);
-                Object.keys(address).forEach(function (key) {
-                    var input = form.querySelector('[name="shipping_address[' + key + ']"]');
-                    if (!input || address[key] === null) return;
-                    if (input.tagName === 'SELECT' && !Array.prototype.some.call(input.options, function (o) { return o.value === address[key]; })) {
-                        input.add(new Option(address[key + ''] || address[key], address[key], true, true));
-                    }
-                    input.value = address[key];
-                });
+            if (t.matches('[data-commerce-saved-address]')) {
+                var option = t.selectedOptions[0];
+                if (chooseSavedAddress) {
+                    if (!chooseSavedAddress(option)) return;
+                } else if (option?.dataset.address) {
+                    fillShippingAddress(JSON.parse(option.dataset.address), Array.from(form.querySelectorAll('[name^="shipping_address["]')));
+                }
             }
             syncToggles();
-            if (t.name === 'password' || t.name === 'notes' || t.name === 'terms') return;
+            if (['password', 'notes', 'terms', 'voucher_code'].includes(t.name)) return;
             refresh();
         });
-        var update = form.querySelector('[data-commerce-update]');
         if (update) update.hidden = true;
         syncToggles();
     });
@@ -263,6 +750,89 @@
         var filters = panel(aside, button, 'commerce-filters-backdrop');
         button.addEventListener('click', filters.open);
         aside.querySelectorAll('[data-commerce-filters-close]').forEach(function (b) { b.addEventListener('click', filters.close); });
+    });
+
+    // Use the original form to submit from the floating controls on product pages.
+    document.querySelectorAll('.commerce-product [data-commerce-buy-controls]').forEach(function (controls) {
+        if (typeof IntersectionObserver !== 'function' || typeof ResizeObserver !== 'function') return;
+
+        var form = controls.closest('[data-commerce-add]');
+        var page = controls.closest('.commerce-product');
+        var sourceButton = controls.querySelector('button[type=submit]');
+        var sourceQuantity = controls.querySelector('input[name=quantity]');
+        if (!form || !sourceButton || !sourceQuantity) return;
+
+        var bar = document.createElement('div');
+        bar.className = 'commerce-buy-bar';
+        bar.inert = true;
+        var buttons = controls.cloneNode(true);
+        buttons.removeAttribute('data-commerce-buy-controls');
+        buttons.className = 'commerce-buy-bar__controls';
+        var button = buttons.querySelector('button[type=submit]');
+        button.type = 'button';
+        var quantity = buttons.querySelector('input[name=quantity]');
+        quantity.removeAttribute('name');
+        bar.appendChild(buttons);
+        page.after(bar);
+        buyBars.set(form, bar);
+
+        var inView = true;
+        function updateBar() {
+            var visible = !inView && !sourceButton.disabled;
+            if (!visible && bar.contains(document.activeElement)) {
+                var target = document.activeElement === button && !sourceButton.disabled ? sourceButton : sourceQuantity;
+                target.focus({ preventScroll: true });
+            }
+            bar.inert = !visible;
+            bar.classList.toggle('is-visible', visible);
+            button.setAttribute('aria-disabled', sourceButton.getAttribute('aria-disabled') || 'false');
+        }
+
+        function syncQuantity() {
+            quantity.min = sourceQuantity.min;
+            quantity.max = sourceQuantity.max;
+            quantity.step = sourceQuantity.step;
+            quantity.value = sourceQuantity.value;
+        }
+
+        ['input', 'change'].forEach(function (event) {
+            sourceQuantity.addEventListener(event, syncQuantity);
+            quantity.addEventListener(event, function () {
+                sourceQuantity.value = quantity.value;
+                sourceQuantity.dispatchEvent(new Event(event, { bubbles: true }));
+            });
+        });
+        function addFromBar() {
+            if (sourceButton.disabled || sourceButton.getAttribute('aria-disabled') === 'true') return;
+            if (!quantity.reportValidity()) return;
+            form.requestSubmit(sourceButton);
+        }
+        button.addEventListener('click', addFromBar);
+        quantity.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter') return;
+            event.preventDefault();
+            addFromBar();
+        });
+        controls.closest('[data-commerce-product]')?.addEventListener('commerce:variant', syncQuantity);
+        new MutationObserver(updateBar).observe(sourceButton, { attributeFilter: ['disabled', 'aria-disabled'] });
+        syncQuantity();
+
+        var header = document.querySelector('.commerce-header');
+        var observer;
+        function observeControls() {
+            var top = Math.ceil(header?.getBoundingClientRect().height || 0);
+            var bottom = Math.ceil(bar.getBoundingClientRect().height);
+            document.documentElement.style.setProperty('--commerce-buy-bar-space', bottom + 'px');
+            observer?.disconnect();
+            observer = new IntersectionObserver(function (entries) {
+                inView = entries[0].intersectionRatio >= 0.95;
+                updateBar();
+            }, { rootMargin: '-' + top + 'px 0px -' + bottom + 'px', threshold: 0.95 });
+            observer.observe(controls);
+        }
+        var resizer = new ResizeObserver(observeControls);
+        resizer.observe(bar);
+        if (header) resizer.observe(header);
     });
 
     // Quantity steppers: − and + buttons around a number input; in the cart a change saves the line.

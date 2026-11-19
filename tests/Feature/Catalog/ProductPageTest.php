@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Sunrice\Cms\Content;
 use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\Submission;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
 use Sunrice\Commerce\Settings\StoreSettings;
@@ -102,4 +104,28 @@ it('builds views for a page of products in a fixed number of queries', function 
     $queries = count(DB::getQueryLog());
 
     expect($views)->toHaveCount(24)->and($queries)->toBeLessThanOrEqual(10);
+});
+
+it('sends the product inquiry form with the product it was sent from', function () {
+    $this->withoutMiddleware(ValidateCsrfToken::class);
+    config(['honeypot.enabled' => false]);
+    app(StoreSettings::class)->saveSection('general', ['selling_mode' => 'catalog']);
+    app(StoreSettings::class)->saveSection('catalog', ['call_to_action' => 'inquiry']);
+    publishProduct(kaos(), title: 'Kaos Polos');
+
+    $html = $this->get('/products/kaos-polos')->assertOk()->getContent();
+    preg_match('/<form[^>]*class="[^"]*commerce-inquiry__form[^"]*"[^>]*>/', $html, $tag);
+    preg_match('/action="([^"]+)"/', $tag[0] ?? '', $action);
+    expect($action[1] ?? null)->not->toBeNull();
+
+    // What a visitor sends: the hidden product fields as printed, the others filled in.
+    preg_match_all('/<input type="hidden" name="data\[(\w+)\]" value="([^"]*)"/', $html, $hidden, PREG_SET_ORDER);
+    $data = [
+        ...collect($hidden)->mapWithKeys(fn (array $f) => [$f[1] => html_entity_decode($f[2])])->all(),
+        'name' => 'Rina', 'email' => 'rina@example.com', 'phone' => '08123456789', 'quantity' => '12', 'message' => 'Ada ukuran XL?',
+    ];
+    $this->from('/products/kaos-polos')->post(html_entity_decode($action[1]), ['data' => $data])->assertRedirect()->assertSessionHasNoErrors();
+
+    $submission = Submission::query()->sole();
+    expect($submission->data)->toMatchArray(['product' => 'Kaos Polos', 'product_url' => url('/products/kaos-polos')]);
 });

@@ -49,9 +49,9 @@ export default function ReportShow({ report, reports, period, result, exportUrl 
     const chartFormat = result.chart && result.columns.find((c) => c.key === result.chart?.series[0]?.key)?.kind === 'money' ? (v: number) => formatMoney(v) : count;
 
     return (
-        <div className="cm:mx-auto cm:grid cm:w-full cm:max-w-6xl cm:grid-cols-1 cm:gap-6 cm:p-4 cm:md:p-6">
+        <div className="cm:flex cm:min-w-0 cm:flex-col cm:gap-6">
             <PageHeader title="Reports" description={report.description || undefined}
-                actions={exportUrl ? <Button asChild variant="outline"><a href={exportUrl}>Export CSV</a></Button> : undefined} />
+                menu={exportUrl ? [{ label: 'Export CSV', href: exportUrl, download: true }] : undefined} />
 
             <nav aria-label="Reports" className="cm:flex cm:flex-wrap cm:gap-1">
                 {reports.map((r) => (

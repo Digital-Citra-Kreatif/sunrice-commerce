@@ -7,6 +7,7 @@ namespace Sunrice\Commerce\Checkout\Actions;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -56,6 +57,8 @@ use Sunrice\Commerce\Promotions\FlashSales\FlashSaleReservations;
 use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Promotions\Vouchers\VoucherRedemptions;
 use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Commerce\Shipping\ShippingOrigins;
+use Sunrice\Commerce\Support\MoneyFormatter;
 use Sunrice\Commerce\Support\Phone;
 use Sunrice\Commerce\Support\Staff;
 
@@ -119,6 +122,11 @@ class PlaceOrder
             if ($totalsHash !== null && ! hash_equals($state->hash(), $totalsHash)) {
                 $changes = array_values(array_unique(array_column(array_filter($state->notices, fn ($n) => $n['code'] !== 'voucher_conditional'), 'message')));
                 throw new CheckoutChanged($changes);
+            }
+
+            if ($this->validator->needsAddress($data, $state)) {
+                $recipient = $data->shippingAddress();
+                $data = $data->merge(['name' => $recipient['name'] ?? null, 'phone' => $recipient['phone'] ?? null]);
             }
 
             // 7. The customer.
@@ -186,7 +194,7 @@ class PlaceOrder
         $customer->save();
 
         if ($user !== null && $data->get('save_address') && ($address = $data->shippingAddress()) !== null && ! $data->isPickup()) {
-            app(SaveAddress::class)->handle($customer, $address);
+            app(SaveAddress::class)->handle($customer, [...$address, 'label' => $data->get('shipping_address.label')]);
         }
 
         return $customer;
@@ -245,6 +253,7 @@ class PlaceOrder
         $uniqueCode = $method instanceof AddsUniqueCode && ($range = $method->uniqueCodeRange()) !== null
             ? app(UniqueCodes::class)->pick($totals['total'], $range, PaymentManager::idOf($method)) : 0;
 
+        $user = commerce_customer();
         $order = new Order;
         $order->forceFill([
             'type' => $completion->orderType(),
@@ -258,7 +267,7 @@ class PlaceOrder
             'channel' => 'storefront',
             'selling_mode' => $this->mode->mode(),
             'customer_id' => $customer->id,
-            'user_id' => commerce_customer()?->getAuthIdentifier() ?? $this->createdAccountId ?? $this->verifiedAccountId($customer),
+            'user_id' => $user?->getAuthIdentifier() ?? $this->createdAccountId ?? $this->verifiedAccountId($customer),
             'email' => $data->email(),
             'phone' => Phone::normalize($data->phone(), $country) ?? $data->phone(),
             'customer_name' => $data->get('name'),
@@ -280,7 +289,9 @@ class PlaceOrder
             'customer_note' => $this->settings->get('checkout.order_notes', true) ? $data->get('notes') : null,
             'dropship' => $this->settings->get('checkout.dropshipper', false) && $data->dropship()['enabled'] ? $data->dropship() : null,
             'fields' => $data->fields() ?: null,
-            'meta' => array_filter(['codes' => $state->appliedCodes ?: null, 'pickup' => $data->isPickup() ? ($rate['meta']['location'] ?? null) : null]),
+            'meta' => ['placed_as_guest' => $user === null, 'checkout_account_requested' => $user === null && $this->validator->createsAccount($data), ...array_filter(['codes' => $state->appliedCodes ?: null, 'pickup' => $data->isPickup() ? ($rate['meta']['location'] ?? null) : null,
+                // Shipped from somewhere else than the store (an extension's origin): carriers book it from there.
+                'shipping_origin' => $state->shipping['needed'] && ! $data->isPickup() ? app(ShippingOrigins::class)->custom($state)?->toArray() : null])],
             'ip_address' => $client['ip_address'] ?? null,
             'user_agent' => isset($client['user_agent']) ? mb_substr((string) $client['user_agent'], 0, 255) : null,
             'placed_at' => now(),
@@ -294,14 +305,26 @@ class PlaceOrder
             $order->adjustments()->create(['kind' => 'unique_code', 'source_type' => 'unique_code', 'label' => __('commerce::payments.unique_code'),
                 'amount' => $uniqueCode, 'created_at' => now()]);
         }
-        $this->timeline->record($order, 'status', __($isQuote ? 'commerce::orders.timeline.quote_requested' : 'commerce::orders.timeline.placed'),
+        $this->timeline->record($order, 'status', Timeline::text($isQuote ? 'commerce::orders.timeline.quote_requested' : 'commerce::orders.timeline.placed'),
             ['to' => $order->status, 'channel' => 'storefront'], Actor::customer());
 
         if ($method !== null) {
             $deadline = $method->deadline($order);
+            // A deposit (set by a calculation stage) is paid now, the rest by balance_due_at.
+            $deposit = $state->depositDue();
+            if ($deposit !== null) {
+                $dueAt = isset($state->deposit['balance_due_at']) ? Carbon::parse((string) $state->deposit['balance_due_at']) : null;
+                $order->forceFill(['deposit_total' => $deposit + $uniqueCode, 'balance_due_at' => $dueAt])->save();
+                $money = app(MoneyFormatter::class);
+                $this->timeline->record($order, 'payment', Timeline::text('commerce::orders.timeline.deposit_asked', [
+                    'amount' => $money->format($order->deposit_total), 'balance' => $money->format($order->total - $order->deposit_total),
+                    'date' => $dueAt?->translatedFormat('j F Y') ?? '—',
+                ]), ['deposit' => $order->deposit_total], Actor::customer());
+            }
             Payment::query()->create([
                 'order_id' => $order->id, 'method' => $order->payment_method, 'method_title' => $order->payment_method_title,
-                'amount' => $order->total, 'currency' => $order->currency, 'status' => 'pending', 'expires_at' => $deadline,
+                'amount' => $deposit !== null ? $order->deposit_total : $order->total, 'currency' => $order->currency, 'status' => 'pending', 'expires_at' => $deadline,
+                'meta' => $deposit !== null ? ['part' => 'deposit'] : null,
             ]);
             $order->forceFill(['expires_at' => $deadline])->save();
         }
@@ -324,7 +347,7 @@ class PlaceOrder
                         'order_id' => $order->id, 'parent_id' => $item->id, 'product_id' => $variant->product_id, 'variant_id' => $variant->id,
                         'entry_id' => $variant->product->entry_id, 'name' => $this->title($variant, $locale), 'variant_title' => $variant->title ?: null,
                         'sku' => $variant->sku, 'quantity' => $component['quantity'], 'weight' => (int) $variant->weight,
-                        'requires_shipping' => $line->requiresShipping, 'downloadable' => (bool) ($variant->downloadable ?? $variant->product->downloadable),
+                        'requires_shipping' => $line->requiresShipping && $variant->requiresShipping(), 'downloadable' => $variant->isDownloadable(),
                         'options' => $this->options($variant),
                     ]);
                 }

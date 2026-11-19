@@ -30,9 +30,38 @@ it('signs customers in on the commerce guard without opening the admin', functio
     $this->post('/account/login', ['email' => 'ana@example.com', 'password' => 'secret-pass'])->assertRedirect('/account');
     $this->assertAuthenticated('commerce');
     $this->assertGuest('web');
-    $this->get('/account')->assertOk()->assertSee('Halo, Ana');
+    $this->get('/account')->assertRedirect('/account/orders');
+    $this->get('/account/orders')->assertOk();
     $this->get('/admin')->assertRedirect(); // to the admin login
     expect(Customer::query()->where('email', 'ana@example.com')->exists())->toBeTrue();
+});
+
+it('validates the configured captcha for password login and reset requests', function () {
+    $user = customerUser();
+    Notification::fake();
+    config(['sunrice-admin.captcha' => ['provider' => 'turnstile', 'site_key' => 'site', 'secret_key' => 'secret']]);
+    Http::fake([
+        'https://challenges.cloudflare.com/turnstile/v0/siteverify' => Http::sequence()
+            ->push(['success' => false])->push(['success' => true])->push(['success' => true]),
+    ]);
+    $email = ['email' => $user->email];
+
+    $this->get('/account/forgot-password')->assertOk()->assertSee('class="cf-turnstile"', false);
+    $this->post('/account/forgot-password', $email)->assertSessionHasErrors('captcha');
+    $this->post('/account/forgot-password', [...$email, 'cf-turnstile-response' => 'expired-token'])
+        ->assertSessionHasErrors('captcha');
+    Notification::assertNothingSent();
+    $this->post('/account/forgot-password', [...$email, 'cf-turnstile-response' => 'reset-token'])
+        ->assertSessionHasNoErrors();
+    Notification::assertSentTo($user, CustomerResetPassword::class);
+
+    $this->get('/account/login')->assertOk()->assertSee('class="cf-turnstile"', false);
+    $login = [...$email, 'password' => 'secret-pass'];
+    $this->post('/account/login', $login)->assertSessionHasErrors('captcha');
+    $this->assertGuest('commerce');
+    $this->post('/account/login', [...$login, 'cf-turnstile-response' => 'login-token'])->assertRedirect('/account');
+    $this->assertAuthenticatedAs($user, 'commerce');
+    Http::assertSentCount(3);
 });
 
 it('keeps an admin sign-in out of the storefront, and the admin session after a storefront sign-out', function () {

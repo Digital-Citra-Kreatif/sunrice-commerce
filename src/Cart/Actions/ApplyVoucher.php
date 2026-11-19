@@ -16,7 +16,8 @@ class ApplyVoucher
 {
     public function __construct(protected CartManager $carts, protected Features $features) {}
 
-    public function handle(string $code): string
+    /** @param  array<string, mixed>  $context */
+    public function handle(string $code, array $context = []): string
     {
         $code = Str::upper(trim($code));
         if ($code === '' || ! $this->features->active('vouchers')) {
@@ -26,10 +27,11 @@ class ApplyVoucher
         if ($cart === null || $cart->items()->doesntExist()) {
             throw new CartException(__('commerce::storefront.cart.empty'), 'empty');
         }
-        $codes = array_values(array_unique([...(array) $cart->vouchers, $code]));
-        $cart->vouchers = $codes;
-        $view = CartView::for($cart);
+        $previousCodes = (array) $cart->vouchers;
+        $cart->vouchers = array_values(array_unique([...$previousCodes, $code]));
+        $view = CartView::for($cart, $context);
         if (! in_array($code, $view->state->appliedCodes, true)) {
+            $cart->vouchers = $previousCodes;
             $notice = collect($view->state->notices)->firstWhere('voucher', $code);
             throw new CartException((string) ($notice['message'] ?? __('commerce::validation.voucher.not_found', ['code' => $code])), (string) ($notice['code'] ?? 'voucher_invalid'));
         }

@@ -14,6 +14,7 @@ use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Actions\RecordPaymentResult;
 use Sunrice\Commerce\Payments\PaymentResult;
+use Sunrice\Commerce\Settings\StoreSettings;
 use Workbench\App\Models\User;
 
 beforeEach(function () {
@@ -39,6 +40,45 @@ it('shows customers only their own orders, linked guest orders after verificatio
     $this->get('/account/orders')->assertOk()->assertSee($mine->number)->assertDontSee($other->number);
     $this->get("/account/orders/{$mine->id}")->assertOk()->assertSee('Rp60.000');
     $this->get("/account/orders/{$other->id}")->assertNotFound();
+});
+
+it('shows the same actionable payment instructions on both order pages', function () {
+    app(StoreSettings::class)->saveSection('payments', ['instances' => ['instructions' => ['instructions_qr']]]);
+    $order = makeOrder(['user_id' => $this->user->id, 'payment_method' => 'instructions_qr']);
+    $payment = $order->payments()->create([
+        'method' => 'instructions_qr', 'amount' => 75432, 'status' => 'pending',
+        'expires_at' => now()->addDay(), 'instructions' => [
+            'image' => '/qris.svg', 'title' => 'QRIS', 'instructions' => 'Scan this QR code.', 'confirmation' => 'optional',
+        ],
+    ]);
+    $accountUrl = "/account/orders/{$order->id}";
+    $this->actingAs($this->user, 'commerce');
+    foreach ([$accountUrl, $order->url()] as $url) {
+        $response = $this->get($url)->assertOk()->assertSee('Rp75.432')
+            ->assertSee('src="/qris.svg"', false)->assertSee('Scan this QR code.')
+            ->assertSee('/confirm-payment?order=', false)
+            ->assertSee('/order/'.$order->order_key.'/pay', false);
+        expect(substr_count($response->getContent(), 'Rp75.432'))->toBe(1);
+    }
+
+    $order->update(['payment_status' => 'awaiting_confirmation']);
+    $payment->update(['status' => 'awaiting_confirmation']);
+    $this->get($accountUrl)->assertOk()->assertSee('Menunggu konfirmasi')
+        ->assertDontSee('src="/qris.svg"', false)->assertDontSee('/confirm-payment?order=', false);
+
+    $order->update(['payment_status' => 'paid', 'status' => 'completed']);
+    $this->get($accountUrl)->assertOk()->assertDontSee('commerce-order-payment-title', false);
+});
+
+it('lists only the signed-in customer’s quotes in My Account', function () {
+    $mine = makeOrder(['type' => 'quote', 'status' => 'requested', 'number' => null, 'quote_number' => 'QUOTE-MINE', 'user_id' => $this->user->id]);
+    $other = makeOrder(['type' => 'quote', 'status' => 'requested', 'number' => null, 'quote_number' => 'QUOTE-OTHER']);
+    $order = makeOrder(['number' => 'ORDER-MINE', 'user_id' => $this->user->id]);
+
+    Auth::guard('commerce')->login($this->user);
+
+    $this->get('/account/quotes')->assertOk()->assertSee($mine->quote_number)->assertDontSee($other->quote_number)->assertDontSee($order->number);
+    $this->get('/account/orders')->assertOk()->assertSee($order->number)->assertDontSee($mine->quote_number);
 });
 
 it('buys again what is still available', function () {

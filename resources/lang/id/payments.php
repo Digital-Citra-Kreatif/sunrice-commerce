@@ -35,4 +35,12 @@ return [
         'thanks' => 'Terima kasih! Pembayaran Anda akan segera kami periksa.',
         'captcha' => 'Mohon selesaikan captcha.',
     ],
+    'deposit_now' => 'Bayar sekarang (DP)',
+    'balance_later' => 'Sisa pembayaran',
+    'balance_due_by' => 'Pelunasan, paling lambat :date',
+    'paid_so_far' => 'Sudah dibayar',
+    'pay_balance' => 'Bayar pelunasan',
+    'balance_intro' => 'DP sudah diterima. Pelunasan :amount paling lambat :date.',
+    'balance_intro_nodate' => 'DP sudah diterima. Pelunasan :amount belum dibayar.',
+    'confirmation_waiting' => 'Konfirmasi pembayaran belum diperiksa setelah :hours jam: staf diingatkan',
 ];

@@ -24,7 +24,7 @@ sunrice/commerce-midtrans
     "require": {
         "php": "^8.4",
         "spatie/laravel-package-tools": "^1.93",
-        "sunrice/commerce": "^1.0",
+        "sunrice/commerce": "^0.1",
         "midtrans/midtrans-php": "^2.6"
     },
     "require-dev": {
@@ -160,8 +160,8 @@ Commerce's own references do exactly this: `workbench/app/Commerce/FakeGateway.p
 
 ## 7. Release
 
-- Require `sunrice/commerce: ^1.0`; the APIs in [extending.md](extending.md) follow semantic
-  versioning.
+- Require `sunrice/commerce: ^0.1` (the minor version you built on: before 1.0, minors may
+  change the APIs in [extending.md](extending.md); `CHANGELOG.md` lists each change).
 - Document the `.env` keys and the feature's name in your README.
 - Add your package's migrations with `$this->loadMigrationsFrom()` (or a publish tag) and key your
   tables by `customer_id` / `order_id`, never by email.

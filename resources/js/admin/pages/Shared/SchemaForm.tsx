@@ -1,9 +1,11 @@
 import { SchemaFormView, type SchemaFormProps } from '../../components/SchemaFormView';
 import { PageHeader } from '../../components/PageHeader';
-import { adminUrl, inertia, ui, useBreadcrumbs } from '../../lib/sunrice';
+import { adminUrl, inertia, React, ui, useBreadcrumbs } from '../../lib/sunrice';
 import { useCommerceShared } from '../../lib/store';
 
-/** A page that is only a schema form (Inertia::render('Commerce/Shared/SchemaForm', [...])). */
+const FORM_ID = 'commerce-schema-form';
+
+/** A page that is only a schema form (Inertia::render('Commerce/Shared/SchemaForm', [...])): Save and Delete in its header. */
 export default function SchemaForm({ title, description, form, breadcrumbs = [], deleteUrl, deleteConfirm }: {
     title: string;
     description?: string;
@@ -15,14 +17,19 @@ export default function SchemaForm({ title, description, form, breadcrumbs = [],
     const { Button } = ui;
     useCommerceShared();
     useBreadcrumbs([...breadcrumbs.map((b) => ({ ...b, href: b.href ? adminUrl(b.href) : undefined })), { label: title }]);
+    const [saving, setSaving] = React.useState(false);
+    const back = [...breadcrumbs].reverse().find((b) => b.href && b.href !== 'commerce');
 
     return (
-        <div className="cm:mx-auto cm:grid cm:w-full cm:max-w-3xl cm:gap-6 cm:p-4 cm:md:p-6">
-            <PageHeader title={title} description={description} />
-            <SchemaFormView form={form} footer={deleteUrl ? (
-                <Button type="button" variant="ghost" className="cm:ml-auto cm:text-destructive"
-                    onClick={() => window.confirm(deleteConfirm ?? 'Delete this?') && inertia.router.delete(adminUrl(deleteUrl))}>Delete</Button>
-            ) : null} />
+        <div className="cm:flex cm:min-w-0 cm:max-w-5xl cm:flex-col cm:gap-6">
+            <PageHeader title={title} description={description}
+                back={back?.href ? { href: adminUrl(back.href), label: `Back to ${back.label.toLowerCase()}` } : undefined}
+                actions={deleteUrl ? (
+                    <Button type="button" variant="outline" className="cm:text-destructive"
+                        onClick={() => window.confirm(deleteConfirm ?? 'Delete this?') && inertia.router.delete(adminUrl(deleteUrl))}>Delete</Button>
+                ) : undefined}
+                primary={<Button type="submit" form={FORM_ID} disabled={saving}>{form.submitLabel}</Button>} />
+            <SchemaFormView form={form} id={FORM_ID} onProcessing={setSaving} storageKey={`commerce:form:${form.action.replace(/\/\d+/g, "")}`} />
         </div>
     );
 }

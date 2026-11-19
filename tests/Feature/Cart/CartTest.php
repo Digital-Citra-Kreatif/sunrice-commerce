@@ -89,7 +89,17 @@ it('works without JavaScript: forms with flash messages', function () {
     $cookie = ['commerce_cart' => $cart->token];
     $item = $cart->items->first();
 
-    $this->withCookies($cookie)->get('/cart')->assertOk()->assertSee('Mug')->assertSee('Rp100.000');
+    $this->withCookies($cookie)->get('/cart')->assertOk()->assertSee('Mug')->assertSee('Rp100.000')
+        ->assertSee('name="quantity" value="2" min="1"', false)
+        ->assertSee('commerce-icon--trash', false)
+        ->assertSee('aria-label="Hapus Mug dari keranjang"', false)
+        ->assertSee('data-commerce-cart-remove-dialog', false)
+        ->assertSee('commerce-cart__remove-fallback', false)
+        ->assertSee('Hapus produk dari keranjang?')
+        ->assertSee('value="cancel" class="commerce-link commerce-link--action" autofocus', false)
+        ->assertSee('value="remove" class="commerce-button commerce-button--accent"', false);
+    $this->withCookies($cookie)->patch("/cart/items/{$item->id}", ['quantity' => 0])->assertSessionHasErrors('quantity');
+    expect($item->fresh()->quantity)->toBe(2);
     $this->withCookies($cookie)->patch("/cart/items/{$item->id}", ['quantity' => 9])->assertSessionHas('commerce.error');
     $this->withCookies($cookie)->patch("/cart/items/{$item->id}", ['quantity' => 3])->assertSessionHas('commerce.success');
     expect($item->fresh()->quantity)->toBe(3);
@@ -112,6 +122,26 @@ it('serves the cart as JSON', function () {
     $this->withCookies(['commerce_cart' => $token])->postJson('/commerce/api/cart/items', ['variant' => $this->mug->id, 'quantity' => 10])
         ->assertStatus(422)->assertJsonPath('reason', 'qty_rules');
     $this->withCookies(['commerce_cart' => $token])->getJson('/commerce/api/cart')->assertJsonPath('cart.lines.0.quantity', 1);
+});
+
+it('updates quantities and applies and removes vouchers on the cart API', function () {
+    $this->withoutMiddleware(ValidateCsrfToken::class);
+    Voucher::query()->create(['name' => 'Hemat', 'code' => 'HEMAT', 'type' => 'percent', 'value' => 1000]);
+    $cart = cartWith([[$this->mug, 1]]);
+    $item = $cart->items()->sole();
+    $this->withCredentials()->withCookies(['commerce_cart' => $cart->token]);
+
+    $this->patchJson("/commerce/api/cart/items/{$item->id}", ['quantity' => 0])
+        ->assertUnprocessable()->assertJsonValidationErrors('quantity');
+    expect($item->fresh()->quantity)->toBe(1);
+    $this->patchJson("/commerce/api/cart/items/{$item->id}", ['quantity' => 2])
+        ->assertOk()->assertJsonPath('cart.count', 2)->assertJsonPath('cart.totals.total.amount', 100000);
+    $this->postJson('/commerce/api/cart/vouchers', ['code' => 'HEMAT'])
+        ->assertOk()->assertJsonPath('cart.codes', ['HEMAT'])->assertJsonPath('cart.totals.total.amount', 90000);
+    $this->deleteJson('/commerce/api/cart/vouchers/HEMAT')
+        ->assertOk()->assertJsonPath('cart.codes', [])->assertJsonPath('cart.totals.total.amount', 100000);
+    $this->deleteJson("/commerce/api/cart/items/{$item->id}")
+        ->assertOk()->assertJsonPath('cart.count', 0)->assertJsonPath('cart.lines', []);
 });
 
 it('needs CSRF on cart forms', function () {

@@ -56,7 +56,7 @@ class UpdateOrderAddresses
         }
         $order->version++;
         $order->save();
-        $this->timeline->record($order, 'edit', __('commerce::orders.timeline.addresses'), ['changes' => $changes], $actor);
+        $this->timeline->record($order, 'edit', Timeline::text('commerce::orders.timeline.addresses'), ['changes' => $changes], $actor);
 
         return $order;
     }

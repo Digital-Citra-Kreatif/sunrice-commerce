@@ -77,7 +77,7 @@ class RespondToQuote
                 $this->states->transition($quote, OrderStatus::QUOTED, $actor);
             }
             if ($send) {
-                $this->timeline->record($quote, 'email', __('commerce::orders.timeline.quote_sent'), [], $actor, 'customer');
+                $this->timeline->record($quote, 'email', Timeline::text('commerce::orders.timeline.quote_sent'), [], $actor, 'customer');
             }
         });
         if ($send) {

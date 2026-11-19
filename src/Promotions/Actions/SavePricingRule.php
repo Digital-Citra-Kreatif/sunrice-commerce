@@ -33,32 +33,32 @@ class SavePricingRule
         $roles = Role::query()->orderBy('name')->pluck('name')->map(fn ($r) => ['value' => $r, 'label' => $r])->all();
 
         return [
-            ['handle' => 'name', 'type' => 'text', 'label' => 'Name', 'required' => true, 'translatable' => false, 'config' => ['max' => 120]],
-            ['handle' => 'active', 'type' => 'toggle', 'label' => 'Active'],
-            ['handle' => 'dates', 'type' => 'commerce_datetime_range', 'label' => 'When', 'instructions' => 'Empty: always.'],
-            ['handle' => 'audience', 'type' => 'select', 'label' => 'Customers', 'config' => ['options' => [
+            ['handle' => 'name', 'section' => 'Rule', 'width' => 50, 'type' => 'text', 'label' => 'Name', 'required' => true, 'translatable' => false, 'config' => ['max' => 120]],
+            ['handle' => 'active', 'section' => 'Rule', 'width' => 50, 'type' => 'toggle', 'label' => 'Active'],
+            ['handle' => 'dates', 'section' => 'Rule', 'type' => 'commerce_datetime_range', 'label' => 'When', 'instructions' => 'Empty: always.'],
+            ['handle' => 'audience', 'section' => 'Customers and products', 'width' => 50, 'type' => 'select', 'label' => 'Customers', 'config' => ['options' => [
                 ['value' => 'everyone', 'label' => 'Everyone'], ['value' => 'guests', 'label' => 'Guests only'],
                 ['value' => 'signed_in', 'label' => 'Signed-in customers'], ['value' => 'roles', 'label' => 'Customers with these roles'],
             ]]],
-            ['handle' => 'roles', 'type' => 'select', 'label' => 'Roles', 'config' => ['options' => $roles, 'multiple' => true]],
-            ['handle' => 'scope', 'type' => 'select', 'label' => 'Products', 'config' => ['options' => [
+            ['handle' => 'roles', 'section' => 'Customers and products', 'width' => 50, 'condition' => ['field' => 'audience', 'operator' => 'equals', 'value' => 'roles'], 'type' => 'select', 'label' => 'Roles', 'config' => ['options' => $roles, 'multiple' => true]],
+            ['handle' => 'scope', 'section' => 'Customers and products', 'width' => 50, 'type' => 'select', 'label' => 'Products', 'config' => ['options' => [
                 ['value' => 'all', 'label' => 'All products'], ['value' => 'products', 'label' => 'Chosen products'], ['value' => 'variants', 'label' => 'Chosen variants'],
                 ['value' => 'categories', 'label' => 'Chosen categories (and their subcategories)'], ['value' => 'brands', 'label' => 'Chosen brands'],
             ]]],
-            ['handle' => 'targets', 'type' => 'commerce_targets', 'label' => 'Chosen'],
-            ['handle' => 'quantity_basis', 'type' => 'select', 'label' => 'Count the quantity', 'config' => ['options' => [
+            ['handle' => 'targets', 'section' => 'Customers and products', 'condition' => ['field' => 'scope', 'operator' => 'not_equals', 'value' => 'all'], 'type' => 'commerce_targets', 'label' => 'Chosen'],
+            ['handle' => 'quantity_basis', 'section' => 'Customers and products', 'width' => 50, 'type' => 'select', 'label' => 'Count the quantity', 'config' => ['options' => [
                 ['value' => 'variant', 'label' => 'Per variant (each size/color separately)'], ['value' => 'product', 'label' => 'Per product (all its variants together)'],
                 ['value' => 'rule', 'label' => 'Across every product of this rule'],
             ]]],
-            ['handle' => 'tiers', 'type' => 'repeater', 'label' => 'Prices', 'required' => true, 'config' => ['min' => 1, 'max' => 20, 'fields' => [
-                ['handle' => 'min_qty', 'type' => 'number', 'label' => 'From (units)', 'required' => true, 'config' => ['min' => 1], 'validation' => ['integer']],
-                ['handle' => 'type', 'type' => 'select', 'label' => 'Price', 'required' => true, 'config' => ['options' => [
+            ['handle' => 'tiers', 'section' => 'Prices', 'type' => 'repeater', 'label' => 'Prices', 'required' => true, 'config' => ['min' => 1, 'max' => 20, 'fields' => [
+                ['handle' => 'min_qty', 'width' => 33, 'type' => 'number', 'label' => 'From (units)', 'required' => true, 'config' => ['min' => 1], 'validation' => ['integer']],
+                ['handle' => 'type', 'width' => 33, 'type' => 'select', 'label' => 'Price', 'required' => true, 'config' => ['options' => [
                     ['value' => 'percent_off', 'label' => 'Percent off'], ['value' => 'amount_off', 'label' => 'Amount off per unit'], ['value' => 'fixed_price', 'label' => 'Fixed unit price'],
                 ]]],
-                ['handle' => 'percent', 'type' => 'number', 'label' => 'Percent (for percent off)', 'config' => ['min' => 0, 'max' => 100]],
-                ['handle' => 'amount', 'type' => 'commerce_money', 'label' => 'Amount (for amount off or fixed price)'],
+                ['handle' => 'percent', 'width' => 33, 'condition' => ['field' => 'type', 'operator' => 'equals', 'value' => 'percent_off'], 'type' => 'number', 'label' => 'Percent (for percent off)', 'config' => ['min' => 0, 'max' => 100]],
+                ['handle' => 'amount', 'width' => 33, 'condition' => ['field' => 'type', 'operator' => 'not_equals', 'value' => 'percent_off'], 'type' => 'commerce_money', 'label' => 'Amount (for amount off or fixed price)'],
             ]]],
-            ['handle' => 'priority', 'type' => 'number', 'label' => 'Priority', 'instructions' => 'Only for display order: the best price always wins.', 'validation' => ['integer']],
+            ['handle' => 'priority', 'section' => 'Rule', 'width' => 50, 'type' => 'number', 'label' => 'Priority', 'instructions' => 'Only for display order: the best price always wins.', 'validation' => ['integer']],
         ];
     }
 

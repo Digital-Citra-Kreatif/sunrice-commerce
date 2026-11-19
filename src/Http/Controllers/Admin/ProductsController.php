@@ -127,7 +127,9 @@ class ProductsController extends Controller
                 ['key' => 'out_of_stock', 'label' => 'Set out of stock', 'confirm' => 'Mark the selected products out of stock? Variants that track stock keep their counts.'],
             ]),
             'bulkUrl' => route('sunrice.admin.commerce.products.bulk', [], false),
-            'createUrl' => "cms/collections/{$collections->first()->handle}/entries/create",
+            // Every product collection the user may add to: Content no longer lists them (ShopNavigation::collections()).
+            'create' => $collections->filter(fn (Collection $c) => Access::entries($request->user(), 'create', $c))
+                ->map(fn (Collection $c) => ['label' => (string) $c->title, 'url' => "cms/collections/{$c->handle}/entries/create"])->values()->all(),
         ]);
     }
 

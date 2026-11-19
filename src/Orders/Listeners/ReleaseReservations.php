@@ -20,7 +20,8 @@ use Sunrice\Commerce\Promotions\Vouchers\VoucherRedemptions;
  * already restocked by refunds), flash sale quantities, voucher uses and
  * what extension providers reserved (ReservesDiscounts); its open payments
  * are cancelled. Each part runs once (meta flags), so retries and repeated
- * events are harmless.
+ * events are harmless. Once all are given back, meta released.done is set;
+ * until then commerce:tick tries again (Orders\ReleaseRetries).
  */
 class ReleaseReservations
 {
@@ -63,6 +64,7 @@ class ReleaseReservations
             if ($released !== []) {
                 $locked->setMeta('released.providers', $released);
             }
+            $locked->setMeta('released.done', true);
             $locked->save();
         });
 

@@ -1,7 +1,7 @@
 # Installation
 
 Sunrice Commerce turns a Sunrice CMS site into a store. It needs PHP 8.4+, Laravel 13, Sunrice
-CMS 1.x (with the settings tabs, users scope and structure import changes) and SQLite, MySQL or
+0.7 (`sunrice/admin` and `sunrice/cms`, which Composer installs with it) and SQLite, MySQL or
 PostgreSQL. The admin bundle is prebuilt: you don't need Node.
 
 ## Contents
@@ -18,8 +18,19 @@ PostgreSQL. The admin bundle is prebuilt: you don't need Node.
 
 ```bash
 composer require sunrice/commerce
+php artisan sunrice:install --plugins
 php artisan commerce:install
 ```
+
+Commerce is a plugin of the Sunrice panel. `sunrice:install` creates the app's panel provider
+when there is none and adds `CommercePlugin` to it (`--plugins` without asking). On a site that
+already has the panel, it only adds the plugin; you can also add it by hand:
+
+```php
+$panel->plugin(CmsPlugin::make())->plugin(CommercePlugin::make());
+```
+
+`commerce:install` stops with these instructions when the plugin isn't on the panel.
 
 Try it with sample data first:
 
@@ -44,6 +55,9 @@ For a complete, ready-to-use shop, install the **starter theme** with its demo d
 php artisan commerce:install --starter --demo
 php artisan storage:link        # product images are Sunrice assets on the public disk
 ```
+
+Keep uploaded digital products on the private downloads disk. See
+[Digital products](catalog.md#digital-products) for how customers receive those files.
 
 `--starter` publishes everything `--templates` does plus the site around the store: Sunrice's
 layout, a header with the department menu, search and cart, a footer, the home page, content

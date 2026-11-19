@@ -12,6 +12,8 @@ use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Catalog\ProductDefaults;
+use Sunrice\Commerce\Inventory\Actions\AdjustStock;
 
 /** JSON for the product editor control. */
 class ProductApiController extends Controller
@@ -43,16 +45,19 @@ class ProductApiController extends Controller
         $model = Entry::query()->findOrFail($entry);
         $this->authorize('view', $model);
         $product = Product::query()->where('entry_id', $entry)->first();
+        $preview = app(ProductDefaults::class)->purchasePreview($model);
         if ($product === null) {
-            return response()->json(['data' => null]);
+            return response()->json(['data' => null, 'purchase_default' => $preview]);
         }
 
-        return response()->json(['data' => [
+        return response()->json(['purchase_default' => $preview, 'data' => [
             'id' => $product->id,
             'sync_status' => $product->sync_status,
             'sync_error' => $product->sync_error,
             'synced_at' => $product->synced_at?->toIso8601String(),
             'sales_count' => $product->sales_count,
+            'stock_adjustment' => commerce_feature('inventory') && $request->user()->can('commerce.inventory.adjust')
+                ? ['reasons' => AdjustStock::REASONS] : null,
             'variants' => $product->variants()->get()->mapWithKeys(fn (Variant $v) => [$v->uid => [
                 'id' => $v->id,
                 'stock_quantity' => $v->stock_quantity,

@@ -1,16 +1,212 @@
 # Changelog
 
-## Unreleased — 1.0.0
+## Unreleased
 
-The first release. Commerce is a plugin for the Sunrice panel (`sunrice/admin`) and CMS
+- Show a localized stock message if inventory changes while placing an order or accepting a quote.
+
+- Group product settings separately from content. Reuse specifications, questions and size guides
+  across store, category and brand defaults. Product editors can override or hide sections.
+- Reorder product images in the CMS and add a local or external product video. Existing product
+  blueprints pick up the new controls after migrations run.
+- Downloadable items skip shipping, including existing items with a legacy shipping flag.
+- Hide the live search results link when there are zero matches.
+- Require a positive cart quantity and keep item removal on the separate trash action.
+
+- When a guest checks out with an existing verified account's email, open the new order and
+  payment pages in the checkout browser and offer email-code recovery through Track order.
+
+- Preselect the first available payment method at checkout and include its fees in the initial total.
+
+- Show a localized product count and a results link after a one-second pause in storefront search.
+
+- Share a compact payment panel between the confirmation and account order pages. Simplify the
+  return form and surface the share link above the Wishlist products.
+
+- My Account opens Orders, with compact filters, a collapsible date range, and a back link from
+  order details. Points has a balance summary, expiry and history. Staff can publish a localized
+  announcement as the first tab or above or below account content. Update published account
+  templates and the starter stylesheet to pick up the changes.
+
+- Only verified buyers can submit storefront reviews. Staff can add a review linked to a buyer's
+  paid order and edit or delete reviews in Shop → Products → Reviews.
+
+- Keep the sticky product purchase panel within the product gallery and details so it clears the
+  review form and related products. Update the published product template and starter stylesheet.
+
+- Continue shopping links in Compare, Wishlist, Cart, and order confirmation share a Catalog
+  setting. Automatic uses the localized catalog with a homepage fallback. Staff can choose a
+  published CMS page or collection listing.
+
+- Add space inside the scrollable catalog sidebar so checkbox borders and keyboard focus rings
+  stay visible when zoomed.
+
+- New checkout addresses can have an editable title. The checkout uses the title in the address
+  picker and keeps it when the customer saves the address to their account.
+
+- Show the voucher field directly before payment in a dedicated checkout panel. Order notes use
+  the storefront’s accordion styling.
+
+- Require order ownership or a verified guest session for storefront orders, payment pages,
+  invoices and quote actions. Guests can verify their email with a short-lived one-time code.
+  Update the published track-order template when upgrading.
+
+- Product buttons inherit across Store, Category, Brand, and Product. The product editor shows
+  the inherited action and its source, and cart eligibility uses the same rule.
+- Flash Sale separates product selection, pricing and quantity limits. A rule now applies to
+  every selected product and variant.
+
+- Keep Shop → Products selected in the product editor. Align labels and controls across the
+  editor and let permitted staff record stock adjustments there without saving the product draft.
+
+- Wishlist and Compare confirmations include shortcuts to their pages. The starter header
+  also links to Compare. Merge the updated storefront templates and theme assets into published
+  copies and include the new `partials/collection-button.blade.php` partial.
+
+- Storefront buttons use tighter padding. Secondary actions in grouped controls use a link style,
+  including Cancel in the cart and checkout dialogs. Merge the changed storefront templates and
+  theme assets into published copies.
+
+- The product page keeps quantity and Add to cart within reach when the original controls are
+  outside the viewport. Add-to-cart confirmations appear at the top. Merge the updated buying
+  and variant picker partials and storefront theme assets into published copies.
+
+- Cart items use denser rows, with a trash icon and a confirmation dialog before removal.
+  Merge the updated cart and icon partials, storefront translations and theme assets into published copies.
+
+- The add-to-cart success toast includes a shortcut to the cart. Merge the updated
+  `partials/add-recovery.blade.php` and storefront theme assets into published copies.
+
+- Shoppers can apply or remove vouchers before payment in checkout. Selecting pickup keeps the
+  delivery address and courier options available. If automatic recalculation fails, **Update total**
+  submits the current selections. Merge the updated checkout, cart and checkout partials, the new
+  `partials/checkout-vouchers.blade.php`, checkout translations and theme assets into published copies.
+
+- Password sign-in, password-reset requests and final checkout submissions support the configured
+  Sunrice captcha. Merge the three form templates, `partials/captcha.blade.php` and the storefront
+  script into published copies.
+
+- Delivery collects the recipient name and phone with the shipping address. Checkout uses a
+  compact saved-address selector, an Add address link and a collapsible notes field. Merge
+  `checkout.blade.php`, the new `partials/checkout-contact-fields.blade.php`, checkout translations
+  and the storefront theme assets into published copies.
+
+- Back-in-stock alerts follow the selected variant, and the product's Add to cart button has more
+  padding. Merge the product buying, stock, stock-alert and variant-picker partials and theme CSS
+  into published copies.
+
+- Checkout shows an address summary and lets shoppers pick a saved address or enter a new one in a
+  dialog. Merge the updated `checkout.blade.php`, checkout translations and storefront theme assets
+  into published copies.
+
+- The option to pay with loyalty points now sits next to the payment methods at checkout. The
+  cart shows the order before payment choices. Merge your published `checkout.blade.php`,
+  `partials/cart.blade.php` and the checkout and account translations to show the new option.
+
+- My Account now opens the address form on demand and shows saved addresses in expandable rows.
+  The order history supports search by order number or product name, an order status filter and
+  an inclusive date range, with filters preserved between pages. If you maintain published
+  storefront copies, merge `account/addresses.blade.php`, `account/orders.blade.php`,
+  `commerce.css` and the new account translation keys. See
+  [Published templates](docs/upgrading.md#published-templates).
+
+- Checkout totals follow the billing address when the shopper unchecks the shared address. Payment
+  methods appear if shipping makes a free cart payable. Choosing a saved address updates its region
+  codes and clears any optional fields missing from that address.
+
+- Checkout labels totals as estimated before shipping is selected, and preserves the latest selections while refreshing.
+
+- The add-to-cart form links customers to their cart if the response is interrupted. For published
+  storefronts, merge the updated checkout and address partials, `commerce.js` and the
+  `partials/add-recovery.blade.php` notice. See [Theme assets](docs/templates.md#theme-assets).
+
+- The load-test seeder uses the current Sunrice CMS APIs. The workbench build publishes the
+  Sunrice Admin assets for the demo. See [Load testing](docs/commands.md#load-testing-the-package).
+
+- **The product import can create products**: tick "Create products for SKUs no product has" and rows with new SKUs and a `product` title become products (rows with the same title one product with variants by `variant`, named by `option`; `category` by name or slug), as drafts or published.
+- **Nothing stays held after a cancellation**: if giving back a cancelled order's stock, sale quantities, vouchers or extension reservations fails, `commerce:tick` tries again (30 days). **Confirmations waiting for review** are sent to staff again after `checkout.confirmation_reminder_hours` (24). Run `php artisan migrate` (`commerce_payment_confirmations.reminded_at`).
+
+- **Shipping origins**: `Commerce::shippingOriginUsing()` lets an extension quote a cart's rates from another address than the store's (a branch); the order keeps it, `Order::shippingOrigin()` returns it for carriers. `Address` gains `latitude` and `longitude`.
+- **Order scopes for staff**: `Commerce::scopeAdminOrders()` limits the orders a staff member sees in the admin (list, export, bulk actions, dashboard, customer page, payment confirmations); orders outside it are not found.
+- **Catalog filters**: `Commerce::registerCatalogFilter($key, $read, $apply)` adds a filter of an extension's to product listings, search and facet counts, read from the query string; `ProductQuery::filter($key, $value)` sets one in code.
+
+- **Deposits**: an extension's calculation stage can ask for a deposit (`CalculationState::$deposit`). The order is paid in two parts: the deposit at checkout, the balance on the pay page by `balance_due_at`. New payment status **Partially paid**, events `DepositPaid` and `BalanceOverdue`, emails `balance_reminder` and `staff_balance_overdue`, and the setting Checkout → "Remind of an unpaid balance". `OrderPaid` still fires once, when the total is paid. Run `php artisan migrate` (`commerce_orders.deposit_total`, `balance_due_at`). See [payments.md](docs/payments.md#deposits).
+- **A cart line is a variant and its meta.** `AddToCart::handle($variantId, $qty, $meta)` with other
+  meta adds another line of the same variant (a rental on other dates, say); the same meta adds to
+  its line. Lines without meta merge by variant as before. Stock and quantity rules count all of a
+  variant's lines, and signing in merges by variant and meta. Run `php artisan migrate`
+  (`commerce_cart_items.line_key`).
+- **Line details**: `Commerce::describeLinesUsing()` turns a line's meta into short lines shown under it in the cart, at checkout, on the order page, in emails, on documents and in the admin (`OrderItem::details()`).
+
+## 0.2.0 (2026-11-07)
+
+**Upgrading from 0.1**: commerce now needs Sunrice 0.7. Run `composer require sunrice/commerce:^0.2 sunrice/admin:^0.7 sunrice/cms:^0.7 -W`, then `php artisan migrate` (the webhook tables) and `php artisan sunrice:assets`. Update the gateways at the same time: `sunrice/commerce-midtrans` and `-xendit` 0.1.1 and `sunrice/commerce-biteship` 0.1.0 accept commerce 0.2.
+
+**Highlights.**
+
+- **Outgoing webhooks**: signed, queued, retried and logged, for orders, shipments and stock.
+- **The admin matches the panel**: page headers, menus and widths are the panel's. Settings sections are tabs, and nothing shifts while a page loads.
+- **Forms fold and sum themselves up**: cards show a one-line summary when folded, with Expand all / Collapse all. Groups are headings, repeater rows fold, and text in each language goes in language tabs.
+- **Products show once in the sidebar**, under Shop. With several product collections, New product asks which one.
+- **The order timeline reads in each reader's language.**
+
+- **Forms fold and sum themselves up, as the panel's do**: a folded card (Settings, vouchers,
+  pricing rules, flash sales, shipping, payments) says in one line what it holds. Forms with two or
+  more cards get Expand all / Collapse all. A group is a small heading with a rule, not another
+  label over a box. Repeater rows (bank accounts, price tiers, pickup locations, weight tables) fold
+  to a one-line summary; new rows and rows with errors stay open. Text in each language (payment
+  titles and instructions, shipping method titles, email subjects, WhatsApp messages) is in language
+  tabs instead of one input per language. The region picker uses the panel's Select. The six
+  copies of the per-language builder are now one, `SchemaForm::perLanguage()`; see
+  [Extending](docs/extending.md).
+
+- **Products and their taxonomies show once in the sidebar**: with Sunrice 0.7 (now required), the
+  product collections and the product categories, brands, tags and attribute taxonomies are listed
+  only under Shop → Products (`ContentNavigation::listElsewhere()`), not again under Content and
+  Taxonomies; the attribute taxonomies (Settings → Catalog) join that submenu. With several product collections, **New product** asks which one, offering only those the user may add to.
+
+- **The order timeline reads in each reader's language**: entries were written once, in the store's
+  language, so an English admin read "Status berubah dari Diproses ke Selesai". Commerce now records
+  what it says as an `Orders\TimelineText` (`Timeline::text($key, $replace)`, with labels as nested
+  texts and `->then()` for tracking numbers and reasons), kept with the entry and translated when the
+  admin order page or the AI tools read it (`OrderEvent::text()`); notes people wrote stay as they
+  are, and entries recorded before keep their text. Return, download and payment link entries have
+  translations of their own now.
+
+- **The admin looks and works like the rest of the panel**: Shop pages use the panel's page header
+  (the title in its display style, one primary action, the rest in a "⋮" menu, a back button), the
+  panel's width and spacing (lists, dashboards and order pages full width; forms at the forms'
+  width, left-aligned) instead of their own padding and centred columns, and the panel's lists (a
+  search box, `Status: all` filters with the rest under "More filters", a Columns menu, the table in
+  a card with its pages at the foot, rows that open when clicked). Forms put Save in the header and
+  warn before leaving with unsaved changes, lay out in titled cards that fold away, with fields side
+  by side and shown only when they apply (the CMS's `width` and `condition`, plus a field's
+  `section`; vouchers, pricing rules, flash sales and Settings → General use them), and use the
+  panel's selects and checkboxes. Store settings show their sections as tabs, so one menu stays at
+  the side. On an order, the status badges sit by its number, its next steps are buttons and the
+  rest (customer view, edit items, refund, cancel, trash) is in the "⋮" menu. The Shop group comes
+  first in the sidebar and its dashboard is called Overview. The dashboard's loading placeholders
+  are as large as what replaces them, so nothing moves while it loads.
+
+- `webhooks` module (off by default): Settings → Webhooks (`commerce.settings.webhooks`) sends
+  orders (`order.placed`, `order.paid`, `order.status_changed`, `order.cancelled`,
+  `order.completed`, `order.refunded`), shipments (`shipment.created`, `shipment.delivered`) and
+  stock changes (`stock.low`, `stock.out`, `stock.back_in`) to endpoints as signed JSON POSTs,
+  queued after the change is saved, retried for about 11 hours and logged; endpoints that keep
+  failing are switched off. Public HTTPS addresses only. Config `commerce.webhooks.*`; new tables
+  `commerce_webhooks` and `commerce_webhook_deliveries`. See [docs/webhooks.md](docs/webhooks.md).
+
+## 0.1.0 (2026-11-06)
+
+The first release, for `sunrice/admin` and `sunrice/cms` 0.6. Until 1.0, minor versions (0.2, 0.3…) may change
+the public API; each change is listed here with the steps to take. Commerce is a plugin for the Sunrice panel (`sunrice/admin`) and CMS
 (`sunrice/cms`), on PHP 8.4 and Laravel 13: products are CMS entries edited in the CMS's entry
 editor, the store's admin pages live in the panel under Shop, and the storefront renders through
 the CMS's templates and full-page cache.
 
 ### Fixes
-- When stock runs out as an order is placed or a quote accepted, customers read "Only 2 of Mug
-  left." (or "Mug is out of stock."), in their language, instead of "Not enough stock of variant 1
-  (MUG): 3 requested, 2 available." `OutOfStock::customerMessage()` gives that text.
+- `commerce:install` stops with instructions when the app has no Sunrice panel or the panel
+  doesn't have `CommercePlugin`, instead of failing on the store structure with "The selected
+  type is invalid". The quick start runs `sunrice:install --plugins` first.
 
 ### Loyalty points
 - `loyalty` module (off by default, Online store mode): a points wallet on each customer account

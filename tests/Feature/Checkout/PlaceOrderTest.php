@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Testing\TestResponse;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Catalog\Models\Variant;
@@ -13,8 +16,11 @@ use Sunrice\Commerce\Checkout\CheckoutData;
 use Sunrice\Commerce\Checkout\CheckoutRefused;
 use Sunrice\Commerce\Contracts\Inventory;
 use Sunrice\Commerce\Customers\Actions\LinkGuestOrders;
+use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Inventory\DatabaseInventory;
 use Sunrice\Commerce\Inventory\OutOfStock;
+use Sunrice\Commerce\Notifications\GuestOrderCode;
+use Sunrice\Commerce\Notifications\StoreEmail;
 use Sunrice\Commerce\Orders\Events\OrderPaid;
 use Sunrice\Commerce\Orders\Events\OrderPlaced;
 use Sunrice\Commerce\Orders\Events\QuoteRequested;
@@ -69,6 +75,46 @@ it('places an order with snapshots, a payment and the timeline', function () {
 
     $this->get($order->url())->assertOk()->assertSee($order->number)->assertSee('Rp110.000')->assertSee('Menunggu pembayaran')
         ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+});
+
+it('uses the shipping recipient as the order contact for a delivery', function () {
+    $cart = cartWith([[$this->mug, 1]]);
+    $input = checkoutInput(['shipping_address' => ['name' => 'Dewi Penerima', 'phone' => '081298765432']]);
+    unset($input['name'], $input['phone']);
+
+    $page = $this->get('/checkout')->assertOk();
+    preg_match('/<fieldset[^>]+id="contact"[^>]*>(.*?)<\/fieldset>/s', (string) $page->getContent(), $section);
+    expect($section[1])->toContain('name="email"')->not->toContain('name="name"', 'name="phone"');
+
+    $this->post('/checkout', [...$input, 'action' => 'place', 'totals_hash' => seenHash($cart, $input)])
+        ->assertSessionHasNoErrors();
+    $order = Order::query()->sole();
+    expect($order->customer_name)->toBe('Dewi Penerima')
+        ->and($order->phone)->toBe('+6281298765432')
+        ->and($order->shipping_address['name'])->toBe('Dewi Penerima');
+});
+
+it('requires a configured captcha only for final order placement', function () {
+    config(['sunrice-admin.captcha' => ['provider' => 'turnstile', 'site_key' => 'site', 'secret_key' => 'secret']]);
+    Http::fake([
+        'https://challenges.cloudflare.com/turnstile/v0/siteverify' => Http::sequence()
+            ->push(['success' => false])->push(['success' => true]),
+    ]);
+    $cart = cartWith([[$this->mug, 1]]);
+    $input = checkoutInput();
+    $this->get('/checkout')->assertOk()->assertSee('class="cf-turnstile"', false);
+    $this->withCredentials()->postJson('/checkout/refresh', $input)->assertOk();
+    $this->post('/checkout', [...$input, 'action' => 'update'])->assertRedirect('/checkout#shipping');
+    Http::assertNothingSent();
+
+    $post = [...$input, 'action' => 'place', 'totals_hash' => seenHash($cart, $input)];
+    $this->post('/checkout', $post)->assertRedirect('/checkout#checkout-captcha')->assertSessionHasErrors('captcha');
+    $this->post('/checkout', [...$post, 'cf-turnstile-response' => 'expired-token'])->assertSessionHasErrors('captcha');
+    expect(Order::query()->count())->toBe(0);
+
+    $this->post('/checkout', [...$post, 'cf-turnstile-response' => 'checkout-token'])->assertSessionHasNoErrors();
+    expect(Order::query()->count())->toBe(1);
+    Http::assertSentCount(2);
 });
 
 it('gives one order for a double submit', function () {
@@ -134,6 +180,9 @@ it('reserves stock, sale quantities and vouchers all or nothing', function () {
 
 it('tells the customer which product ran out, not the variant id, when stock goes before placing', function () {
     $cart = cartWith([[$this->mug, 2]]);
+    app()->setLocale('id');
+    $input = checkoutInput();
+    $hash = seenHash($cart, $input);
     // Another order took the stock between the calculation and the reservation.
     app()->instance(Inventory::class, new class extends DatabaseInventory
     {
@@ -143,14 +192,14 @@ it('tells the customer which product ran out, not the variant id, when stock goe
         }
     });
 
-    app()->setLocale('id');
-    $input = checkoutInput();
-    expect(fn () => app(PlaceOrder::class)->handle($cart, CheckoutData::fromCart($cart)->merge($input), seenHash($cart, $input)))
+    expect(fn () => app(PlaceOrder::class)->handle($cart, CheckoutData::fromCart($cart)->merge($input), $hash))
         ->toThrow(CheckoutRefused::class, 'Stok Mug tinggal 1.');
     expect(Order::query()->count())->toBe(0);
 
     app()->setLocale('en');
     expect((new OutOfStock($this->mug, 2, 0))->customerMessage())->toBe('Mug is out of stock.');
+    $this->mug->product->forceFill(['entry_id' => null]);
+    expect((new OutOfStock($this->mug, 2, 0))->customerMessage())->toBe(__('commerce::storefront.availability.stock_changed'));
 });
 
 it('starts each selling mode in its states', function () {
@@ -186,7 +235,7 @@ it('starts each selling mode in its states', function () {
     $this->get($wa->url().'?whatsapp=1')->assertSee('wa.me/6281211112222', false);
 });
 
-it('shows the order page only by its key, and looks orders up by number and email', function () {
+it('shows the order page in the checkout session and offers verification for other lookups', function () {
     $cart = cartWith([[$this->mug, 1]]);
     place($cart);
     $order = Order::query()->sole();
@@ -195,8 +244,44 @@ it('shows the order page only by its key, and looks orders up by number and emai
     $this->get('/order/'.$order->id)->assertNotFound();
 
     $this->get('/track-order')->assertOk();
-    $this->post('/track-order', ['number' => $order->number, 'email' => 'other@example.com'])->assertSessionHasErrors('number');
+    $this->post('/track-order', ['number' => $order->number, 'email' => 'other@example.com'])->assertRedirect('/track-order/code');
     $this->post('/track-order', ['number' => $order->number, 'email' => 'RINA@example.com'])->assertRedirect($order->url());
+});
+
+it('accepts a guest checkout for an existing verified account and lets the buyer reach their new order', function () {
+    Notification::fake();
+    $owner = User::query()->create(['name' => 'Rina', 'email' => 'rina@example.com', 'password' => 'secret-pass']);
+    $owner->forceFill(['email_verified_at' => now()])->save();
+    Customer::forUser($owner);
+    $other = User::query()->create(['name' => 'Other', 'email' => 'other@example.com', 'password' => 'secret-pass']);
+    $previous = makeOrder(['user_id' => $owner->id, 'email' => $owner->email]);
+    $cart = cartWith([[$this->mug, 1]]);
+    $placed = place($cart, ['email' => 'RINA@example.com']);
+    $order = Order::query()->where('checkout_token', hash('sha256', $cart->token))->sole();
+
+    expect($order->user_id)->toBe($owner->id)
+        ->and((new StoreEmail('order_received', $order, lang: 'id'))->data()['action']['url'])
+        ->toContain('/track-order?number='.rawurlencode($order->displayNumber()));
+    $placed->assertRedirect($order->url());
+    $this->assertGuest('commerce');
+    $this->get($order->url())->assertOk()->assertSee($order->number);
+    $this->get($order->url().'/pay')->assertOk();
+    $this->get($previous->url())->assertNotFound();
+    $accountUrl = '/account/orders/'.$order->id;
+    $this->get($accountUrl)->assertRedirect();
+
+    session()->flush();
+    $this->get($order->url())->assertNotFound();
+    $this->get($order->url().'/pay')->assertNotFound();
+    $this->post('/track-order', ['number' => $order->number, 'email' => 'other@example.com'])->assertRedirect('/track-order/code');
+    expect(Notification::sent(new AnonymousNotifiable, GuestOrderCode::class))->toBeEmpty();
+    $this->post('/track-order', ['number' => $order->number, 'email' => $order->email])->assertRedirect('/track-order/code');
+    $code = Notification::sent(new AnonymousNotifiable, GuestOrderCode::class)->sole()->code;
+    $this->post('/track-order/code', ['code' => $code])->assertRedirect($order->url());
+    $this->get($order->url().'/pay')->assertOk();
+
+    $this->actingAs($other, 'commerce')->get($order->url())->assertNotFound();
+    $this->actingAs($owner, 'commerce')->get($accountUrl)->assertOk()->assertSee($order->number);
 });
 
 it('refuses orders while paused', function () {
@@ -217,6 +302,7 @@ it('links guest orders once the email is verified', function () {
 it('finds open quotes by their quote number on the track page', function () {
     $quote = makeOrder(['type' => 'quote', 'status' => 'requested', 'number' => null, 'quote_number' => 'Q-TRACK-1', 'email' => 'pt@example.com']);
 
+    authorizeGuestOrders($quote);
     $this->post('/track-order', ['number' => 'Q-TRACK-1', 'email' => 'pt@example.com'])->assertRedirect($quote->url());
 });
 
@@ -228,4 +314,46 @@ it('puts the order in the account made at checkout when verification is off', fu
 
     $user = User::query()->where('email', 'rina@example.com')->sole();
     expect(Order::query()->sole()->user_id)->toBe($user->id);
+});
+
+it('shows verification guidance after a guest chooses to create an account at checkout', function () {
+    $cart = cartWith([[$this->mug, 1]]);
+    place($cart, ['create_account' => '1', 'password' => 'secret-pass-1'])->assertSessionHasNoErrors();
+    $order = Order::query()->sole();
+    $user = User::query()->where('email', 'rina@example.com')->sole();
+    expect($user->email_verified_at)->toBeNull()
+        ->and($order->user_id)->toBeNull()
+        ->and($order->meta('checkout_account_requested'))->toBeTrue();
+
+    $this->get($order->url())->assertOk()
+        ->assertSee(__('commerce::checkout.order.account_verification'))
+        ->assertDontSee(__('commerce::checkout.order.invite'));
+
+    // Orders placed before the flag was recorded still have their converted cart.
+    $order->update(['meta' => []]);
+    $this->get($order->url())->assertOk()
+        ->assertSee(__('commerce::checkout.order.account_verification'))
+        ->assertDontSee(__('commerce::checkout.order.invite'));
+});
+
+it('keeps the signup invitation for a guest who has not opted in', function () {
+    $cart = cartWith([[$this->mug, 1]]);
+    place($cart)->assertSessionHasNoErrors();
+    $order = Order::query()->sole();
+
+    $this->get($order->url())->assertOk()->assertSee(__('commerce::checkout.order.invite'))
+        ->assertDontSee(__('commerce::checkout.order.account_verification'));
+});
+
+it('skips shipping for existing downloadable variants with shipping flags still set', function () {
+    $this->mug->update(['downloadable' => true, 'requires_shipping' => true]);
+    $cart = cartWith([[$this->mug, 1]]);
+
+    place($cart, ['shipping_address' => null, 'shipping_method' => null])->assertSessionHasNoErrors();
+    $order = Order::query()->sole();
+    expect($order->shipping_address)->toBeNull()
+        ->and($order->shipping_method)->toBeNull()
+        ->and($order->shipping_total)->toBe(0)
+        ->and($order->items->sole()->requires_shipping)->toBeFalse()
+        ->and($order->items->sole()->downloadable)->toBeTrue();
 });

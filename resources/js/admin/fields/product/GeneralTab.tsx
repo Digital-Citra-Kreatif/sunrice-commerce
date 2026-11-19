@@ -4,20 +4,30 @@ import { SkuInput } from './SkuInput';
 import type { ProductValue, TabProps } from './types';
 
 const PURCHASE_MODES: Array<[string, string]> = [
-    ['default', 'Follow the store (selling mode)'],
     ['cart', 'Add to cart'],
     ['inquiry', 'Inquiry form'],
     ['whatsapp', 'Ask on WhatsApp'],
     ['external', 'Links to other shops'],
-    ['none', 'No button (display only)'],
+    ['none', 'No button'],
 ];
 
-export function GeneralTab({ value, update, updateVariant, config, entryId, path }: TabProps) {
+export function GeneralTab({ value, update, updateVariant, config, purchaseDefault, entryId, path }: TabProps) {
     const { Button } = ui;
     const types: Array<[ProductValue['type'], string]> = [['simple', 'Simple product']];
     if (config.features.variants || value.type === 'variable') types.push(['variable', 'Variable product (sizes, colors…)']);
     if (config.features.bundles || value.type === 'bundle') types.push(['bundle', 'Bundle of other products']);
     const single = value.variants[0];
+
+    const hasLinks = value.external_links.some((link) => link.url);
+    const inherited = hasLinks ? purchaseDefault?.with_links : purchaseDefault?.without_links;
+    const inheritedLabel = PURCHASE_MODES.find(([mode]) => mode === inherited?.type)?.[1];
+    const inheritedSource = inherited?.source_name ? `${inherited.source} settings (${inherited.source_name})` : `${inherited?.source ?? 'store'} settings`;
+    const inheritedOption = inheritedLabel ? `Default · ${inheritedLabel}` : 'Default · Inherit settings';
+    const hint = value.purchase_mode === 'default'
+        ? inheritedLabel ? `Inherited from ${inheritedSource}.` : 'Uses the closest saved setting in brand, category, or store.'
+        : 'This product overrides the inherited setting.';
+    const needsLinks = value.purchase_mode === 'external'
+        || (value.purchase_mode === 'default' && purchaseDefault?.with_links.type === 'external');
 
     return (
         <div className="cm:grid cm:gap-6">
@@ -25,13 +35,13 @@ export function GeneralTab({ value, update, updateVariant, config, entryId, path
                 <Row label="Product type" htmlFor={`${path}-type`}>
                     <NativeSelect id={`${path}-type`} value={value.type} options={types} onChange={(type) => update({ type })} />
                 </Row>
-                <Row label="Button on the product page" htmlFor={`${path}-mode`} hint="'Follow the store' uses the selling mode set in Settings → Store.">
-                    <NativeSelect id={`${path}-mode`} value={value.purchase_mode} options={PURCHASE_MODES} onChange={(purchase_mode) => update({ purchase_mode })} />
+                <Row label="Storefront button" htmlFor={`${path}-mode`} hint={hint}>
+                    <NativeSelect id={`${path}-mode`} value={value.purchase_mode} options={[[ 'default', inheritedOption ], ...PURCHASE_MODES]} onChange={(purchase_mode) => update({ purchase_mode })} />
                 </Row>
             </Grid>
 
             {value.type !== 'variable' && single && (
-                <Section title="Price">
+                <Section title="Pricing and SKU">
                     <Grid cols={4}>
                         <Row label="Price" htmlFor={`${path}-price`}><Money id={`${path}-price`} value={single.price} nullable={false} onChange={(price) => updateVariant(0, { price: price ?? 0 })} /></Row>
                         <Row label="Compare-at price" htmlFor={`${path}-compare`} hint="Shown struck through when higher."><Money id={`${path}-compare`} value={single.compare_at_price} onChange={(compare_at_price) => updateVariant(0, { compare_at_price })} /></Row>
@@ -41,7 +51,7 @@ export function GeneralTab({ value, update, updateVariant, config, entryId, path
                 </Section>
             )}
 
-            {(value.purchase_mode === 'external' || value.external_links.length > 0) && (
+            {(needsLinks || value.external_links.length > 0) && (
                 <Section title="Links to other shops" description="Buttons such as 'Buy on Tokopedia'."
                     actions={value.external_links.length < 10 && <Button type="button" variant="outline" size="sm" onClick={() => update({ external_links: [...value.external_links, { preset: 'tokopedia', label: null, url: null }] })}>Add link</Button>}>
                     {value.external_links.map((link, i) => {
@@ -66,20 +76,27 @@ export function GeneralTab({ value, update, updateVariant, config, entryId, path
                 </Section>
             )}
 
-            <div className="cm:grid cm:gap-4 cm:sm:grid-cols-2">
-                <Toggle id={`${path}-shipping`} label="Needs shipping" checked={value.requires_shipping} onChange={(requires_shipping) => update({ requires_shipping })} hint="Off for services and digital products." />
-                {(config.features.digital || value.downloadable) && (
-                    <Toggle id={`${path}-downloadable`} label="Downloadable" checked={value.downloadable} onChange={(downloadable) => update({ downloadable })} hint="Customers get files or links after paying." />
-                )}
-                <Toggle id={`${path}-featured`} label="Featured" checked={value.featured} onChange={(featured) => update({ featured })} hint="Shown first when sorting by featured." />
-            </div>
+            <Section title="Fulfillment">
+                <Grid cols={2}>
+                    {(config.features.digital || value.downloadable) && (
+                        <Toggle id={`${path}-downloadable`} label="Downloadable" checked={value.downloadable} onChange={(downloadable) => update({ downloadable })} hint="Deliver files or links after payment." />
+                    )}
+                    <Toggle id={`${path}-shipping`} label="Needs shipping" checked={value.requires_shipping} disabled={value.downloadable}
+                        onChange={(requires_shipping) => update({ requires_shipping })} hint={value.downloadable ? 'Downloads are delivered digitally.' : 'Turn off for services or other items without delivery.'} />
+                </Grid>
+            </Section>
 
-            {config.features.taxes && (
-                <Row label="Tax class" htmlFor={`${path}-tax`}>
-                    <NativeSelect id={`${path}-tax`} value={value.tax_class ?? ''} onChange={(tax_class) => update({ tax_class: tax_class || null })}
-                        options={[['', 'Standard'], ...config.tax_classes.filter((c) => c !== 'standard').map((c) => [c, c] as [string, string])]} />
-                </Row>
-            )}
+            <Section title="Catalog and tax">
+                <Grid cols={2}>
+                    {config.features.taxes && (
+                        <Row label="Tax class" htmlFor={`${path}-tax`}>
+                            <NativeSelect id={`${path}-tax`} value={value.tax_class ?? ''} onChange={(tax_class) => update({ tax_class: tax_class || null })}
+                                options={[['', 'Standard'], ...config.tax_classes.filter((c) => c !== 'standard').map((c) => [c, c] as [string, string])]} />
+                        </Row>
+                    )}
+                    <Toggle id={`${path}-featured`} label="Featured" checked={value.featured} onChange={(featured) => update({ featured })} hint="Shown first when sorting by featured." />
+                </Grid>
+            </Section>
         </div>
     );
 }

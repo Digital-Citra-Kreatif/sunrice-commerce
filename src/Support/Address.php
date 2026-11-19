@@ -20,6 +20,8 @@ final class Address implements JsonSerializable
         'province_code', 'city_code', 'district_code', 'village_code',
         'province', 'city', 'district', 'village', 'state',
         'postal_code', 'line1', 'line2', 'notes',
+        // A map point, for couriers that price by distance (instant delivery).
+        'latitude', 'longitude',
     ];
 
     /** @param  array<string, string|null>  $values */

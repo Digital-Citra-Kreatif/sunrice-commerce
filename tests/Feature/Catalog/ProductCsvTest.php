@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 use Illuminate\Http\UploadedFile;
 use Spatie\Permission\PermissionRegistrar;
+use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\Models\StockMovement;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Catalog\ProductProjector;
+use Sunrice\Commerce\Contracts\Inventory;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 
 beforeEach(function () {
@@ -47,6 +49,48 @@ it('previews the changes a CSV makes, then applies them', function () {
         ->and(StockMovement::query()->latest('id')->first())->reason->toBe('import');
 
     $this->post('/admin/commerce/products/import/apply', ['token' => $page->viewData('page')['props']['token']])->assertSessionHasErrors('file');
+});
+
+it('skips a stale stock row after a reservation and keeps changes to other variants', function () {
+    actingAsUserWith(["cms.entries.{$this->collection}.update", 'commerce.inventory.adjust']);
+    $this->mug->update(['stock_quantity' => 1]);
+    publishProduct(['variants' => [['id' => 'other', 'sku' => 'OTHER', 'price' => 30000]]], title: 'Other');
+    $token = $this->post('/admin/commerce/products/import', [
+        'file' => csvUpload("sku,price,stock\nMUG,45000,12\nOTHER,25000,\n"),
+    ])->viewData('page')['props']['token'];
+
+    app(Inventory::class)->reserve([[$this->mug, 1]]);
+
+    $report = "/admin/commerce/products/import?report={$token}";
+    $this->post('/admin/commerce/products/import/apply', ['token' => $token])->assertRedirect($report);
+    $this->get($report)->assertInertia(fn ($page) => $page
+        ->where('result.summary', '1 variant updated.')
+        ->where('result.skipped.0.line', 2)
+        ->where('result.skipped.0.sku', 'MUG')
+        ->where('result.skipped.0.reason', 'The stock changed since preview. Preview the file again.'));
+    expect($this->mug->fresh())->price->toBe(50000)->stock_quantity->toBe(0)
+        ->and(Variant::query()->where('sku', 'OTHER')->firstOrFail()->price)->toBe(25000)
+        ->and(StockMovement::query()->where('variant_id', $this->mug->id)->where('reason', 'import')->exists())->toBeFalse();
+
+    actingAsUserWith(["cms.entries.{$this->collection}.update"], 'other@example.com');
+    $this->get($report)->assertInertia(fn ($page) => $page->where('result', null));
+});
+
+it('rechecks the compare-at price when a different field changed after preview', function () {
+    actingAsUserWith(["cms.entries.{$this->collection}.update"]);
+    $this->mug->update(['compare_at_price' => 70000]);
+    $token = $this->post('/admin/commerce/products/import', [
+        'file' => csvUpload("sku,price\nMUG,65000\n"),
+    ])->viewData('page')['props']['token'];
+
+    $this->mug->update(['compare_at_price' => 60000]);
+
+    $report = "/admin/commerce/products/import?report={$token}";
+    $this->post('/admin/commerce/products/import/apply', ['token' => $token])->assertRedirect($report);
+    $this->get($report)->assertInertia(fn ($page) => $page
+        ->where('result.summary', '0 variants updated.')
+        ->where('result.skipped.0.reason', 'The compare-at price must be above the current price. Preview the file again.'));
+    expect($this->mug->fresh())->price->toBe(50000)->compare_at_price->toBe(60000);
 });
 
 it('refuses bad values and stock changes without the permission', function () {
@@ -108,7 +152,11 @@ it('checks the stock permission again when a preview is applied', function () {
 
     $user->roles->first()->revokePermissionTo('commerce.inventory.adjust');
     app(PermissionRegistrar::class)->forgetCachedPermissions();
-    $this->actingAs($user->fresh(), 'web')->post('/admin/commerce/products/import/apply', ['token' => $token])->assertRedirect('/admin/commerce/products');
+    $report = "/admin/commerce/products/import?report={$token}";
+    $this->actingAs($user->fresh(), 'web')->post('/admin/commerce/products/import/apply', ['token' => $token])->assertRedirect($report);
+    $this->get($report)->assertInertia(fn ($page) => $page
+        ->where('result.summary', '1 variant updated.')
+        ->where('result.skipped.0.reason', 'Stock was skipped because inventory is off or you no longer have permission.'));
 
     expect($this->mug->fresh())->price->toBe(45000)->stock_quantity->toBe(5);
 });
@@ -124,4 +172,61 @@ it('reads the SKU "0", and refuses an amount too big for an integer', function (
     $this->post('/admin/commerce/products/import/apply', ['token' => $page->viewData('page')['props']['token']])->assertSessionHas('success', '1 variant updated.');
     expect($this->mug->fresh()->price)->toBe(45000);
 
+});
+
+it('creates products for new SKUs when asked: variants by row, drafts by default', function () {
+    $category = term((string) config('commerce.catalog.category_taxonomy'), 'Gaun Pesta');
+    actingAsUserWith(["cms.entries.{$this->collection}.create", "cms.entries.{$this->collection}.update", "cms.entries.{$this->collection}.publish"]);
+    $csv = "sku,product,variant,option,price,stock,weight,category\n"
+        ."GM-S,Gaun Merah,S,Ukuran,150000,,800,Gaun Pesta\n"
+        ."GM-M,Gaun Merah,M,Ukuran,160000,,800,gaun-pesta\n"
+        ."KB-1,Kebaya Biru,,,250000,3,,\n"
+        ."KX-1,Kebaya X,,,,,,\n"
+        ."GM-S,Gaun Merah,L,Ukuran,1,,,\n"
+        ."MUG,,,,45000,,,\n";
+
+    // Without the option, an unknown SKU is still refused.
+    $this->post('/admin/commerce/products/import', ['file' => csvUpload($csv)])->assertInertia(fn ($p) => $p->where('preview.0.error', 'No product has this SKU.'));
+
+    $page = $this->post('/admin/commerce/products/import', ['file' => csvUpload($csv), 'create' => '1'])->assertOk()
+        ->assertInertia(fn ($p) => $p->where('canCreate', true)
+            ->where('preview.0.create.product', 'Gaun Merah')->where('preview.0.create.price', 150000)->where('preview.0.create.category', $category->id)
+            ->where('preview.0.error', null)
+            ->where('preview.2.create.stock', 3)
+            ->where('preview.3.error', 'A new product needs a price.')
+            ->where('preview.4.error', 'This SKU is on line 2 too.')
+            ->where('preview.5.changes.price', ['from' => 50000, 'to' => 45000]));
+
+    $this->post('/admin/commerce/products/import/apply', ['token' => $page->viewData('page')['props']['token']])
+        ->assertSessionHas('success', '1 variant updated. 2 products created.');
+
+    $translation = EntryTranslation::query()->where('draft_title', 'Gaun Merah')->firstOrFail();
+    $gown = $translation->entry;
+    $value = $translation->draft_data['product'];
+    expect($translation->status)->toBe('draft')
+        ->and($translation->draft_slug)->toBe('gaun-merah')
+        ->and($value['type'])->toBe('variable')
+        ->and($value['options'][0]['name'])->toBe('Ukuran')
+        ->and(array_column($value['options'][0]['values'], 'label'))->toBe(['S', 'M'])
+        ->and(array_column($value['variants'], 'sku'))->toBe(['GM-S', 'GM-M'])
+        ->and(array_map('intval', (array) ($gown->draft_terms ?? $gown->terms()->pluck('sunrice_terms.id')->all())))->toBe([$category->id])
+        ->and(Variant::query()->where('sku', 'GM-S')->exists())->toBeFalse(); // a draft isn't in the store yet
+    expect($this->mug->fresh()->price)->toBe(45000);
+});
+
+it('publishes the new products when asked, so their SKUs are in the store', function () {
+    actingAsUserWith(["cms.entries.{$this->collection}.create", "cms.entries.{$this->collection}.update", "cms.entries.{$this->collection}.publish", 'commerce.inventory.adjust']);
+    $page = $this->post('/admin/commerce/products/import', ['file' => csvUpload("sku,product,price,stock\nKB-1,Kebaya Biru,250000,3\n"), 'create' => '1', 'publish' => '1']);
+
+    $this->post('/admin/commerce/products/import/apply', ['token' => $page->viewData('page')['props']['token']])->assertSessionHas('success', '0 variants updated. 1 product created.');
+
+    expect(Variant::query()->where('sku', 'KB-1')->first())->not->toBeNull()
+        ->price->toBe(250000)->track_stock->toBeTrue()->stock_quantity->toBe(3);
+});
+
+it('creates nothing for users who may not create products', function () {
+    actingAsUserWith(["cms.entries.{$this->collection}.update"]);
+
+    $this->post('/admin/commerce/products/import', ['file' => csvUpload("sku,product,price\nKB-1,Kebaya Biru,250000\n"), 'create' => '1'])
+        ->assertInertia(fn ($p) => $p->where('canCreate', false)->where('preview.0.error', 'You may not create products.'));
 });

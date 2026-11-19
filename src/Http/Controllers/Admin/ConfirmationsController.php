@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Sunrice\Commerce\Orders\Actor;
+use Sunrice\Commerce\Orders\AdminOrderScopes;
+use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Actions\ReviewPaymentConfirmation;
 use Sunrice\Commerce\Payments\Models\PaymentConfirmation;
 use Sunrice\Commerce\Support\DomainException;
@@ -24,6 +26,7 @@ class ConfirmationsController extends Controller
         $this->guard();
         $status = in_array($request->query('status'), ['submitted', 'approved', 'rejected'], true) ? (string) $request->query('status') : 'submitted';
         $confirmations = PaymentConfirmation::query()->with(['order', 'payment'])->where('status', $status)
+            ->whereIn('order_id', app(AdminOrderScopes::class)->apply(Order::query())->select('id'))
             ->orderBy($status === 'submitted' ? 'id' : 'reviewed_at', $status === 'submitted' ? 'asc' : 'desc')->limit(100)->get();
 
         return Inertia::render('Commerce/Confirmations/Index', [

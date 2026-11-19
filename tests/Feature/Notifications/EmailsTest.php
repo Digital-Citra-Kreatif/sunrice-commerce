@@ -249,7 +249,7 @@ it('emails the customer about a confirmation and its rejection, and staff to ver
         $sent[] = $n->key.' → '.$notifiable->routes['mail'];
         if ($n->key === 'payment_rejected') {
             app()->setLocale('id');
-            expect((string) $n->toMail(null)->render())->toContain('Belum masuk')->toContain('/confirm-payment?order=');
+            expect((string) $n->toMail(null)->render())->toContain('Belum masuk')->toContain('/track-order?number=');
         }
 
         return true;
@@ -264,7 +264,7 @@ it('emails a pay-again link when a payment fails', function () {
 
     expect($order->fresh()->status)->toBe('failed')->and(emailsTo('payment_failed'))->toBe(['rina@example.com']);
     Notification::assertSentOnDemand(StoreEmail::class, function (StoreEmail $n, array $channels, AnonymousNotifiable $notifiable) use ($order) {
-        return $n->key === 'payment_failed' && str_contains((string) ($n->toMail($notifiable)->viewData['action']['url'] ?? ''), '/order/'.$order->order_key.'/pay');
+        return $n->key === 'payment_failed' && str_contains((string) ($n->toMail($notifiable)->viewData['action']['url'] ?? ''), '/track-order?number='.rawurlencode($order->displayNumber()));
     });
 });
 

@@ -120,9 +120,9 @@ class OrderStateMachine
             };
             $locked->save();
 
-            $this->timeline->record($locked, 'status', __('commerce::orders.timeline.status', [
-                'from' => OrderStatus::label($from), 'to' => OrderStatus::label($to),
-            ]).($reason ? ' — '.$reason : ''), ['from' => $from, 'to' => $to, 'reason' => $reason, ...$data], $actor);
+            $this->timeline->record($locked, 'status', Timeline::text('commerce::orders.timeline.status', [
+                'from' => TimelineText::status($from), 'to' => TimelineText::status($to),
+            ])->then($reason ? ' — '.$reason : ''), ['from' => $from, 'to' => $to, 'reason' => $reason, ...$data], $actor);
 
             return $locked;
         });

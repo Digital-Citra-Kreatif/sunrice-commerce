@@ -6,13 +6,14 @@ An e-commerce package for [Sunrice CMS](https://github.com/Digital-Citra-Kreatif
 
 ```bash
 composer require sunrice/commerce
+php artisan sunrice:install --plugins   # the Sunrice panel, with the Commerce plugin on it
 php artisan commerce:install --demo
 ```
 
 Then run the scheduler and a queue worker, set up mail, and open the admin → **Shop → Dashboard**:
 a checklist leads you through the rest. Details in [docs/installation.md](docs/installation.md).
 
-Requirements: PHP 8.4+, Laravel 13, Sunrice CMS 1.x, SQLite, MySQL or PostgreSQL. No Node needed:
+Requirements: PHP 8.4+, Laravel 13, Sunrice 0.7 (`sunrice/admin` and `sunrice/cms`), SQLite, MySQL or PostgreSQL. No Node needed:
 the admin bundle is prebuilt.
 
 ## Documentation
@@ -23,8 +24,8 @@ the admin bundle is prebuilt.
 | Modules | [Features](docs/features.md) · [Catalog](docs/catalog.md) · [Pricing](docs/pricing.md) |
 | Selling | [Checkout](docs/checkout.md) · [Orders](docs/orders.md) · [Payments](docs/payments.md) · [Shipping](docs/shipping.md) · [Regions](docs/regions.md) |
 | Customers and output | [Accounts](docs/accounts.md) · [Emails](docs/emails.md) · [Marketing emails](docs/marketing.md) · [Documents](docs/documents.md) |
-| Storefront | [Templates](docs/templates.md) · [Blade components](docs/blade-components.md) · [Helpers](docs/helpers.md) |
-| Insights and AI | [Analytics](docs/analytics.md) · [AI agents](docs/ai-agents.md) |
+| Storefront | [Templates](docs/templates.md) · [Blade components](docs/blade-components.md) · [Helpers](docs/helpers.md) · [Interface audit](docs/interface-audit.md) |
+| Insights and integrations | [Analytics](docs/analytics.md) · [AI agents](docs/ai-agents.md) · [Webhooks](docs/webhooks.md) |
 | Extending | [Extending](docs/extending.md) · [Building an extension package](docs/extension-package.md) |
 
 ## Design documents

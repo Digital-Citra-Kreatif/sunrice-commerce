@@ -152,8 +152,28 @@ Switch off product page views with `analytics.track_views`:
 ```
 
 A stored store setting `analytics.track_views` wins over the config key. Clicks, add-to-carts and
-carts are counted while `analytics` is on. To send events elsewhere too (a data warehouse, an ad
-pixel), bind your own `Contracts\Tracking` ([extending.md](extending.md#swappable-services)).
+carts are counted while `analytics` is on.
+
+## External analytics
+
+Set up GA4, Google Tag Manager or Meta Pixel in the host app or an extension. The starter
+theme dispatches `commerce:cart` and `commerce:cart-updated` on `document` when the add-to-cart
+AJAX response includes a cart count. The cart snapshot is in `event.detail`. A rejected add can
+also return a cart snapshot. Use `Cart\Events\CartItemAdded` on the server to measure successful
+adds, including standard form submissions.
+
+| Measure | Backend event |
+| --- | --- |
+| Cart item successfully added | `Cart\Events\CartItemAdded` |
+| Checkout started | `Checkout\Events\CheckoutStarted` |
+| Order placed | `Orders\Events\OrderPlaced` |
+| Payment fully confirmed | `Orders\Events\OrderPaid` |
+
+The thank-you page renders the order details. Register purchases from the event that matches
+the metric and use the order ID to deduplicate delivery. For example, a bank transfer order can
+be placed before the store confirms payment. See [Events](extending.md#events) for the event
+payloads, or [Swappable services](extending.md#swappable-services) to forward storefront counters
+via `Contracts\Tracking`.
 
 ## Rebuilding statistics
 

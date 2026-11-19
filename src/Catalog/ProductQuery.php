@@ -53,6 +53,9 @@ class ProductQuery
     /** @var array<int, int>|null */
     protected ?array $entryIds = null;
 
+    /** @var array<string, mixed> extensions' filters (CatalogFilters): key => value */
+    protected array $custom = [];
+
     public function __construct(?string $collection = null)
     {
         $this->collection = $collection ?? (string) (config('commerce.catalog.collections', ['products'])[0] ?? 'products');
@@ -68,7 +71,8 @@ class ProductQuery
 
     /**
      * Filters from the query string: category, brand, tag, attr[colors][]=12,
-     * q, min_price, max_price (whole currency units), in_stock, on_sale, sort.
+     * q, min_price, max_price (whole currency units), in_stock, on_sale, sort,
+     * and the extensions' own (Commerce::registerCatalogFilter()).
      */
     public static function fromRequest(Request $request, ?string $collection = null): self
     {
@@ -98,6 +102,9 @@ class ProductQuery
         }
         if (in_array($sort = (string) $request->query('sort', ''), self::SORTS, true)) {
             $query->sort($sort);
+        }
+        foreach (app(CatalogFilters::class)->fromRequest($request) as $key => $value) {
+            $query->filter($key, $value);
         }
 
         return $query;
@@ -221,6 +228,18 @@ class ProductQuery
         return $this;
     }
 
+    /** An extension's filter (Commerce::registerCatalogFilter()) with this value; null removes it. */
+    public function filter(string $key, mixed $value): self
+    {
+        if ($value === null) {
+            unset($this->custom[$key]);
+        } elseif (app(CatalogFilters::class)->has($key)) {
+            $this->custom[$key] = $value;
+        }
+
+        return $this;
+    }
+
     public function sort(string $sort): self
     {
         $this->sort = in_array($sort, self::SORTS, true) ? $sort : 'featured';
@@ -323,6 +342,7 @@ class ProductQuery
             'collection' => $this->collection, 'terms' => $this->terms, 'q' => $this->search,
             'min' => $this->minPrice, 'max' => $this->maxPrice, 'stock' => $this->inStock, 'sale' => $this->onSale,
             'featured' => $this->featured, 'sort' => $this->sort, 'ids' => $this->entryIds, 'prices' => $this->pricesVisible(),
+            'custom' => $this->custom,
         ], fn ($v) => $v !== null && $v !== false && $v !== []);
     }
 
@@ -388,6 +408,11 @@ class ProductQuery
         $query->when($this->inStock, fn (Builder $q) => $q->where('commerce_products.in_stock', true))
             ->when($this->onSale && $this->pricesVisible(), fn (Builder $q) => $q->where('commerce_products.on_sale', true))
             ->when($this->featured, fn (Builder $q) => $q->where('commerce_products.featured', true));
+        foreach ($this->custom as $key => $value) {
+            if ($key !== $exclude) {
+                app(CatalogFilters::class)->apply($key, $query, $value);
+            }
+        }
 
         return $query;
     }

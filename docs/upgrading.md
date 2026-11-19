@@ -12,7 +12,8 @@ php artisan view:clear
 ```
 
 - `migrate` adds new tables and columns. Migrations never drop your data.
-- `commerce:publish-assets` copies the new admin bundle. Without it the admin keeps the old one.
+- `commerce:publish-assets` refreshes the admin bundle and the fallback storefront theme under
+  `public/vendor/commerce/`.
 - `sunrice:sync-permissions` and `commerce:seed-roles` add new permissions and give them to the
   Shop Manager role.
 
@@ -20,14 +21,19 @@ php artisan view:clear
 
 ## Published templates
 
-If you published the storefront templates (`--templates`), they don't change with an upgrade.
+If you published the storefront templates (`--templates` or `--starter`), they don't change with an upgrade.
 Compare yours with the package's after reading the changelog: each template starts with a comment
-listing the variables it gets, and the changelog names templates that changed. Publish a fresh copy
-of one template to compare:
+listing the variables it gets, and the changelog names templates that changed. The storefront
+prefers the published copies under `resources/views/commerce/` and `public/commerce-theme/`.
+Merge changes into these copies if you have customized them. To replace the published templates
+and theme with the package versions:
 
 ```bash
 php artisan vendor:publish --tag=commerce-templates --force   # overwrites; commit your copies first
 ```
+
+If you also published translations, merge any new keys into your language files. See
+[Storefront templates and translations](templates.md#translations).
 
 ## Statistics
 
@@ -39,6 +45,7 @@ php artisan commerce:stats --rebuild
 
 ## Breaking changes
 
-1.x follows semantic versioning for the public API listed in [extending.md](extending.md), the
-helpers, the Blade components, the config keys and the template variables. Breaking changes wait
-for 2.0 and are listed in `CHANGELOG.md` with the steps to take.
+Commerce follows semantic versioning for the public API listed in [extending.md](extending.md), the
+helpers, the Blade components, the config keys and the template variables. Before 1.0, a minor
+version (0.2, 0.3…) may break them; from 1.0, breaking changes wait for the next major. Either
+way, `CHANGELOG.md` lists them with the steps to take.

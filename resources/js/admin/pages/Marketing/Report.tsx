@@ -40,7 +40,7 @@ export default function Report({ campaign, stats, links, recipients }: Props) {
     }, [stats.queued, campaign.status]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
-        <div className="cm:mx-auto cm:grid cm:w-full cm:max-w-6xl cm:gap-6 cm:p-4 cm:md:p-6">
+        <div className="cm:flex cm:min-w-0 cm:flex-col cm:gap-6">
             <PageHeader
                 title={campaign.name}
                 description={<>Subject: {campaign.subject}{campaign.trigger ? ` · ${campaign.trigger}` : ''}{campaign.started_at ? ` · started ${when(campaign.started_at)}` : ''}{campaign.finished_at ? `, finished ${when(campaign.finished_at)}` : ''}</>}

@@ -14,6 +14,7 @@ use Sunrice\Commerce\Analytics\Stats;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Health\HealthRegistry;
+use Sunrice\Commerce\Orders\AdminOrderScopes;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\OrderStatus;
 use Sunrice\Commerce\Support\MoneyFormatter;
@@ -74,7 +75,7 @@ class DashboardController extends Controller
     {
         $money = app(MoneyFormatter::class);
 
-        return Order::query()->where('type', 'order')->whereNotNull('placed_at')->latest('placed_at')->latest('id')->limit(5)
+        return app(AdminOrderScopes::class)->apply(Order::query())->where('type', 'order')->whereNotNull('placed_at')->latest('placed_at')->latest('id')->limit(5)
             ->get(['id', 'number', 'customer_name', 'email', 'status', 'payment_status', 'total', 'placed_at'])
             ->map(fn (Order $o) => [
                 'id' => $o->id, 'number' => $o->displayNumber(), 'customer' => $o->customer_name ?: $o->email, 'total' => $money->format($o->total),

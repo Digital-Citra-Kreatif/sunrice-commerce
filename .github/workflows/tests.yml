@@ -73,10 +73,6 @@ jobs:
           echo "DB_PASSWORD=postgres" >> $GITHUB_ENV
 
       - name: Install dependencies
-        # sunrice/cms comes from its GitHub repository until it is on Packagist;
-        # set COMPOSER_AUTH (a token with read access) when that repository is private.
-        env:
-          COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
         run: composer install --no-interaction --prefer-dist
 
       - name: Lint

@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Catalog\Csv;
 
 use Illuminate\Contracts\Auth\Access\Authorizable;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Sunrice\Cms\Models\Entry;
 use Sunrice\Cms\Support\Access;
 use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Catalog\Actions\UpdateProductValues;
+use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Catalog\ProductValue;
 use Sunrice\Commerce\Features\Features;
@@ -19,6 +20,10 @@ use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\ActivityRecorder;
 
 /**
+ * @phpstan-type Change array{from: mixed, to: mixed}
+ * @phpstan-type Row array{line: int, sku: string, variant_id?: int|null, changes: array<string, Change>, create?: array<string, mixed>|null, error: string|null}
+ * @phpstan-type SkippedRow array{line: int, sku: string, reason: string}
+ *
  * Products as CSV, one row per variant, and changes to them from a CSV:
  * rows are matched by SKU and change only the columns given (a blank
  * cell keeps the value). Prices in the store's currency (a dot for
@@ -59,13 +64,18 @@ class ProductCsv
         }
     }
 
+    /** Columns a new product's rows may add (with $create): option names the variant column, category a product category. */
+    public const CREATE_COLUMNS = ['option', 'category'];
+
     /**
-     * What a CSV would change, row by row, without changing anything.
+     * What a CSV would change, row by row, without changing anything. With
+     * $create, a row whose SKU no product has and that names a product is a
+     * new product (or a variant of one): ProductCsvCreator.
      *
      * @param  resource  $stream
-     * @return array{rows: list<array{line: int, sku: string, product: string, changes: array<string, array{from: mixed, to: mixed}>, error: string|null}>, error: string|null}
+     * @return array{rows: list<array{line: int, sku: string, variant_id?: int|null, product: string, changes: array<string, array{from: mixed, to: mixed}>, create?: array<string, mixed>|null, error: string|null}>, error: string|null}
      */
-    public function preview($stream, Authorizable $user): array
+    public function preview($stream, Authorizable $user, bool $create = false): array
     {
         $header = fgetcsv($stream, escape: '');
         if ($header === false || $header === [null]) {
@@ -98,8 +108,20 @@ class ProductCsv
             $sku = trim((string) ($cells['sku'] ?? ''));
             $variant = $variants->get($sku);
             $entry = $variant !== null ? $entries->get($variant->product->entry_id) : null;
-            $row = ['line' => $n, 'sku' => $sku, 'product' => trim((string) $entry?->mainTranslation()?->title.($variant?->title ? ' — '.$variant->title : '')), 'changes' => [], 'error' => null];
+            $row = ['line' => $n, 'sku' => $sku, 'variant_id' => $variant?->id, 'product' => trim((string) $entry?->mainTranslation()?->title.($variant?->title ? ' — '.$variant->title : '')), 'changes' => [], 'create' => null, 'error' => null];
             try {
+                if ($create && $variant === null && $sku !== '' && trim((string) ($cells['product'] ?? '')) !== '') {
+                    if (isset($seen[$sku])) {
+                        throw new \InvalidArgumentException("This SKU is on line {$seen[$sku]} too.");
+                    }
+                    $seen[$sku] = $n;
+                    $row['create'] = app(ProductCsvCreator::class)->row($cells, $user,
+                        fn (string $c, string $f, bool $zero) => $this->minor($c, $f, $zero), fn (string $c, string $f) => $this->whole($c, $f), fn (string $c) => $this->bool($c));
+                    $row['product'] = trim((string) $cells['product'].(trim((string) ($cells['variant'] ?? '')) !== '' ? ' — '.trim((string) $cells['variant']) : ''));
+                    $rows[] = $row;
+
+                    continue;
+                }
                 if ($variant === null || $entry === null || $variant->product->removed_at !== null) {
                     throw new \InvalidArgumentException($sku === '' ? 'No SKU.' : 'No product has this SKU.');
                 }
@@ -118,54 +140,157 @@ class ProductCsv
             $rows[] = $row;
         }
 
-        return ['rows' => $rows, 'error' => null];
+        return ['rows' => $create ? app(ProductCsvCreator::class)->check($rows) : $rows, 'error' => null];
+    }
+
+    /** @param  list<Row>  $rows */
+    public function apply(array $rows, Authorizable $user): int
+    {
+        return $this->applyWithReport($rows, $user)['updated'];
     }
 
     /**
-     * Apply a preview's rows without errors.
-     *
-     * @param  list<array{sku: string, changes: array<string, array{from: mixed, to: mixed}>, error: string|null}>  $rows
-     * @return int variants changed
+     * @param  list<Row>  $rows
+     * @return array{updated: int, skipped: list<SkippedRow>}
      */
-    public function apply(array $rows, Authorizable $user): int
+    public function applyWithReport(array $rows, Authorizable $user): array
     {
-        $rows = collect($rows)->filter(fn (array $r) => $r['error'] === null && $r['changes'] !== [])->keyBy('sku');
-        if ($rows->isEmpty()) {
-            return 0;
-        }
-        // Keys as strings: PHP turns a SKU like "0" into an int key, which PostgreSQL won't compare with a varchar.
-        $variants = Variant::query()->with('product')->whereIn('sku', $rows->keys()->map(fn ($sku) => (string) $sku)->all())->get();
-        $userId = (int) $user->getAuthIdentifier();
-        // Checked again here: a preview is kept an hour, and the permission or the module may have gone since.
+        $rows = collect($rows)->filter(fn (array $row) => $row['error'] === null && $row['changes'] !== [] && ($row['create'] ?? null) === null);
+        $variants = Variant::query()->whereIntegerInRaw('id', $rows->pluck('variant_id')->filter()->all())->get()->keyBy('id');
+        $groups = $rows->groupBy(fn (array $row) => $variants->get($row['variant_id'] ?? 0)->product_id ?? 0);
+        $result = ['updated' => 0, 'skipped' => []];
         $mayAdjustStock = $user->can('commerce.inventory.adjust') && app(Features::class)->active('inventory');
-        foreach ($variants->groupBy('product.entry_id') as $entryId => $group) {
-            /** @var Collection<int, Variant> $group */
-            $entry = Entry::query()->with('collection')->find($entryId);
-            if ($entry === null || ! Access::entries($user, 'update', $entry->collection, $entry)) {
+
+        foreach ($groups as $productId => $group) {
+            $groupRows = $group->values()->all();
+            try {
+                $applied = DB::transaction(fn () => $this->applyProduct((int) $productId, $groupRows, $user, $mayAdjustStock), 3);
+            } catch (ValidationException $e) {
+                $applied = $this->skipProduct($groupRows, $e->getMessage());
+            }
+            $result['updated'] += $applied['updated'];
+            array_push($result['skipped'], ...$applied['skipped']);
+        }
+        if ($result['updated'] > 0) {
+            $count = $result['updated'];
+            app(ActivityRecorder::class)->record('imported', $count === 1 ? '1 variant' : "{$count} variants", ['changes' => self::CHANGEABLE], 'products');
+        }
+        usort($result['skipped'], fn (array $a, array $b) => $a['line'] <=> $b['line']);
+
+        return $result;
+    }
+
+    /**
+     * @param  list<Row>  $rows
+     * @return array{updated: int, skipped: list<SkippedRow>}
+     */
+    protected function applyProduct(int $productId, array $rows, Authorizable $user, bool $mayAdjustStock): array
+    {
+        $product = Product::query()->find($productId);
+        $entry = $product !== null ? Entry::query()->with('collection')->find($product->entry_id) : null;
+        $reason = match (true) {
+            $entry === null || $product->removed_at !== null => 'The original variant or product is no longer available. Preview the file again.',
+            ! Access::entries($user, 'update', $entry->collection, $entry) => 'You may no longer edit this product.',
+            default => null,
+        };
+        if ($reason !== null) {
+            return $this->skipProduct($rows, $reason);
+        }
+
+        // Lock content before projecting and variants in the same order as stock reservations.
+        $entry->setRelation('translations', $entry->translations()->orderBy('id')->lockForUpdate()->get());
+        if (! $entry->mainTranslation()?->isPublished()) {
+            return $this->skipProduct($rows, 'The product is no longer published.');
+        }
+        $variants = Variant::query()->where('product_id', $productId)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+        $changesByUid = [];
+        $stock = [];
+        $skipped = [];
+        $updated = 0;
+        foreach ($rows as $row) {
+            $variant = $variants->get($row['variant_id'] ?? 0);
+            if ($variant === null || $variant->sku !== $row['sku']) {
+                $skipped[] = $this->skipped($row, 'The original variant or SKU changed. Preview the file again.');
+
                 continue;
             }
-            $bySku = $group->mapWithKeys(fn (Variant $v) => [$v->uid => $rows[$v->sku]['changes']]);
-            // A product's values and its stock change together, or not at all.
-            DB::transaction(function () use ($entry, $bySku, $group, $rows, $mayAdjustStock, $userId): void {
-                app(UpdateProductValues::class)->handle($entry, fn (array $value) => [...$value, 'variants' => array_map(function (array $v) use ($bySku) {
-                    foreach ($bySku[$v['id']] ?? [] as $field => $change) {
-                        if ($field !== 'stock') {
-                            $v[$field] = $change['to'];
-                        }
-                    }
 
-                    return $v;
-                }, $value['variants'])]);
-                foreach ($group as $variant) {
-                    if ($mayAdjustStock && isset($rows[$variant->sku]['changes']['stock'])) {
-                        app(AdjustStock::class)->handle($variant->fresh() ?? $variant, (int) $rows[$variant->sku]['changes']['stock']['to'], true, 'import', 'CSV import', $userId);
-                    }
-                }
-            });
+            $changes = $row['changes'];
+            if (isset($changes['stock']) && ! $mayAdjustStock) {
+                $skipped[] = $this->skipped($row, 'Stock was skipped because inventory is off or you no longer have permission.');
+                unset($changes['stock']);
+            }
+            if ($changes === []) {
+                continue;
+            }
+            if (($reason = $this->conflict($variant, $changes)) !== null) {
+                $skipped[] = $this->skipped($row, $reason);
+
+                continue;
+            }
+            if (isset($changes['stock'])) {
+                $stock[$variant->id] = [$variant, (int) $changes['stock']['to']];
+                unset($changes['stock']);
+            }
+            if ($changes !== []) {
+                // Keep the column names, including fields intentionally cleared to null.
+                $changesByUid[$variant->uid] = array_map(fn (array $change) => $change['to'], $changes);
+            }
+            $updated++;
         }
-        app(ActivityRecorder::class)->record('imported', $rows->count() === 1 ? '1 variant' : "{$rows->count()} variants", ['changes' => self::CHANGEABLE], 'products');
 
-        return $rows->count();
+        if ($changesByUid !== []) {
+            app(UpdateProductValues::class)->handle($entry, fn (array $value) => [...$value, 'variants' => array_map(
+                fn (array $variant) => [...$variant, ...($changesByUid[$variant['id']] ?? [])],
+                $value['variants'],
+            )]);
+            if ($product->refresh()->sync_status !== 'ok') {
+                throw ValidationException::withMessages(['file' => 'The product could not be updated. Fix its product data before trying again.']);
+            }
+        }
+        foreach ($stock as [$variant, $quantity]) {
+            app(AdjustStock::class)->handle($variant->refresh(), $quantity, true, 'import', 'CSV import', (int) $user->getAuthIdentifier());
+        }
+
+        return ['updated' => $updated, 'skipped' => $skipped];
+    }
+
+    /** @param array<string, Change> $changes */
+    protected function conflict(Variant $variant, array $changes): ?string
+    {
+        foreach ($changes as $field => $change) {
+            $current = $field === 'stock'
+                ? ($variant->track_stock ? (int) $variant->stock_quantity : null)
+                : $variant->getAttribute($field);
+            if ($current !== $change['from']) {
+                return "The {$field} changed since preview. Preview the file again.";
+            }
+        }
+        $price = $changes['price']['to'] ?? $variant->price;
+        $compareAt = isset($changes['compare_at_price']) ? $changes['compare_at_price']['to'] : $variant->compare_at_price;
+        if ((isset($changes['price']) || isset($changes['compare_at_price'])) && $compareAt !== null && (int) $compareAt <= (int) $price) {
+            return 'The compare-at price must be above the current price. Preview the file again.';
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  list<Row>  $rows
+     * @return array{updated: int, skipped: list<SkippedRow>}
+     */
+    protected function skipProduct(array $rows, string $reason): array
+    {
+        return ['updated' => 0, 'skipped' => array_map(fn (array $row) => $this->skipped($row, $reason), $rows)];
+    }
+
+    /**
+     * @param  Row  $row
+     * @return SkippedRow
+     */
+    protected function skipped(array $row, string $reason): array
+    {
+        return ['line' => $row['line'], 'sku' => $row['sku'], 'reason' => $reason];
     }
 
     /**

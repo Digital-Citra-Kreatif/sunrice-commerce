@@ -24,7 +24,8 @@ php artisan commerce:install [--templates] [--starter] [--demo] [--no-regions] [
 
 Publishes the config and assets, the sign-in code migration (when missing), migrates, adds the
 `HasOneTimePasswords` trait to the user model, scaffolds the store, syncs permissions and roles,
-imports regions and prints the next steps. Safe to run again.
+imports regions and prints the next steps. Safe to run again. It needs `CommercePlugin` on the
+app's Sunrice panel (`php artisan sunrice:install --plugins`) and stops with instructions without it.
 
 | Option | |
 | --- | --- |
@@ -102,7 +103,8 @@ away are given back, so build custom roles for narrower access.
 
 ## commerce:publish-assets
 
-Copies the prebuilt admin bundle to `public/vendor/commerce`. Run it after every upgrade
+Copies the prebuilt admin bundle to `public/vendor/commerce` and the fallback storefront theme to
+`public/vendor/commerce/theme`. Run it after every upgrade
 ([upgrading.md](upgrading.md)).
 
 ## Load testing the package
@@ -124,5 +126,6 @@ LOADTEST_ORDERS=20000 vendor/bin/testbench db:seed --class='Workbench\Database\S
 vendor/bin/testbench commerce:stats --rebuild
 ```
 
-At the default size it takes about four minutes and 110 MB in PostgreSQL. Point the workbench at
-PostgreSQL or MySQL with the usual `DB_*` variables in the environment.
+Seeding time and database size vary with the database and machine. Start with smaller
+`LOADTEST_*` counts for a quick run. Point the workbench at PostgreSQL or MySQL with the usual
+`DB_*` variables in the environment.

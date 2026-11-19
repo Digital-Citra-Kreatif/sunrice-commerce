@@ -10,20 +10,21 @@ use Sunrice\Commerce\Cart\Events\CartItemUpdated;
 use Sunrice\Commerce\Cart\Models\CartItem;
 use Sunrice\Commerce\Catalog\Catalog;
 
-/** Changes a line's quantity (0 removes it). */
+/** Changes the quantity of a line that stays in the cart. */
 class UpdateCartItem
 {
-    public function __construct(protected CartManager $carts, protected Catalog $catalog, protected RemoveCartItem $remove) {}
+    public function __construct(protected CartManager $carts, protected Catalog $catalog) {}
 
-    public function handle(int $itemId, int $quantity): ?CartItem
+    public function handle(int $itemId, int $quantity): CartItem
     {
-        $item = $this->item($itemId);
-        if ($quantity <= 0) {
-            $this->remove->handle($itemId);
-
-            return null;
+        if ($quantity < 1) {
+            throw new CartException(__('commerce::storefront.cart.quantity_positive'), 'qty_rules');
         }
-        $availability = $this->catalog->check($item->variant->loadMissing('product'), $quantity, commerce_customer());
+
+        $item = $this->item($itemId);
+        // Other lines of the variant (with other meta) count too.
+        $others = (int) $item->cart->items()->where('variant_id', $item->variant_id)->whereKeyNot($item->id)->sum('quantity');
+        $availability = $this->catalog->check($item->variant->loadMissing('product'), $others + $quantity, commerce_customer());
         if (! $availability->isOk()) {
             throw new CartException($availability->message(), (string) $availability->reason);
         }

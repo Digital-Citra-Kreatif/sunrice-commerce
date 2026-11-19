@@ -102,7 +102,7 @@ class Variant extends Model
 
     public function requiresShipping(): bool
     {
-        return $this->requires_shipping ?? $this->product->requires_shipping;
+        return ! $this->isDownloadable() && ($this->requires_shipping ?? $this->product->requires_shipping);
     }
 
     public function isDownloadable(): bool

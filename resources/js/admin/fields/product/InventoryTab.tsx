@@ -1,8 +1,10 @@
 import { Grid, NativeSelect, NumberInput, Row, Section, Toggle } from './controls';
+import { LiveStock } from './LiveStock';
 import type { TabProps } from './types';
 
 /** Stock settings of a simple product or bundle (variants have theirs in the Variants tab). */
-export function InventoryTab({ value, updateVariant, live, path }: TabProps) {
+export function InventoryTab(tab: TabProps) {
+    const { value, updateVariant, live, path } = tab;
     const variant = value.variants[0];
     if (!variant) return null;
     const saved = live?.variants[variant.id];
@@ -10,11 +12,11 @@ export function InventoryTab({ value, updateVariant, live, path }: TabProps) {
     return (
         <Section title="Stock">
             <Toggle id={`${path}-track`} label="Track stock" checked={variant.track_stock} onChange={(track_stock) => updateVariant(0, { track_stock })}
-                hint="Count units: orders take them, cancellations give them back." />
+                hint="Reduce stock when an order is placed and restore it when the order is cancelled." />
             {variant.track_stock ? (
                 <Grid cols={3}>
                     {saved?.track_stock && saved.stock_quantity !== null ? (
-                        <Row label="In stock" hint="Change it in Shop → Inventory, so every change is recorded."><p className="cm:text-2xl cm:font-semibold">{saved.stock_quantity}</p></Row>
+                        <LiveStock variantKey={variant.id} tab={tab} sku={variant.sku} />
                     ) : (
                         <Row label="Starting stock" htmlFor={`${path}-initial`} hint="Set once, when the product is published.">
                             <NumberInput id={`${path}-initial`} value={variant.initial_stock} onChange={(initial_stock) => updateVariant(0, { initial_stock })} />

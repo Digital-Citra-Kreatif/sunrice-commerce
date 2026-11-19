@@ -16,12 +16,12 @@ function mediaBlock(query) {
     return css.slice(start);
 }
 
-test('stacks cart lines on narrow screens instead of a five-column row wider than a phone', () => {
-    const block = mediaBlock('(max-width: 600px)');
+test('stacks cart items into two compact rows on narrow screens', () => {
+    const block = mediaBlock('(max-width: 640px)');
     assert.match(block, /\.commerce-cart__lines tr \{[^}]*display: grid/);
-    assert.match(block, /grid-template-areas: "product product" "price total" "qty remove"/);
-    assert.match(block, /\.commerce-cart__product \{[^}]*overflow-wrap: anywhere/);
-    for (const area of ['product', 'price', 'total', 'qty', 'remove']) {
+    assert.match(block, /grid-template-areas: "product product remove" "qty total total"/);
+    assert.match(css, /\.commerce-cart__info \{[^}]*overflow-wrap: anywhere/);
+    for (const area of ['product', 'total', 'qty', 'remove']) {
         assert.match(block, new RegExp(`grid-area: ${area};`));
     }
 });
@@ -53,6 +53,7 @@ test('starter theme: drawers keep focus inside and close with Escape', () => {
     // Without JavaScript the filter button stays hidden and the form is shown in the page.
     assert.match(js, /button\.hidden = false/);
     assert.match(css, /\.js \.commerce-listing__filters \{[^}]*position: fixed/);
+    assert.match(css, /\.commerce-listing__filters \{[^}]*padding-inline: 5px;[^}]*overflow-y: auto;/);
     assert.match(css, /\.js \.commerce-nav \{[^}]*transform: translateX\(-100%\)/);
 });
 

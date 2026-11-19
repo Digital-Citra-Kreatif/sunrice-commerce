@@ -10,6 +10,7 @@ use Sunrice\Commerce\Notifications\Notifier;
 use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\Timeline;
+use Sunrice\Commerce\Orders\TimelineText;
 use Sunrice\Commerce\Returns\Models\ReturnRequest;
 use Sunrice\Commerce\Returns\Returns;
 
@@ -54,7 +55,7 @@ class RequestReturn
 
             return $return;
         });
-        $this->timeline->record($order, 'return', "Return {$return->number()} requested: ".__("commerce::account.returns.reasons.{$reason}"), ['return' => $return->id], $actor, 'customer');
+        $this->timeline->record($order, 'return', Timeline::text('commerce::orders.timeline.return_requested', ['number' => $return->number(), 'reason' => TimelineText::make("commerce::account.returns.reasons.{$reason}")]), ['return' => $return->id], $actor, 'customer');
         $this->notifier->send('staff_return_requested', $order, ['url' => route('sunrice.admin.commerce.returns.edit', $return), 'return' => $return->number()]);
 
         return $return;

@@ -1,9 +1,9 @@
 # Extending Sunrice Commerce
 
 Extension packages (gateways, couriers, loyalty, marketplaces…) plug into commerce from their own
-Laravel service provider. Everything here is the 1.x public surface: it follows semantic
-versioning. For a step-by-step walkthrough of a new package, see
-[extension-package.md](extension-package.md).
+Laravel service provider. Everything here is the public surface: it follows semantic
+versioning, and before 1.0 a minor version (0.2, 0.3…) may change it, as `CHANGELOG.md` lists.
+For a step-by-step walkthrough of a new package, see [extension-package.md](extension-package.md).
 
 ```php
 use Sunrice\Commerce\Facades\Commerce;   // or app(\Sunrice\Commerce\Commerce::class)
@@ -30,6 +30,10 @@ The workbench has three working references: `workbench/app/Commerce/FakeGateway.
 - [Pricing](#pricing): price candidates, discounts, shipping discounts, fees, stages
 - [Payments](#payments)
 - [Shipping](#shipping)
+- [Cart lines](#cart-lines): meta on a line
+- [Catalog filters](#catalog-filters): listings filtered your way
+- [Line details](#line-details): what a line's meta means
+- [Shipping origins](#shipping-origins): ship from a branch
 - [Checkout](#checkout): fields, completions
 - [Orders](#orders): numbering, panels
 - [My Account pages](#my-account-pages)
@@ -80,6 +84,17 @@ Commerce::registerSettingsSection(new SettingsSection(
     permission: 'commerce.settings.loyalty',  // default: commerce.settings.<key>
 ));
 Commerce::settings()->get('loyalty.point_value', 100);
+```
+
+The form is drawn as the panel draws its forms. A field's `section` (a title) puts it in a card of
+that name; fields without one come first. The CMS's `width` (25, 33, 50, 66, 75 or 100 percent) sets
+fields side by side, and its `condition` shows a field only while another has a value. A hidden
+field's own rules don't apply, so `required` holds only while the field shows:
+
+```php
+['handle' => 'mode', 'type' => 'select', 'label' => 'Points from', 'section' => 'Earning', 'width' => 50, …],
+['handle' => 'percent', 'type' => 'number', 'label' => 'Percent', 'section' => 'Earning', 'width' => 50,
+    'condition' => ['field' => 'mode', 'operator' => 'equals', 'value' => 'percent']],
 ```
 
 For a section that needs its own UI, register a React component with the same key (see
@@ -142,6 +157,14 @@ gives settings, title, availability rules, fees and deadlines from the admin for
 | `start(Order, Payment): PaymentStart` | `PaymentStart::redirect($url)`, `::embedded($view, $data)`, `::instructions($snapshot)` or `::paid($result)` |
 | `instructionsView()` | The pay page partial for instructions |
 
+A settings schema is a list of field definitions, the CMS's types plus commerce's own
+(`commerce_money`, `commerce_region`, …), with `width` and `condition` as in the CMS. The admin draws
+them as the rest of the panel does. A `section` key puts a field on a card of its own, and a folded
+card sums up what it holds. A `group` is a small heading with its fields under it, and a
+`repeater`'s rows fold to one line each. For text in each site language, use
+`SchemaForm::perLanguage('title', 'Title', 'text', 120)`: it gives `{id: "…", en: "…"}`, drawn as
+language tabs. Pass `requireMain: true` to require the main language's.
+
 Optional contracts:
 
 - `HandlesReturn::handleReturn(Request, Payment): PaymentResult` — the customer comes back;
@@ -194,6 +217,78 @@ types are cached for ten minutes per request.
   number. Commerce doesn't call it yet: call it from your own admin action or listener
   (`ShipmentCreated`).
 
+## Cart lines
+
+A cart line is a variant **and its meta**. A package can add a line with meta (a rental's dates, an
+engraving) through `AddToCart`:
+
+```php
+app(AddToCart::class)->handle($variantId, 1, ['rental' => ['start' => '2026-12-01', 'end' => '2026-12-03']]);
+```
+
+- The same variant with the same meta (keys in any order) adds to that line; with other meta it's a
+  new line. Lines without meta merge by variant, as before. `CartItem::lineKey($meta)` is the hash
+  that tells them apart (`line_key`, `''` without meta).
+- Stock and quantity rules count every line of the variant together.
+- Signing in merges a guest line into the line with the same variant and meta.
+- The meta reaches the calculation as `CalcLine->meta` and is kept on the order item as
+  `meta.line`.
+## Line details
+
+Say what a line's meta means, in a few short lines shown under it in the cart, at checkout, on the
+order page, in emails, on invoices and in the admin's order page:
+
+```php
+Commerce::describeLinesUsing(function (array $meta): array {
+    if (! isset($meta['rental'])) {
+        return [];   // not ours
+    }
+
+    return [__('rental.line', ['from' => …, 'to' => …, 'branch' => …])];
+});
+```
+
+The closure gets a cart line's meta, or an order item's `meta.line`, and returns strings in the
+current language. A describer that throws is reported and skipped. `OrderItem::details()` and
+`LineDetails::for($meta)` read them.
+
+## Shipping origins
+
+Rates are quoted from the store address (Settings → Store → General) unless an extension names
+another origin for the cart, such as the branch or warehouse that has the goods:
+
+```php
+Commerce::shippingOriginUsing(function (CalculationState $state): ?array {
+    $branch = …;   // from the lines' meta, say
+
+    return $branch ? ['name' => $branch->name, 'phone' => $branch->phone, 'line1' => $branch->address,
+        'postal_code' => $branch->postal_code, 'country' => 'ID', 'latitude' => $branch->lat, 'longitude' => $branch->lng] : null;
+});
+```
+
+The closure returns an `Address` (or its array), or null to leave it to the next resolver and then
+the store. `ShippingRequest::$origin` is that address. A delivered order placed with one keeps it
+in `meta.shipping_origin`, and `Order::shippingOrigin()` returns it (or the store address), so a
+carrier books the pickup from where the rate was quoted. `Address` has `latitude` and `longitude`
+for couriers that price by distance.
+## Catalog filters
+
+A filter of your own for product listings, search and their facet counts, read from the query
+string:
+
+```php
+Commerce::registerCatalogFilter('available',
+    fn (Request $request) => $request->filled('rent_from') ? [$request->query('rent_from'), $request->query('rent_to')] : null,
+    fn (Builder $products, mixed $value) => $products->whereHas('variants', …),
+);
+
+ProductQuery::make()->filter('available', ['2026-12-01', '2026-12-03']);   // in code
+```
+
+`$read` returns the filter's value, or null when the request doesn't set it. `$apply` narrows the
+products query (`Builder<Product>`). The value is part of `ProductQuery::state()`, so cached facet
+counts are kept per value.
+
 ## Checkout
 
 ```php
@@ -219,6 +314,21 @@ Commerce::orderNumberUsing(fn (?Order $order) => 'TK-'.now()->format('ymd').'-'.
 // A panel on the admin order page: data here, component in the admin bundle.
 Commerce::registerOrderPanel('loyalty', 'Points', fn (Order $order) => ['earned' => …], 'commerce.orders.view');
 ```
+
+Limit which orders a staff member sees in the admin (a branch's staff, their branch's orders):
+
+```php
+Commerce::scopeAdminOrders(function (Builder $orders, Authenticatable $user): void {
+    if ($branch = BranchStaff::branchOf($user)) {
+        $orders->whereHas('items', …);   // narrow it as you need
+    }
+});
+```
+
+Every scope narrows the orders list and its export and bulk actions, the dashboard's recent orders,
+a customer's orders and the payment confirmations. An order outside it answers 404 on its own pages
+and actions (`Http\Middleware\ScopeAdminOrders`). Users no scope narrows see everything. Reports
+and the MCP tools aren't scoped: keep those permissions for staff who may see all orders.
 
 Change orders only through the actions (`Orders\Actions\*`) and `Orders\OrderStateMachine`, with an
 `Orders\Actor` (`Actor::system()`, `Actor::admin($user)`, `Actor::ai($user)`…): they validate, keep
@@ -268,7 +378,7 @@ The partial gets the slot's variables. Templates render slots with
 | `order.after_payment` | Order page, after the payment box | — |
 | `order.after_summary` | Order page, after the items | `$order` |
 | `order.after` | End of the order page | — |
-| `account.overview` | My Account overview | `$customer` |
+| `account.overview` | Above the order filters on My Account → Orders | `$customer` |
 
 ## Dashboard widgets, reports and health checks
 
@@ -402,6 +512,8 @@ are public properties.
 | `Orders\Events\OrderRefunded` | `Order $order, Refund $refund` |
 | `Orders\Events\ShipmentCreated`, `ShipmentDelivered` | `Order $order, Shipment $shipment` |
 | `Payments\Events\PaymentRecorded`, `PaymentSucceeded`, `PaymentFailed`, `PaymentExpired` | `Payment $payment, PaymentResult $result` |
+| `Orders\Events\DepositPaid` | `Order $order, Payment $payment` (the deposit; `OrderPaid` follows with the balance) |
+| `Orders\Events\BalanceOverdue` | `Order $order` (a deposit order's balance passed its due date unpaid; once) |
 | `Payments\Events\PaymentAfterCancellation` | `Payment $payment, PaymentResult $result, Order $order` (paid after the order was cancelled: no `OrderPaid`) |
 | `Payments\Events\PaymentConfirmationSubmitted`, `PaymentConfirmationApproved`, `PaymentConfirmationRejected` | `PaymentConfirmation $confirmation` |
 | `Reviews\Events\ReviewSubmitted` | `Review $review` (pending or approved, by the store's settings) |

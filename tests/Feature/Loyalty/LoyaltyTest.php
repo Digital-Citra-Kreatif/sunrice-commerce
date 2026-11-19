@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Sunrice\Commerce\Analytics\Period;
 use Sunrice\Commerce\Analytics\Reports\CustomersReport;
@@ -93,8 +94,12 @@ it('leaves out excluded products, small orders and guests', function () {
 it('pays with points after tax, takes them from the wallet, and gives them back when the order is cancelled', function () {
     app(Wallet::class)->credit($this->customer, 30000, 'adjust');
     $cart = cartWith([[$this->mug, 2]]);
-    $this->post('/cart/points', ['use' => 1])->assertSessionHas('commerce.success');
-    $this->get('/cart')->assertSee(__('commerce::storefront.cart.points_used'))->assertSee('-Rp30.000');
+    $this->get('/checkout')->assertOk()->assertSee('id="checkout-points"', false)->assertSee('30.000');
+    $this->postJson('/checkout/refresh', checkoutInput(['use_points' => '1']))
+        ->assertOk()->assertJsonPath('totals.points.amount', 30000)->assertJsonPath('totals.total.amount', 80000)
+        ->assertJsonPath('payment_methods.0.key', 'test_transfer');
+    $this->get('/cart')->assertOk()->assertDontSee(__('commerce::storefront.cart.points_use'))->assertDontSee('-Rp30.000');
+    expect($this->customer->fresh()->loyalty_points)->toBe(30000);
 
     $order = placeAsRina($cart->fresh());
     expect($order->total)->toBe(110000 - 30000)
@@ -147,14 +152,35 @@ it('refunds money first, then onto the wallet, takes back what was earned, and c
 it('pays a whole order with points and refunds it back onto the wallet', function () {
     app(Wallet::class)->credit($this->customer, 200000, 'adjust');
     $cart = cartWith([[$this->mug, 2]]);
-    $cart->update(['checkout' => ['use_points' => true]]);
-    $order = placeAsRina($cart->fresh());
+    $input = checkoutInput();
+    unset($input['payment_method']);
+    $this->post('/checkout', [...$input, 'action' => 'update_points', 'use_points' => '1'])
+        ->assertRedirect('/checkout#checkout-points');
+    $this->get('/checkout')->assertOk()->assertSee('id="checkout-points"', false)
+        ->assertSee('-Rp110.000')->assertDontSee('name="payment_method"', false);
+    $this->postJson('/checkout/refresh', [...$input, 'use_points' => '0'])
+        ->assertOk()->assertJsonPath('totals.points.amount', 0)->assertJsonPath('totals.total.amount', 110000)
+        ->assertJsonPath('payment_methods.0.key', 'test_transfer');
+    $hash = $this->postJson('/checkout/refresh', [...$input, 'use_points' => '1'])
+        ->assertOk()->assertJsonPath('totals.total.amount', 0)->assertJsonPath('payment_methods', [])->json('hash');
+    $this->post('/checkout', [...$input, 'action' => 'place', 'use_points' => '1', 'totals_hash' => $hash])->assertRedirect();
+    $order = Order::query()->sole();
     expect($order->total)->toBe(0)->and($order->payment_status)->toBe(OrderStatus::PAID)
+        ->and($order->payments()->count())->toBe(0)
         ->and($this->customer->fresh()->loyalty_points)->toBe(90000);
 
     app(RecordRefund::class)->handle($order, 110000, [], null, false, Actor::system());
     expect($this->customer->fresh()->loyalty_points)->toBe(200000)
         ->and($order->fresh()->status)->toBe(OrderStatus::REFUNDED);
+});
+
+it('does not offer or persist points for a guest', function () {
+    Auth::guard('commerce')->logout();
+    $cart = cartWith([[$this->mug, 1]]);
+    $this->get('/checkout')->assertOk()->assertDontSee('id="checkout-points"', false);
+    $this->withCredentials()->postJson('/checkout/refresh', checkoutInput(['use_points' => '1']))
+        ->assertOk()->assertJsonPath('totals.points.amount', 0);
+    expect($cart->fresh()->checkout['use_points'])->toBeFalse();
 });
 
 it('spends the points that expire first, and expires what is left in time', function () {

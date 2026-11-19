@@ -6,6 +6,7 @@ namespace Sunrice\Commerce\Payments;
 
 use DateTimeInterface;
 use Sunrice\Cms\Support\Locales;
+use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Contracts\PaymentMethod;
 
@@ -132,14 +133,7 @@ abstract class PaymentMethodBase implements PaymentMethod
      */
     public static function commonSchema(): array
     {
-        $perLanguage = function (string $handle, string $label, string $type) {
-            $fields = [];
-            foreach (Locales::all() as $locale) {
-                $fields[] = ['handle' => $locale, 'type' => $type, 'label' => Locales::name($locale), 'translatable' => false, 'config' => ['max' => $type === 'text' ? 120 : 2000]];
-            }
-
-            return ['handle' => $handle, 'type' => 'group', 'label' => $label, 'config' => ['fields' => $fields]];
-        };
+        $perLanguage = fn (string $handle, string $label, string $type) => SchemaForm::perLanguage($handle, $label, $type, $type === 'text' ? 120 : 2000);
 
         return [
             ['handle' => 'active', 'type' => 'toggle', 'label' => 'Active'],

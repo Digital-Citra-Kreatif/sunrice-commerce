@@ -9,7 +9,10 @@ use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Models\Taxonomy;
-use Sunrice\Cms\Support\Locales;
+use Sunrice\Cms\Models\Term;
+use Sunrice\Commerce\Admin\SchemaForm;
+use Sunrice\Commerce\Catalog\ProductContentFields;
+use Sunrice\Commerce\Catalog\ProductDefaults;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Settings\SettingsRegistry;
 use Sunrice\Commerce\Settings\SettingsSection;
@@ -41,7 +44,7 @@ final class BuiltinSections
     }
 
     /**
-     * @param  array<string, string>  $labels
+     * @param  array<int|string, string>  $labels
      * @return array<int, array{value: string, label: string}>
      */
     protected static function options(array $labels): array
@@ -66,30 +69,30 @@ final class BuiltinSections
     protected static function general(): array
     {
         return [
-            ['handle' => 'name', 'type' => 'text', 'label' => 'Store name', 'required' => true, 'translatable' => false, 'config' => ['max' => 120],
+            ['handle' => 'name', 'section' => 'Store', 'width' => 50, 'type' => 'text', 'label' => 'Store name', 'required' => true, 'translatable' => false, 'config' => ['max' => 120],
                 'instructions' => 'On invoices, emails and the storefront.'],
-            ['handle' => 'logo', 'type' => 'asset', 'label' => 'Logo', 'config' => ['image_only' => true], 'instructions' => 'For invoices and emails.'],
-            ['handle' => 'brand_color', 'type' => 'text', 'label' => 'Brand color', 'translatable' => false, 'instructions' => 'A hex color like #b45309 for email buttons, headings and links. Empty: the default.',
+            ['handle' => 'logo', 'section' => 'Brand', 'width' => 50, 'type' => 'asset', 'label' => 'Logo', 'config' => ['image_only' => true], 'instructions' => 'For invoices and emails.'],
+            ['handle' => 'brand_color', 'section' => 'Brand', 'width' => 50, 'type' => 'text', 'label' => 'Brand color', 'translatable' => false, 'instructions' => 'A hex color like #b45309 for email buttons, headings and links. Empty: the default.',
                 'validation' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/']],
-            ['handle' => 'email', 'type' => 'text', 'label' => 'Store email', 'translatable' => false, 'validation' => ['email:rfc', 'max:190'],
+            ['handle' => 'email', 'section' => 'Store', 'width' => 50, 'type' => 'text', 'label' => 'Store email', 'translatable' => false, 'validation' => ['email:rfc', 'max:190'],
                 'instructions' => 'Order notifications go here; customers reply to it.'],
-            ['handle' => 'phone', 'type' => 'text', 'label' => 'Phone', 'translatable' => false, 'config' => ['max' => 40]],
-            ['handle' => 'tax_id', 'type' => 'text', 'label' => 'Tax number (NPWP)', 'translatable' => false, 'config' => ['max' => 40]],
-            ['handle' => 'address', 'type' => 'group', 'label' => 'Store address', 'instructions' => 'Printed on invoices; shipping origin.', 'config' => ['fields' => [
+            ['handle' => 'phone', 'section' => 'Store', 'width' => 50, 'type' => 'text', 'label' => 'Phone', 'translatable' => false, 'config' => ['max' => 40]],
+            ['handle' => 'tax_id', 'section' => 'Store', 'width' => 50, 'type' => 'text', 'label' => 'Tax number (NPWP)', 'translatable' => false, 'config' => ['max' => 40]],
+            ['handle' => 'address', 'section' => 'Address', 'type' => 'group', 'label' => 'Store address', 'instructions' => 'Printed on invoices; shipping origin.', 'config' => ['fields' => [
                 ['handle' => 'line1', 'type' => 'text', 'label' => 'Street address', 'translatable' => false, 'config' => ['max' => 190]],
                 ['handle' => 'line2', 'type' => 'text', 'label' => 'Building, floor (optional)', 'translatable' => false, 'config' => ['max' => 190]],
                 ['handle' => 'region', 'type' => 'commerce_region', 'label' => 'Region', 'config' => ['depth' => 'district']],
-                ['handle' => 'postal_code', 'type' => 'text', 'label' => 'Postal code', 'translatable' => false, 'config' => ['max' => 12]],
+                ['handle' => 'postal_code', 'width' => 50, 'type' => 'text', 'label' => 'Postal code', 'translatable' => false, 'config' => ['max' => 12]],
             ]]],
-            ['handle' => 'selling_mode', 'type' => 'select', 'label' => 'Selling mode', 'required' => true, 'config' => ['options' => self::options([
+            ['handle' => 'selling_mode', 'section' => 'Selling', 'type' => 'select', 'label' => 'Selling mode', 'required' => true, 'config' => ['options' => self::options([
                 'shop' => 'Online store: customers check out and pay',
                 'quote' => 'Quotation: customers request a quote, you send prices',
                 'whatsapp' => 'WhatsApp order: the cart is sent to you on WhatsApp',
                 'catalog' => 'Catalog: no cart; products show a call to action',
             ])]],
-            ['handle' => 'pause_orders', 'type' => 'toggle', 'label' => 'Pause orders', 'instructions' => 'The store stays open, but checkout is closed (holidays, stocktaking).'],
-            ['handle' => 'pause_message', 'type' => 'textarea', 'label' => 'Message while paused', 'config' => ['max' => 500]],
-            ['handle' => 'whatsapp', 'type' => 'group', 'label' => 'WhatsApp', 'config' => ['fields' => [
+            ['handle' => 'pause_orders', 'section' => 'Selling', 'type' => 'toggle', 'label' => 'Pause orders', 'instructions' => 'The store stays open, but checkout is closed (holidays, stocktaking).'],
+            ['handle' => 'pause_message', 'section' => 'Selling', 'condition' => ['field' => 'pause_orders', 'operator' => 'equals', 'value' => true], 'type' => 'textarea', 'label' => 'Message while paused', 'config' => ['max' => 500]],
+            ['handle' => 'whatsapp', 'section' => 'WhatsApp', 'type' => 'group', 'label' => 'WhatsApp', 'config' => ['fields' => [
                 ['handle' => 'numbers', 'type' => 'repeater', 'label' => 'Numbers', 'config' => ['max' => 10, 'fields' => [
                     ['handle' => 'number', 'type' => 'text', 'label' => 'Number', 'required' => true, 'translatable' => false, 'validation' => ['regex:/^\+?[0-9 ()-]{8,20}$/']],
                     ['handle' => 'name', 'type' => 'text', 'label' => 'Name (e.g. Sales Jakarta)', 'translatable' => false, 'config' => ['max' => 60]],
@@ -102,17 +105,17 @@ final class BuiltinSections
                 self::perLanguage('order_message', 'Message for an order',
                     'Placeholders: {order_number}, {items}, {total}, {name}, {phone}, {address}, {shipping}, {notes}, {url}. Empty: the default message.'),
             ]]],
-            ['handle' => 'currency', 'type' => 'group', 'label' => 'Currency', 'instructions' => "Can't be changed once there are orders.", 'config' => ['fields' => [
-                ['handle' => 'code', 'type' => 'text', 'label' => 'Currency code', 'required' => true, 'translatable' => false, 'validation' => ['regex:/^[A-Z]{3}$/']],
-                ['handle' => 'symbol', 'type' => 'text', 'label' => 'Symbol', 'required' => true, 'translatable' => false, 'config' => ['max' => 8]],
-                ['handle' => 'position', 'type' => 'select', 'label' => 'Symbol position', 'config' => ['options' => self::options(['left' => 'Before the amount', 'right' => 'After the amount'])]],
+            ['handle' => 'currency', 'section' => 'Currency and units', 'type' => 'group', 'label' => 'Currency', 'instructions' => "Can't be changed once there are orders.", 'config' => ['fields' => [
+                ['handle' => 'code', 'width' => 33, 'type' => 'text', 'label' => 'Currency code', 'required' => true, 'translatable' => false, 'validation' => ['regex:/^[A-Z]{3}$/']],
+                ['handle' => 'symbol', 'width' => 33, 'type' => 'text', 'label' => 'Symbol', 'required' => true, 'translatable' => false, 'config' => ['max' => 8]],
+                ['handle' => 'position', 'width' => 33, 'type' => 'select', 'label' => 'Symbol position', 'config' => ['options' => self::options(['left' => 'Before the amount', 'right' => 'After the amount'])]],
                 ['handle' => 'space', 'type' => 'toggle', 'label' => 'Space between symbol and amount'],
-                ['handle' => 'thousands', 'type' => 'select', 'label' => 'Thousands separator', 'config' => ['options' => self::options(['.' => 'Dot (1.000)', ',' => 'Comma (1,000)', ' ' => 'Space (1 000)', '' => 'None (1000)'])]],
-                ['handle' => 'decimal', 'type' => 'select', 'label' => 'Decimal separator', 'config' => ['options' => self::options([',' => 'Comma', '.' => 'Dot'])]],
-                ['handle' => 'decimals', 'type' => 'number', 'label' => 'Decimals', 'required' => true, 'config' => ['min' => 0, 'max' => 3], 'validation' => ['integer']],
+                ['handle' => 'thousands', 'width' => 33, 'type' => 'select', 'label' => 'Thousands separator', 'config' => ['options' => self::options(['.' => 'Dot (1.000)', ',' => 'Comma (1,000)', ' ' => 'Space (1 000)', '' => 'None (1000)'])]],
+                ['handle' => 'decimal', 'width' => 33, 'type' => 'select', 'label' => 'Decimal separator', 'config' => ['options' => self::options([',' => 'Comma', '.' => 'Dot'])]],
+                ['handle' => 'decimals', 'width' => 33, 'type' => 'number', 'label' => 'Decimals', 'required' => true, 'config' => ['min' => 0, 'max' => 3], 'validation' => ['integer']],
             ]]],
-            ['handle' => 'weight_unit', 'type' => 'select', 'label' => 'Weight unit', 'config' => ['options' => self::options(['kg' => 'Kilograms', 'g' => 'Grams'])]],
-            ['handle' => 'dimension_unit', 'type' => 'select', 'label' => 'Dimension unit', 'config' => ['options' => self::options(['cm' => 'Centimeters', 'm' => 'Meters', 'mm' => 'Millimeters'])]],
+            ['handle' => 'weight_unit', 'section' => 'Currency and units', 'width' => 50, 'type' => 'select', 'label' => 'Weight unit', 'config' => ['options' => self::options(['kg' => 'Kilograms', 'g' => 'Grams'])]],
+            ['handle' => 'dimension_unit', 'section' => 'Currency and units', 'width' => 50, 'type' => 'select', 'label' => 'Dimension unit', 'config' => ['options' => self::options(['cm' => 'Centimeters', 'm' => 'Meters', 'mm' => 'Millimeters'])]],
         ];
     }
 
@@ -121,13 +124,23 @@ final class BuiltinSections
     {
         $roles = Role::query()->orderBy('name')->pluck('name')->map(fn (string $r) => ['value' => $r, 'label' => $r])->all();
         $taxonomies = Taxonomy::query()->orderBy('title')->get()->map(fn (Taxonomy $t) => ['value' => $t->handle, 'label' => $t->title])->all();
+        $choosePage = ['field' => 'continue_shopping_mode', 'operator' => 'equals', 'value' => 'page'];
+        $target = fn (string $kind): array => ['match' => 'all', 'rules' => [
+            $choosePage, ['field' => 'continue_shopping_target', 'operator' => 'equals', 'value' => $kind],
+        ]];
 
         return [
             ['handle' => 'price_visibility', 'type' => 'select', 'label' => 'Who sees prices', 'config' => ['options' => self::options([
                 'everyone' => 'Everyone', 'signed_in' => 'Signed-in customers', 'roles' => 'Customers with certain roles', 'nobody' => 'Nobody (prices on request)',
             ])]],
             ['handle' => 'price_visibility_roles', 'type' => 'select', 'label' => 'Roles that see prices', 'config' => ['options' => $roles, 'multiple' => true]],
-            ['handle' => 'call_to_action', 'type' => 'select', 'label' => 'Call to action in Catalog mode', 'instructions' => 'Products can override it.', 'config' => ['options' => self::options([
+            ['handle' => 'default_purchase_mode', 'section' => 'Product button defaults', 'type' => 'select', 'label' => 'Default storefront button',
+                'instructions' => 'Category rules can override the store. Brand rules take priority over category rules. A product can override both.',
+                'config' => ['options' => self::options(ProductDefaults::MODES)]],
+            ...array_map(fn (array $field) => [...$field, 'section' => 'Store product content'], ProductContentFields::defaults()),
+            self::scopedDefaults('category', 'Category'),
+            self::scopedDefaults('brand', 'Brand'),
+            ['handle' => 'call_to_action', 'type' => 'select', 'label' => 'Call to action in Catalog mode', 'instructions' => 'Used by Follow selling mode in Catalog mode and when the cart is unavailable.', 'config' => ['options' => self::options([
                 'inquiry' => 'Inquiry form', 'whatsapp' => 'Ask on WhatsApp', 'external' => 'Links to other shops (set per product)', 'none' => 'None',
             ])]],
             ['handle' => 'show_stock', 'type' => 'select', 'label' => 'Show stock', 'config' => ['options' => self::options([
@@ -135,6 +148,18 @@ final class BuiltinSections
             ])]],
             ['handle' => 'low_stock_threshold', 'type' => 'number', 'label' => 'Low stock at', 'config' => ['min' => 0, 'max' => 100000], 'validation' => ['integer']],
             ['handle' => 'hide_out_of_stock', 'type' => 'toggle', 'label' => 'Hide out-of-stock products from listings'],
+            ['handle' => 'continue_shopping_mode', 'section' => 'Continue shopping', 'type' => 'select', 'label' => 'Destination',
+                'instructions' => 'Automatic opens the catalog in the shopper’s language, or the homepage if there is no catalog listing.',
+                'config' => ['options' => self::options(['auto' => 'Automatic', 'page' => 'Choose a page'])]],
+            ['handle' => 'continue_shopping_target', 'section' => 'Continue shopping', 'type' => 'select', 'label' => 'Page type', 'condition' => $choosePage,
+                'config' => ['options' => self::options(['entry' => 'CMS page', 'collection' => 'Collection listing'])]],
+            ['handle' => 'continue_shopping_page', 'section' => 'Continue shopping', 'type' => 'entries', 'label' => 'CMS page',
+                'condition' => $target('entry'), 'required' => true,
+                'config' => ['collections' => Collection::query()->whereNotNull('route')->orderBy('title')->pluck('handle')->all()],
+                'instructions' => 'Choose a published page. If it becomes unavailable, this link uses the automatic destination.'],
+            ['handle' => 'continue_shopping_collection', 'section' => 'Continue shopping', 'type' => 'select', 'label' => 'Collection listing',
+                'condition' => $target('collection'), 'required' => true, 'config' => ['options' => Collection::query()->whereNotNull('listing_route')
+                    ->orderBy('title')->get()->map(fn (Collection $collection) => ['value' => $collection->handle, 'label' => $collection->title])->all()]],
             ['handle' => 'new_badge_days', 'type' => 'number', 'label' => '"New" badge for (days)', 'instructions' => '0: no badge.', 'config' => ['min' => 0, 'max' => 365], 'validation' => ['integer']],
             ['handle' => 'price_range', 'type' => 'select', 'label' => 'Price of variable products', 'config' => ['options' => self::options([
                 'range' => 'Range (Rp10.000 – Rp25.000)', 'from' => 'From the lowest (From Rp10.000)', 'min' => 'Lowest only',
@@ -144,12 +169,28 @@ final class BuiltinSections
             ['handle' => 'compare_fields', 'type' => 'select', 'label' => 'Compare also', 'config' => ['multiple' => true, 'options' => self::options([
                 'sku' => 'SKU', 'brand' => 'Brand', 'categories' => 'Categories', 'stock' => 'Stock', 'weight' => 'Weight', 'dimensions' => 'Dimensions', 'attributes' => 'Attributes', 'excerpt' => 'Summary',
             ])]],
-            ['handle' => 'reviews_who', 'type' => 'select', 'label' => 'Who may review products', 'config' => ['options' => self::options([
-                'everyone' => 'Everyone (guests give a name and email)', 'customers' => 'Signed-in customers', 'buyers' => 'Customers who bought the product',
-            ])]],
-            ['handle' => 'reviews_approval', 'type' => 'select', 'label' => 'Reviews show', 'config' => ['options' => self::options([
-                'manual' => 'Once approved in Shop → Reviews', 'buyers' => 'At once from buyers, others once approved', 'none' => 'At once',
-            ])]],
+            ['handle' => 'reviews_approval', 'type' => 'select', 'label' => 'Reviews show',
+                'instructions' => 'Only verified buyers can submit reviews on the storefront.',
+                'config' => ['options' => self::options(['manual' => 'Once approved in Shop → Reviews', 'none' => 'Immediately', 'buyers' => 'Immediately (legacy buyer setting)'])]],
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private static function scopedDefaults(string $scope, string $label): array
+    {
+        $taxonomy = Taxonomy::query()->where('handle', config("commerce.catalog.{$scope}_taxonomy"))->first();
+        $terms = $taxonomy?->terms()->with('translations')->get()->sortBy(fn (Term $term) => $term->title())
+            ->mapWithKeys(fn (Term $term) => [$term->id => $term->title()])->all() ?? [];
+
+        return [
+            'handle' => "{$scope}_defaults", 'section' => 'Category and brand defaults', 'type' => 'repeater', 'label' => "{$label} rules",
+            'instructions' => 'Leave fields empty to inherit. For each field, the first matching rule with a value wins. Brand rules take priority.',
+            'config' => ['max' => 200, 'fields' => [
+                ['handle' => 'term', 'type' => 'select', 'label' => $label, 'width' => 50, 'required' => true, 'config' => ['options' => self::options($terms)]],
+                ['handle' => 'purchase_mode', 'type' => 'select', 'label' => 'Storefront button', 'width' => 50,
+                    'config' => ['options' => self::options(array_diff_key(ProductDefaults::MODES, ['default' => true]))]],
+                ...ProductContentFields::defaults(scoped: true),
+            ]],
         ];
     }
 
@@ -176,6 +217,8 @@ final class BuiltinSections
                 'config' => ['collections' => Collection::query()->whereNotIn('handle', (array) config('commerce.catalog.collections', ['products']))->orderBy('title')->pluck('handle')->all()]],
             ['handle' => 'free_shipping_combines', 'type' => 'toggle', 'label' => 'A free-shipping code can be used with one other code', 'instructions' => 'Even when neither is marked combinable.'],
             ['handle' => 'customer_cancel', 'type' => 'toggle', 'label' => 'Customers can cancel unpaid orders'],
+            ['handle' => 'confirmation_reminder_hours', 'type' => 'number', 'label' => 'Remind staff of a payment confirmation not reviewed after (hours)', 'instructions' => 'Once, by the "Payment confirmation to verify" email. 0: no reminder.', 'config' => ['min' => 0, 'max' => 720], 'validation' => ['integer']],
+            ['handle' => 'balance_reminder_days', 'type' => 'number', 'label' => 'Remind of an unpaid balance (days before it is due)', 'instructions' => 'For orders paid with a deposit. 0: no reminder.', 'config' => ['min' => 0, 'max' => 60], 'validation' => ['integer']],
             ['handle' => 'returns_days', 'type' => 'number', 'label' => 'Returns accepted for (days)', 'instructions' => 'After an order is completed, with the Returns module on. 0: none.', 'config' => ['min' => 0, 'max' => 365], 'validation' => ['integer']],
             ['handle' => 'order_number_format', 'type' => 'text', 'label' => 'Order number', 'required' => true, 'translatable' => false,
                 'instructions' => '{Y} year, {y} 2-digit year, {m} month, {d} day, {seq:4} counter with 4 digits.', 'config' => ['max' => 60]],
@@ -227,6 +270,13 @@ final class BuiltinSections
             ['handle' => 'customer_roles', 'type' => 'select', 'label' => 'Customer roles', 'required' => true,
                 'instructions' => 'Roles given to new customers, and counted as customers in Shop → Customers.', 'config' => ['options' => $roles, 'multiple' => true]],
             ['handle' => 'code_minutes', 'type' => 'number', 'label' => 'Sign-in codes are valid for (minutes)', 'config' => ['min' => 5, 'max' => 60], 'validation' => ['integer']],
+            ['handle' => 'announcement_enabled', 'section' => 'Account announcement', 'type' => 'toggle', 'label' => 'Show an announcement in My Account'],
+            ['handle' => 'announcement_position', 'section' => 'Account announcement', 'type' => 'select', 'label' => 'Placement',
+                'instructions' => 'The first tab becomes the page customers land on. The other placements show on account pages.',
+                'config' => ['options' => self::options(['tab' => 'First tab (default page)', 'above' => 'Above page content', 'below' => 'Below page content'])]],
+            SchemaForm::perLanguage('announcement_title', 'Title', 'text', 120, ['section' => 'Account announcement']),
+            SchemaForm::perLanguage('announcement_message', 'Message', 'textarea', 3000, ['section' => 'Account announcement',
+                'instructions' => 'Enter the announcement in the main language. Other languages can use their own version.']),
         ];
     }
 
@@ -250,12 +300,7 @@ final class BuiltinSections
      */
     protected static function perLanguage(string $handle, string $label, string $instructions): array
     {
-        $fields = [];
-        foreach (Locales::all() as $locale) {
-            $fields[] = ['handle' => $locale, 'type' => 'textarea', 'label' => Locales::name($locale), 'translatable' => false, 'config' => ['max' => 1000]];
-        }
-
-        return ['handle' => $handle, 'type' => 'group', 'label' => $label, 'instructions' => $instructions, 'config' => ['fields' => $fields]];
+        return SchemaForm::perLanguage($handle, $label, 'textarea', 1000, ['instructions' => $instructions]);
     }
 
     protected static function formatRule(): Closure

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Dom\HTMLDocument;
+use Illuminate\Support\Env;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
@@ -23,6 +25,7 @@ use Sunrice\Commerce\Regions\RegionImporter;
 use Sunrice\Commerce\Reviews\Models\Review;
 use Sunrice\Commerce\Storefront\Templates;
 use Workbench\App\Models\User;
+use Workbench\Database\Seeders\LoadTestSeeder;
 
 /*
  * The starter theme (commerce:install --starter) and its demo store
@@ -70,9 +73,35 @@ it('seeds the starter store once, however often it runs', function () {
         ->and(Product::query()->where('rating_count', '>', 0)->count())->toBe(4);
 });
 
+it('fills the load test fixtures on top of the starter store and can be rerun', function () {
+    starterStore();
+    $sizes = ['LOADTEST_PRODUCTS' => '6', 'LOADTEST_CUSTOMERS' => '3', 'LOADTEST_ORDERS' => '2'];
+    $env = Env::getRepository();
+    $previous = array_map(fn (string $key) => $env->get($key), array_keys($sizes));
+    foreach ($sizes as $key => $value) {
+        $env->set($key, $value);
+    }
+
+    $counts = fn () => [Product::query()->count(), Customer::query()->count(), Order::query()->count()];
+    [$products, $customers, $orders] = $counts();
+    try {
+        app(LoadTestSeeder::class)->run();
+        // The starter's demo user already has a customer record.
+        expect($counts())->toBe([$products + 6, $customers + 2, $orders + 2]);
+
+        app(LoadTestSeeder::class)->run();
+        expect($counts())->toBe([$products + 6, $customers + 2, $orders + 2]);
+    } finally {
+        foreach (array_combine(array_keys($sizes), $previous) as $key => $value) {
+            $value === null ? $env->clear($key) : $env->set($key, $value);
+        }
+    }
+});
+
 it('renders every starter page with the demo data', function () {
     starterStore();
-    $order = Order::query()->where('status', 'pending')->firstOrFail();
+    $order = makeOrder();
+    authorizeGuestOrders($order);
     $sale = FlashSale::query()->firstOrFail();
 
     foreach (['/', '/products', '/products?q=kaus', '/products?q=tidak-ada-apa-apa', '/products/category/women', '/products/category/women-t-shirts?sort=price',
@@ -87,11 +116,22 @@ it('renders every starter page with the demo data', function () {
     $this->get('/products/category/women')->assertSee('data-commerce-filters', false)->assertSee('commerce-swatch', false);
 
     $this->actingAs(User::query()->where('email', StarterStoreSeeder::CUSTOMER_EMAIL)->firstOrFail(), (string) config('commerce.auth.guard', 'commerce'));
-    foreach (['/account', '/account/orders', '/account/orders/'.Order::query()->where('status', 'completed')->value('id'), '/account/downloads',
+    $this->get('/account')->assertRedirect('/account/orders');
+    foreach (['/account/orders', '/account/orders/'.Order::query()->where('status', 'completed')->value('id'), '/account/downloads',
         '/account/addresses', '/account/profile'] as $path) {
         $this->get($path)->assertOk()->assertSee('commerce-account', false);
     }
     $this->get('/wishlist')->assertOk()->assertSee('commerce-wishlist__item', false);
+
+    $product = $this->get('/products/weatherproof-rain-parka')->assertOk();
+    $html = HTMLDocument::createFromString($product->getContent(), LIBXML_NOERROR);
+    $container = $html->querySelector('.commerce-product__primary');
+    expect($container)->not->toBeNull()
+        ->and($container->querySelector('.commerce-product__summary'))->not->toBeNull()
+        ->and($container->querySelector('.commerce-reviews'))->toBeNull()
+        ->and($container->querySelector('.commerce-related'))->toBeNull()
+        ->and($html->querySelector('.commerce-product > .commerce-reviews'))->not->toBeNull()
+        ->and($html->querySelector('.commerce-product > .commerce-related'))->not->toBeNull();
 });
 
 it('still renders the documents of starter orders as PDFs', function () {

@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Sunrice\Commerce;
 
 use Closure;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Sunrice\Commerce\Analytics\Reports\Report;
 use Sunrice\Commerce\Analytics\Reports\Reports;
 use Sunrice\Commerce\Features\Feature;
@@ -227,6 +230,61 @@ class Commerce
     }
 
     // ---- Emails ---------------------------------------------------------------
+
+    /**
+     * Limit the orders a staff member sees in the admin: the closure narrows
+     * an orders query for the signed-in user (a branch's staff to their
+     * branch's orders, say). Applied to the orders list, export and bulk
+     * actions, the dashboard, a customer's orders and the payment
+     * confirmations; an order outside it is "not found" on its pages.
+     *
+     * @param  Closure(Builder<Orders\Models\Order>, Authenticatable): void  $scope
+     */
+    public function scopeAdminOrders(Closure $scope): void
+    {
+        app(Orders\AdminOrderScopes::class)->register($scope);
+    }
+
+    /**
+     * A catalog filter of an extension's: $read takes its value from the
+     * listing's query string (null when not set), $apply narrows the products
+     * query (Builder<Product>) to the products matching it. Listings, search
+     * and facet counts use it; ProductQuery::filter($key, $value) sets it in code.
+     *
+     * @param  Closure(Request): mixed  $read
+     * @param  Closure(Builder<Catalog\Models\Product>, mixed): void  $apply
+     */
+    public function registerCatalogFilter(string $key, Closure $read, Closure $apply): void
+    {
+        app(Catalog\CatalogFilters::class)->register($key, $read, $apply);
+    }
+
+    /**
+     * Say what a line's meta means, in a few short lines shown under it in the
+     * cart, at checkout, on the order page, in emails, documents and the admin.
+     * The closure gets the meta (a cart line's, or an order item's `meta.line`)
+     * and returns strings in the current language; return none for meta that
+     * isn't yours.
+     *
+     * @param  Closure(array<string, mixed>): iterable<mixed>  $describer
+     */
+    public function describeLinesUsing(Closure $describer): void
+    {
+        app(Cart\LineDetails::class)->register($describer);
+    }
+
+    /**
+     * Where a cart ships from, when it isn't the store address: the closure
+     * gets the calculation and returns an Address (or its array), or null to
+     * leave it to the next resolver and then the store. Rates are quoted from
+     * it, and the order keeps it (Order::shippingOrigin()) for booking.
+     *
+     * @param  Closure(Pricing\CalculationState): (Support\Address|array<string, mixed>|null)  $resolver
+     */
+    public function shippingOriginUsing(Closure $resolver): void
+    {
+        app(Shipping\ShippingOrigins::class)->register($resolver);
+    }
 
     /** An email of a package's own, listed in Settings → Emails and sent with Notifier::send(). */
     public function registerEmail(Notifications\EmailDefinition $email): void

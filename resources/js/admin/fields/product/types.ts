@@ -42,7 +42,11 @@ export interface ProductValue {
     tiers: Tier[];
 }
 
+export type PurchasePreview = { type: string; source: string; source_name: string | null };
+export type PurchaseDefaults = { without_links: PurchasePreview; with_links: PurchasePreview };
+
 export interface EditorConfig {
+    purchase_default?: PurchaseDefaults;
     max_options: number;
     max_variants: number;
     link_presets: Record<string, string>;
@@ -56,6 +60,7 @@ export interface LiveProduct {
     sync_status: 'ok' | 'failed';
     sync_error: string | null;
     synced_at: string | null;
+    stock_adjustment: { reasons: string[] } | null;
     variants: Record<string, { id: number; stock_quantity: number | null; stock_status: string; track_stock: boolean }>;
 }
 
@@ -65,6 +70,8 @@ export interface TabProps {
     updateVariant: (index: number, patch: Partial<Variant>) => void;
     config: EditorConfig;
     live: LiveProduct | null;
+    purchaseDefault?: PurchaseDefaults;
+    updateLiveStock: (key: string, variantId: number, quantity: number) => void;
     entryId: number | null;
     path: string;
 }

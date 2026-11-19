@@ -14,14 +14,14 @@
                 @php($image = $row['entry'] ? collect((commerce_values($row['entry'])['gallery'] ?? null) ?? [])->first() : null)
                 <span class="commerce-summary__thumb">@if (is_object($image))<img src="{{ $image->url() }}" alt="" width="48" height="60" loading="lazy">@endif<span class="commerce-summary__badge">{{ $row['line']->quantity }}</span></span>
                 <span class="commerce-summary__qty">{{ $row['line']->quantity }} ×</span>
-                <span class="commerce-summary__name">{{ $row['entry']?->title ?? $row['entry']?->draft_title }}@if ($row['line']->variant->title !== '') ({{ $row['line']->variant->title }})@endif</span>
+                <span class="commerce-summary__name">{{ $row['entry']?->title ?? $row['entry']?->draft_title }}@if ($row['line']->variant->title !== '') ({{ $row['line']->variant->title }})@endif @foreach (app(\Sunrice\Commerce\Cart\LineDetails::class)->for($row['line']->meta) as $detail)<small class="commerce-summary__detail">{{ $detail }}</small>@endforeach</span>
                 <span class="commerce-summary__price">{{ $money->format($row['line']->subtotal) }}</span>
             </li>
         @endforeach
     </ul>
     @if ($part === 'more')</details>@endif
 @endforeach
-@foreach (collect($state->notices)->whereNotIn('code', ['voucher_conditional', 'price_changed']) as $notice)
+@foreach (collect($state->notices)->where('code', '!=', 'price_changed') as $notice)
     <p class="commerce-notice">{{ $notice['message'] }}</p>
 @endforeach
-@include(\Sunrice\Commerce\Storefront\Layout::view('partials.totals'), ['state' => $state])
+@include(\Sunrice\Commerce\Storefront\Layout::view('partials.totals'), ['state' => $state, 'atCheckout' => true])

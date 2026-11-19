@@ -1,7 +1,7 @@
 import { adminUrl, inertia, ui } from '../lib/sunrice';
 import { Chart } from '../components/Chart';
 import { EmptyState } from '../components/EmptyState';
-import { KpiCard, type Kpi } from '../components/KpiCard';
+import { KpiCard, KpiCardSkeleton, type Kpi } from '../components/KpiCard';
 import { formatMoney } from '../lib/money';
 import { PageHeader } from '../components/PageHeader';
 import { StatusBadge } from '../components/StatusBadge';
@@ -37,7 +37,7 @@ export default function Dashboard({ mode, setup, health, period, analytics, canR
     const widgets = Object.entries(api.dashboardWidgets()).filter(([name]) => widgetProps !== undefined && name in widgetProps);
 
     return (
-        <div className="cm:mx-auto cm:grid cm:w-full cm:max-w-6xl cm:gap-6 cm:p-4 cm:md:p-6">
+        <div className="cm:flex cm:min-w-0 cm:flex-col cm:gap-6">
             <PageHeader title="Store" description={<>Selling mode: {mode.label}</>} />
 
             {remaining.length > 0 && (
@@ -96,7 +96,7 @@ export default function Dashboard({ mode, setup, health, period, analytics, canR
 
             <div className="cm:grid cm:gap-4 cm:sm:grid-cols-2 cm:lg:grid-cols-5">
                 {kpis === undefined
-                    ? [0, 1, 2, 3, 4].map((i) => <div key={i} className="cm:h-24 cm:animate-pulse cm:rounded-lg cm:bg-muted" />)
+                    ? [0, 1, 2, 3, 4].map((i) => <KpiCardSkeleton key={i} />)
                     : kpis.map((kpi) => <KpiCard key={kpi.key} kpi={kpi} />)}
             </div>
 
@@ -109,7 +109,7 @@ export default function Dashboard({ mode, setup, health, period, analytics, canR
                         </CardHeader>
                         <CardContent>
                             {sales === undefined ? (
-                                <div className="cm:h-64 cm:animate-pulse cm:rounded-md cm:bg-muted" />
+                                <div className="cm:h-[260px] cm:animate-pulse cm:rounded-md cm:bg-muted" />
                             ) : (
                                 <Chart label="Total sales per day" data={sales} xKey="date" formatX={shortDate} format={(v) => formatMoney(v)}
                                     series={[{ key: 'total', label: 'This period' }, { key: 'previous', label: 'Previous period', dashed: true }]} />
@@ -146,11 +146,11 @@ export default function Dashboard({ mode, setup, health, period, analytics, canR
                 </CardHeader>
                 <CardContent>
                     {todo === undefined ? (
-                        <div className="cm:h-16 cm:animate-pulse cm:rounded-md cm:bg-muted" />
+                        <RowsSkeleton rows={2} />
                     ) : todo.length === 0 ? (
                         <EmptyState title="Nothing to do" description="Orders to process and payments to verify show up here." />
                     ) : (
-                        <ul className="cm:grid cm:gap-1">
+                        <ul className="cm:-mx-2 cm:grid cm:gap-1">
                             {todo.map((t) => (
                                 <li key={t.key}>
                                     <Link href={adminUrl(t.href)} className="cm:flex cm:justify-between cm:rounded-md cm:p-2 cm:hover:bg-muted">
@@ -164,17 +164,18 @@ export default function Dashboard({ mode, setup, health, period, analytics, canR
                 </CardContent>
             </Card>
 
-            {recentOrders !== undefined && recentOrders.length > 0 && (
+            {(recentOrders === undefined || recentOrders.length > 0) && (
                 <Card>
                     <CardHeader>
                         <CardTitle>Recent orders</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <ul className="cm:grid cm:gap-1">
+                        {recentOrders === undefined ? <RowsSkeleton rows={5} /> : (
+                        <ul className="cm:-mx-2 cm:grid cm:gap-1">
                             {recentOrders.map((o) => (
                                 <li key={o.id}>
-                                    <Link href={adminUrl(o.href)} className="cm:grid cm:grid-cols-[1fr_auto] cm:items-center cm:gap-x-3 cm:rounded-md cm:p-2 cm:hover:bg-muted cm:sm:grid-cols-[8rem_1fr_auto_auto]">
-                                        <span className="cm:font-medium">{o.number}</span>
+                                    <Link href={adminUrl(o.href)} className="cm:grid cm:grid-cols-[1fr_auto] cm:items-center cm:gap-x-4 cm:rounded-md cm:p-2 cm:hover:bg-muted cm:sm:grid-cols-[auto_1fr_auto_auto]">
+                                        <span className="cm:whitespace-nowrap cm:font-medium">{o.number}</span>
                                         <span className="cm:truncate cm:text-muted-foreground">{o.customer}</span>
                                         <StatusBadge tone={statusTone[o.status_key]}>{o.status}</StatusBadge>
                                         <span className="cm:tabular-nums">{o.total}</span>
@@ -182,12 +183,27 @@ export default function Dashboard({ mode, setup, health, period, analytics, canR
                                 </li>
                             ))}
                         </ul>
+                        )}
                     </CardContent>
                 </Card>
             )}
 
             {widgets.map(([name, Widget]) => (
                 <Widget key={name} {...widgetProps?.[name]} />
+            ))}
+        </div>
+    );
+}
+
+/** Rows of a list while it loads, as tall as the rows that replace them. */
+function RowsSkeleton({ rows }: { rows: number }) {
+    return (
+        <div className="cm:grid cm:gap-1" aria-hidden="true">
+            {Array.from({ length: rows }, (_, i) => (
+                <div key={i} className="cm:flex cm:h-10 cm:items-center cm:justify-between">
+                    <span className="cm:h-4 cm:w-40 cm:animate-pulse cm:rounded cm:bg-muted" />
+                    <span className="cm:h-4 cm:w-12 cm:animate-pulse cm:rounded cm:bg-muted" />
+                </div>
             ))}
         </div>
     );

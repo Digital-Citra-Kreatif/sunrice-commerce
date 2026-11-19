@@ -20,6 +20,7 @@ use Sunrice\Commerce\Admin\Tables\TableQuery;
 use Sunrice\Commerce\Customers\Actions\AnonymizeCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Customers\Notifications\CustomerResetPassword;
+use Sunrice\Commerce\Orders\AdminOrderScopes;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\OrderStatus;
 use Sunrice\Commerce\Settings\StoreSettings;
@@ -202,7 +203,7 @@ class CustomersController extends Controller
                 'google' => DB::table('commerce_social_accounts')->where('user_id', $user->getAuthIdentifier())->value('email'),
             ],
             'roleOptions' => array_values(array_unique([...$customerRoles, ...self::givableRoles($request->user())])),
-            'orders' => Order::query()->where('customer_id', $customer->id)->latest('placed_at')->limit(20)->get()
+            'orders' => app(AdminOrderScopes::class)->apply(Order::query())->where('customer_id', $customer->id)->latest('placed_at')->limit(20)->get()
                 ->map(fn ($o) => ['id' => $o->id, 'number' => $o->displayNumber(), 'date' => $o->placed_at?->toIso8601String(),
                     'status' => OrderStatus::label($o->status), 'total' => $money->format($o->total), 'href' => "commerce/orders/{$o->id}"])->all(),
             'can' => [
