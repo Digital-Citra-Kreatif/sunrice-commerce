@@ -110,7 +110,9 @@ return [
         'add_unconfirmed' => 'We couldn’t confirm the item was added. Check your cart before adding it again.',
         'view_cart' => 'View cart',
     ],
+    'collection_unconfirmed' => 'We couldn’t confirm the change. You can try again.',
     'wishlist' => [
+        'view' => 'View wishlist',
         'title' => 'Wishlist',
         'empty' => 'Your wishlist is empty.',
         'add' => 'Add to wishlist',
@@ -156,6 +158,7 @@ return [
         'captcha' => 'Please complete the verification.',
     ],
     'compare' => [
+        'view' => 'View comparison',
         'title' => 'Compare products',
         'empty' => 'Add products to compare them.',
         'add' => 'Compare',

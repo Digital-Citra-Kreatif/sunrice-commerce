@@ -301,7 +301,7 @@ both itself when you leave them out, so extension pages can extend it directly.
 | --- | --- |
 | `partials.assets` | — Links the published theme. Included once by every store page. |
 | `partials.captcha` | `$captcha`: the configured Sunrice widget HTML and its form error. Include inside the form. |
-| `partials.header-links` | — Account, wishlist and mini cart links for your header. |
+| `partials.header-links` | — Account, wishlist, comparison and mini cart links for your header. |
 | `partials.buy` | `$product` (ProductView). The body of `<x-commerce::product>`. |
 | `partials.price` | `$product`. The body of `<x-commerce::price>`. |
 | `partials.badges` | `$product`: sale, new, stock and featured badges. |
@@ -380,6 +380,9 @@ attributes:
 - **Floating product controls** appear at the bottom of a `.commerce-product` page when
   `data-commerce-buy-controls` scrolls out of view. Both sets share the selected quantity and
   submit the same form. The controls disappear again when the original controls return to view.
+- **Wishlist and Compare** use the existing form routes. The storefront updates the selection
+  without reloading product and listing pages, then shows a shortcut in the success toast.
+  The starter header links to Compare through the mobile menu or the desktop comparison icon.
 - **Cart removal** uses a trash button and a shared confirmation dialog from `partials.cart`.
   With JavaScript off, the trash control opens an inline confirmation.
 - **Checkout refresh** (`[data-commerce-checkout]`): changes to pricing inputs post the form to

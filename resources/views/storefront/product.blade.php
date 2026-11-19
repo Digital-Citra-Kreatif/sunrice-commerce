@@ -38,6 +38,7 @@
         ...$trail->all(),
         ['label' => $entry->title, 'url' => null],
     ]])
+    @include($L::view('partials.messages'))
     <article class="commerce-product">
         @php($variantImages = $product ? collect($product->variants)->filter(fn ($v) => $v['image'])->mapWithKeys(fn ($v) => [$v['id'] => \Sunrice\Admin\Media\Media::query()->find($v['image'])?->url()])->filter()->all() : [])
         @php($gallery = collect((commerce_values($entry)['gallery'] ?? null) ?? [])->filter(fn ($image) => is_object($image))->values())

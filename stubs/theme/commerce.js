@@ -23,16 +23,18 @@
     }
 
     var buyBars = new WeakMap();
-    var cartToast;
+    var actionToast;
     function toast(message, isError, form) {
         var el = document.createElement('div');
         el.className = 'commerce-toast' + (isError ? ' commerce-toast--error' : '');
         if (form) {
-            el.classList.add('commerce-toast--cart-success');
+            el.classList.add(form.dataset.commerceCollection ? 'commerce-toast--collection-success' : 'commerce-toast--cart-success');
             var header = document.querySelector('.commerce-header');
             if (header) el.style.setProperty('--commerce-toast-top', Math.max(16, header.getBoundingClientRect().bottom + 12) + 'px');
         }
-        var action = form?.querySelector('[data-commerce-add-success-action]')?.content.firstElementChild;
+        var actionSelector = form?.dataset.commerceCollection
+            ? '[data-commerce-collection-success-action]' : '[data-commerce-add-success-action]';
+        var action = form?.querySelector(actionSelector)?.content.firstElementChild;
         if (!action) {
             el.setAttribute('role', isError ? 'alert' : 'status');
             el.textContent = message;
@@ -41,8 +43,8 @@
             return;
         }
 
-        cartToast?.remove();
-        cartToast = el;
+        actionToast?.remove();
+        actionToast = el;
         el.classList.add('commerce-toast--with-action');
         var text = document.createElement('span');
         text.className = 'commerce-toast__message';
@@ -58,7 +60,7 @@
             clearTimeout(timer);
             timer = setTimeout(function () {
                 el.remove();
-                if (cartToast === el) cartToast = null;
+                if (actionToast === el) actionToast = null;
             }, 8000);
         }
 
@@ -128,6 +130,54 @@
                     }
                 }
             });
+    });
+
+    // Leaving the list pages as regular forms lets the server render removed rows and empty states.
+    var collectionForms = Array.from(document.querySelectorAll('[data-commerce-collection]')).filter(function (form) {
+        return !form.closest('.commerce-wishlist, .commerce-compare');
+    });
+    var updatingCollection = false;
+    collectionForms.forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            if (updatingCollection) return;
+
+            var button = form.querySelector('button[type=submit]');
+            var method = form.querySelector('[name=_method]');
+            var selecting = method.disabled;
+            updatingCollection = true;
+            button.setAttribute('aria-disabled', 'true');
+            fetch(form.action, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
+                body: new FormData(form),
+                credentials: 'same-origin',
+                signal: AbortSignal.timeout(12000),
+            })
+                .then(function (response) {
+                    if (response.status >= 500) throw new Error('Collection result is unknown');
+                    return response.json().then(function (json) {
+                        if (typeof json?.message !== 'string' || (response.ok && !Number.isInteger(json.count))) {
+                            throw new Error('Unexpected collection response');
+                        }
+                        if (response.ok) {
+                            collectionForms.forEach(function (peer) {
+                                if (peer.dataset.commerceCollection !== form.dataset.commerceCollection || peer.dataset.productId !== form.dataset.productId) return;
+                                peer.action = selecting ? peer.dataset.removeUrl : peer.dataset.addUrl;
+                                peer.querySelector('[name=_method]').disabled = !selecting;
+                                peer.querySelector('button[type=submit]').setAttribute('aria-pressed', String(selecting));
+                                peer.querySelector('[data-commerce-collection-label]').textContent = selecting ? peer.dataset.removeLabel : peer.dataset.addLabel;
+                            });
+                        }
+                        toast(json.message, !response.ok, response.ok ? form : null);
+                    });
+                })
+                .catch(function () { toast(form.dataset.unconfirmed, true); })
+                .finally(function () {
+                    updatingCollection = false;
+                    button.removeAttribute('aria-disabled');
+                });
+        });
     });
 
     document.querySelectorAll('[data-commerce-cart]').forEach(function (cart) {

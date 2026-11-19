@@ -1,7 +1,7 @@
 {{--
     The starter store header: an announcement bar, then a sticky bar with
     the menu button (small screens), the logo, the department menu with its
-    mega panels, the product search and the account, wishlist and cart
+    mega panels, the product search and the account, wishlist, comparison and cart
     icons (partials.header-links).
 
     Admin setup it reads (all optional):
@@ -47,6 +47,11 @@
                     <span class="commerce-visually-hidden">{{ __('commerce::storefront.cart.close') }}</span>
                 </button>
             </div>
+            @if (commerce_feature('compare') && \Illuminate\Support\Facades\Route::has('commerce.compare'))
+                <div class="commerce-nav__item commerce-nav__compare">
+                    <a class="commerce-nav__link" href="{{ commerce_url('commerce.compare') }}">{{ __('commerce::storefront.compare.title') }}</a>
+                </div>
+            @endif
             @if ($mainMenu !== [])
                 <ul class="commerce-nav__list">
                     @foreach ($mainMenu as $item)
