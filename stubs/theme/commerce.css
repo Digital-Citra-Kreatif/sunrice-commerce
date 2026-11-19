@@ -498,6 +498,7 @@ form.commerce-checkout > :not(.commerce-checkout__main):not(.commerce-checkout__
 .commerce-checkout-address[hidden], .commerce-checkout-address-dialog__error[hidden], [data-commerce-address-fallback][hidden] { display: none; }
 .commerce-checkout-address address { margin: 0; color: var(--commerce-muted); font-style: normal; font-size: 14px; white-space: pre-line; overflow-wrap: anywhere; }
 .commerce-checkout-address .commerce-checkout-address__add { justify-self: start; min-height: 44px; font-size: 13px; font-weight: 700; }
+.commerce-accordion.commerce-checkout__notes { border-block: 0; }
 .commerce-checkout__notes > summary { min-height: 44px; padding-block: 10px; font-size: 14px; font-weight: 700; text-transform: none; letter-spacing: normal; }
 .commerce-checkout__notes > summary:focus-visible { outline-offset: -2px; }
 .commerce-checkout__notes > .commerce-field { padding-bottom: 0; margin-bottom: 12px; }
@@ -568,7 +569,7 @@ form.commerce-checkout > :not(.commerce-checkout__main):not(.commerce-checkout__
 }
 .commerce-account__page > .commerce-order__payment { margin: 24px 0; }
 .commerce-order__payment-header { display: flex; align-items: start; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px; }
-.commerce-order__payment-header h2 { margin: 0 0 4px; font-size: 15px; text-transform: none; letter-spacing: normal; }
+.commerce-order__payment .commerce-order__payment-header h2 { margin: 0 0 4px; font-size: 15px; text-transform: none; letter-spacing: normal; }
 .commerce-order__payment-header .commerce-payment__amount { margin: 0; font-variant-numeric: tabular-nums; }
 .commerce-order__payment-header .commerce-payment__amount strong { font-size: clamp(22px, 4vw, 30px); }
 .commerce-order__payment-meta { margin: 0; color: var(--commerce-muted); font-size: 13px; }
