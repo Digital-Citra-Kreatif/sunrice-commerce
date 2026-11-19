@@ -134,7 +134,7 @@ return [
     ],
     'track' => [
         'verify_title' => 'Verify your order',
-        'verify_intro' => 'If the details match a guest order, we sent an eight-digit code to its email address. If you ordered from an account, sign in to see your orders.',
+        'verify_intro' => 'If the details match an eligible guest checkout, we sent an eight-digit code to the order email. You can also sign in to see your account orders.',
         'code' => 'Verification code',
         'verify' => 'Verify and open order',
         'start_over' => 'Request another code',

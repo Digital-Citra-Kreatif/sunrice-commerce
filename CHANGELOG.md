@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- When a guest checks out with an existing verified account's email, open the new order and
+  payment pages in the checkout browser and offer email-code recovery through Track order.
+
 - Preselect the first available payment method at checkout and include its fees in the initial total.
 
 - Show a localized product count and a results link after a one-second pause in storefront search.

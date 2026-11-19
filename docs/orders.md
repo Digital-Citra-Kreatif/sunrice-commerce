@@ -309,12 +309,15 @@ refused for orders that received a payment, so the books stay complete.
 ## The customer's side
 
 - **Order page** `/order/{key}` (`commerce.order`) and the pay, invoice, payment confirmation,
-  cancellation and quote routes require the signed-in order owner or a verified guest session.
+  cancellation and quote routes require the signed-in order owner or an authorized guest session.
   The key in the URL identifies the order. The response uses private, no-store caching.
 - **Track order** `/track-order` (`commerce.track-order`): a guest enters the order number and
   email, then the eight-digit code sent to that email. The code expires after 10 minutes and
-  authorizes that browser for the selected order for one hour. The checkout session can open
-  its own guest confirmation immediately.
+  authorizes that browser for the selected order for one hour. A guest checkout can open
+  its new order and payment page immediately in the same browser, including when the order
+  joins an existing verified account. Email recovery for that linked order requires the order
+  email to still match the verified account email. The store uses the tracking page in emails
+  for guest checkouts.
 - **My Account** → Orders and Quotes: the signed-in customer's own orders (guest orders join once
   the email is verified), the same order page, "buy again" (adds the lines to the cart) and cancel.
   Orders can be searched by order number or product name and filtered by order status and date.

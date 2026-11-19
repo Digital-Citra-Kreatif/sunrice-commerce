@@ -134,7 +134,7 @@ return [
     ],
     'track' => [
         'verify_title' => 'Verifikasi pesanan',
-        'verify_intro' => 'Jika datanya cocok dengan pesanan tamu, kami mengirim kode delapan digit ke email yang dipakai saat memesan. Jika Anda memesan lewat akun, masuk untuk melihat pesanan.',
+        'verify_intro' => 'Jika datanya cocok dengan pesanan dari checkout tamu yang dapat diverifikasi, kami mengirim kode delapan digit ke email pesanan. Anda juga bisa masuk untuk melihat pesanan di akun Anda.',
         'code' => 'Kode verifikasi',
         'verify' => 'Verifikasi dan buka pesanan',
         'start_over' => 'Minta kode baru',

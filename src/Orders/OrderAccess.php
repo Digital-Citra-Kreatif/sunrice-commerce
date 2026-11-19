@@ -7,7 +7,7 @@ namespace Sunrice\Commerce\Orders;
 use Illuminate\Http\Request;
 use Sunrice\Commerce\Orders\Models\Order;
 
-/** Order references identify a record. Access is granted by ownership or a verified guest session. */
+/** Order references identify a record. Access is granted by ownership or an authorized guest session. */
 final class OrderAccess
 {
     public function allows(Request $request, Order $order): bool
@@ -15,28 +15,36 @@ final class OrderAccess
         if ($order->user_id !== null) {
             $user = commerce_customer();
 
-            return $user !== null && (int) $user->getAuthIdentifier() === (int) $order->user_id;
+            if ($user !== null) {
+                return (int) $user->getAuthIdentifier() === (int) $order->user_id;
+            }
+            if (! $order->wasPlacedAsGuest()) {
+                return false;
+            }
         }
 
         $grant = $request->session()->get("commerce.orders.{$order->id}");
         if (is_string($grant)) {
-            return hash_equals($order->order_key, $grant);
+            return $order->user_id === null && hash_equals($order->order_key, $grant);
         }
 
         return is_array($grant)
             && ($grant['until'] ?? 0) >= now()->timestamp
             && is_string($grant['key'] ?? null)
-            && hash_equals($order->order_key, $grant['key']);
+            && hash_equals($order->order_key, $grant['key'])
+            && ($order->user_id === null || ($grant['email'] ?? null) === $order->email);
     }
 
     public function grantGuest(Request $request, Order $order): void
     {
-        if ($order->user_id === null) {
-            $request->session()->put("commerce.orders.{$order->id}", [
-                'key' => $order->order_key,
-                'until' => now()->addHour()->timestamp,
-            ]);
+        if ($order->user_id !== null && ! $order->wasPlacedAsGuest()) {
+            return;
         }
+        $request->session()->put("commerce.orders.{$order->id}", [
+            'key' => $order->order_key,
+            'email' => $order->email,
+            'until' => now()->addHour()->timestamp,
+        ]);
     }
 
     public function find(Request $request, string $key): Order

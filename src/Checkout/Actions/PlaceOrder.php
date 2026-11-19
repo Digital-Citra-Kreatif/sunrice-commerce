@@ -253,6 +253,7 @@ class PlaceOrder
         $uniqueCode = $method instanceof AddsUniqueCode && ($range = $method->uniqueCodeRange()) !== null
             ? app(UniqueCodes::class)->pick($totals['total'], $range, PaymentManager::idOf($method)) : 0;
 
+        $user = commerce_customer();
         $order = new Order;
         $order->forceFill([
             'type' => $completion->orderType(),
@@ -266,7 +267,7 @@ class PlaceOrder
             'channel' => 'storefront',
             'selling_mode' => $this->mode->mode(),
             'customer_id' => $customer->id,
-            'user_id' => commerce_customer()?->getAuthIdentifier() ?? $this->createdAccountId ?? $this->verifiedAccountId($customer),
+            'user_id' => $user?->getAuthIdentifier() ?? $this->createdAccountId ?? $this->verifiedAccountId($customer),
             'email' => $data->email(),
             'phone' => Phone::normalize($data->phone(), $country) ?? $data->phone(),
             'customer_name' => $data->get('name'),
@@ -288,7 +289,7 @@ class PlaceOrder
             'customer_note' => $this->settings->get('checkout.order_notes', true) ? $data->get('notes') : null,
             'dropship' => $this->settings->get('checkout.dropshipper', false) && $data->dropship()['enabled'] ? $data->dropship() : null,
             'fields' => $data->fields() ?: null,
-            'meta' => ['checkout_account_requested' => commerce_customer() === null && $this->validator->createsAccount($data), ...array_filter(['codes' => $state->appliedCodes ?: null, 'pickup' => $data->isPickup() ? ($rate['meta']['location'] ?? null) : null,
+            'meta' => ['placed_as_guest' => $user === null, 'checkout_account_requested' => $user === null && $this->validator->createsAccount($data), ...array_filter(['codes' => $state->appliedCodes ?: null, 'pickup' => $data->isPickup() ? ($rate['meta']['location'] ?? null) : null,
                 // Shipped from somewhere else than the store (an extension's origin): carriers book it from there.
                 'shipping_origin' => $state->shipping['needed'] && ! $data->isPickup() ? app(ShippingOrigins::class)->custom($state)?->toArray() : null])],
             'ip_address' => $client['ip_address'] ?? null,

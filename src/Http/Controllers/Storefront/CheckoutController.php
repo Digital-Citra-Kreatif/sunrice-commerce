@@ -120,6 +120,7 @@ class CheckoutController
             return redirect(StorefrontRoutes::url('commerce.checkout').'#checkout-captcha')
                 ->withErrors(['captcha' => __('commerce::payments.confirm.captcha')]);
         }
+        $guestCheckout = commerce_customer() === null;
         try {
             $placed = $place->handle($cart, $data, (string) $request->input('totals_hash'), $request->only('password'),
                 ['ip_address' => $request->ip(), 'user_agent' => $request->userAgent()]);
@@ -132,7 +133,9 @@ class CheckoutController
                 ->withInput($request->except(['password', $captcha->field()]));
         }
         $this->carts()->forget();
-        app(OrderAccess::class)->grantGuest($request, $placed->order);
+        if ($guestCheckout) {
+            app(OrderAccess::class)->grantGuest($request, $placed->order);
+        }
 
         return redirect($placed->response->url)->with('commerce.success', $placed->response->message);
     }
