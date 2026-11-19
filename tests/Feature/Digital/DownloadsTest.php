@@ -59,6 +59,7 @@ it('grants once when paid and counts downloads to the limit', function () {
     $this->get("/downloads/{$grant->token}")->assertStatus(410);
     expect($grant->fresh()->download_count)->toBe(2)->and($grant->fresh()->downloads_remaining)->toBe(0)
         ->and(DownloadLog::query()->count())->toBe(2);
+    authorizeGuestOrders($order);
     $this->get($order->url())->assertSee('E-book');
 });
 

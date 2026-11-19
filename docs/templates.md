@@ -268,7 +268,7 @@ and the controllers that render them. Every store page also gets `$seoTitle`.
 | `order` | `$order`, `$payment`, `$instructionsView`, `$payUrl`, `$whatsappUrl`, `$openWhatsApp`, `$downloads`, `$invoiceUrl`, `$canCancel`, `$invite`, `$registerUrl`. Also renders quotes. See [orders.md](orders.md). |
 | `pay` | `$order`, `$methods`: pay an unpaid order, or choose another method. |
 | `confirm-payment` | The lookup form, or the form for `$order` and its pending `$payment`; `$accounts` (bank accounts paid into), `$proofRequired`, `$captcha` (widget data or null). |
-| `track-order` | — (find an order by number and email). |
+| `track-order` | `$verification` switches from order lookup to email code entry. |
 | `wishlist` | `$wishlist`, `$products` (product entries), `$shareUrl`, `$readOnly` (true on a shared list). |
 | `compare` | `$entries` (product entries side by side), `$fields` (the compared attributes), `$specLabels`. |
 | `flash-sales` | `$running` and `$upcoming`: FlashSale models. |

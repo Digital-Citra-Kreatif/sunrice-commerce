@@ -308,13 +308,13 @@ refused for orders that received a payment, so the books stay complete.
 
 ## The customer's side
 
-- **Order page** `/order/{key}` (`commerce.order`): the 40-character random `order_key` in the URL
-  is the access, so no sign-in is needed; it is `noindex`. It shows the number, status, payment,
-  items and totals, how to pay (instructions, amount, deadline, "I have paid"), a "pay again" link,
-  downloads, shipments with tracking links, the invoice, cancel, and an invitation to create an
-  account for guests. Quotes live at `/quote/{key}` with Accept and Decline.
+- **Order page** `/order/{key}` (`commerce.order`) and the pay, invoice, payment confirmation,
+  cancellation and quote routes require the signed-in order owner or a verified guest session.
+  The key in the URL identifies the order. The response uses private, no-store caching.
 - **Track order** `/track-order` (`commerce.track-order`): a guest enters the order number and
-  email and is sent to the order page.
+  email, then the eight-digit code sent to that email. The code expires after 10 minutes and
+  authorizes that browser for the selected order for one hour. The checkout session can open
+  its own guest confirmation immediately.
 - **My Account** → Orders and Quotes: the signed-in customer's own orders (guest orders join once
   the email is verified), the same order page, "buy again" (adds the lines to the cart) and cancel.
   Orders can be searched by order number or product name and filtered by order status and date.

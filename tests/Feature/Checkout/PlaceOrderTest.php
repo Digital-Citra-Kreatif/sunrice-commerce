@@ -202,7 +202,7 @@ it('starts each selling mode in its states', function () {
     $this->get($wa->url().'?whatsapp=1')->assertSee('wa.me/6281211112222', false);
 });
 
-it('shows the order page only by its key, and looks orders up by number and email', function () {
+it('shows the order page in the checkout session and offers verification for other lookups', function () {
     $cart = cartWith([[$this->mug, 1]]);
     place($cart);
     $order = Order::query()->sole();
@@ -211,7 +211,7 @@ it('shows the order page only by its key, and looks orders up by number and emai
     $this->get('/order/'.$order->id)->assertNotFound();
 
     $this->get('/track-order')->assertOk();
-    $this->post('/track-order', ['number' => $order->number, 'email' => 'other@example.com'])->assertSessionHasErrors('number');
+    $this->post('/track-order', ['number' => $order->number, 'email' => 'other@example.com'])->assertRedirect('/track-order/code');
     $this->post('/track-order', ['number' => $order->number, 'email' => 'RINA@example.com'])->assertRedirect($order->url());
 });
 
@@ -233,6 +233,7 @@ it('links guest orders once the email is verified', function () {
 it('finds open quotes by their quote number on the track page', function () {
     $quote = makeOrder(['type' => 'quote', 'status' => 'requested', 'number' => null, 'quote_number' => 'Q-TRACK-1', 'email' => 'pt@example.com']);
 
+    authorizeGuestOrders($quote);
     $this->post('/track-order', ['number' => 'Q-TRACK-1', 'email' => 'pt@example.com'])->assertRedirect($quote->url());
 });
 

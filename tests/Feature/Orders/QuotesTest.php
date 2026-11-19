@@ -19,6 +19,7 @@ beforeEach(function () {
     app()->forgetScopedInstances();
     $cart = cartWith([[$this->mug, 2]]);
     $this->quote = app(PlaceOrder::class)->handle($cart, CheckoutData::fromCart($cart)->merge(checkoutInput(['payment_method' => null, 'shipping_rate' => null])), null)->order;
+    authorizeGuestOrders($this->quote);
 });
 
 it('reserves nothing and has no order number until accepted', function () {
@@ -57,6 +58,7 @@ it('refuses accepting an expired quote and expires it from the tick', function (
     $this->put("/admin/commerce/orders/{$this->quote->id}/quote", ['lines' => [['item_id' => $item->id, 'variant_id' => $this->mug->id, 'quantity' => 2]], 'valid_until' => now()->toDateString()]);
 
     $this->travel(2)->days();
+    authorizeGuestOrders($this->quote);
     $this->post("/quote/{$this->quote->order_key}/accept")->assertSessionHas('commerce.error');
     expect($this->quote->fresh()->type)->toBe('quote');
     $this->artisan('commerce:tick');

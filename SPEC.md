@@ -533,8 +533,9 @@ an "Update shipping" button does the same.
   - downloads, once paid;
   - the WhatsApp button (WhatsApp mode);
   - an invitation to create an account (guests).
-- Its URL contains a long random key, so no sign-in is needed. It is `noindex`.
-- Guests can also look up an order at `/track-order` with the order number and email.
+- A random URL key identifies the order. The signed-in owner or the verified guest session can open it. The response is private and `noindex`.
+- Guests can recover access at `/track-order` with the order number and an eight-digit code sent
+  to the order email. Account orders require a signed-in owner.
 
 ### Orders (`orders`)
 

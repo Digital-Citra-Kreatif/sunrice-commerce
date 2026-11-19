@@ -28,6 +28,7 @@ use Sunrice\Commerce\Checkout\CheckoutValidator;
 use Sunrice\Commerce\Checkout\Events\CheckoutStarted;
 use Sunrice\Commerce\Checkout\TermsPage;
 use Sunrice\Commerce\Customers\Models\Customer;
+use Sunrice\Commerce\Orders\OrderAccess;
 use Sunrice\Commerce\Payments\PaymentContext;
 use Sunrice\Commerce\Payments\PaymentManager;
 use Sunrice\Commerce\Settings\StoreSettings;
@@ -129,7 +130,7 @@ class CheckoutController
                 ->withInput($request->except(['password', $captcha->field()]));
         }
         $this->carts()->forget();
-        $request->session()->put('commerce.orders.'.$placed->order->id, $placed->order->order_key);
+        app(OrderAccess::class)->grantGuest($request, $placed->order);
 
         return redirect($placed->response->url)->with('commerce.success', $placed->response->message);
     }

@@ -18,7 +18,7 @@ class QuoteController
 {
     public function show(Request $request, string $key, OrderController $orders): View|RedirectResponse
     {
-        $order = $orders->find($key, 'quote');
+        $order = $orders->find($request, $key);
         if (! $order->isQuote()) {
             return redirect($order->url());
         }
@@ -26,9 +26,9 @@ class QuoteController
         return view(Layout::view('order'), $orders->data($request, $order) + ['seoTitle' => __('commerce::checkout.order.quote_title', ['number' => $order->displayNumber()])]);
     }
 
-    public function accept(string $key, OrderController $orders, AcceptQuote $accept): RedirectResponse
+    public function accept(Request $request, string $key, OrderController $orders, AcceptQuote $accept): RedirectResponse
     {
-        $quote = $orders->find($key, 'quote');
+        $quote = $orders->find($request, $key);
         try {
             $order = $accept->handle($quote, Actor::customer());
         } catch (DomainException $e) {
@@ -40,7 +40,7 @@ class QuoteController
 
     public function decline(Request $request, string $key, OrderController $orders, DeclineQuote $decline): RedirectResponse
     {
-        $quote = $orders->find($key, 'quote');
+        $quote = $orders->find($request, $key);
         try {
             $decline->handle($quote, Actor::customer(), $request->string('reason')->limit(250)->toString() ?: null);
         } catch (DomainException $e) {

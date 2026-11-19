@@ -45,6 +45,7 @@ it('ships in parts, refuses over-fulfilment and links tracking from presets', fu
 
     app(UpdateShipment::class)->delivered($first, $actor);
     expect($first->fresh()->status)->toBe('delivered');
+    authorizeGuestOrders($this->order);
     $this->get($this->order->url())->assertSee('JNE123')->assertSee('jne.co.id', false);
 });
 

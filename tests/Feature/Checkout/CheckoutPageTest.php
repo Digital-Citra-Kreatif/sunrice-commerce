@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Dom\HTMLDocument;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
@@ -96,7 +97,7 @@ it('applies and removes coupons in checkout before payment without discarding fo
     $input = checkoutInput(['notes' => 'Titip di resepsionis']);
     $page = $this->get('/checkout')->assertOk()->assertSeeInOrder(['Pakai kupon', 'name="voucher_code"', 'id="payment"'], false)
         ->assertDontSee('data-commerce-checkout-retry', false);
-    $document = Dom\HTMLDocument::createFromString($page->getContent(), LIBXML_NOERROR);
+    $document = HTMLDocument::createFromString($page->getContent(), LIBXML_NOERROR);
     expect($document->querySelector('#checkout-vouchers details'))->toBeNull()
         ->and($document->querySelector('#order-notes.commerce-accordion > summary'))->not->toBeNull();
     $this->get('/cart')->assertOk()->assertDontSee('data-commerce-voucher-form', false);

@@ -257,7 +257,7 @@ class Order extends Model
         return $this;
     }
 
-    /** The customer's order page (by key, no sign-in). */
+    /** The customer's order page; opening it requires account ownership or a verified guest session. */
     public function url(): string
     {
         return commerce_url($this->isQuote() ? 'commerce.quote' : 'commerce.order', ['key' => $this->order_key]);

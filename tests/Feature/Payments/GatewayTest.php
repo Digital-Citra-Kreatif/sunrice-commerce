@@ -88,6 +88,7 @@ it('completes by webhook, ignoring duplicates, stale results and bad signatures'
 it('records the gateway return and checks status once before expiring', function () {
     $order = placeWithGateway($this->mug);
     $ref = fakeReference($order);
+    authorizeGuestOrders($order);
     $this->get("/order/{$order->order_key}/payment/return?status=failed")->assertRedirect($order->url());
     expect($order->fresh()->status)->toBe('failed');
 
@@ -100,6 +101,7 @@ it('records the gateway return and checks status once before expiring', function
 
 it('lets the customer switch methods on the pay page, the fee following', function () {
     $order = placeWithGateway($this->mug);
+    authorizeGuestOrders($order);
     $this->get("/order/{$order->order_key}/pay")->assertOk()->assertSee('Kartu')->assertSee('Transfer');
 
     $this->post("/order/{$order->order_key}/pay", ['payment_method' => 'test_transfer'])->assertRedirect($order->url());

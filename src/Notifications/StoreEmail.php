@@ -131,9 +131,9 @@ class StoreEmail extends Notification implements ShouldQueue
         $url = $this->context['url'] ?? match (true) {
             str_starts_with($this->key, 'staff_') && $this->order !== null => route('sunrice.admin.commerce.orders.show', $this->order),
             $this->key === 'staff_payment_confirmation' => route('sunrice.admin.commerce.confirmations'),
-            in_array($this->key, ['payment_link', 'payment_failed', 'balance_reminder'], true) && $this->order !== null => commerce_url('commerce.order.pay', ['key' => $this->order->order_key], $this->lang),
-            $this->key === 'payment_rejected' && $this->order !== null => commerce_url('commerce.confirm-payment', [], $this->lang).'?order='.$this->order->order_key,
-            $this->order !== null => $this->order->url(),
+            $this->order !== null && $this->order->user_id === null => commerce_url('commerce.track-order', ['number' => $this->order->displayNumber()], $this->lang),
+            $this->order?->isQuote() === true => commerce_url('commerce.account.quotes', [], $this->lang),
+            $this->order !== null => commerce_url('commerce.account.order', ['order' => $this->order->id], $this->lang),
             default => null,
         };
 

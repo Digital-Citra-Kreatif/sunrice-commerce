@@ -13,6 +13,7 @@ beforeEach(function () {
 
 it('uses the localized catalog everywhere and falls back to the localized homepage', function () {
     $order = makeOrder();
+    authorizeGuestOrders($order);
     foreach (['/compare', '/wishlist', '/cart', route('commerce.order', ['key' => $order->order_key])] as $path) {
         $this->get($path)->assertOk()->assertSee('href="'.url('/products').'"', false);
     }
@@ -29,6 +30,7 @@ it('uses a CMS page for the shared link and falls back when it is unpublished', 
     ]);
 
     $order = makeOrder();
+    authorizeGuestOrders($order);
     foreach (['/compare', '/wishlist', '/cart', route('commerce.order', ['key' => $order->order_key])] as $path) {
         $this->get($path)->assertOk()->assertSee('href="'.url('/products/mug').'"', false);
     }
