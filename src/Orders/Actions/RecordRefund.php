@@ -73,7 +73,7 @@ class RecordRefund
             $reference = null;
             $method = 'manual';
             if ($viaGateway && $toMoney > 0) {
-                $payment = $locked->payments()->whereIn('status', ['paid', 'partially_refunded'])->latest('id')->first();
+                $payment = $locked->payments()->whereIn('status', ['paid', 'partially_refunded'])->reorder('id', 'desc')->first();
                 $gateway = $payment !== null ? app(PaymentManager::class)->get($payment->method) : null;
                 if ($payment !== null && $gateway instanceof SupportsRefunds) {
                     // Only the money part goes to the provider; points go back onto the wallet.

@@ -27,7 +27,7 @@ class MarkOrderPaid
         if ($order->isQuote() || (! $order->isUnpaid() && ! $order->isPartiallyPaid()) || $order->total <= 0) {
             throw new DomainException('This order has nothing left to pay.');
         }
-        $payment = $order->payments()->whereIn('status', ['pending', 'awaiting_confirmation', 'failed', 'expired'])->latest('id')->first()
+        $payment = $order->payments()->whereIn('status', ['pending', 'awaiting_confirmation', 'failed', 'expired'])->reorder('id', 'desc')->first()
             ?? Payment::query()->create([
                 'order_id' => $order->id, 'method' => $order->payment_method ?? 'manual', 'method_title' => $order->payment_method_title ?? 'Manual payment',
                 'amount' => $order->total - $order->paid_total, 'currency' => $order->currency, 'status' => 'pending',

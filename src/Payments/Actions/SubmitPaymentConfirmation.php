@@ -32,7 +32,7 @@ class SubmitPaymentConfirmation
      */
     public function handle(Order $order, array $input, ?UploadedFile $proof, ?string $ip = null): PaymentConfirmation
     {
-        $payment = $order->payments()->where('status', 'pending')->latest('id')->first();
+        $payment = $order->payments()->where('status', 'pending')->reorder('id', 'desc')->first();
         $mode = (string) ($payment->instructions['confirmation'] ?? 'off');
         if ($payment === null || $mode === 'off' || ! $order->isUnpaid()) {
             throw ValidationException::withMessages(['order' => __('commerce::payments.confirm.not_open')]);

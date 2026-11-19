@@ -22,7 +22,7 @@ class ConfirmPaymentController
     {
         $key = (string) $request->query('order', '');
         $order = $key !== '' ? $access->find($request, $key) : null;
-        $payment = $order?->payments()->where('status', 'pending')->latest('id')->first();
+        $payment = $order?->payments()->where('status', 'pending')->reorder('id', 'desc')->first();
 
         return view(Layout::view('confirm-payment'), [
             'order' => $order,

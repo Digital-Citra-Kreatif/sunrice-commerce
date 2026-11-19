@@ -112,6 +112,21 @@ it('sends a signed-out account owner returning from a gateway to sign in, then t
         ->and($order->fresh()->status)->toBe('failed');
 });
 
+it('checks the newest payment on the return after the customer switched method', function () {
+    // Payments are ordered by id on the relation: "latest" must replace that order, not add to it.
+    $cart = cartWith([[$this->mug, 1]]);
+    $input = checkoutInput();
+    $this->post('/checkout', [...$input, 'action' => 'place', 'totals_hash' => seenHash($cart, $input)]);
+    $order = Order::query()->sole();
+    $this->post("/order/{$order->order_key}/pay", ['payment_method' => 'fake_gateway'])->assertRedirect();
+    expect($order->payments()->count())->toBe(2);
+
+    $this->get("/order/{$order->order_key}/payment/return?status=paid")->assertRedirect($order->url());
+
+    expect($order->fresh()->payment_status)->toBe('paid')
+        ->and($order->payments()->reorder('id', 'desc')->first())->method->toBe('fake_gateway')->status->toBe('paid');
+});
+
 it('records the gateway return and checks status once before expiring', function () {
     $order = placeWithGateway($this->mug);
     $ref = fakeReference($order);

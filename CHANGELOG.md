@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Fix: the newest payment of an order is used where it should be. `Order::payments()` is ordered by
+  id, so `->latest('id')` on it still returned the oldest payment: the gateway return checked an
+  earlier payment after the customer switched method or paid a deposit's balance, and Mark paid,
+  refunds via the gateway and payment confirmations could pick an older payment. They now use
+  `->reorder('id', 'desc')`.
+
 - Note on the order's timeline when a payment gateway reports a paid amount that isn't the
   payment's (once per amount; the payment stays unpaid), so staff see it without the webhook log.
   Gateway packages built on `GatewayMethod` (Midtrans, Xendit) get it without changes.
