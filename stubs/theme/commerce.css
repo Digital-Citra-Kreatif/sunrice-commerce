@@ -382,7 +382,7 @@
         align-self: start;
     }
     .commerce-listing__filters .commerce-filters {
-        max-height: calc(100dvh - var(--commerce-header) - 32px);
+        max-height: var(--commerce-filter-height, calc(100dvh - var(--commerce-header) - 32px));
     }
     .commerce-listing__filters .commerce-filters__body {
         /* Keep native checkbox borders and focus rings inside the scrollport at fractional zoom. */

@@ -738,6 +738,27 @@
         var filters = panel(aside, button, 'commerce-filters-backdrop');
         button.addEventListener('click', filters.open);
         aside.querySelectorAll('[data-commerce-filters-close]').forEach(function (b) { b.addEventListener('click', filters.close); });
+
+        // Before the sticky sidebar reaches the header, its starting position can be lower on the page.
+        var desktop = window.matchMedia('(min-width: 1024px)');
+        var frame = 0;
+        function fitFilters() {
+            frame = 0;
+            if (!desktop.matches) return;
+            var top = Math.max(0, aside.getBoundingClientRect().top);
+            var height = Math.max(0, Math.floor(window.innerHeight - top - 16)) + 'px';
+            if (aside.style.getPropertyValue('--commerce-filter-height') !== height) {
+                aside.style.setProperty('--commerce-filter-height', height);
+            }
+        }
+        function scheduleFit() {
+            if (!frame) frame = window.requestAnimationFrame(fitFilters);
+        }
+        fitFilters();
+        window.addEventListener('load', scheduleFit, { once: true });
+        window.addEventListener('resize', scheduleFit);
+        window.addEventListener('scroll', scheduleFit, { passive: true });
+        document.fonts?.ready.then(scheduleFit);
     });
 
     // Use the original form to submit from the floating controls on product pages.
