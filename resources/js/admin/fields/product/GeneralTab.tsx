@@ -25,13 +25,13 @@ export function GeneralTab({ value, update, updateVariant, config, entryId, path
                 <Row label="Product type" htmlFor={`${path}-type`}>
                     <NativeSelect id={`${path}-type`} value={value.type} options={types} onChange={(type) => update({ type })} />
                 </Row>
-                <Row label="Button on the product page" htmlFor={`${path}-mode`} hint="'Follow the store' uses the selling mode set in Settings → Store.">
+                <Row label="Storefront button" htmlFor={`${path}-mode`} hint="Uses the selling mode in Store settings unless overridden here.">
                     <NativeSelect id={`${path}-mode`} value={value.purchase_mode} options={PURCHASE_MODES} onChange={(purchase_mode) => update({ purchase_mode })} />
                 </Row>
             </Grid>
 
             {value.type !== 'variable' && single && (
-                <Section title="Price">
+                <Section title="Pricing and SKU">
                     <Grid cols={4}>
                         <Row label="Price" htmlFor={`${path}-price`}><Money id={`${path}-price`} value={single.price} nullable={false} onChange={(price) => updateVariant(0, { price: price ?? 0 })} /></Row>
                         <Row label="Compare-at price" htmlFor={`${path}-compare`} hint="Shown struck through when higher."><Money id={`${path}-compare`} value={single.compare_at_price} onChange={(compare_at_price) => updateVariant(0, { compare_at_price })} /></Row>

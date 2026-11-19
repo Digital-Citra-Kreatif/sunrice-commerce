@@ -79,7 +79,8 @@ it('adjusts stock from the inventory page with permissions and history', functio
     $user->roles->first()->givePermissionTo('commerce.inventory.adjust');
     app(PermissionRegistrar::class)->forgetCachedPermissions();
     $this->post("/admin/commerce/inventory/{$variant->id}/adjust", ['mode' => 'add', 'quantity' => 5, 'reason' => 'manual', 'note' => 'Restock'])->assertSessionHasNoErrors();
-    $this->post("/admin/commerce/inventory/{$variant->id}/adjust", ['mode' => 'set', 'quantity' => 2, 'reason' => 'correction'])->assertSessionHasNoErrors();
+    $this->postJson("/admin/commerce/inventory/{$variant->id}/adjust", ['mode' => 'set', 'quantity' => 2, 'reason' => 'correction'])
+        ->assertOk()->assertJsonPath('stock_quantity', 2);
 
     expect($variant->fresh()->stock_quantity)->toBe(2);
     $this->getJson("/admin/commerce/inventory/{$variant->id}/history")

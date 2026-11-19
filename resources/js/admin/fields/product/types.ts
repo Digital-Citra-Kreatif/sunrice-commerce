@@ -56,6 +56,7 @@ export interface LiveProduct {
     sync_status: 'ok' | 'failed';
     sync_error: string | null;
     synced_at: string | null;
+    stock_adjustment: { reasons: string[] } | null;
     variants: Record<string, { id: number; stock_quantity: number | null; stock_status: string; track_stock: boolean }>;
 }
 
@@ -65,6 +66,7 @@ export interface TabProps {
     updateVariant: (index: number, patch: Partial<Variant>) => void;
     config: EditorConfig;
     live: LiveProduct | null;
+    updateLiveStock: (key: string, variantId: number, quantity: number) => void;
     entryId: number | null;
     path: string;
 }

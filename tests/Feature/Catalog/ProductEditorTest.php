@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia;
 use Sunrice\Cms\Models\Entry;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\DownloadFile;
@@ -37,7 +38,17 @@ it('creates, drafts and publishes a variable product through the entry editor', 
 
     $this->getJson("/admin/commerce/api/products/{$entry->id}")->assertOk()
         ->assertJsonPath('data.sync_status', 'ok')
-        ->assertJsonPath('data.variants.var1.stock_quantity', 5);
+        ->assertJsonPath('data.variants.var1.stock_quantity', 5)
+        ->assertJsonPath('data.stock_adjustment.reasons.0', 'manual');
+
+    $this->get("/admin/cms/collections/products/entries/{$entry->id}/edit")->assertOk()
+        ->assertInertia(function (AssertableInertia $page) {
+            $shop = collect($page->toArray()['props']['navigation'])->firstWhere('group', 'Shop');
+            $products = collect($shop['items'])->firstWhere('key', 'commerce-products');
+
+            expect($products['url'])->toBe('commerce/products')
+                ->and($products['matches'])->toBe(['cms/collections/products/entries']);
+        });
 });
 
 it('refuses an invalid product value with a readable message', function () {

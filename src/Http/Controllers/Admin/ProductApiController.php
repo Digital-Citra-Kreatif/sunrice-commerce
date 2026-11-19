@@ -12,6 +12,7 @@ use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Inventory\Actions\AdjustStock;
 
 /** JSON for the product editor control. */
 class ProductApiController extends Controller
@@ -53,6 +54,8 @@ class ProductApiController extends Controller
             'sync_error' => $product->sync_error,
             'synced_at' => $product->synced_at?->toIso8601String(),
             'sales_count' => $product->sales_count,
+            'stock_adjustment' => commerce_feature('inventory') && $request->user()->can('commerce.inventory.adjust')
+                ? ['reasons' => AdjustStock::REASONS] : null,
             'variants' => $product->variants()->get()->mapWithKeys(fn (Variant $v) => [$v->uid => [
                 'id' => $v->id,
                 'stock_quantity' => $v->stock_quantity,

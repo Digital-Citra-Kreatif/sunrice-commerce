@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Keep Shop → Products selected in the product editor. Align labels and controls across the
+  editor and let permitted staff record stock adjustments there without saving the product draft.
+
 - Wishlist and Compare confirmations include shortcuts to their pages. The starter header
   also links to Compare. Merge the updated storefront templates and theme assets into published
   copies and include the new `partials/collection-button.blade.php` partial.
