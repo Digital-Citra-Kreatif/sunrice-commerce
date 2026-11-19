@@ -68,17 +68,33 @@ class ProductFilter extends Component
         $paths = $this->categoryPaths($categories);
         $tree = [];
         foreach ($facets as $facet) {
-            $branch = &$tree;
-            foreach ($paths[$facet['id']] ?? [$facet['id'] => $facet['name']] as $id => $label) {
-                $branch[$id] ??= ['label' => $label, 'term' => null, 'selected' => false, 'children' => []];
-                $branch[$id]['selected'] = $branch[$id]['selected'] || $facet['selected'];
-                if ($id === $facet['id']) {
-                    $branch[$id]['term'] = $facet;
-                }
-                $branch = &$branch[$id]['children'];
-            }
-            unset($branch);
+            $tree = $this->insertFacet($tree, $paths[$facet['id']] ?? [$facet['id'] => $facet['name']], $facet);
         }
+
+        return $tree;
+    }
+
+    /**
+     * @param  array<int, mixed>  $tree
+     * @param  array<int, string>  $path
+     * @param  array{id: int, name: string, count: int, selected: bool}  $facet
+     * @return array<int, mixed>
+     */
+    private function insertFacet(array $tree, array $path, array $facet): array
+    {
+        $id = array_key_first($path);
+        if ($id === null) {
+            return $tree;
+        }
+
+        $node = $tree[$id] ?? ['label' => $path[$id], 'term' => null, 'selected' => false, 'children' => []];
+        $node['selected'] = $node['selected'] || $facet['selected'];
+        if ($id === $facet['id']) {
+            $node['term'] = $facet;
+        }
+        unset($path[$id]);
+        $node['children'] = $this->insertFacet($node['children'], $path, $facet);
+        $tree[$id] = $node;
 
         return $tree;
     }
