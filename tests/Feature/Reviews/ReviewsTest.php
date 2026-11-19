@@ -8,6 +8,7 @@ use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Customers\Actions\AnonymizeCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
+use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\OrderStatus;
 use Sunrice\Commerce\Reviews\Models\Review;
 use Sunrice\Commerce\Settings\StoreSettings;
@@ -33,18 +34,19 @@ function reviewer(bool $bought = false): Customer
     return $customer;
 }
 
-it('keeps a guest review until it is approved, then shows it with the rating', function () {
-    $this->post("/reviews/{$this->product->id}", ['rating' => 4, 'title' => 'Nice mug', 'body' => 'Holds my coffee well.', 'name' => 'Budi', 'email' => 'Budi@Example.com'])
+it('keeps a verified buyer review pending until approved, then shows it with the rating', function () {
+    reviewer(bought: true);
+    $this->post("/reviews/{$this->product->id}", ['rating' => 4, 'title' => 'Nice mug', 'body' => 'Holds my coffee well.'])
         ->assertRedirect()->assertSessionHas('commerce.success', 'Terima kasih! Ulasan Anda akan tampil setelah diperiksa.');
     $review = Review::query()->sole();
-    expect($review->email)->toBe('budi@example.com')->and($review->status)->toBe('pending')->and($this->product->fresh()->rating_count)->toBe(0);
+    expect($review->email)->toBe('ana@example.com')->and($review->status)->toBe('pending')->and($this->product->fresh()->rating_count)->toBe(0);
     $this->get('/products/mug')->assertOk()->assertDontSee('Holds my coffee well.')->assertSee('Belum ada ulasan');
 
     actingAsUserWith(['commerce.reviews.manage']);
     $this->post('/admin/commerce/reviews/bulk', ['action' => 'approved', 'ids' => [$review->id]])->assertSessionHas('success', '1 review updated.');
     expect($this->product->fresh())->rating_count->toBe(1)->rating_average->toBe(4.0);
 
-    $page = $this->get('/products/mug')->assertOk()->assertSee('Nice mug')->assertSee('Holds my coffee well.')->assertSee('Budi')->assertDontSee('budi@example.com');
+    $page = $this->get('/products/mug')->assertOk()->assertSee('Nice mug')->assertSee('Holds my coffee well.')->assertSee('Ana')->assertDontSee('ana@example.com');
     preg_match_all('#<script type="application/ld\+json"[^>]*>(.*?)</script>#s', $page->getContent(), $scripts);
     $product = json_decode(collect($scripts[1])->first(fn (string $json) => str_contains($json, '"@type":"Product"')), true);
     expect($product['aggregateRating'])->toBe(['@type' => 'AggregateRating', 'ratingValue' => '4.0', 'reviewCount' => 1, 'bestRating' => '5', 'worstRating' => '1']);
@@ -64,20 +66,25 @@ it('shows buyers\' reviews at once as verified purchases, and replaces a custome
     $this->get('/products/mug')->assertSee('It chipped after a month.')->assertSee('Pembelian terverifikasi')->assertDontSee('Best mug');
 });
 
-it('lets only the customers the settings name write reviews', function () {
-    app(StoreSettings::class)->saveSection('catalog', ['reviews_who' => 'customers']);
+it('requires a verified purchase even with permissive legacy settings', function () {
+    app(StoreSettings::class)->saveSection('catalog', ['reviews_who' => 'everyone']);
     $input = ['rating' => 5, 'body' => 'Lovely glaze and colour.', 'name' => 'Budi', 'email' => 'budi@example.com'];
     $this->post("/reviews/{$this->product->id}", $input)->assertSessionHasErrors('review');
     $this->get('/products/mug')->assertSee('untuk menulis ulasan')->assertDontSee('name="rating"', false);
 
-    app(StoreSettings::class)->saveSection('catalog', ['reviews_who' => 'buyers']);
-    reviewer();
+    $customer = reviewer();
     $this->post("/reviews/{$this->product->id}", $input)->assertSessionHasErrors(['review' => 'Hanya pembeli produk ini yang dapat menulis ulasan.']);
+    $unpaid = makeOrder(['customer_id' => $customer->id, 'status' => OrderStatus::PROCESSING]);
+    $unpaid->items()->create(['product_id' => $this->product->id, 'name' => 'Mug', 'quantity' => 1]);
+    $this->post("/reviews/{$this->product->id}", $input)->assertSessionHasErrors('review');
+
+    $this->get('/products/mug')->assertSee('Hanya pembeli produk ini')->assertDontSee('name="rating"', false);
     expect(Review::query()->count())->toBe(0);
 });
 
 it('validates reviews and takes none while the module is off', function () {
-    $this->post("/reviews/{$this->product->id}", ['rating' => 6, 'body' => 'short'])->assertSessionHasErrors(['rating', 'body', 'name', 'email']);
+    reviewer(bought: true);
+    $this->post("/reviews/{$this->product->id}", ['rating' => 6, 'body' => 'short'])->assertSessionHasErrors(['rating', 'body']);
     $this->post('/reviews/999', ['rating' => 5, 'body' => 'Lovely glaze and colour.', 'name' => 'B', 'email' => 'b@example.com'])->assertNotFound();
 
     app(ToggleFeature::class)->handle('reviews', false);
@@ -129,9 +136,44 @@ it('keeps one review per customer and product in the database', function () {
 });
 
 it('takes reviews from customers with names as long as their profile allows', function () {
-    $customer = reviewer();
+    $customer = reviewer(bought: true);
     $customer->update(['name' => str_repeat('A', 120)]);
 
     $this->post("/reviews/{$this->product->id}", ['rating' => 5, 'body' => 'Long name, good mug.'])->assertSessionHasNoErrors();
     expect(Review::query()->sole()->name)->toHaveLength(120);
+});
+
+it('lets permitted staff add, edit and delete a review using a paid order', function () {
+    $customer = reviewer(bought: true);
+    $order = Order::query()->where('customer_id', $customer->id)->sole();
+    $values = [
+        'order_number' => $order->number,
+        'product' => [['id' => $this->product->id, 'type' => 'product']],
+        'rating' => '4', 'status' => 'approved', 'title' => 'Through support', 'body' => 'Shared by the buyer with support.',
+    ];
+    actingAsUserWith(['commerce.orders.view']);
+    $this->get('/admin/commerce/reviews/create')->assertForbidden();
+    $this->post('/admin/commerce/reviews', ['values' => $values])->assertForbidden();
+
+    actingAsUserWith(['commerce.reviews.manage'], 'staff-review@example.com');
+    $this->get('/admin/commerce/reviews/create')->assertOk()->assertInertia(fn ($page) => $page
+        ->component('Commerce/Shared/SchemaForm')->where('title', 'Add review'));
+    $this->get('/admin/commerce/api/targets?types[]=product&q=Mug')->assertOk()->assertJsonPath('data.0.id', $this->product->id);
+    $this->post('/admin/commerce/reviews', ['values' => array_replace($values, ['order_number' => 'NOT-A-PURCHASE'])])
+        ->assertSessionHasErrors('values.order_number');
+    $this->post('/admin/commerce/reviews', ['values' => $values])->assertSessionHasNoErrors()->assertSessionHas('success', 'Review added.');
+    $review = Review::query()->sole();
+    expect($review)->order_id->toBe($order->id)->customer_id->toBe($customer->id)
+        ->and($this->product->fresh()->rating_average)->toBe(4.0);
+    $this->post('/admin/commerce/reviews', ['values' => $values])->assertSessionHasErrors('values.order_number');
+
+    $this->put("/admin/commerce/reviews/{$review->id}", ['values' => [
+        'rating' => '5', 'status' => 'approved', 'title' => 'Corrected title', 'body' => 'Corrected buyer review.',
+    ]])->assertSessionHasNoErrors();
+    $this->get('/products/mug')->assertOk()->assertSee('Corrected buyer review.')->assertSee('Pembelian terverifikasi');
+    expect($review->fresh())->order_id->toBe($order->id)->title->toBe('Corrected title')
+        ->and($this->product->fresh()->rating_average)->toBe(5.0);
+
+    $this->delete("/admin/commerce/reviews/{$review->id}")->assertRedirect('/admin/commerce/reviews');
+    expect($this->product->fresh()->rating_count)->toBe(0);
 });

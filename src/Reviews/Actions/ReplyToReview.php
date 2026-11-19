@@ -8,14 +8,15 @@ use Sunrice\Commerce\Reviews\Models\Review;
 use Sunrice\Commerce\Reviews\ProductRating;
 use Sunrice\Commerce\Support\ActivityRecorder;
 
-/** Set a review's status and the store's reply (an empty reply removes it). */
+/** Edit a review, including its status and the store's reply (an empty reply removes it). */
 class ReplyToReview
 {
-    public function handle(Review $review, ?string $reply, string $status): void
+    /** @param array{rating?: int|string, title?: string|null, body?: string} $content */
+    public function handle(Review $review, ?string $reply, string $status, array $content = []): void
     {
         $reply = trim((string) $reply) === '' ? null : trim((string) $reply);
-        $review->update(['status' => $status, 'reply' => $reply, 'replied_at' => $reply === null ? null : ($review->reply === $reply ? $review->replied_at : now())]);
+        $review->update([...$content, 'status' => $status, 'reply' => $reply, 'replied_at' => $reply === null ? null : ($review->reply === $reply ? $review->replied_at : now())]);
         ProductRating::refresh($review->product_id);
-        app(ActivityRecorder::class)->record('updated', "Review #{$review->id}", ['changes' => ['status', 'reply']], 'reviews');
+        app(ActivityRecorder::class)->record('updated', "Review #{$review->id}", ['changes' => array_keys($review->getChanges())], 'reviews');
     }
 }

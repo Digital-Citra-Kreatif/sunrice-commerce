@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Http\Controllers\Admin;
 
+use Illuminate\Contracts\Auth\Access\Authorizable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Sunrice\Cms\Models\Taxonomy;
@@ -17,10 +18,16 @@ class TargetsApiController extends Controller
 {
     public function __invoke(Request $request): JsonResponse
     {
-        // The pickers of vouchers, flash sales, pricing rules and marketing audiences.
-        $this->authorizeAny($request->user(), ['commerce.vouchers.manage', 'commerce.flash-sales.manage', 'commerce.pricing-rules.manage', 'commerce.marketing.manage']);
+        $user = $request->user();
+        $shared = ['commerce.vouchers.manage', 'commerce.flash-sales.manage', 'commerce.pricing-rules.manage', 'commerce.marketing.manage'];
+        $canUseSharedPicker = $user instanceof Authorizable && collect($shared)->contains(fn (string $permission) => $user->can($permission));
+        if (! $canUseSharedPicker) {
+            $this->authorizeFeature('reviews');
+            $this->authorize('commerce.reviews.manage');
+        }
+
         $q = trim((string) $request->query('q', ''));
-        $types = array_intersect((array) $request->query('types', ['product', 'variant', 'term']), ['product', 'variant', 'term']);
+        $types = array_intersect((array) $request->query('types', ['product', 'variant', 'term']), $canUseSharedPicker ? ['product', 'variant', 'term'] : ['product']);
         $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $q).'%';
         $results = [];
 

@@ -537,24 +537,23 @@ Both pages are `noindex`.
 
 ## Reviews
 
-**Reviews** (`reviews` module, on by default): customers rate a product from 1 to 5 stars and write
-a review on its page (`<x-commerce::reviews :entry="$entry" />`); staff approve, reject, reply to
-and delete them in Shop → Products → Reviews (permission `commerce.reviews.manage`).
+**Reviews** (`reviews` module, on by default): verified buyers rate a product from 1 to 5 stars and
+write a review on its page (`<x-commerce::reviews :entry="$entry" />`).
 
-- Settings → Store → Catalog: **Who may review products** (`catalog.reviews_who`: `everyone`,
-  `customers` signed in, or `buyers`) and **Reviews show** (`catalog.reviews_approval`: `manual`,
-  `buyers` at once and others once approved, or `none`, at once).
-- A review by a customer with a processing or completed order for the product is a **verified
-  purchase**. A customer has one review per product: writing again replaces it, and it's checked
-  again under the approval setting.
-- Guests give a name and an email (never shown), and answer the panel's captcha when one is set up.
-  The form has a honeypot and takes 5 reviews an hour from an address.
+- Buyers must sign in and have a paid order for that product in Processing or Completed status.
+  Writing again replaces the buyer's existing review and applies the approval setting again.
+- Settings → Store → Catalog → **Reviews show** (`catalog.reviews_approval`) controls publication
+  after approval (`manual`) or immediately (`none`). Existing `buyers` values still publish immediately.
+- Staff with `commerce.reviews.manage` can record a review from a buyer in Shop → Products → Reviews.
+  Enter the paid order number and select its product. The system takes the buyer identity from the
+  order. Staff can edit the rating, title, text, reply and status, or delete a review.
+- The storefront form has a honeypot and takes 5 reviews an hour from an address.
 - Approved reviews make the product's rating (`commerce_products.rating_count` and
   `rating_average`), shown on cards, under the product's title and in its JSON-LD
   (`aggregateRating`).
 - When a customer is anonymised, their reviews stay without their name, email and address; review
   IP addresses are pruned with the others (`commerce.privacy.ip_retention_days`).
-- `Reviews\Events\ReviewSubmitted` fires for every review written.
+- `Reviews\Events\ReviewSubmitted` fires for storefront submissions. Staff changes are recorded in the activity log.
 
 ## Product feeds
 

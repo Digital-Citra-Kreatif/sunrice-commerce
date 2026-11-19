@@ -336,7 +336,6 @@ return [
             'new_badge_days' => 14,
             'compare_max' => 4,
             'compare_fields' => [],
-            'reviews_who' => 'everyone',
             'reviews_approval' => 'manual',
             'price_range' => 'range',
             'attribute_taxonomies' => [],

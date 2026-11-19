@@ -897,16 +897,15 @@ Google), earlier guest orders with that email join the account.
 ### Reviews (`reviews`)
 
 - Customers rate a product 1–5 and write a review (optional title, text) on its page.
-- Who may write one: everyone (guests give a name and an email, never shown), signed-in customers,
-  or customers who bought the product. A review from a customer with a processing or completed
-  order for it is a verified purchase. One review per customer and product; writing again replaces
-  it.
-- Reviews show once approved, at once from buyers, or at once, by setting. Staff approve, reject,
-  reply to and delete them in Shop → Products → Reviews.
+- Only signed-in customers with a paid processing or completed order for the product can submit
+  a review. One review per customer and product; writing again replaces it.
+- Reviews show once approved or immediately, by setting. In Shop → Products → Reviews, staff
+  can record a review on behalf of a buyer using the paid order number and product. Staff can edit
+  the rating, title and text, approve or reject, reply, and delete reviews.
 - The product page shows the average, a breakdown by rating, the approved reviews (newest first,
   paged) with the store's replies and the form; cards and the product title show the rating;
   JSON-LD gets `aggregateRating`.
-- Spam: a honeypot, the panel's captcha for guests, and 5 reviews an hour per address.
+- Spam: a honeypot and 5 reviews an hour per address.
 - Anonymising a customer removes their name, email and address from their reviews.
 
 ### Marketing emails (`marketing`)

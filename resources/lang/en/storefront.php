@@ -135,6 +135,7 @@ return [
         'available' => 'This one can be ordered now.',
     ],
     'reviews' => [
+        'buyer' => 'Buyer',
         'count' => '{1} :count review|[2,*] :count reviews',
         'title' => 'Reviews',
         'average' => ':rating out of 5 (:count reviews)',

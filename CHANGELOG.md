@@ -7,6 +7,9 @@
   announcement as the first tab or above or below account content. Update published account
   templates and the starter stylesheet to pick up the changes.
 
+- Only verified buyers can submit storefront reviews. Staff can add a review linked to a buyer's
+  paid order and edit or delete reviews in Shop → Products → Reviews.
+
 - Product buttons inherit across Store, Category, Brand, and Product. The product editor shows
   the inherited action and its source, and cart eligibility uses the same rule.
 - Flash Sale separates product selection, pricing and quantity limits. A rule now applies to

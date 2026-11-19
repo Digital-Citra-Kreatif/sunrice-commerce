@@ -135,6 +135,7 @@ return [
         'available' => 'Produk ini sudah bisa dipesan.',
     ],
     'reviews' => [
+        'buyer' => 'Pembeli',
         'count' => ':count ulasan',
         'title' => 'Ulasan',
         'average' => ':rating dari 5 (:count ulasan)',
