@@ -29,6 +29,8 @@ return [
         'date' => 'Date of the transfer',
         'account' => 'Paid into',
         'proof' => 'Proof of payment',
+        'proof_invalid_image' => 'The image could not be read. Choose another image or upload a PDF.',
+        'proof_pdf_required' => 'Image uploads are unavailable. Upload a PDF instead.',
         'proof_help' => 'A photo, screenshot or PDF, up to 5 MB.',
         'note' => 'Note',
         'submit' => 'Send confirmation',

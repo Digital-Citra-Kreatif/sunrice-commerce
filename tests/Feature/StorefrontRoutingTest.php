@@ -10,9 +10,12 @@ use Sunrice\Commerce\Regions\RegionImporter;
 beforeEach(fn () => (new RegionImporter(__DIR__.'/../Fixtures/regions'))->import(4));
 
 it('serves the regions endpoint in every language', function () {
-    $this->getJson('/commerce/api/regions')->assertOk()
+    $response = $this->getJson('/commerce/api/regions')->assertOk()
+        ->assertHeader('X-Content-Type-Options', 'nosniff')
         ->assertJsonPath('data.0.code', '31')
         ->assertJsonCount(2, 'data');
+    expect($response->headers->hasCacheControlDirective('private'))->toBeTrue()
+        ->and($response->headers->hasCacheControlDirective('public'))->toBeFalse();
     $this->getJson('/commerce/api/regions?parent=32.73.01')->assertOk()
         ->assertJsonPath('data.0', ['code' => '32.73.01.1001', 'name' => 'Sarijadi', 'kind' => 'kelurahan', 'postal_code' => '40151']);
     $this->getJson('/en/commerce/api/regions?parent=32')->assertOk()->assertJsonCount(2, 'data');

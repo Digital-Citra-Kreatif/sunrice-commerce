@@ -116,7 +116,13 @@ equivalent):
 php artisan queue:work
 ```
 
-The dashboard warns when the scheduler or the queue hasn't run recently.
+The dashboard warns when the scheduler or the queue hasn't run recently. Dated reports also show a
+notice when the worker heartbeat is missing, because totals may lag behind completed orders.
+
+For a high-traffic store, use MySQL or PostgreSQL. SQLite is suitable for development and
+low-write deployments. Running the application, sessions, cache, and queue on the same SQLite
+database adds write contention to ordinary storefront traffic. Move those services to Redis if
+available. Set `APP_DEBUG=false` on public deployments.
 
 ## Mail
 

@@ -645,7 +645,8 @@ It prints each failure and exits with an error code when any failed.
   failed sync;
   searches title and SKU; bulk actions mark featured, unmark featured, and set the stock status.
   Opening a product goes to Sunrice's entry editor.
-- **Export CSV / Import CSV** on Shop → Products: the export has one row per variant of the
+- **Export CSV / Import CSV** on Shop → Products: export requires `commerce.products.export` and
+  access to view the product collection. It includes internal costs and has one row per variant of the
   products the user may see (`sku`, `product`, `variant`, `price`, `compare_at_price`, `cost`,
   `stock`, `weight`, `active`; bundles left out). An import matches rows by SKU and changes
   `price`, `compare_at_price`, `cost`, `stock`, `weight` and `active`: a blank cell keeps the value,

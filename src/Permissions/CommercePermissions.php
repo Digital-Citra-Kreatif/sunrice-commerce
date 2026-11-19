@@ -43,6 +43,7 @@ final class CommercePermissions
 
             'commerce.marketing.manage' => ['Send marketing emails and manage automations', 'Store: Marketing'],
 
+            'commerce.products.export' => ['Export products and internal costs', 'Store: Catalog'],
             'commerce.inventory.view' => ['View stock levels', 'Store: Catalog'],
             'commerce.inventory.adjust' => ['Adjust stock', 'Store: Catalog'],
             'commerce.reviews.manage' => ['Create, edit, moderate and delete product reviews', 'Store: Catalog'],

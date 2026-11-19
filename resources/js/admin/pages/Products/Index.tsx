@@ -8,7 +8,7 @@ interface Row { id: number; product_title: string; href: string; type: string; s
 
 const stateTone: Record<string, string> = { published: 'ok', draft: 'neutral', scheduled: 'info', trashed: 'error' };
 
-export default function ProductsIndex(props: DataTableProps & { create: Array<{ label: string; url: string }>; bulkUrl: string }) {
+export default function ProductsIndex(props: DataTableProps & { create: Array<{ label: string; url: string }>; bulkUrl: string; canExport: boolean; canImport: boolean }) {
     const { Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } = ui;
     const { Link } = inertia;
     useCommerceShared();
@@ -28,8 +28,8 @@ export default function ProductsIndex(props: DataTableProps & { create: Array<{ 
                         </DropdownMenu>
                     ) : undefined}
                 menu={[
-                    { label: 'Export CSV', href: adminUrl('commerce/products/export'), download: true },
-                    { label: 'Import CSV', href: adminUrl('commerce/products/import') },
+                    ...(props.canExport ? [{ label: 'Export CSV', href: adminUrl('commerce/products/export'), download: true }] : []),
+                    ...(props.canImport ? [{ label: 'Import CSV', href: adminUrl('commerce/products/import') }] : []),
                 ]} />
             <DataTable
                 {...props}

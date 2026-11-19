@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia;
 use Sunrice\Commerce\Analytics\Period;
@@ -10,6 +11,7 @@ use Sunrice\Commerce\Analytics\StatsRecorder;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Customers\Models\Customer;
+use Sunrice\Commerce\Health\Checks\QueueCheck;
 use Sunrice\Commerce\Orders\Models\Order;
 
 function reportOrder(Product $product, int $qty, int $unit, string $placedAt, array $attributes = []): Order
@@ -106,4 +108,16 @@ it('needs the report permissions', function () {
 
     actingAsUserWith(['commerce.dashboard.view'], 'editor@example.com');
     $this->get('/admin/commerce/reports/sales')->assertForbidden();
+});
+
+it('warns report readers when the worker heartbeat is missing', function () {
+    config(['queue.default' => 'database']);
+    actingAsUserWith(['commerce.reports.view']);
+    Cache::forget(QueueCheck::HEARTBEAT);
+    $this->get('/admin/commerce/reports/sales')->assertOk()
+        ->assertInertia(fn ($page) => $page->where('dataMayBeDelayed', true));
+
+    Cache::put(QueueCheck::HEARTBEAT, now()->timestamp);
+    $this->get('/admin/commerce/reports/sales')->assertOk()
+        ->assertInertia(fn ($page) => $page->where('dataMayBeDelayed', false));
 });

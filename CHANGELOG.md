@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Require a dedicated permission for product CSV exports, which include internal cost. Sync
+  permissions and reseed the default shop manager role after upgrading.
+- Authenticate Commerce admin requests before resolving order and customer models.
+- Keep region API responses private to the browser and send the JSON no-sniff header.
+- Warn when dated reports may be stale due to a missing queue heartbeat.
+- Batch image queries on the starter homepage and product page, reject unreadable payment
+  images, and return successful reviews to their product page.
+
 - Group product settings separately from content. Reuse specifications, questions and size guides
   across store, category and brand defaults. Product editors can override or hide sections.
 - Reorder product images in the CMS and add a local or external product video. Existing product

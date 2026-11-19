@@ -7,10 +7,13 @@ namespace Sunrice\Commerce\Payments;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
+use Intervention\Image\Exceptions\DecoderException;
+use Intervention\Image\Exceptions\EncoderException;
+use Intervention\Image\Exceptions\NotSupportedException;
 use Intervention\Image\ImageManager;
-use Throwable;
 
 /**
  * Payment proofs on the private disk (commerce.payments.proof_disk) under
@@ -32,23 +35,19 @@ class ProofFiles
         return ['disk' => $disk, 'path' => $path];
     }
 
-    /** The image drawn again from its pixels (the original when no image library is installed). */
+    /** Draw the image again from its pixels before storing it. */
     public function reencode(UploadedFile $file, string $extension): string
     {
         $original = (string) file_get_contents($file->getRealPath());
         if (! extension_loaded('imagick') && ! extension_loaded('gd')) {
-            report(new \RuntimeException('Payment proof kept as uploaded: install the GD or Imagick PHP extension to re-encode images.'));
-
-            return $original;
+            throw ValidationException::withMessages(['proof' => __('commerce::payments.confirm.proof_pdf_required')]);
         }
         try {
             $manager = new ImageManager(extension_loaded('imagick') ? new ImagickDriver : new GdDriver);
 
             return (string) $manager->read($original)->encodeByExtension($extension);
-        } catch (Throwable $e) {
-            report($e);
-
-            return $original;
+        } catch (DecoderException|EncoderException|NotSupportedException) {
+            throw ValidationException::withMessages(['proof' => __('commerce::payments.confirm.proof_invalid_image')]);
         }
     }
 

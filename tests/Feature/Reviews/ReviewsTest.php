@@ -36,8 +36,8 @@ function reviewer(bool $bought = false): Customer
 
 it('keeps a verified buyer review pending until approved, then shows it with the rating', function () {
     reviewer(bought: true);
-    $this->post("/reviews/{$this->product->id}", ['rating' => 4, 'title' => 'Nice mug', 'body' => 'Holds my coffee well.'])
-        ->assertRedirect()->assertSessionHas('commerce.success', 'Terima kasih! Ulasan Anda akan tampil setelah diperiksa.');
+    $this->from('/products')->post("/reviews/{$this->product->id}", ['rating' => 4, 'title' => 'Nice mug', 'body' => 'Holds my coffee well.'])
+        ->assertRedirect('/products/mug#reviews')->assertSessionHas('commerce.success', 'Terima kasih! Ulasan Anda akan tampil setelah diperiksa.');
     $review = Review::query()->sole();
     expect($review->email)->toBe('ana@example.com')->and($review->status)->toBe('pending')->and($this->product->fresh()->rating_count)->toBe(0);
     $this->get('/products/mug')->assertOk()->assertDontSee('Holds my coffee well.')->assertSee('Belum ada ulasan');

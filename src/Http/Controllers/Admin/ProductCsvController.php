@@ -26,6 +26,7 @@ class ProductCsvController extends Controller
 {
     public function export(Request $request, ProductCsv $csv): StreamedResponse
     {
+        $this->authorize('commerce.products.export');
         $collections = $this->collections($request, 'view');
         abort_if($collections === [], 403);
         app(ActivityRecorder::class)->record('exported', 'Products', [], 'products');
@@ -36,7 +37,7 @@ class ProductCsvController extends Controller
                 $writer->addRow($row);
             }
             $writer->close();
-        }, 'products-'.now()->format('Ymd-His').'.csv', ['Content-Type' => 'text/csv']);
+        }, 'products-'.now()->format('Ymd-His').'.csv', ['Content-Type' => 'text/csv', 'Cache-Control' => 'private, no-store']);
     }
 
     public function form(Request $request): Response
@@ -49,6 +50,7 @@ class ProductCsvController extends Controller
             'result' => is_string($report) && preg_match('/^[a-zA-Z0-9]{40}$/D', $report) ? Cache::get(self::key($request, $report).':result') : null,
             'columns' => ProductCsv::COLUMNS, 'changeable' => ProductCsv::CHANGEABLE, 'maxRows' => ProductCsv::MAX_ROWS,
             'canAdjustStock' => $request->user()->can('commerce.inventory.adjust'), 'canCreate' => $this->mayCreate($request),
+            'canExport' => $request->user()->can('commerce.products.export') && $this->collections($request, 'view') !== [],
             'preview' => null, 'token' => null,
         ]);
     }
@@ -72,6 +74,7 @@ class ProductCsvController extends Controller
         return Inertia::render('Commerce/Products/Import', [
             'columns' => ProductCsv::COLUMNS, 'changeable' => ProductCsv::CHANGEABLE, 'maxRows' => ProductCsv::MAX_ROWS,
             'canAdjustStock' => $request->user()->can('commerce.inventory.adjust'), 'canCreate' => $this->mayCreate($request),
+            'canExport' => $request->user()->can('commerce.products.export') && $this->collections($request, 'view') !== [],
             'preview' => $preview['rows'], 'token' => $token,
         ]);
     }

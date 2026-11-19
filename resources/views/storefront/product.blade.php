@@ -11,8 +11,18 @@
 --}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 
-@php($product = commerce_product($entry))
-@php($projectedProduct = $product && ! \Sunrice\Commerce\Catalog\LiveEntries::previewing($product->entry) ? $product->product : null)
+@php
+    $product = commerce_product($entry);
+    $projectedProduct = $product && ! \Sunrice\Commerce\Catalog\LiveEntries::previewing($product->entry) ? $product->product : null;
+    $gallery = collect((commerce_values($entry)['gallery'] ?? null) ?? [])->filter(fn ($image) => is_object($image))->values();
+    $imagesById = $gallery->keyBy('id');
+    $variantsWithImages = collect($product?->variants ?? [])->filter(fn ($variant) => $variant['image']);
+    $extraImageIds = $variantsWithImages->pluck('image')->unique()->diff($imagesById->keys());
+    if ($extraImageIds->isNotEmpty()) {
+        $imagesById = $imagesById->union(\Sunrice\Admin\Media\Media::query()->whereKey($extraImageIds->all())->get()->keyBy('id'));
+    }
+    $variantImages = $variantsWithImages->mapWithKeys(fn ($variant) => [$variant['id'] => $imagesById->get($variant['image'])?->url()])->filter()->all();
+@endphp
 
 @push('head')
     @if ($product)
@@ -41,8 +51,6 @@
     ]])
     @include($L::view('partials.messages'))
     <article class="commerce-product">
-        @php($variantImages = $product ? collect($product->variants)->filter(fn ($v) => $v['image'])->mapWithKeys(fn ($v) => [$v['id'] => \Sunrice\Admin\Media\Media::query()->find($v['image'])?->url()])->filter()->all() : [])
-        @php($gallery = collect((commerce_values($entry)['gallery'] ?? null) ?? [])->filter(fn ($image) => is_object($image))->values())
         <div class="commerce-product__primary">
             <div class="commerce-product__gallery" data-commerce-gallery="{{ json_encode($variantImages, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }}">
                 <div class="commerce-gallery__main">

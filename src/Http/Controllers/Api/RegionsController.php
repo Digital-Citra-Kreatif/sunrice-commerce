@@ -31,6 +31,6 @@ class RegionsController
             ->all());
 
         return response()->json(['data' => $regions])
-            ->setPublic()->setMaxAge(86400);
+            ->setPrivate()->setMaxAge(86400);
     }
 }

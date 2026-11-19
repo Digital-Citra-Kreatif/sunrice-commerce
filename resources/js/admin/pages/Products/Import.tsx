@@ -10,7 +10,7 @@ interface PreviewRow { line: number; sku: string; product: string; changes: Reco
 const show = (value: Change['from']) => (value === null || value === '' ? '—' : typeof value === 'boolean' ? (value ? 'yes' : 'no') : String(value));
 
 /** Shop → Products → Import: upload a CSV, see what it changes, apply. */
-export default function ProductsImport(props: { columns: string[]; changeable: string[]; maxRows: number; canAdjustStock: boolean; canCreate?: boolean; preview: PreviewRow[] | null; token: string | null; result?: ImportResult | null }) {
+export default function ProductsImport(props: { columns: string[]; changeable: string[]; maxRows: number; canAdjustStock: boolean; canExport: boolean; canCreate?: boolean; preview: PreviewRow[] | null; token: string | null; result?: ImportResult | null }) {
     const { Button, Input, Label } = ui;
     const { useForm, router, Link } = inertia;
     useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Products', href: adminUrl('commerce/products') }, { label: 'Import' }]);
@@ -40,7 +40,7 @@ export default function ProductsImport(props: { columns: string[]; changeable: s
                 <Input id="import-file" type="file" accept=".csv,text/csv" aria-describedby="import-help"
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => upload.setData('file', e.target.files?.[0] ?? null)} />
                 <p id="import-help" className="cm:text-sm cm:text-muted-foreground">
-                    Start from <a className="cm:underline" href={adminUrl('commerce/products/export')}>the export</a>. Columns: {props.columns.join(', ')};
+                    {props.canExport && <>Start from <a className="cm:underline" href={adminUrl('commerce/products/export')}>the export</a>. </>}Columns: {props.columns.join(', ')};
                     the import changes {props.changeable.filter((c) => c !== 'stock' || props.canAdjustStock).join(', ')}. Amounts in the store's currency
                     with a dot for decimals; 0 clears a compare-at price or cost. Up to {props.maxRows} rows.
                 </p>

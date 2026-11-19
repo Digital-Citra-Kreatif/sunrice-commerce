@@ -22,6 +22,7 @@ interface Props {
         summary: Array<{ key: string; label: string; kind: Kind; value: number; previous: number | null; change: number | null }>;
     };
     exportUrl: string | null;
+    dataMayBeDelayed: boolean;
 }
 
 const count = (v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 0 });
@@ -36,7 +37,7 @@ function format(value: unknown, kind: Kind): string {
 
 const numeric = (kind: Kind) => kind === 'money' || kind === 'count' || kind === 'percent';
 
-export default function ReportShow({ report, reports, period, result, exportUrl }: Props) {
+export default function ReportShow({ report, reports, period, result, exportUrl, dataMayBeDelayed }: Props) {
     const { Card, CardContent, CardHeader, CardTitle, CardDescription, Button, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
         Table, TableBody, TableCell, TableHead, TableHeader, TableRow } = ui;
     const { Link, router } = inertia;
@@ -52,6 +53,12 @@ export default function ReportShow({ report, reports, period, result, exportUrl 
         <div className="cm:flex cm:min-w-0 cm:flex-col cm:gap-6">
             <PageHeader title="Reports" description={report.description || undefined}
                 menu={exportUrl ? [{ label: 'Export CSV', href: exportUrl, download: true }] : undefined} />
+
+            {dataMayBeDelayed && (
+                <p role="status" className="cm:rounded-md cm:border cm:bg-muted cm:px-4 cm:py-3 cm:text-sm">
+                    Report totals may be out of date. The store has not received a recent queue worker heartbeat.
+                </p>
+            )}
 
             <nav aria-label="Reports" className="cm:flex cm:flex-wrap cm:gap-1">
                 {reports.map((r) => (
