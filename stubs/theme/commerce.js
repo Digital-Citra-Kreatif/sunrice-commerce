@@ -96,7 +96,10 @@
             });
             var rate = form.querySelector('input[name=shipping_rate]:checked');
             var address = form.querySelector('[data-commerce-shipping-address]');
-            if (address) address.hidden = !!(rate && rate.dataset.pickup === '1');
+            var pickup = !!(rate && rate.dataset.pickup === '1');
+            if (address) address.hidden = pickup;
+            var pickupContact = form.querySelector('[data-commerce-pickup-contact]');
+            if (pickupContact) pickupContact.hidden = !pickup;
         }
         var timer;
         var revision = 0;
@@ -173,17 +176,19 @@
                 var locality = [activeAddress.village, activeAddress.district, activeAddress.city,
                     activeAddress.country === 'ID' ? activeAddress.province : activeAddress.state,
                     activeAddress.postal_code].filter(Boolean).join(', ');
-                summary.textContent = [activeAddress.name, activeAddress.line1, activeAddress.line2,
-                    locality, activeAddress.countryLabel].filter(Boolean).join('\n');
+                var recipient = [activeId ? '' : activeAddress.name, activeAddress.phone].filter(Boolean).join(' · ');
+                var street = [activeAddress.line1, activeAddress.line2, locality,
+                    activeAddress.country === 'ID' ? '' : activeAddress.countryLabel].filter(Boolean).join(', ');
+                summary.textContent = [recipient, street].filter(Boolean).join('\n');
                 summary.hidden = !activeAddress.line1;
-                open.textContent = summary.hidden ? open.dataset.addLabel : open.dataset.changeLabel;
+                open.textContent = summary.hidden || activeId ? open.dataset.addLabel : open.dataset.changeLabel;
             }
 
             function showEditor(startNew) {
                 var draft = startNew && activeId ? {
                     country: activeAddress.country,
-                    name: form.elements.name?.value,
-                    phone: form.elements.phone?.value,
+                    name: activeAddress.name || form.elements.name?.value,
+                    phone: activeAddress.phone || form.elements.phone?.value,
                 } : activeAddress;
                 fillShippingAddress(draft, fields);
                 if (save) save.checked = draft === activeAddress && shouldSave;

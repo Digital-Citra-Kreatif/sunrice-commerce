@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Delivery collects the recipient name and phone with the shipping address. Checkout uses a
+  compact saved-address selector, an Add address link and a collapsible notes field. Merge
+  `checkout.blade.php`, the new `partials/checkout-contact-fields.blade.php`, checkout translations
+  and the storefront theme assets into published copies.
+
 - Back-in-stock alerts follow the selected variant, and the product's Add to cart button has more
   padding. Merge the product buying, stock, stock-alert and variant-picker partials and theme CSS
   into published copies.

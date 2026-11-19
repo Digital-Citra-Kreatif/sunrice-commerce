@@ -30,8 +30,8 @@ return [
     'saved_address' => 'Alamat tersimpan',
     'new_address' => 'Alamat baru',
     'address_picker' => [
-        'open' => 'Kirim ke alamat lain',
-        'add' => 'Isi alamat pengiriman',
+        'open' => 'Tambah alamat',
+        'edit' => 'Ubah alamat',
         'title' => 'Alamat pengiriman',
         'apply' => 'Gunakan alamat ini',
         'use_saved' => 'Gunakan alamat tersimpan',

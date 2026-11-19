@@ -67,6 +67,23 @@ it('places an order with snapshots, a payment and the timeline', function () {
         ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
 });
 
+it('uses the shipping recipient as the order contact for a delivery', function () {
+    $cart = cartWith([[$this->mug, 1]]);
+    $input = checkoutInput(['shipping_address' => ['name' => 'Dewi Penerima', 'phone' => '081298765432']]);
+    unset($input['name'], $input['phone']);
+
+    $page = $this->get('/checkout')->assertOk();
+    preg_match('/<fieldset[^>]+id="contact"[^>]*>(.*?)<\/fieldset>/s', (string) $page->getContent(), $section);
+    expect($section[1])->toContain('name="email"')->not->toContain('name="name"', 'name="phone"');
+
+    $this->post('/checkout', [...$input, 'action' => 'place', 'totals_hash' => seenHash($cart, $input)])
+        ->assertSessionHasNoErrors();
+    $order = Order::query()->sole();
+    expect($order->customer_name)->toBe('Dewi Penerima')
+        ->and($order->phone)->toBe('+6281298765432')
+        ->and($order->shipping_address['name'])->toBe('Dewi Penerima');
+});
+
 it('gives one order for a double submit', function () {
     $cart = cartWith([[$this->mug, 1]]);
     $input = checkoutInput();

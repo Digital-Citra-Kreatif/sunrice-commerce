@@ -148,7 +148,7 @@ final class CheckoutData
             'shippingRate' => $this->shippingRate(),
             'paymentMethod' => $this->paymentMethod(),
             'email' => $this->email(),
-            'phone' => $this->phone(),
+            'phone' => $destination['phone'] ?? $this->phone(),
             'usePoints' => (bool) $this->get('use_points', false),
         ], fn ($v) => $v !== null);
     }

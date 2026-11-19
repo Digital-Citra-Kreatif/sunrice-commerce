@@ -30,8 +30,8 @@ return [
     'saved_address' => 'Saved address',
     'new_address' => 'A new address',
     'address_picker' => [
-        'open' => 'Ship to another address',
-        'add' => 'Enter shipping address',
+        'open' => 'Add address',
+        'edit' => 'Edit address',
         'title' => 'Shipping address',
         'apply' => 'Use this address',
         'use_saved' => 'Use saved address',

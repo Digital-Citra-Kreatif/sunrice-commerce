@@ -22,7 +22,7 @@ it('renders the saved address with canonical region codes and saves a sparse rep
     $this->get('/checkout')->assertOk()
         ->assertSee('value="'.$original->id.'" data-address=', false)
         ->assertSee('id="checkout-address-dialog"', false)
-        ->assertSee('Kirim ke alamat lain');
+        ->assertSee('Tambah alamat');
 
     $cart->update(['customer_id' => $customer->id, 'checkout' => checkoutInput(['shipping_address' => $original->toAddress()])]);
 

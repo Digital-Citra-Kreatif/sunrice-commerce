@@ -124,6 +124,11 @@ class PlaceOrder
                 throw new CheckoutChanged($changes);
             }
 
+            if ($this->validator->needsAddress($data, $state)) {
+                $recipient = $data->shippingAddress();
+                $data = $data->merge(['name' => $recipient['name'] ?? null, 'phone' => $recipient['phone'] ?? null]);
+            }
+
             // 7. The customer.
             $customer = $this->customer($data, $extra);
 

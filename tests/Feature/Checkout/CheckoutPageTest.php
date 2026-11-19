@@ -127,7 +127,8 @@ it('applies each checkout setting', function () {
     $place = fn (array $input = []) => $this->post('/checkout', [...checkoutInput($input), 'action' => 'place']);
 
     $settings->saveSection('checkout', ['require_phone' => true]);
-    $place(['phone' => '', 'shipping_address' => ['phone' => '']])->assertSessionHasErrors(['phone', 'shipping_address.phone']);
+    $place(['phone' => '', 'shipping_address' => ['phone' => '']])
+        ->assertSessionHasErrors('shipping_address.phone')->assertSessionDoesntHaveErrors('phone');
 
     $settings->saveSection('checkout', ['require_phone' => false, 'require_postal_code' => true, 'dropshipper' => true, 'terms_page' => 1, 'minimum_order' => 60000]);
     $place(['phone' => '', 'shipping_address' => ['phone' => ''], 'dropship' => ['enabled' => '1']])

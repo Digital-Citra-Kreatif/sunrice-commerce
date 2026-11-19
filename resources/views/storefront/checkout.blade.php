@@ -39,18 +39,13 @@
                 @if ($guest && commerce_feature('accounts'))
                     <p class="commerce-checkout__signin">{{ __('commerce::checkout.have_account') }} <a href="{{ commerce_url('commerce.account.login') }}">{{ __('commerce::checkout.sign_in') }}</a></p>
                 @endif
-                <label class="commerce-field"><span>{{ __('commerce::checkout.fields.name') }} *</span>
-                    <input type="text" name="name" value="{{ old('name', $data->get('name')) }}" required autocomplete="name">
-                    @include($L::view('partials.field-error'), ['name' => 'name'])
-                </label>
                 <label class="commerce-field"><span>{{ __('commerce::checkout.fields.email') }} *</span>
                     <input type="email" name="email" value="{{ old('email', $data->email()) }}" required autocomplete="email">
                     @include($L::view('partials.field-error'), ['name' => 'email'])
                 </label>
-                <label class="commerce-field"><span>{{ __('commerce::checkout.fields.phone') }} @if ($settings->get('checkout.require_phone', true))*@endif</span>
-                    <input type="tel" name="phone" value="{{ old('phone', $data->phone()) }}" @required($settings->get('checkout.require_phone', true)) autocomplete="tel">
-                    @include($L::view('partials.field-error'), ['name' => 'phone'])
-                </label>
+                @unless ($needsAddress)
+                    @include($L::view('partials.checkout-contact-fields'))
+                @endunless
                 @if ($settings->get('checkout.company_fields', false))
                     <label class="commerce-field"><span>{{ __('commerce::checkout.fields.company') }}</span>
                         <input type="text" name="fields[company]" value="{{ old('fields.company', $data->get('fields.company')) }}" autocomplete="organization">
@@ -83,7 +78,7 @@
                                 <select name="address_id" data-commerce-saved-address>
                                     <option value="">{{ __('commerce::checkout.new_address') }}</option>
                                     @foreach ($savedAddresses as $saved)
-                                        <option value="{{ $saved->id }}" data-address='@json($saved->toAddress())' @selected((int) $data->get('address_id') === $saved->id)>{{ $saved->label ?: \Sunrice\Commerce\Support\Address::fromArray($saved->toAddress())->format(null, ', ') }}</option>
+                                        <option value="{{ $saved->id }}" data-address='@json($saved->toAddress())' @selected((int) $data->get('address_id') === $saved->id)>{{ $saved->label ?: $saved->line1 }} · {{ $saved->name }}</option>
                                     @endforeach
                                 </select>
                             </label>
@@ -91,15 +86,15 @@
                         @endif
                         <div class="commerce-checkout-address" data-commerce-address-card hidden>
                             <address data-commerce-address-summary aria-live="polite" hidden></address>
-                            <button type="button" class="commerce-button commerce-button--secondary" data-commerce-open-address
-                                data-add-label="{{ __('commerce::checkout.address_picker.add') }}" data-change-label="{{ __('commerce::checkout.address_picker.open') }}"
+                            <button type="button" class="commerce-link commerce-checkout-address__add" data-commerce-open-address
+                                data-add-label="{{ __('commerce::checkout.address_picker.open') }}" data-change-label="{{ __('commerce::checkout.address_picker.edit') }}"
                                 aria-haspopup="dialog" aria-controls="checkout-address-dialog">{{ __('commerce::checkout.address_picker.open') }}</button>
                         </div>
                         <div data-commerce-address-editor @if ($errors->has('shipping_address') || $errors->has('shipping_address.*')) data-commerce-address-errors @endif
                             data-phone-required="{{ $settings->get('checkout.require_phone', true) ? '1' : '0' }}"
                             data-postal-required="{{ $settings->get('checkout.require_postal_code', false) ? '1' : '0' }}">
                             @include($L::view('partials.address-fields'), [
-                                'prefix' => 'shipping_address', 'address' => $data->shippingAddress() ?? [],
+                                'prefix' => 'shipping_address', 'address' => $data->shippingAddress() ?? ['name' => $data->get('name'), 'phone' => $data->phone()],
                                 'company' => false, 'line2' => (bool) $settings->get('checkout.address_line2', true),
                             ])
                             @unless ($guest)
@@ -107,6 +102,9 @@
                             @endunless
                         </div>
                         <label class="commerce-check"><input type="checkbox" name="billing_same" value="1" @checked($data->billingSame()) data-commerce-toggle="billing"> {{ __('commerce::checkout.billing_same') }}</label>
+                    </div>
+                    <div data-commerce-pickup-contact @unless ($data->isPickup()) hidden @endunless>
+                        @include($L::view('partials.checkout-contact-fields'))
                     </div>
                     @foreach (collect($extraFields)->where('section', 'shipping') as $field)
                         @include($L::view('partials.checkout-field'), ['field' => $field])
@@ -151,15 +149,19 @@
                 <x-commerce::slot name="checkout.after_payment" :state="$state" />
             @endif
 
-            @if ($settings->get('checkout.order_notes', true) || $settings->get('checkout.dropshipper', false) || collect($extraFields)->where('section', 'extra')->isNotEmpty())
+            @if ($settings->get('checkout.order_notes', true))
+                <details class="commerce-checkout__notes" id="order-notes" @if (old('notes', $data->get('notes')) || $errors->has('notes')) open @endif>
+                    <summary>{{ __('commerce::checkout.fields.notes') }}</summary>
+                    <label class="commerce-field">
+                        <span class="commerce-visually-hidden">{{ __('commerce::checkout.fields.notes') }}</span>
+                        <textarea name="notes" rows="3" maxlength="1000">{{ old('notes', $data->get('notes')) }}</textarea>
+                        @include($L::view('partials.field-error'), ['name' => 'notes'])
+                    </label>
+                </details>
+            @endif
+            @if ($settings->get('checkout.dropshipper', false) || collect($extraFields)->where('section', 'extra')->isNotEmpty())
                 <fieldset class="commerce-checkout__section" id="notes">
                     <legend>{{ __('commerce::checkout.sections.notes') }}</legend>
-                    @if ($settings->get('checkout.order_notes', true))
-                        <label class="commerce-field"><span>{{ __('commerce::checkout.fields.notes') }}</span>
-                            <textarea name="notes" rows="3" maxlength="1000">{{ old('notes', $data->get('notes')) }}</textarea>
-                            @include($L::view('partials.field-error'), ['name' => 'notes'])
-                        </label>
-                    @endif
                     @if ($settings->get('checkout.dropshipper', false))
                         @php($dropship = $data->dropship())
                         <label class="commerce-check"><input type="checkbox" name="dropship[enabled]" value="1" @checked($dropship['enabled']) data-commerce-toggle="dropship"> {{ __('commerce::checkout.dropship') }}</label>

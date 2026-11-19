@@ -64,9 +64,11 @@ prefix. The routes need the `checkout` feature and are `noindex`.
 
 The page has these sections, in order:
 
-1. contact: name, email, phone (and company and tax number when asked), the account choice;
-2. shipping address, when something needs shipping and Shipping is on: saved addresses for
-   signed-in customers, "save this address", "billing is the same";
+1. contact: email (and company and tax number when asked), the account choice. Orders without
+   shipping collect a name and phone here when required;
+2. shipping address, when something needs shipping and Shipping is on: recipient name and phone,
+   a saved-address selector for signed-in customers, "save this address", "billing is the same".
+   Pickup collects the contact details in the shipping section;
 3. billing address, when it differs;
 4. shipping method, with the "Update shipping" button;
 5. loyalty points for signed-in customers with a balance (when Loyalty is active), followed by
@@ -160,7 +162,7 @@ The order keeps the address as a snapshot, codes and names together. See [region
 
 At checkout, choosing a saved address fills both its fields and its region codes. Switching
 addresses also clears optional values missing from the new selection. The shipping section shows a
-summary and a saved-address selector when available. **Ship to another address** opens a dialog.
+summary and a saved-address selector when available. **Add address** opens a dialog.
 **Use this address** applies the draft and refreshes shipping rates, while **Cancel** keeps the
 previous address. With JavaScript off, the form is inline and **Use saved address** applies the
 selection through a regular form submission. For separate billing, the
