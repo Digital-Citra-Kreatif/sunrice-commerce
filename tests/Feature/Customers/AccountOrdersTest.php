@@ -110,7 +110,8 @@ it('cancels from the account only while unpaid', function () {
     $order = guestOrder($this->mug, 'rina@example.com');
     app(LinkGuestOrders::class)->handle($this->user);
     Auth::guard('commerce')->login($this->user);
-    $this->get("/account/orders/{$order->id}")->assertSee("/account/orders/{$order->id}/cancel", false);
+    $this->get("/account/orders/{$order->id}")->assertSee("/account/orders/{$order->id}/cancel", false)
+        ->assertSee('data-commerce-order-cancel-dialog', false)->assertDontSee('onsubmit="return confirm', false);
 
     app(RecordPaymentResult::class)->handle($order->payments->sole(), PaymentResult::paid());
     $this->post("/account/orders/{$order->id}/cancel")->assertSessionHas('commerce.error');

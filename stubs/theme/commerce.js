@@ -13,6 +13,23 @@
         return input ? input.value : '';
     }
 
+    function dismissOnBackdrop(dialog) {
+        var pressedOnBackdrop = false;
+        function isBackdrop(event) {
+            if (event.target !== dialog) return false;
+            var bounds = dialog.getBoundingClientRect();
+            return event.clientX < bounds.left || event.clientX > bounds.right
+                || event.clientY < bounds.top || event.clientY > bounds.bottom;
+        }
+        dialog.addEventListener('pointerdown', function (event) {
+            pressedOnBackdrop = isBackdrop(event);
+        });
+        dialog.addEventListener('click', function (event) {
+            if (pressedOnBackdrop && isBackdrop(event)) dialog.close();
+            pressedOnBackdrop = false;
+        });
+    }
+
     function updateMiniCart(cart) {
         document.querySelectorAll('[data-commerce-cart-count]').forEach(function (el) {
             el.textContent = cart.count;
@@ -267,6 +284,19 @@
         });
     });
 
+    document.querySelectorAll('[data-commerce-order-cancel]').forEach(function (form) {
+        var dialog = form.querySelector('[data-commerce-order-cancel-dialog]');
+        var opener = form.querySelector('[data-commerce-open-order-cancel]');
+        if (!opener || typeof dialog?.showModal !== 'function') return;
+        var fallback = form.querySelector('[data-commerce-order-cancel-fallback]');
+        if (fallback) fallback.hidden = true;
+        opener.hidden = false;
+        opener.addEventListener('click', function () { dialog.showModal(); });
+        dialog.querySelector('[data-commerce-keep-order]')?.addEventListener('click', function () { dialog.close(); });
+        dialog.addEventListener('close', function () { opener.focus({ preventScroll: true }); });
+        dismissOnBackdrop(dialog);
+    });
+
     // Checkout: show/hide toggled parts, and refresh rates, payments and totals on change.
     document.querySelectorAll('[data-commerce-checkout]').forEach(function (form) {
         function syncToggles() {
@@ -312,25 +342,12 @@
         var termsLink = form.querySelector('[data-commerce-open-terms]');
         var termsDialog = form.closest('.commerce-checkout-page')?.querySelector('[data-commerce-terms-dialog]');
         if (termsLink && typeof termsDialog?.showModal === 'function') {
-            var pressedOnBackdrop = false;
-            function onTermsBackdrop(event) {
-                if (event.target !== termsDialog) return false;
-                var bounds = termsDialog.getBoundingClientRect();
-                return event.clientX < bounds.left || event.clientX > bounds.right
-                    || event.clientY < bounds.top || event.clientY > bounds.bottom;
-            }
             termsLink.addEventListener('click', function (event) {
                 if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
                 event.preventDefault();
                 termsDialog.showModal();
             });
-            termsDialog.addEventListener('pointerdown', function (event) {
-                pressedOnBackdrop = onTermsBackdrop(event);
-            });
-            termsDialog.addEventListener('click', function (event) {
-                if (pressedOnBackdrop && onTermsBackdrop(event)) termsDialog.close();
-                pressedOnBackdrop = false;
-            });
+            dismissOnBackdrop(termsDialog);
             termsDialog.addEventListener('close', function () { termsLink.focus({ preventScroll: true }); });
         }
 

@@ -1,5 +1,5 @@
 {{--
-    The wishlist page. $wishlist, $products: the saved product entries, $shareUrl, $readOnly: someone's shared list.
+    $wishlist, $products, $shareUrl, $readOnly and $ownerName for a shared account wishlist.
     Each product is a card (its heart removes it) with Add to cart, or
     "Choose options" for products with variants.
 --}}
@@ -9,13 +9,16 @@
     @php($L = \Sunrice\Commerce\Storefront\Layout::class)
     @include($L::view('partials.assets'))
     <section class="commerce-wishlist">
-        <h1 class="commerce-page-title">{{ __('commerce::storefront.wishlist.title') }}
+        <h1 class="commerce-page-title">{{ $readOnly && filled($ownerName ?? null)
+            ? __('commerce::storefront.wishlist.owner_title', ['name' => $ownerName])
+            : __('commerce::storefront.wishlist.title') }}
             @if ($products->isNotEmpty())<span class="commerce-page-title__meta">{{ trans_choice('commerce::storefront.theme.products_count', $products->count(), ['count' => $products->count()]) }}</span>@endif
         </h1>
         @php($sharedNotice = __('commerce::storefront.wishlist.shared'))
         @include($L::view('partials.messages'), ['showSuccess' => ! $shareUrl || session('commerce.success') !== $sharedNotice])
         @if (! $readOnly && ($shareUrl || $products->isNotEmpty()))
-            @include($L::view('partials.wishlist-share'))
+            @php($sharesName = $wishlist?->customer_id !== null)
+            @include($L::view('partials.wishlist-share'), ['sharedNotice' => $sharesName ? __('commerce::storefront.wishlist.shared_with_name') : $sharedNotice])
         @endif
         @if ($products->isEmpty())
             @include($L::view('partials.empty'), ['title' => __('commerce::storefront.wishlist.empty'), 'text' => __('commerce::storefront.theme.wishlist_empty_text'), 'icon' => 'heart',

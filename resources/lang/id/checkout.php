@@ -119,6 +119,7 @@ return [
         'invite' => 'Ingin memantau semua pesanan di satu tempat?',
         'cancel' => 'Batalkan pesanan',
         'cancel_confirm' => 'Batalkan pesanan ini?',
+        'keep' => 'Pertahankan pesanan',
         'cancelled' => 'Pesanan Anda sudah dibatalkan.',
         'cannot_cancel' => 'Pesanan ini tidak bisa dibatalkan lagi.',
         'create_account' => 'Buat akun',

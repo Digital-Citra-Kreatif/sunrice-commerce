@@ -457,6 +457,8 @@
 .commerce-cart__remove-dialog h2 { margin: 0; font-size: 18px; }
 .commerce-cart__remove-dialog p { margin: 8px 0 20px; color: var(--commerce-muted); overflow-wrap: anywhere; }
 .commerce-cart__remove-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.commerce-order__cancel-actions { margin-top: 20px; }
+.commerce-order__cancel [hidden] { display: none; }
 .commerce-cart__continue { margin: 20px 0 0; font-size: 14px; font-weight: 700; }
 .commerce-cart__summary { padding: 24px; background: var(--commerce-surface); }
 @media (min-width: 1024px) { .commerce-cart__summary { position: sticky; top: calc(var(--commerce-header) + 16px); } }

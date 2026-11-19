@@ -32,8 +32,7 @@
                 <button type="submit" class="commerce-link commerce-link--action">{{ __('commerce::account.orders.buy_again') }}</button></form>
         @endif
         @if ($canCancel)
-            <form method="POST" action="{{ commerce_url('commerce.account.order.cancel', ['order' => $order->id]) }}" onsubmit="return confirm(@js(__('commerce::checkout.order.cancel_confirm')))">@csrf
-                <button type="submit" class="commerce-link commerce-link--action">{{ __('commerce::checkout.order.cancel') }}</button></form>
+            @include($L::view('partials.order-cancel'), ['cancelUrl' => commerce_url('commerce.account.order.cancel', ['order' => $order->id])])
         @endif
     </div>
 

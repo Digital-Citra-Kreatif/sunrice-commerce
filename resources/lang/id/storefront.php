@@ -134,6 +134,8 @@ return [
         'share' => 'Bagikan wishlist',
         'stop_sharing' => 'Berhenti membagikan',
         'shared' => 'Siapa pun yang punya tautannya bisa melihat wishlist Anda.',
+        'shared_with_name' => 'Siapa pun yang punya tautannya bisa melihat wishlist dan nama profil Anda.',
+        'owner_title' => 'Wishlist · :name',
         'unshared' => 'Wishlist Anda kembali pribadi.',
         'share_link' => 'Tautan:',
     ],

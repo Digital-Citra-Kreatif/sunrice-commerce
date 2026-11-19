@@ -119,6 +119,7 @@ return [
         'invite' => 'Want to follow your orders in one place?',
         'cancel' => 'Cancel order',
         'cancel_confirm' => 'Cancel this order?',
+        'keep' => 'Keep order',
         'cancelled' => 'Your order was cancelled.',
         'cannot_cancel' => 'This order can no longer be cancelled.',
         'create_account' => 'Create an account',

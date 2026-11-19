@@ -1,4 +1,4 @@
-{{-- $shareUrl and $sharedNotice: the current share link and its notice. --}}
+{{-- $shareUrl, $sharedNotice and $sharesName. --}}
 <div class="commerce-wishlist__share">
     @if ($shareUrl)
         <p class="commerce-message commerce-message--success" id="commerce-wishlist-share-notice">{{ $sharedNotice }}</p>
@@ -9,9 +9,13 @@
             <button type="button" class="commerce-button commerce-button--secondary" data-commerce-copy-button data-copied="{{ __('commerce::payments.copied') }}">{{ __('commerce::payments.copy') }}</button>
         </div>
     @endif
+    @if (! $shareUrl && ($sharesName ?? false))
+        <p class="commerce-muted" id="commerce-wishlist-share-notice">{{ $sharedNotice }}</p>
+    @endif
     <form method="POST" action="{{ commerce_url('commerce.wishlist.share') }}">
         @csrf
         <input type="hidden" name="on" value="{{ $shareUrl ? 0 : 1 }}">
-        <button type="submit" @class(['commerce-link commerce-link--action' => $shareUrl, 'commerce-button commerce-button--secondary' => ! $shareUrl])>{{ $shareUrl ? __('commerce::storefront.wishlist.stop_sharing') : __('commerce::storefront.wishlist.share') }}</button>
+        <button type="submit" @if (! $shareUrl && ($sharesName ?? false)) aria-describedby="commerce-wishlist-share-notice" @endif
+            @class(['commerce-link commerce-link--action' => $shareUrl, 'commerce-button commerce-button--secondary' => ! $shareUrl])>{{ $shareUrl ? __('commerce::storefront.wishlist.stop_sharing') : __('commerce::storefront.wishlist.share') }}</button>
     </form>
 </div>

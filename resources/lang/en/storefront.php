@@ -134,6 +134,8 @@ return [
         'share' => 'Share my wishlist',
         'stop_sharing' => 'Stop sharing',
         'shared' => 'Anyone with the link can see your wishlist.',
+        'shared_with_name' => 'Anyone with the link can see your wishlist and profile name.',
+        'owner_title' => 'Wishlist · :name',
         'unshared' => 'Your wishlist is private again.',
         'share_link' => 'Share link:',
     ],

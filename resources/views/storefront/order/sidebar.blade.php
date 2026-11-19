@@ -40,11 +40,7 @@
             <a href="{{ $invoiceUrl }}" target="_blank" rel="noopener" class="commerce-button commerce-button--secondary">{{ __('commerce::documents.download') }}</a>
         @endif
         @if ($canCancel ?? false)
-            <form method="POST" action="{{ commerce_url('commerce.order.cancel', ['key' => $order->order_key]) }}" class="commerce-order__cancel"
-                onsubmit="return confirm(@js(__('commerce::checkout.order.cancel_confirm')))">
-                @csrf
-                <button type="submit" class="commerce-link commerce-link--action">{{ __('commerce::checkout.order.cancel') }}</button>
-            </form>
+            @include(\Sunrice\Commerce\Storefront\Layout::view('partials.order-cancel'), ['cancelUrl' => commerce_url('commerce.order.cancel', ['key' => $order->order_key])])
         @endif
     </div>
 
