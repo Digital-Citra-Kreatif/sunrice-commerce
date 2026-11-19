@@ -6,12 +6,14 @@ import { useCommerceShared } from '../../lib/store';
 
 interface Row {
     created_at: string | null;
+    kind: string;
     points: number;
     balance_after: number;
     order_number: string | null;
     order_url: string | null;
     expires_at: string | null;
     note: string | null;
+    actor: string;
 }
 
 const FORM_ID = 'commerce-loyalty-adjust';
@@ -48,16 +50,27 @@ export default function LoyaltyShow({ title, description, balance, form, history
                     {...history}
                     searchPlaceholder="Search reasons…"
                     renderCell={(row: Row, column) => {
-                        if (column.key === 'created_at' || column.key === 'expires_at') {
-                            const value = row[column.key];
-                            return value ? <time dateTime={value}>{dateTime.format(new Date(value))}</time> : '—';
+                        if (column.key === 'created_at') {
+                            return row.created_at ? <time dateTime={row.created_at}>{dateTime.format(new Date(row.created_at))}</time> : '—';
                         }
                         if (column.key === 'points') return <span className="cm:font-medium cm:tabular-nums">{row.points > 0 ? '+' : ''}{formatPoints.format(row.points)}</span>;
                         if (column.key === 'balance_after') return <span className="cm:tabular-nums">{formatPoints.format(row.balance_after)}</span>;
-                        if (column.key === 'order_number') return row.order_url
-                            ? <Link href={row.order_url} className="cm:underline cm:underline-offset-4">{row.order_number}</Link>
-                            : row.order_number ?? '—';
-                        if (column.key === 'note') return <span className="cm:block cm:max-w-60 cm:wrap-anywhere cm:whitespace-normal">{row.note ?? '—'}</span>;
+                        if (column.key === 'kind') return (
+                            <div className="cm:grid cm:gap-1">
+                                <span className="cm:font-medium">{row.kind}</span>
+                                {row.order_url ? <Link href={row.order_url} className="cm:text-xs cm:underline cm:underline-offset-4">{row.order_number}</Link>
+                                    : row.order_number && <span className="cm:text-xs cm:text-muted-foreground">{row.order_number}</span>}
+                            </div>
+                        );
+                        if (column.key === 'actor') return (
+                            <div className="cm:grid cm:min-w-44 cm:max-w-80 cm:gap-1 cm:wrap-anywhere cm:whitespace-normal">
+                                <span>{row.actor}</span>
+                                {row.note && <span className="cm:text-muted-foreground">{row.note}</span>}
+                                {row.expires_at && <span className="cm:text-xs cm:text-muted-foreground">
+                                    Expires <time dateTime={row.expires_at}>{dateTime.format(new Date(row.expires_at))}</time>
+                                </span>}
+                            </div>
+                        );
                         return undefined;
                     }}
                 />

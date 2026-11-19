@@ -95,10 +95,7 @@ class LoyaltyController extends Controller
                 new Column('kind', 'Activity'),
                 new Column('points', 'Change', type: 'number'),
                 new Column('balance_after', 'Balance after', type: 'number'),
-                new Column('order_number', 'Order'),
-                new Column('actor', 'Source'),
-                new Column('expires_at', 'Expires'),
-                new Column('note', 'Reason'),
+                new Column('actor', 'Source and details'),
             ], $rows->through(function (Model $transaction) use ($names, $canViewOrders): array {
                 if (! $transaction instanceof LoyaltyTransaction) {
                     throw new \LogicException('Expected a loyalty transaction.');
@@ -124,8 +121,10 @@ class LoyaltyController extends Controller
                 ['key' => 'kind', 'label' => 'Activity', 'type' => 'select', 'options' => $kinds],
             ]),
             'form' => SchemaForm::make([
-                ['handle' => 'points', 'type' => 'number', 'label' => 'Add points', 'required' => true, 'instructions' => 'Negative to take points away (never below zero).', 'validation' => ['integer']],
-                ['handle' => 'note', 'type' => 'text', 'label' => 'Why', 'translatable' => false, 'instructions' => 'Shown to staff in the history.', 'validation' => ['max:500']],
+                ['handle' => 'points', 'type' => 'number', 'label' => 'Points change', 'required' => true, 'width' => 33,
+                    'instructions' => 'Use a negative amount to deduct points.', 'validation' => ['integer']],
+                ['handle' => 'note', 'type' => 'text', 'label' => 'Reason', 'translatable' => false, 'width' => 66,
+                    'instructions' => 'Shown to staff in the history.', 'validation' => ['max:500']],
             ], ['points' => null, 'note' => null])->action(route('sunrice.admin.commerce.loyalty.update', $customer, false), 'put'),
         ]);
     }
