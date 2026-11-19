@@ -41,12 +41,12 @@ export function Money({ id, value, onChange, nullable = true }: { id?: string; v
     return <MoneyInput id={id} value={value} allowNull={nullable} onChange={onChange} />;
 }
 
-export function Toggle({ id, label, checked, onChange, hint }: { id: string; label: string; checked: boolean; onChange: (v: boolean) => void; hint?: string }) {
+export function Toggle({ id, label, checked, onChange, hint, disabled = false }: { id: string; label: string; checked: boolean; onChange: (v: boolean) => void; hint?: string; disabled?: boolean }) {
     const { Switch, Label } = ui;
 
     return (
         <div className="cm:flex cm:items-start cm:gap-3">
-            <Switch id={id} checked={checked} onCheckedChange={onChange} />
+            <Switch id={id} disabled={disabled} checked={checked} onCheckedChange={onChange} />
             <div className="cm:grid cm:gap-0.5">
                 <Label htmlFor={id}>{label}</Label>
                 {hint && <p className="cm:text-xs cm:text-muted-foreground">{hint}</p>}

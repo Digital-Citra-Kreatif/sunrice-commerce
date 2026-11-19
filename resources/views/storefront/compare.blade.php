@@ -61,7 +61,7 @@
                             <tr>
                                 <th scope="row">{{ $label }}</th>
                                 @foreach ($entries as $entry)
-                                    <td>{{ data_get(collect((commerce_values($entry)['specifications'] ?? null) ?? [])->first(fn ($row) => mb_strtolower(trim((string) data_get($row, 'label', ''))) === mb_strtolower($label)), 'value') ?? '—' }}</td>
+                                    <td>{{ $specValues[$entry->entry_id][mb_strtolower($label)] ?? '—' }}</td>
                                 @endforeach
                             </tr>
                         @endforeach

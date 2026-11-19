@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Sunrice\Commerce\Cart\CartException;
 use Sunrice\Commerce\Cart\CompareList;
 use Sunrice\Commerce\Catalog\Models\Product;
+use Sunrice\Commerce\Catalog\ProductContent;
 use Sunrice\Commerce\Catalog\ProductQuery;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\Layout;
@@ -21,7 +22,7 @@ use Sunrice\Commerce\Storefront\Layout;
  */
 class CompareController
 {
-    public function show(CompareList $list, StoreSettings $settings): View
+    public function show(CompareList $list, StoreSettings $settings, ProductContent $content): View
     {
         $entryIds = Product::query()->whereIn('id', $list->ids())->pluck('entry_id', 'id');
         $entries = $entryIds->isEmpty() ? collect() : ProductQuery::make()->entries($entryIds->values()->all())->get($list->max());
@@ -30,12 +31,14 @@ class CompareController
         $entries = $entries->sortBy(fn ($e) => $order[$e->entry_id] ?? 99)->values();
 
         $labels = [];
+        $specValues = [];
         foreach ($entries as $entry) {
-            $specifications = commerce_values($entry)['specifications'] ?? [];
-            foreach (is_iterable($specifications) ? $specifications : [] as $row) {
+            foreach ($content->specifications($entry) as $row) {
                 $label = trim((string) data_get($row, 'label', ''));
-                if ($label !== '' && ! in_array(mb_strtolower($label), array_map('mb_strtolower', $labels), true)) {
-                    $labels[] = $label;
+                if ($label !== '') {
+                    $key = mb_strtolower($label);
+                    $labels[$key] ??= $label;
+                    $specValues[$entry->entry_id][$key] ??= data_get($row, 'value');
                 }
             }
         }
@@ -43,7 +46,8 @@ class CompareController
         return view(Layout::view('compare'), [
             'entries' => $entries,
             'fields' => (array) $settings->get('catalog.compare_fields', []),
-            'specLabels' => $labels,
+            'specLabels' => array_values($labels),
+            'specValues' => $specValues,
             'seoTitle' => __('commerce::storefront.compare.title'),
         ]);
     }

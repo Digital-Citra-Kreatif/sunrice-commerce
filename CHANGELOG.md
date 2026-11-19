@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Group product settings separately from content. Reuse specifications, questions and size guides
+  across store, category and brand defaults. Product editors can override or hide sections.
+- Reorder product images in the CMS and add a local or external product video. Existing product
+  blueprints pick up the new controls after migrations run.
+- Downloadable items skip shipping, including existing items with a legacy shipping flag.
+- Hide the live search results link when there are zero matches.
+- Require a positive cart quantity and keep item removal on the separate trash action.
+
 - When a guest checks out with an existing verified account's email, open the new order and
   payment pages in the checkout browser and offer email-code recovery through Track order.
 

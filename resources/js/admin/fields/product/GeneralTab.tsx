@@ -76,20 +76,27 @@ export function GeneralTab({ value, update, updateVariant, config, purchaseDefau
                 </Section>
             )}
 
-            <div className="cm:grid cm:gap-4 cm:sm:grid-cols-2">
-                <Toggle id={`${path}-shipping`} label="Needs shipping" checked={value.requires_shipping} onChange={(requires_shipping) => update({ requires_shipping })} hint="Off for services and digital products." />
-                {(config.features.digital || value.downloadable) && (
-                    <Toggle id={`${path}-downloadable`} label="Downloadable" checked={value.downloadable} onChange={(downloadable) => update({ downloadable })} hint="Customers get files or links after paying." />
-                )}
-                <Toggle id={`${path}-featured`} label="Featured" checked={value.featured} onChange={(featured) => update({ featured })} hint="Shown first when sorting by featured." />
-            </div>
+            <Section title="Fulfillment">
+                <Grid cols={2}>
+                    {(config.features.digital || value.downloadable) && (
+                        <Toggle id={`${path}-downloadable`} label="Downloadable" checked={value.downloadable} onChange={(downloadable) => update({ downloadable })} hint="Deliver files or links after payment." />
+                    )}
+                    <Toggle id={`${path}-shipping`} label="Needs shipping" checked={value.requires_shipping} disabled={value.downloadable}
+                        onChange={(requires_shipping) => update({ requires_shipping })} hint={value.downloadable ? 'Downloads are delivered digitally.' : 'Turn off for services or other items without delivery.'} />
+                </Grid>
+            </Section>
 
-            {config.features.taxes && (
-                <Row label="Tax class" htmlFor={`${path}-tax`}>
-                    <NativeSelect id={`${path}-tax`} value={value.tax_class ?? ''} onChange={(tax_class) => update({ tax_class: tax_class || null })}
-                        options={[['', 'Standard'], ...config.tax_classes.filter((c) => c !== 'standard').map((c) => [c, c] as [string, string])]} />
-                </Row>
-            )}
+            <Section title="Catalog and tax">
+                <Grid cols={2}>
+                    {config.features.taxes && (
+                        <Row label="Tax class" htmlFor={`${path}-tax`}>
+                            <NativeSelect id={`${path}-tax`} value={value.tax_class ?? ''} onChange={(tax_class) => update({ tax_class: tax_class || null })}
+                                options={[['', 'Standard'], ...config.tax_classes.filter((c) => c !== 'standard').map((c) => [c, c] as [string, string])]} />
+                        </Row>
+                    )}
+                    <Toggle id={`${path}-featured`} label="Featured" checked={value.featured} onChange={(featured) => update({ featured })} hint="Shown first when sorting by featured." />
+                </Grid>
+            </Section>
         </div>
     );
 }

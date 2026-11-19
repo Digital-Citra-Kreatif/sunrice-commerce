@@ -54,7 +54,9 @@ class CartController
 
     public function update(Request $request, int $item, UpdateCartItem $update): RedirectResponse
     {
-        $data = $request->validate(['quantity' => ['required', 'integer', 'min:0', 'max:100000']]);
+        $data = $request->validate(['quantity' => ['required', 'integer', 'min:1', 'max:100000']], [
+            'quantity.min' => __('commerce::storefront.cart.quantity_positive'),
+        ]);
 
         return $this->attempt(fn () => $update->handle($item, (int) $data['quantity']), __('commerce::storefront.cart.updated'));
     }

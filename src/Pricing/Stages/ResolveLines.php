@@ -57,8 +57,8 @@ class ResolveLines implements CalculationStage
                 }
             }
             $product = $line->product();
-            $line->requiresShipping = $line->variant->requires_shipping ?? $product->requires_shipping;
-            $line->downloadable = $line->variant->downloadable ?? $product->downloadable;
+            $line->requiresShipping = $line->variant->requiresShipping();
+            $line->downloadable = $line->variant->isDownloadable();
             $line->taxClass = $product->tax_class;
         }
     }

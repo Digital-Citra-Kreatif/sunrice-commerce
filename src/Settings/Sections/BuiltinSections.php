@@ -11,6 +11,7 @@ use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\Cms\Models\Term;
 use Sunrice\Commerce\Admin\SchemaForm;
+use Sunrice\Commerce\Catalog\ProductContentFields;
 use Sunrice\Commerce\Catalog\ProductDefaults;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Settings\SettingsRegistry;
@@ -136,8 +137,9 @@ final class BuiltinSections
             ['handle' => 'default_purchase_mode', 'section' => 'Product button defaults', 'type' => 'select', 'label' => 'Default storefront button',
                 'instructions' => 'Category rules can override the store. Brand rules take priority over category rules. A product can override both.',
                 'config' => ['options' => self::options(ProductDefaults::MODES)]],
-            self::purchaseDefaults('category', 'Category'),
-            self::purchaseDefaults('brand', 'Brand'),
+            ...array_map(fn (array $field) => [...$field, 'section' => 'Store product content'], ProductContentFields::defaults()),
+            self::scopedDefaults('category', 'Category'),
+            self::scopedDefaults('brand', 'Brand'),
             ['handle' => 'call_to_action', 'type' => 'select', 'label' => 'Call to action in Catalog mode', 'instructions' => 'Used by Follow selling mode in Catalog mode and when the cart is unavailable.', 'config' => ['options' => self::options([
                 'inquiry' => 'Inquiry form', 'whatsapp' => 'Ask on WhatsApp', 'external' => 'Links to other shops (set per product)', 'none' => 'None',
             ])]],
@@ -174,19 +176,20 @@ final class BuiltinSections
     }
 
     /** @return array<string, mixed> */
-    private static function purchaseDefaults(string $scope, string $label): array
+    private static function scopedDefaults(string $scope, string $label): array
     {
         $taxonomy = Taxonomy::query()->where('handle', config("commerce.catalog.{$scope}_taxonomy"))->first();
         $terms = $taxonomy?->terms()->with('translations')->get()->sortBy(fn (Term $term) => $term->title())
             ->mapWithKeys(fn (Term $term) => [$term->id => $term->title()])->all() ?? [];
 
         return [
-            'handle' => "{$scope}_defaults", 'section' => 'Product button defaults', 'type' => 'repeater', 'label' => "{$label} rules",
-            'instructions' => 'The first matching rule in this list wins. Reorder rules to set their priority.',
+            'handle' => "{$scope}_defaults", 'section' => 'Category and brand defaults', 'type' => 'repeater', 'label' => "{$label} rules",
+            'instructions' => 'Leave fields empty to inherit. For each field, the first matching rule with a value wins. Brand rules take priority.',
             'config' => ['max' => 200, 'fields' => [
                 ['handle' => 'term', 'type' => 'select', 'label' => $label, 'width' => 50, 'required' => true, 'config' => ['options' => self::options($terms)]],
-                ['handle' => 'purchase_mode', 'type' => 'select', 'label' => 'Storefront button', 'width' => 50, 'required' => true,
+                ['handle' => 'purchase_mode', 'type' => 'select', 'label' => 'Storefront button', 'width' => 50,
                     'config' => ['options' => self::options(array_diff_key(ProductDefaults::MODES, ['default' => true]))]],
+                ...ProductContentFields::defaults(scoped: true),
             ]],
         ];
     }

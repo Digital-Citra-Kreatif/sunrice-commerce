@@ -337,6 +337,7 @@ class StarterStoreSeeder extends Seeder
             ],
         ];
         if ($sizes !== []) {
+            $data['commerce_presentation'] = ['size_guide_visibility' => 'show'];
             $data['size_guide'] = $this->sizeGuide($sizes, $p['sizes'] === 'kids');
         }
 
