@@ -10,6 +10,9 @@
 - Only verified buyers can submit storefront reviews. Staff can add a review linked to a buyer's
   paid order and edit or delete reviews in Shop → Products → Reviews.
 
+- Keep the sticky product purchase panel within the product gallery and details so it clears the
+  review form and related products. Update the published product template and starter stylesheet.
+
 - Product buttons inherit across Store, Category, Brand, and Product. The product editor shows
   the inherited action and its source, and cart eligibility uses the same rule.
 - Flash Sale separates product selection, pricing and quantity limits. A rule now applies to

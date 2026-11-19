@@ -121,6 +121,16 @@ it('renders every starter page with the demo data', function () {
         $this->get($path)->assertOk()->assertSee('commerce-account', false);
     }
     $this->get('/wishlist')->assertOk()->assertSee('commerce-wishlist__item', false);
+
+    $product = $this->get('/products/weatherproof-rain-parka')->assertOk();
+    $html = HTMLDocument::createFromString($product->getContent(), LIBXML_NOERROR);
+    $container = $html->querySelector('.commerce-product__primary');
+    expect($container)->not->toBeNull()
+        ->and($container->querySelector('.commerce-product__summary'))->not->toBeNull()
+        ->and($container->querySelector('.commerce-reviews'))->toBeNull()
+        ->and($container->querySelector('.commerce-related'))->toBeNull()
+        ->and($html->querySelector('.commerce-product > .commerce-reviews'))->not->toBeNull()
+        ->and($html->querySelector('.commerce-product > .commerce-related'))->not->toBeNull();
 });
 
 it('still renders the documents of starter orders as PDFs', function () {
