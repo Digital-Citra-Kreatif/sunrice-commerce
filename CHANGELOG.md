@@ -23,6 +23,9 @@
 - New checkout addresses can have an editable title. The checkout uses the title in the address
   picker and keeps it when the customer saves the address to their account.
 
+- Show the voucher field directly before payment in a dedicated checkout panel. Order notes use
+  the storefront’s accordion styling.
+
 - Product buttons inherit across Store, Category, Brand, and Product. The product editor shows
   the inherited action and its source, and cart eligibility uses the same rule.
 - Flash Sale separates product selection, pricing and quantity limits. A rule now applies to

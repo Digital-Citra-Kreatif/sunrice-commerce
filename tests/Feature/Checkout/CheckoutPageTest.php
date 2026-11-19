@@ -94,8 +94,11 @@ it('applies and removes coupons in checkout before payment without discarding fo
     Voucher::query()->create(['name' => 'Hemat', 'code' => 'HEMAT', 'type' => 'fixed_cart', 'value' => 5000]);
     $cart = cartWith([[$this->mug, 1]]);
     $input = checkoutInput(['notes' => 'Titip di resepsionis']);
-    $this->get('/checkout')->assertOk()->assertSeeInOrder(['Pakai kupon', 'id="payment"'], false)
+    $page = $this->get('/checkout')->assertOk()->assertSeeInOrder(['Pakai kupon', 'name="voucher_code"', 'id="payment"'], false)
         ->assertDontSee('data-commerce-checkout-retry', false);
+    $document = Dom\HTMLDocument::createFromString($page->getContent(), LIBXML_NOERROR);
+    expect($document->querySelector('#checkout-vouchers details'))->toBeNull()
+        ->and($document->querySelector('#order-notes.commerce-accordion > summary'))->not->toBeNull();
     $this->get('/cart')->assertOk()->assertDontSee('data-commerce-voucher-form', false);
 
     $this->withCredentials()->postJson('/checkout/voucher', [...$input, 'voucher_code' => 'hemat'])
