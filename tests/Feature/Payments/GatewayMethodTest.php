@@ -63,6 +63,23 @@ it('marks the order paid only for the amount asked, and asks the gateway on retu
     expect($order->fresh()->payment_status)->toBe('paid');
 });
 
+it('notes a paid amount that is not the payment\'s on the timeline, once per amount', function () {
+    $order = placeWithRedirect($this->mug);
+    $payment = $order->payments->sole();
+    $hook = fn (float $paid) => $this->postJson('/commerce/webhooks/fake_redirect', ['reference' => $payment->reference, 'paid' => $paid]);
+    $notes = fn () => $order->events()->where('type', 'note')->where('data->payment_id', $payment->id)->pluck('message');
+
+    $hook($payment->amount - 1000)->assertStatus(400);
+    $hook($payment->amount - 1000)->assertStatus(400); // the gateway's retry
+    expect($notes())->toHaveCount(1)
+        ->and($notes()->first())->toContain(number_format($payment->amount - 1000, 0, ',', '.'), number_format($payment->amount, 0, ',', '.'))
+        ->and($order->fresh()->payment_status)->toBe('unpaid');
+
+    $hook($payment->amount + 5000)->assertStatus(400);
+    expect($notes())->toHaveCount(2)
+        ->and($payment->fresh()->meta['amount_mismatches'])->toBe([$payment->amount - 1000, $payment->amount + 5000]);
+});
+
 it('shows which keys are set, never their values, and the notification URL', function () {
     config(['commerce.fake.sandbox_key' => 'secret-value']);
     $fields = (new FakeRedirectGateway)->settingsSchema();

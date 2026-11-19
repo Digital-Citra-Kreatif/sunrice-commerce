@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Note on the order's timeline when a payment gateway reports a paid amount that isn't the
+  payment's (once per amount; the payment stays unpaid), so staff see it without the webhook log.
+  Gateway packages built on `GatewayMethod` (Midtrans, Xendit) get it without changes.
+
 - Record a gateway return even when the customer can't open the order there (a guest whose access
   lapsed while paying, or who came back in another browser), then send them to verify the order
   or sign in instead of a not-found page. The published `track-order` template now shows flash

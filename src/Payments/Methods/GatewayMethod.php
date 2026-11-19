@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Orders\Models\Order;
+use Sunrice\Commerce\Payments\Actions\NoteAmountMismatch;
 use Sunrice\Commerce\Payments\Contracts\HandlesReturn;
 use Sunrice\Commerce\Payments\Contracts\HandlesWebhooks;
 use Sunrice\Commerce\Payments\Contracts\SupportsStatusCheck;
@@ -126,7 +127,9 @@ abstract class GatewayMethod extends PaymentMethodBase implements HandlesReturn,
 
     /**
      * A paid result for the payment's amount, or null when the gateway's
-     * amount is not what the payment asked for.
+     * amount is not what the payment asked for. A mismatch is noted on the
+     * order's timeline (once per amount), so staff see it without reading
+     * the webhook log; the payment stays as it was.
      *
      * @param  array<string, mixed>  $raw
      */
@@ -136,10 +139,22 @@ abstract class GatewayMethod extends PaymentMethodBase implements HandlesReturn,
             return PaymentResult::paid(null, $reference, $at, $raw);
         }
         if (abs((float) $this->toGateway($payment->amount) - $paid) >= 0.01) {
+            $this->noteMismatch($payment, $this->fromGateway($paid), $reference);
+
             return null;
         }
 
         return PaymentResult::paid($payment->amount, $reference, $at, $raw);
+    }
+
+    /** A timeline note for a paid amount that isn't the payment's (NoteAmountMismatch); it mustn't change the webhook's answer. */
+    protected function noteMismatch(Payment $payment, int $amount, string $reference): void
+    {
+        try {
+            app(NoteAmountMismatch::class)->handle($payment, $amount, $reference);
+        } catch (Throwable $e) {
+            report($e);
+        }
     }
 
     /** A gateway's time (in its zone when it has none) in the app's timezone, as it is stored. */
