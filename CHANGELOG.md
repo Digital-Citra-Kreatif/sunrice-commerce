@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Record a gateway return even when the customer can't open the order there (a guest whose access
+  lapsed while paying, or who came back in another browser), then send them to verify the order
+  or sign in instead of a not-found page. The published `track-order` template now shows flash
+  messages.
+
 - Share the empty cart message and Continue shopping link with the cart drawer, and hide its checkout actions when empty.
 
 - Make checkout, cart, product, account, and order sections individually overridable and load an optional app CSS skin.

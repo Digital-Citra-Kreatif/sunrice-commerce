@@ -32,7 +32,7 @@ it('rejects unauthorised guest payment, confirmation, invoice and quote actions'
     $url = '/order/'.$order->order_key;
     $quote = makeOrder(['type' => 'quote', 'status' => 'quoted']);
 
-    foreach ([$url, $url.'/pay', $url.'/invoice', $url.'/payment/return', '/quote/'.$quote->order_key, '/confirm-payment?order='.$order->order_key] as $page) {
+    foreach ([$url, $url.'/pay', $url.'/invoice', '/quote/'.$quote->order_key, '/confirm-payment?order='.$order->order_key] as $page) {
         $this->get($page)->assertNotFound();
     }
     foreach ([$url.'/pay', $url.'/cancel', '/quote/'.$quote->order_key.'/accept', '/quote/'.$quote->order_key.'/decline'] as $action) {

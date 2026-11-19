@@ -7,6 +7,7 @@
     @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
     @php($L = \Sunrice\Commerce\Storefront\Layout::class)
     <section class="commerce-track-page">
+        @include($L::view('partials.messages'))
         @if ($verification ?? false)
             <h1 class="commerce-page-title">{{ __('commerce::checkout.track.verify_title') }}</h1>
             <p>{{ __('commerce::checkout.track.verify_intro') }}</p>
