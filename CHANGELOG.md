@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Default downloadable variants to one unit per order and name saved checkout addresses from the
+  street when the shopper leaves the title blank.
+
 - Default the variant option name to the selected taxonomy title.
 - Show product and variant images in one carousel with thumbnails and a lightbox. Selecting a
   variant opens its image in the carousel.

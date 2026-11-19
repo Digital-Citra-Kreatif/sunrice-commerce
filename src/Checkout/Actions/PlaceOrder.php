@@ -194,7 +194,11 @@ class PlaceOrder
         $customer->save();
 
         if ($user !== null && $data->get('save_address') && ($address = $data->shippingAddress()) !== null && ! $data->isPickup()) {
-            app(SaveAddress::class)->handle($customer, [...$address, 'label' => $data->get('shipping_address.label')]);
+            $label = trim((string) $data->get('shipping_address.label'));
+            app(SaveAddress::class)->handle($customer, [
+                ...$address,
+                'label' => $label !== '' ? $label : mb_substr(Str::squish((string) $address['line1']), 0, 60),
+            ]);
         }
 
         return $customer;

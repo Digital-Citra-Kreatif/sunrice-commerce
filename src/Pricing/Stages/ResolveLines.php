@@ -24,15 +24,31 @@ class ResolveLines implements CalculationStage
     public function run(CalculationState $state): void
     {
         $check = [];
+        $seenDigital = [];
+        $staff = in_array($state->ctx->channel, ['admin', 'quote'], true);
         foreach ($state->lines as $key => $line) {
             if ($line->quantity <= 0) {
                 unset($state->lines[$key]);
 
                 continue;
             }
-            $check[$key] = [$line->variant, $line->quantity];
+            $variant = $line->variant;
+            if (! $staff && $variant->limitsToOneDigitalUnit()) {
+                $duplicate = isset($seenDigital[$variant->id]);
+                if ($duplicate || $line->quantity > 1) {
+                    $state->notice('digital_quantity_limit', __('commerce::storefront.availability.digital_quantity_limit', ['product' => $this->title($variant)]), $key);
+                }
+                if ($duplicate) {
+                    unset($state->lines[$key]);
+
+                    continue;
+                }
+
+                $seenDigital[$variant->id] = true;
+                $line->quantity = 1;
+            }
+            $check[$key] = [$variant, $line->quantity];
         }
-        $staff = in_array($state->ctx->channel, ['admin', 'quote'], true);
         $results = $staff ? [] : $this->catalog->checkMany($check, $state->ctx->customer);
 
         foreach ($state->lines as $key => $line) {
@@ -46,7 +62,7 @@ class ResolveLines implements CalculationStage
             if ($availability !== null && ! $availability->isOk()) {
                 $title = $this->title($line->variant);
                 // Too few left (stock, or the flash sale's per-customer limit): keep what can be bought.
-                if (in_array($availability->reason, ['out_of_stock', 'flash_sale_limit'], true) && ($availability->details['available'] ?? 0) >= $line->variant->min_qty) {
+                if (in_array($availability->reason, ['out_of_stock', 'flash_sale_limit'], true) && ($availability->details['available'] ?? 0) >= $line->variant->minOrderQuantity()) {
                     $line->quantity = (int) $availability->details['available'];
                     $state->notice($availability->reason === 'flash_sale_limit' ? 'flash_sale_limit' : 'quantity_reduced', $availability->message($title), $key);
                 } else {

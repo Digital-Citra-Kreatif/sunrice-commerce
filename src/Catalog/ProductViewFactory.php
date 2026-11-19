@@ -315,8 +315,8 @@ class ProductViewFactory
             'regular' => $hidden ? null : $this->shown($product, max($this->basePrice($product, $v), (int) $v->compare_at_price)),
             'compare_at' => $hidden || $v->compare_at_price === null || $this->shown($product, $v->compare_at_price) <= $current[$v->uid] ? null : $this->money->format($this->shown($product, $v->compare_at_price)),
             'stock' => $statuses[$i],
-            'min_qty' => $v->min_qty,
-            'max_qty' => $v->max_qty,
+            'min_qty' => $v->minOrderQuantity(),
+            'max_qty' => $v->maxOrderQuantity(),
             'qty_step' => $v->qty_step,
             'image' => $v->image_asset_id,
         ])->values()->all();

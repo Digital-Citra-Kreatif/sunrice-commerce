@@ -46,11 +46,16 @@ class MergeCarts
                 }
                 $quantity = ($existing->quantity ?? 0) + $item->quantity;
                 $variant = $item->variant;
-                if ($variant->max_qty !== null) {
-                    $quantity = min($quantity, $variant->max_qty);
+                if ($variant->limitsToOneDigitalUnit() && $existing === null && $target->items()->where('variant_id', $variant->id)->exists()) {
+                    $this->left++;
+
+                    continue;
+                }
+                if (($maximum = $variant->maxOrderQuantity()) !== null) {
+                    $quantity = min($quantity, $maximum);
                 }
                 $availability = $this->catalog->check($variant, $quantity);
-                if (! $availability->isOk() && ($availability->details['available'] ?? 0) >= $variant->min_qty) {
+                if (! $availability->isOk() && ($availability->details['available'] ?? 0) >= $variant->minOrderQuantity()) {
                     $quantity = (int) $availability->details['available'];
                 }
                 if ($existing !== null) {

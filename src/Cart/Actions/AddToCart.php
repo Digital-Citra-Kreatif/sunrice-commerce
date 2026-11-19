@@ -43,8 +43,9 @@ class AddToCart
         }
         $total = ($existing->quantity ?? 0) + max(1, $quantity);
         // A first add of less than the minimum adds the minimum.
-        if ($existing === null && $total < $variant->min_qty) {
-            $total = $variant->min_qty;
+        $minimum = $variant->minOrderQuantity();
+        if ($existing === null && $total < $minimum) {
+            $total = $minimum;
         }
 
         $others = (int) $cart->items()->where('variant_id', $variant->id)->where('line_key', '!=', $key)->sum('quantity');

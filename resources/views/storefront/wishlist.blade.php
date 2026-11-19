@@ -45,7 +45,7 @@
                             <form method="POST" action="{{ commerce_url('commerce.cart.add') }}" class="commerce-wishlist__add" data-commerce-add data-commerce-cart-api="{{ Route::has('commerce.api.cart.add') ? commerce_url('commerce.api.cart.add') : '' }}">
                                 @csrf <x-honeypot />
                                 <input type="hidden" name="variant" value="{{ $view->defaultVariant()?->id }}">
-                                <input type="hidden" name="quantity" value="{{ $view->defaultVariant()?->min_qty ?? 1 }}">
+                                <input type="hidden" name="quantity" value="{{ $view->defaultVariant()?->minOrderQuantity() ?? 1 }}">
                                 <button type="submit" class="commerce-button commerce-button--primary commerce-button--block">{{ $view->cta['label'] }}</button>
                                 @include(\Sunrice\Commerce\Storefront\Layout::view('partials.add-recovery'))
                             </form>

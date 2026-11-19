@@ -89,3 +89,22 @@ it('keeps the title when a checkout address is renamed and saved to the account'
         ->assertSessionHasNoErrors()->assertRedirect('/account/addresses');
     expect($address->fresh()->label)->toBe('Kantor baru');
 });
+
+it('names an address saved at checkout from the street when the title is blank', function () {
+    $this->withoutMiddleware(ValidateCsrfToken::class);
+    config(['honeypot.enabled' => false]);
+    $mug = checkoutStore();
+    $user = User::query()->create(['name' => 'Rina', 'email' => 'rina@example.com', 'password' => 'secret-pass', 'email_verified_at' => now()]);
+    $this->actingAs($user, 'commerce');
+    $customer = Customer::forUser($user);
+    $input = checkoutInput(['address_id' => '', 'save_address' => 1, 'shipping_address' => [
+        'label' => ' ', 'line1' => 'Jl. Sarijadi No. 2',
+    ]]);
+    $cart = cartWith([[$mug, 1]]);
+
+    $this->post('/checkout', [...$input, 'action' => 'place', 'totals_hash' => seenHash($cart, $input)])
+        ->assertSessionHasNoErrors()->assertRedirect();
+    expect($customer->addresses()->sole()->label)->toBe('Jl. Sarijadi No. 2')
+        ->and(Order::query()->sole()->shipping_address)->not->toHaveKey('label');
+    $this->get('/account/addresses')->assertOk()->assertSee('Jl. Sarijadi No. 2');
+});
