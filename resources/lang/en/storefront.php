@@ -33,6 +33,10 @@ return [
         'send_inquiry' => 'Send',
     ],
     'listing' => [
+        'view' => 'Product view',
+        'grid' => 'Grid',
+        'table' => 'Table',
+        'product_column' => 'Product',
         'shop' => 'Shop',
         'brands' => 'Brands',
         'search' => 'Search products',

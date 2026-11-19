@@ -53,7 +53,8 @@ test('starter theme: drawers keep focus inside and close with Escape', () => {
     // Without JavaScript the filter button stays hidden and the form is shown in the page.
     assert.match(js, /button\.hidden = false/);
     assert.match(css, /\.js \.commerce-listing__filters \{[^}]*position: fixed/);
-    assert.match(css, /\.commerce-listing__filters \{[^}]*padding-inline: 5px;[^}]*overflow-y: auto;/);
+    assert.match(css, /\.commerce-listing__filters \.commerce-filters__body \{[^}]*padding-inline: 5px;[^}]*overflow-y: auto;/);
+    assert.match(css, /\.commerce-listing__filters \.commerce-filters__foot \{[^}]*flex-shrink: 0/);
     assert.match(css, /\.js \.commerce-nav \{[^}]*transform: translateX\(-100%\)/);
 });
 
