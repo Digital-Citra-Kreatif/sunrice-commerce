@@ -108,7 +108,7 @@ class RecordRefund
             }
             // Spread the money part over the paid payments, newest first.
             $left = $toMoney;
-            foreach ($locked->payments()->whereIn('status', ['paid', 'partially_refunded'])->orderByDesc('id')->get() as $payment) {
+            foreach ($locked->payments()->whereIn('status', ['paid', 'partially_refunded'])->reorder('id', 'desc')->get() as $payment) {
                 /** @var Payment $payment */
                 $part = min($left, $payment->amount - $payment->refunded_amount);
                 if ($part > 0) {
