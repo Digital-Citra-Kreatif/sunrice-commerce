@@ -25,7 +25,7 @@ class OutOfStock extends RuntimeException
      */
     public function customerMessage(): string
     {
-        $title = $this->variant->loadMissing('product')->product?->entry()?->shownIn()?->title;
+        $title = $this->variant->loadMissing('product')->product->entry()?->shownIn()?->title;
         if (blank($title)) {
             return __('commerce::storefront.availability.stock_changed');
         }
