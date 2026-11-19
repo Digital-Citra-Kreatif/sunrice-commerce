@@ -22,10 +22,16 @@
         document.dispatchEvent(new CustomEvent('commerce:cart-updated', { detail: cart }));
     }
 
+    var buyBars = new WeakMap();
     var cartToast;
     function toast(message, isError, form) {
         var el = document.createElement('div');
         el.className = 'commerce-toast' + (isError ? ' commerce-toast--error' : '');
+        if (form) {
+            el.classList.add('commerce-toast--cart-success');
+            var header = document.querySelector('.commerce-header');
+            if (header) el.style.setProperty('--commerce-toast-top', Math.max(16, header.getBoundingClientRect().bottom + 12) + 'px');
+        }
         var action = form?.querySelector('[data-commerce-add-success-action]')?.content.firstElementChild;
         if (!action) {
             el.setAttribute('role', isError ? 'alert' : 'status');
@@ -43,7 +49,9 @@
         text.setAttribute('role', 'status');
         text.textContent = message;
         el.append(text, action.cloneNode(true));
-        form.after(el);
+        var bar = buyBars.get(form);
+        var origin = bar?.contains(document.activeElement) ? bar : form;
+        origin.after(el);
 
         var timer;
         function dismissLater() {
@@ -106,7 +114,9 @@
                 var recovery = form.querySelector('[data-commerce-add-recovery]');
                 if (recovery) {
                     recovery.hidden = false;
-                    if (form.contains(document.activeElement)) recovery.querySelector('a')?.focus();
+                    if (form.contains(document.activeElement) || buyBars.get(form)?.classList.contains('is-visible')) {
+                        recovery.querySelector('a')?.focus();
+                    }
                 } else {
                     // Older published templates still get a safe recovery path.
                     var cart = document.querySelector('[data-commerce-mini-cart]');
@@ -633,6 +643,89 @@
         var filters = panel(aside, button, 'commerce-filters-backdrop');
         button.addEventListener('click', filters.open);
         aside.querySelectorAll('[data-commerce-filters-close]').forEach(function (b) { b.addEventListener('click', filters.close); });
+    });
+
+    // Use the original form to submit from the floating controls on product pages.
+    document.querySelectorAll('.commerce-product [data-commerce-buy-controls]').forEach(function (controls) {
+        if (typeof IntersectionObserver !== 'function' || typeof ResizeObserver !== 'function') return;
+
+        var form = controls.closest('[data-commerce-add]');
+        var page = controls.closest('.commerce-product');
+        var sourceButton = controls.querySelector('button[type=submit]');
+        var sourceQuantity = controls.querySelector('input[name=quantity]');
+        if (!form || !sourceButton || !sourceQuantity) return;
+
+        var bar = document.createElement('div');
+        bar.className = 'commerce-buy-bar';
+        bar.inert = true;
+        var buttons = controls.cloneNode(true);
+        buttons.removeAttribute('data-commerce-buy-controls');
+        buttons.className = 'commerce-buy-bar__controls';
+        var button = buttons.querySelector('button[type=submit]');
+        button.type = 'button';
+        var quantity = buttons.querySelector('input[name=quantity]');
+        quantity.removeAttribute('name');
+        bar.appendChild(buttons);
+        page.after(bar);
+        buyBars.set(form, bar);
+
+        var inView = true;
+        function updateBar() {
+            var visible = !inView && !sourceButton.disabled;
+            if (!visible && bar.contains(document.activeElement)) {
+                var target = document.activeElement === button && !sourceButton.disabled ? sourceButton : sourceQuantity;
+                target.focus({ preventScroll: true });
+            }
+            bar.inert = !visible;
+            bar.classList.toggle('is-visible', visible);
+            button.setAttribute('aria-disabled', sourceButton.getAttribute('aria-disabled') || 'false');
+        }
+
+        function syncQuantity() {
+            quantity.min = sourceQuantity.min;
+            quantity.max = sourceQuantity.max;
+            quantity.step = sourceQuantity.step;
+            quantity.value = sourceQuantity.value;
+        }
+
+        ['input', 'change'].forEach(function (event) {
+            sourceQuantity.addEventListener(event, syncQuantity);
+            quantity.addEventListener(event, function () {
+                sourceQuantity.value = quantity.value;
+                sourceQuantity.dispatchEvent(new Event(event, { bubbles: true }));
+            });
+        });
+        function addFromBar() {
+            if (sourceButton.disabled || sourceButton.getAttribute('aria-disabled') === 'true') return;
+            if (!quantity.reportValidity()) return;
+            form.requestSubmit(sourceButton);
+        }
+        button.addEventListener('click', addFromBar);
+        quantity.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter') return;
+            event.preventDefault();
+            addFromBar();
+        });
+        controls.closest('[data-commerce-product]')?.addEventListener('commerce:variant', syncQuantity);
+        new MutationObserver(updateBar).observe(sourceButton, { attributeFilter: ['disabled', 'aria-disabled'] });
+        syncQuantity();
+
+        var header = document.querySelector('.commerce-header');
+        var observer;
+        function observeControls() {
+            var top = Math.ceil(header?.getBoundingClientRect().height || 0);
+            var bottom = Math.ceil(bar.getBoundingClientRect().height);
+            document.documentElement.style.setProperty('--commerce-buy-bar-space', bottom + 'px');
+            observer?.disconnect();
+            observer = new IntersectionObserver(function (entries) {
+                inView = entries[0].intersectionRatio >= 0.95;
+                updateBar();
+            }, { rootMargin: '-' + top + 'px 0px -' + bottom + 'px', threshold: 0.95 });
+            observer.observe(controls);
+        }
+        var resizer = new ResizeObserver(observeControls);
+        resizer.observe(bar);
+        if (header) resizer.observe(header);
     });
 
     // Quantity steppers: − and + buttons around a number input; in the cart a change saves the line.
