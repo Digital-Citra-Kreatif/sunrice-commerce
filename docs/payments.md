@@ -190,6 +190,11 @@ payment link" on the order page.
 
 A gateway that sends the customer back uses `/order/{key}/payment/return`
 (`commerce.order.payment-return`); methods that implement `HandlesReturn` read the result there.
+The result is recorded whoever returns, so a `handleReturn()` should ask the gateway rather than
+trust the query string. A customer who may open the order goes to it. Otherwise (a guest whose
+one-hour access lapsed while paying, or who came back in another browser from an e-wallet app)
+the return sends a guest order to Track order with its number filled in, and an account order to
+sign in, then to the order. Nothing about the order is shown before that.
 
 ## Payment confirmations
 
