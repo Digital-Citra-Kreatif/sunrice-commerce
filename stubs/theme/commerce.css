@@ -351,6 +351,7 @@
 .commerce-product-table img { flex: none; width: 44px; height: 55px; object-fit: cover; }
 .commerce-product-table .commerce-price { justify-content: end; }
 .commerce-listing__filter-button { min-height: 40px; padding: 8px 16px; }
+.commerce-listing, .commerce-reviews { scroll-margin-top: calc(var(--commerce-header) + 16px); }
 .commerce-products__count { margin: 0 0 16px; font-size: 13px; color: var(--commerce-muted); }
 .commerce-filters { display: flex; flex-direction: column; }
 .commerce-filters__head { display: flex; align-items: center; justify-content: space-between; }
