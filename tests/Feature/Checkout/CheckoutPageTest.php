@@ -8,6 +8,7 @@ use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Commerce\Shipping\Models\ShippingMethod;
 use Sunrice\Commerce\Taxes\TaxRate;
 
 beforeEach(function () {
@@ -58,8 +59,55 @@ it('refreshes rates and totals as JSON when the address changes', function () {
     $json = $this->withCredentials()->postJson('/checkout/refresh', ['shipping_rate' => $rate])->json();
     expect($json['totals']['total']['amount'])->toBe(60000)->and($json['selected_rate'])->toBe($rate);
 
-    // Without JavaScript: "Update shipping" saves and comes back.
+    // Without JavaScript: "Update total" saves and comes back.
     $this->post('/checkout', [...$input, 'action' => 'update'])->assertRedirect('/checkout#shipping');
+});
+
+it('keeps the selected address and courier rates available while pickup is selected', function () {
+    $cart = cartWith([[$this->mug, 1]]);
+    $input = checkoutInput();
+    $flat = ShippingMethod::query()->where('type', 'flat')->firstOrFail();
+    $pickup = $flat->zone->methods()->create([
+        'type' => 'pickup', 'title' => ['id' => 'Ambil di toko'], 'active' => true,
+        'settings' => ['locations' => [['name' => 'Bandung', 'address' => 'Jl. Dago 1']]],
+    ]);
+    $pickupRate = "pickup:{$pickup->id}:loc0";
+    $this->withCredentials()->postJson('/checkout/refresh', [...$input, 'shipping_rate' => $pickupRate])
+        ->assertOk()->assertJsonPath('selected_rate', $pickupRate)->assertJsonPath('totals.shipping.amount', 0)
+        ->assertJsonFragment(['id' => $input['shipping_rate']]);
+    $this->get('/checkout')->assertOk()->assertSee('Jl. Sarijadi 1')
+        ->assertSee('Alamat ini dipakai jika Anda memilih kurir.')->assertDontSee('data-commerce-shipping-address hidden', false);
+    $this->withCredentials()->postJson('/checkout/refresh', ['shipping_rate' => $input['shipping_rate']])
+        ->assertOk()->assertJsonPath('selected_rate', $input['shipping_rate'])->assertJsonPath('totals.shipping.amount', 10000);
+    expect($cart->fresh()->checkout['shipping_address']['line1'])->toBe('Jl. Sarijadi 1');
+
+    $pickupInput = [...$input, 'shipping_rate' => $pickupRate];
+    $this->post('/checkout', [...$pickupInput, 'action' => 'place', 'totals_hash' => seenHash($cart->fresh(), $pickupInput)])
+        ->assertRedirect()->assertSessionHasNoErrors();
+    $order = Order::query()->sole();
+    expect($order->shipping_address)->toBeNull()
+        ->and($order->shipping_total)->toBe(0)
+        ->and($order->meta['pickup']['name'])->toBe('Bandung');
+});
+
+it('applies and removes coupons in checkout before payment without discarding form data', function () {
+    Voucher::query()->create(['name' => 'Hemat', 'code' => 'HEMAT', 'type' => 'fixed_cart', 'value' => 5000]);
+    $cart = cartWith([[$this->mug, 1]]);
+    $input = checkoutInput(['notes' => 'Titip di resepsionis']);
+    $this->get('/checkout')->assertOk()->assertSeeInOrder(['Pakai kupon', 'id="payment"'], false)
+        ->assertDontSee('data-commerce-checkout-retry', false);
+    $this->get('/cart')->assertOk()->assertDontSee('data-commerce-voucher-form', false);
+
+    $this->withCredentials()->postJson('/checkout/voucher', [...$input, 'voucher_code' => 'hemat'])
+        ->assertOk()->assertJsonPath('totals.total.amount', 55000);
+    expect($cart->fresh()->vouchers)->toBe(['HEMAT'])
+        ->and($cart->fresh()->checkout['notes'])->toBe('Titip di resepsionis');
+    $invalid = $this->withCredentials()->postJson('/checkout/voucher', [...$input, 'voucher_code' => 'invalid'])
+        ->assertOk()->assertJsonPath('totals.total.amount', 55000);
+    expect($invalid->json('vouchers_html'))->toContain('Kode INVALID tidak ditemukan.')
+        ->and($cart->fresh()->vouchers)->toBe(['HEMAT']);
+    $this->post('/checkout/voucher', [...$input, 'remove_voucher' => 'HEMAT'])->assertRedirect('/checkout#checkout-vouchers');
+    expect($cart->fresh()->vouchers)->toBe([]);
 });
 
 it('clears unchecked flags when refreshing a full checkout form and keeps them for partial requests', function () {
@@ -127,7 +175,8 @@ it('applies each checkout setting', function () {
     $place = fn (array $input = []) => $this->post('/checkout', [...checkoutInput($input), 'action' => 'place']);
 
     $settings->saveSection('checkout', ['require_phone' => true]);
-    $place(['phone' => '', 'shipping_address' => ['phone' => '']])->assertSessionHasErrors(['phone', 'shipping_address.phone']);
+    $place(['phone' => '', 'shipping_address' => ['phone' => '']])
+        ->assertSessionHasErrors('shipping_address.phone')->assertSessionDoesntHaveErrors('phone');
 
     $settings->saveSection('checkout', ['require_phone' => false, 'require_postal_code' => true, 'dropshipper' => true, 'terms_page' => 1, 'minimum_order' => 60000]);
     $place(['phone' => '', 'shipping_address' => ['phone' => ''], 'dropship' => ['enabled' => '1']])

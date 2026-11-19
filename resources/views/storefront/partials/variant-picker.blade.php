@@ -5,7 +5,7 @@
     the choice, and values no variant can be bought with say "sold out".
     $product: ProductView.
 --}}
-@php($current = $product->defaultVariant()?->uid)
+@php($current = ($default ?? $product->defaultVariant())?->uid)
 @php($defaultOptions = collect($product->variants)->firstWhere('uid', $current)['options'] ?? ($product->variants[0]['options'] ?? []))
 <div class="commerce-picker" data-commerce-picker="{{ $product->variantsJson() }}">
     <input type="hidden" name="product" value="{{ $product->product->id }}">
@@ -63,8 +63,26 @@
                     if (match && compare && match.compare_at) compare.textContent = match.compare_at;
                     var sku = root.querySelector('[data-commerce-sku]');
                     if (sku && match) sku.textContent = match.sku || '';
-                    var button = root.querySelector('button[type=submit]');
-                    if (button) button.disabled = !match || match.stock === 'out_of_stock';
+                    var alert = root.querySelector('[data-commerce-stock-alert]');
+                    var variantField = alert?.querySelector('[data-commerce-stock-alert-variant]');
+                    var alertSelect = variantField?.querySelector('select');
+                    var needsAlert = false;
+                    if (alertSelect) {
+                        alertSelect.value = match ? String(match.id) : '';
+                        needsAlert = alertSelect.value !== '';
+                        alert.hidden = !needsAlert;
+                        variantField.hidden = true;
+                    }
+                    var status = needsAlert ? 'out_of_stock' : match?.stock;
+                    var stock = root.querySelector('[data-commerce-stock]');
+                    if (stock?.dataset.inStock) {
+                        stock.hidden = !status;
+                        stock.classList.remove('commerce-stock--in_stock', 'commerce-stock--out_of_stock', 'commerce-stock--backorder');
+                        if (status) stock.classList.add('commerce-stock--' + status);
+                        stock.textContent = ({ in_stock: stock.dataset.inStock, out_of_stock: stock.dataset.outOfStock, backorder: stock.dataset.backorder })[status] || '';
+                    }
+                    var button = root.querySelector('button.commerce-add__button');
+                    if (button) button.disabled = !match || status === 'out_of_stock';
                     root.dispatchEvent(new CustomEvent('commerce:variant', { detail: match || null, bubbles: true }));
                 }
                 picker.addEventListener('change', function (event) {

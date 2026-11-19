@@ -16,7 +16,7 @@ final class CheckoutData
 {
     public const KEYS = [
         'email', 'phone', 'name', 'shipping_address', 'billing_same', 'billing_address', 'shipping_rate', 'payment_method',
-        'notes', 'dropship', 'terms', 'create_account', 'accepts_marketing', 'fields', 'save_address', 'address_id',
+        'notes', 'dropship', 'terms', 'create_account', 'accepts_marketing', 'fields', 'save_address', 'address_id', 'use_points',
     ];
 
     /** @param  array<string, mixed>  $values */
@@ -43,7 +43,7 @@ final class CheckoutData
             $value = $input[$key];
             $values[$key] = match ($key) {
                 'shipping_address', 'billing_address' => is_array($value) ? AddressRules::normalize($value)->toArray() : null,
-                'billing_same', 'terms', 'create_account', 'accepts_marketing', 'save_address' => filter_var($value, FILTER_VALIDATE_BOOLEAN),
+                'billing_same', 'terms', 'create_account', 'accepts_marketing', 'save_address', 'use_points' => filter_var($value, FILTER_VALIDATE_BOOLEAN),
                 'email' => is_string($value) ? mb_strtolower(trim($value)) : null,
                 'dropship', 'fields' => is_array($value) ? $value : [],
                 'address_id' => is_numeric($value) ? (int) $value : null,
@@ -134,21 +134,24 @@ final class CheckoutData
     /**
      * The pricing context changes this data implies: destination (none
      * for pickup), billing address, chosen rate and payment method, email
-     * and phone.
+     * and phone, and whether to redeem points.
      *
      * @return array<string, mixed>
      */
     public function context(): array
     {
-        $destination = $this->isPickup() ? null : $this->shippingAddress();
+        $shipping = $this->shippingAddress();
+        $destination = $this->isPickup() ? null : $shipping;
 
         return array_filter([
             'destination' => $destination,
+            'deliveryDestination' => $this->isPickup() ? $shipping : null,
             'billingAddress' => $this->billingAddress(),
             'shippingRate' => $this->shippingRate(),
             'paymentMethod' => $this->paymentMethod(),
             'email' => $this->email(),
-            'phone' => $this->phone(),
+            'phone' => $destination['phone'] ?? $this->phone(),
+            'usePoints' => (bool) $this->get('use_points', false),
         ], fn ($v) => $v !== null);
     }
 

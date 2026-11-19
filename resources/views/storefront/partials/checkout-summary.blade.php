@@ -21,7 +21,7 @@
     </ul>
     @if ($part === 'more')</details>@endif
 @endforeach
-@foreach (collect($state->notices)->whereNotIn('code', ['voucher_conditional', 'price_changed']) as $notice)
+@foreach (collect($state->notices)->where('code', '!=', 'price_changed') as $notice)
     <p class="commerce-notice">{{ $notice['message'] }}</p>
 @endforeach
 @include(\Sunrice\Commerce\Storefront\Layout::view('partials.totals'), ['state' => $state, 'atCheckout' => true])

@@ -89,7 +89,13 @@ it('works without JavaScript: forms with flash messages', function () {
     $cookie = ['commerce_cart' => $cart->token];
     $item = $cart->items->first();
 
-    $this->withCookies($cookie)->get('/cart')->assertOk()->assertSee('Mug')->assertSee('Rp100.000');
+    $this->withCookies($cookie)->get('/cart')->assertOk()->assertSee('Mug')->assertSee('Rp100.000')
+        ->assertSee('commerce-icon--trash', false)
+        ->assertSee('aria-label="Hapus Mug dari keranjang"', false)
+        ->assertSee('data-commerce-cart-remove-dialog', false)
+        ->assertSee('commerce-cart__remove-fallback', false)
+        ->assertSee('Hapus produk dari keranjang?')
+        ->assertSee('value="cancel"', false);
     $this->withCookies($cookie)->patch("/cart/items/{$item->id}", ['quantity' => 9])->assertSessionHas('commerce.error');
     $this->withCookies($cookie)->patch("/cart/items/{$item->id}", ['quantity' => 3])->assertSessionHas('commerce.success');
     expect($item->fresh()->quantity)->toBe(3);

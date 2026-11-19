@@ -19,6 +19,7 @@
                 <input type="password" name="password" required autocomplete="current-password">
             </label>
             <label class="commerce-check"><input type="checkbox" name="remember" value="1"> {{ __('commerce::account.login.remember') }}</label>
+            @include(\Sunrice\Commerce\Storefront\Layout::view('partials.captcha'))
             <button type="submit" class="commerce-button commerce-button--primary commerce-button--block">{{ __('commerce::account.login.submit') }}</button>
             <a class="commerce-auth__forgot" href="{{ commerce_url('commerce.account.password.request') }}">{{ __('commerce::account.login.forgot') }}</a>
         </form>

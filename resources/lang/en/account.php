@@ -182,7 +182,7 @@ return [
     'points' => [
         'title' => 'Points',
         'balance' => 'You have :points points, worth :value.',
-        'how' => 'You earn :percent% of what you spend on products, in points, when an order is completed. Spend them in the cart.',
+        'how' => 'You earn :percent% of what you spend on products, in points, when an order is completed. Spend them at checkout.',
         'expiring' => ':points points expire on :date.',
         'none' => 'No points yet.',
         'date' => 'Date',

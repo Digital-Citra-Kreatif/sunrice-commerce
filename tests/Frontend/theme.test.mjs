@@ -16,12 +16,12 @@ function mediaBlock(query) {
     return css.slice(start);
 }
 
-test('stacks cart lines on narrow screens instead of a five-column row wider than a phone', () => {
-    const block = mediaBlock('(max-width: 600px)');
+test('stacks cart items into two compact rows on narrow screens', () => {
+    const block = mediaBlock('(max-width: 640px)');
     assert.match(block, /\.commerce-cart__lines tr \{[^}]*display: grid/);
-    assert.match(block, /grid-template-areas: "product product" "price total" "qty remove"/);
-    assert.match(block, /\.commerce-cart__product \{[^}]*overflow-wrap: anywhere/);
-    for (const area of ['product', 'price', 'total', 'qty', 'remove']) {
+    assert.match(block, /grid-template-areas: "product product remove" "qty total total"/);
+    assert.match(css, /\.commerce-cart__info \{[^}]*overflow-wrap: anywhere/);
+    for (const area of ['product', 'total', 'qty', 'remove']) {
         assert.match(block, new RegExp(`grid-area: ${area};`));
     }
 });

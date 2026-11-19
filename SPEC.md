@@ -380,7 +380,7 @@ and totals are sums of lines.
 - One store-wide rule (Settings → Loyalty): a percentage of the products after discounts, products
   or categories to include or leave out, a minimum order, and an expiry in days (0: never).
 - Points are earned when an order is completed and taken back in proportion when it's refunded.
-- Signed-in customers pay with their points in the cart, after tax, up to the balance, with no cap;
+- Signed-in customers pay with their points at checkout, after tax, up to the balance, with no cap;
   an order paid in full is placed as paid. Points are taken when the order is placed and given back
   if it's cancelled; refunds go to the money paid first, then back onto the wallet.
 - My Account → Points shows the balance, the next expiry and the history; staff see balances, the

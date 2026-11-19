@@ -54,13 +54,22 @@ class AuthController
             return redirect(StorefrontRoutes::url('commerce.account'));
         }
 
-        return view(Layout::view('account.login'), ['seoTitle' => __('commerce::account.login.title')]);
+        return view(Layout::view('account.login'), [
+            'seoTitle' => __('commerce::account.login.title'),
+            'captcha' => app(Captcha::class)->widget(app()->getLocale()),
+        ]);
     }
 
     public function login(Request $request): RedirectResponse
     {
         $data = $request->validate(['email' => ['required', 'string', 'email', 'max:190'], 'password' => ['required', 'string', 'max:200']]);
         Throttle::check('commerce-login', $request, $data['email'], 5, 30);
+        if (! app(Captcha::class)->passes($request)) {
+            Throttle::hit('commerce-login', $request, $data['email']);
+
+            return back()->withInput($request->only(['email', 'remember']))
+                ->withErrors(['captcha' => __('commerce::payments.confirm.captcha')]);
+        }
 
         $user = $this->users()::query()->where('email', mb_strtolower($data['email']))->first();
         if ($user === null || $user->getAuthPassword() === '' || ! Hash::check($data['password'], $user->getAuthPassword())) {
@@ -183,7 +192,10 @@ class AuthController
 
     public function showForgot(): View
     {
-        return view(Layout::view('account.forgot-password'), ['seoTitle' => __('commerce::account.reset.title')]);
+        return view(Layout::view('account.forgot-password'), [
+            'seoTitle' => __('commerce::account.reset.title'),
+            'captcha' => app(Captcha::class)->widget(app()->getLocale()),
+        ]);
     }
 
     public function sendResetLink(Request $request): RedirectResponse
@@ -191,6 +203,10 @@ class AuthController
         $data = $request->validate(['email' => ['required', 'string', 'email', 'max:190']]);
         Throttle::check('commerce-reset', $request, $data['email'], 3, 10, 600);
         Throttle::hit('commerce-reset', $request, $data['email'], 600);
+        if (! app(Captcha::class)->passes($request)) {
+            return back()->withInput($request->only('email'))
+                ->withErrors(['captcha' => __('commerce::payments.confirm.captcha')]);
+        }
         $locale = app()->getLocale();
         Password::broker((string) config('commerce.auth.passwords', 'users'))->sendResetLink(
             ['email' => mb_strtolower($data['email'])],

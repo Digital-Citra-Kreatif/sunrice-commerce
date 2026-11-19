@@ -2,6 +2,38 @@
 
 ## Unreleased
 
+- Cart items use denser rows, with a trash icon and a confirmation dialog before removal.
+  Merge the updated cart and icon partials, storefront translations and theme assets into published copies.
+
+- The add-to-cart success toast includes a shortcut to the cart. Merge the updated
+  `partials/add-recovery.blade.php` and storefront theme assets into published copies.
+
+- Shoppers can apply or remove vouchers before payment in checkout. Selecting pickup keeps the
+  delivery address and courier options available. If automatic recalculation fails, **Update total**
+  submits the current selections. Merge the updated checkout, cart and checkout partials, the new
+  `partials/checkout-vouchers.blade.php`, checkout translations and theme assets into published copies.
+
+- Password sign-in, password-reset requests and final checkout submissions support the configured
+  Sunrice captcha. Merge the three form templates, `partials/captcha.blade.php` and the storefront
+  script into published copies.
+
+- Delivery collects the recipient name and phone with the shipping address. Checkout uses a
+  compact saved-address selector, an Add address link and a collapsible notes field. Merge
+  `checkout.blade.php`, the new `partials/checkout-contact-fields.blade.php`, checkout translations
+  and the storefront theme assets into published copies.
+
+- Back-in-stock alerts follow the selected variant, and the product's Add to cart button has more
+  padding. Merge the product buying, stock, stock-alert and variant-picker partials and theme CSS
+  into published copies.
+
+- Checkout shows an address summary and lets shoppers pick a saved address or enter a new one in a
+  dialog. Merge the updated `checkout.blade.php`, checkout translations and storefront theme assets
+  into published copies.
+
+- The option to pay with loyalty points now sits next to the payment methods at checkout. The
+  cart shows the order before payment choices. Merge your published `checkout.blade.php`,
+  `partials/cart.blade.php` and the checkout and account translations to show the new option.
+
 - My Account now opens the address form on demand and shows saved addresses in expandable rows.
   The order history supports search by order number or product name, an order status filter and
   an inclusive date range, with filters preserved between pages. If you maintain published
@@ -13,7 +45,7 @@
   methods appear if shipping makes a free cart payable. Choosing a saved address updates its region
   codes and clears any optional fields missing from that address.
 
-- Checkout labels totals as estimated before shipping is selected, preserves the latest selections while refreshing, and offers a retry if the refresh fails.
+- Checkout labels totals as estimated before shipping is selected, and preserves the latest selections while refreshing.
 
 - The add-to-cart form links customers to their cart if the response is interrupted. For published
   storefronts, merge the updated checkout and address partials, `commerce.js` and the

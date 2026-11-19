@@ -87,8 +87,10 @@ an optional phone number (or a required one, in settings), a password, and marke
   an account.
 - When a terms page is set (Settings → Store → Checkout → Terms page), customers tick that they
   agree to it, as at checkout.
-- The forms have a honeypot. With Sunrice's captcha configured (`sunrice.forms.captcha`: Turnstile,
-  reCAPTCHA or hCaptcha), registration also shows the captcha. Registration is limited to 5 per
+- The forms have a honeypot. With Sunrice's captcha configured (`sunrice-admin.captcha`: Turnstile,
+  reCAPTCHA v2 or hCaptcha), registration, password sign-in and password reset requests also
+  verify the captcha on the server. Set `SUNRICE_CAPTCHA_PROVIDER`, `SUNRICE_CAPTCHA_SITE_KEY` and
+  `SUNRICE_CAPTCHA_SECRET_KEY` in the host app. Registration is limited to 5 per
   hour per IP address.
 
 Laravel's `Illuminate\Auth\Events\Registered` is dispatched for new accounts.

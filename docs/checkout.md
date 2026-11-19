@@ -56,7 +56,8 @@ with `general.pause_message` (or a default text).
 | Route | Name | What it does |
 | --- | --- | --- |
 | `GET /checkout` | `commerce.checkout` | Shows the page. Redirects to the cart when it is empty. |
-| `POST /checkout` | `commerce.checkout.submit` | Saves the form. With `action=place` it places the order; with `action=update` it saves and recalculates shipping (the no-JavaScript "Update shipping" button). |
+| `POST /checkout` | `commerce.checkout.submit` | Saves the form. With `action=place` it places the order; with `action=update` it saves and recalculates totals (the "Update total" button). |
+| `POST /checkout/voucher` | `commerce.checkout.voucher` | Applies or removes a voucher and recalculates totals when Vouchers are enabled. |
 | `POST /checkout/refresh` | `commerce.checkout.refresh` | JSON: saves what was entered and returns rates, payment methods, totals, notices, the new hash and rendered partials. |
 
 The path comes from `commerce.storefront.paths.checkout`; other languages get the `/{locale}`
@@ -64,16 +65,19 @@ prefix. The routes need the `checkout` feature and are `noindex`.
 
 The page has these sections, in order:
 
-1. contact: name, email, phone (and company and tax number when asked), the account choice;
-2. shipping address, when something needs shipping and Shipping is on: saved addresses for
-   signed-in customers, "save this address", "billing is the same";
+1. contact: email (and company and tax number when asked), the account choice. Orders without
+   shipping collect a name and phone here when required;
+2. shipping address, when something needs shipping and Shipping is on: recipient name and phone,
+   a saved-address selector for signed-in customers, "save this address", "billing is the same".
+   Pickup collects the contact details in the shipping section;
 3. billing address, when it differs;
-4. shipping method, with the "Update shipping" button;
-5. payment method (Online store mode, when the total is more than zero);
+4. shipping method;
+5. vouchers, followed by loyalty points for signed-in customers with a balance and payment
+   methods for the remaining total in Online store mode;
 6. order notes, dropshipper and extra fields;
 7. order summary (the first 10 lines, `commerce.cart.preview_lines`, and the rest behind "and 3
-   more"), voucher, marketing consent (guests), terms;
-8. the submit button: "Place order", "Request a quote" or "Order via WhatsApp".
+   more"), marketing consent (guests), terms;
+8. the "Update total" fallback and the submit button: "Place order", "Request a quote" or "Order via WhatsApp".
 
 What the customer types is kept on the cart (`commerce_carts.checkout`, see
 `Checkout\CheckoutData::KEYS`), so a reload keeps it. Passwords are never stored there. Signed-in
@@ -83,6 +87,10 @@ customers start with their profile and default shipping address. The first view 
 Storefront slots let packages add to the page: `checkout.before`, `checkout.after_contact`,
 `checkout.after_shipping`, `checkout.after_payment` and `checkout.before_submit`. See
 [extending.md](extending.md#storefront-slots).
+
+The points checkbox updates the amount due and the payment options. If points cover the full total,
+the order is placed as paid. The **Update total** button is available with JavaScript off.
+See [Loyalty points](pricing.md#loyalty-points).
 
 ## Checkout settings
 
@@ -154,9 +162,12 @@ $address = AddressRules::normalize($input); // names from the region table, phon
 The order keeps the address as a snapshot, codes and names together. See [regions.md](regions.md).
 
 At checkout, choosing a saved address fills both its fields and its region codes. Switching
-addresses also clears optional values missing from the new selection. For separate billing, the
-billing address is used for any tax rules based on billing. The **Update shipping** form submission
-remains available to refresh the current selections without using AJAX.
+addresses also clears optional values missing from the new selection. The shipping section shows a
+summary and a saved-address selector when available. **Add address** opens a dialog.
+**Use this address** applies the draft and refreshes shipping rates, while **Cancel** keeps the
+previous address. With JavaScript off, the form is inline and **Use saved address** applies the
+selection through a regular form submission. For separate billing, the
+billing address is used for any tax rules based on billing. The **Update total** button appears when automatic refresh fails or JavaScript is off.
 
 ## Shipping and payment choice
 
@@ -165,15 +176,16 @@ remains available to refresh the current selections without using AJAX.
   - In Online store and WhatsApp modes a rate must be chosen, and it must be one of the current
     rates. "We can't ship to this address yet." shows when an address gets no rates.
   - In Quotation mode the rate is optional: staff can set shipping in the quote.
-  - Choosing a pickup rate (`pickup:…`) hides the shipping address. The order keeps no shipping
-    address and stores the location in `meta.pickup`.
+  - Choosing a pickup rate (`pickup:…`) keeps the address and delivery rates available in case
+    the customer switches back to delivery. The pickup order stores the location in `meta.pickup`
+    and has an empty shipping address.
 - **Payment** is chosen in Online store mode when the total is more than zero. The method must be
   available for the order (active, its module on, its rules met); see [payments.md](payments.md).
   The chosen method's fee is part of the totals. If a free cart gains a shipping charge, the
   checkout reveals the payment choice during the refresh without reloading the page.
 - Orders with nothing to ship (digital products) skip both the address and shipping.
 
-Vouchers are applied from the summary; see [pricing.md](pricing.md).
+Customers apply and remove vouchers in checkout, before choosing a payment method; see [pricing.md](pricing.md).
 
 The storefront sends `_form=checkout` with a full form refresh so unchecked boxes are cleared.
 A partial refresh without this marker keeps values that the request omits.
@@ -278,6 +290,10 @@ Staff mark the order paid from the admin once payment is settled in the chat.
 The order lookup at `/track-order` and the payment confirmation lookup allow 10 misses per email
 and IP and 20 per IP in 10 minutes, and have a honeypot. See [payments.md](payments.md) for the
 confirmation form.
+
+When the host configures Sunrice's captcha, checkout verifies the token on the final **Place
+order** submission. Address changes, points updates and shipping recalculations leave the
+token for that submission. See [Accounts](accounts.md#registration) for the provider setup.
 
 ## Extra fields and custom completions
 

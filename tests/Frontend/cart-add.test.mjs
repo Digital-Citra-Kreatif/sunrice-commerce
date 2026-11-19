@@ -18,11 +18,22 @@ function storefront(deliver) {
     };
     const link = { focused: false, focus() { this.focused = true; } };
     const recovery = { hidden: true, querySelector: () => link };
+    const cartAction = {
+        href: '/cart',
+        label: 'View cart',
+        cloneNode() { return { href: this.href, label: this.label }; },
+    };
+    const controls = {
+        '[data-commerce-add-recovery]': recovery,
+        '[data-commerce-add-success-action]': { content: { firstElementChild: cartAction } },
+        'button[type=submit]': button,
+    };
     const form = {
         dataset: { commerceCartApi: '/commerce/api/cart/items' },
         closest: () => form,
         contains: (node) => node === button,
-        querySelector: (selector) => selector === '[data-commerce-add-recovery]' ? recovery : button,
+        querySelector: (selector) => controls[selector] ?? null,
+        after: (notice) => notices.push(notice),
         submit: () => { formPosts++; },
     };
 
@@ -32,7 +43,12 @@ function storefront(deliver) {
             addEventListener: (event, handler) => { if (event === 'submit') submitHandler = handler; },
             querySelector: () => null,
             querySelectorAll: (selector) => selector === '[data-commerce-cart-count]' ? [counter] : [],
-            createElement: () => ({ setAttribute() {} }),
+            createElement: () => ({
+                setAttribute(name, value) { this[name] = value; },
+                classList: { add() {} },
+                append(...children) { this.children = children; },
+                addEventListener() {},
+            }),
             body: { appendChild: (notice) => notices.push(notice) },
             dispatchEvent() {},
             documentElement: { classList: { add() {} } },
@@ -47,6 +63,7 @@ function storefront(deliver) {
         CustomEvent: class {},
         AbortSignal,
         setTimeout() {},
+        clearTimeout() {},
     });
 
     const submit = () => {
@@ -104,6 +121,7 @@ test('a confirmed refusal allows correction and a later confirmed success update
     page.submit();
     await settle();
     assert.equal(page.notices[0].textContent, 'Quantity unavailable');
+    assert.equal(page.notices[0].children, undefined);
     assert.equal(page.button.attributes.has('aria-disabled'), false);
     assert.equal(page.recovery.hidden, true);
 
@@ -112,5 +130,9 @@ test('a confirmed refusal allows correction and a later confirmed success update
     assert.deepEqual(page.counts(), [2, 0]);
     assert.equal(page.counter.textContent, 1);
     assert.equal(page.counter.hidden, false);
-    assert.equal(page.notices[1].textContent, 'Added');
+    const [message, cart] = page.notices[1].children;
+    assert.equal(message.textContent, 'Added');
+    assert.equal(message.role, 'status');
+    assert.equal(cart.href, '/cart');
+    assert.equal(cart.label, 'View cart');
 });

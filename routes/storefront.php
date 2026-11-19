@@ -51,6 +51,7 @@ Route::middleware(['commerce.feature:checkout', 'commerce.noindex'])->prefix(Sto
     Route::get('/', [Storefront\CheckoutController::class, 'show'])->name('commerce.checkout'.$suffix);
     Route::post('/', [Storefront\CheckoutController::class, 'submit'])->middleware('throttle:commerce-checkout')->name('commerce.checkout.submit'.$suffix);
     Route::post('refresh', [Storefront\CheckoutController::class, 'refresh'])->middleware('throttle:commerce-cart')->name('commerce.checkout.refresh'.$suffix);
+    Route::post('voucher', [Storefront\CheckoutController::class, 'voucher'])->middleware(['commerce.feature:vouchers', 'throttle:commerce-voucher'])->name('commerce.checkout.voucher'.$suffix);
 });
 
 Route::middleware(['commerce.feature:orders', 'commerce.noindex'])->group(function () use ($suffix): void {

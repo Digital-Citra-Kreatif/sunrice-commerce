@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\TestResponse;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Catalog\Models\Variant;
@@ -65,6 +66,46 @@ it('places an order with snapshots, a payment and the timeline', function () {
 
     $this->get($order->url())->assertOk()->assertSee($order->number)->assertSee('Rp110.000')->assertSee('Menunggu pembayaran')
         ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+});
+
+it('uses the shipping recipient as the order contact for a delivery', function () {
+    $cart = cartWith([[$this->mug, 1]]);
+    $input = checkoutInput(['shipping_address' => ['name' => 'Dewi Penerima', 'phone' => '081298765432']]);
+    unset($input['name'], $input['phone']);
+
+    $page = $this->get('/checkout')->assertOk();
+    preg_match('/<fieldset[^>]+id="contact"[^>]*>(.*?)<\/fieldset>/s', (string) $page->getContent(), $section);
+    expect($section[1])->toContain('name="email"')->not->toContain('name="name"', 'name="phone"');
+
+    $this->post('/checkout', [...$input, 'action' => 'place', 'totals_hash' => seenHash($cart, $input)])
+        ->assertSessionHasNoErrors();
+    $order = Order::query()->sole();
+    expect($order->customer_name)->toBe('Dewi Penerima')
+        ->and($order->phone)->toBe('+6281298765432')
+        ->and($order->shipping_address['name'])->toBe('Dewi Penerima');
+});
+
+it('requires a configured captcha only for final order placement', function () {
+    config(['sunrice-admin.captcha' => ['provider' => 'turnstile', 'site_key' => 'site', 'secret_key' => 'secret']]);
+    Http::fake([
+        'https://challenges.cloudflare.com/turnstile/v0/siteverify' => Http::sequence()
+            ->push(['success' => false])->push(['success' => true]),
+    ]);
+    $cart = cartWith([[$this->mug, 1]]);
+    $input = checkoutInput();
+    $this->get('/checkout')->assertOk()->assertSee('class="cf-turnstile"', false);
+    $this->withCredentials()->postJson('/checkout/refresh', $input)->assertOk();
+    $this->post('/checkout', [...$input, 'action' => 'update'])->assertRedirect('/checkout#shipping');
+    Http::assertNothingSent();
+
+    $post = [...$input, 'action' => 'place', 'totals_hash' => seenHash($cart, $input)];
+    $this->post('/checkout', $post)->assertRedirect('/checkout#checkout-captcha')->assertSessionHasErrors('captcha');
+    $this->post('/checkout', [...$post, 'cf-turnstile-response' => 'expired-token'])->assertSessionHasErrors('captcha');
+    expect(Order::query()->count())->toBe(0);
+
+    $this->post('/checkout', [...$post, 'cf-turnstile-response' => 'checkout-token'])->assertSessionHasNoErrors();
+    expect(Order::query()->count())->toBe(1);
+    Http::assertSentCount(2);
 });
 
 it('gives one order for a double submit', function () {

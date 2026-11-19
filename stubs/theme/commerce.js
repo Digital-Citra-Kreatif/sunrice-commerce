@@ -22,13 +22,47 @@
         document.dispatchEvent(new CustomEvent('commerce:cart-updated', { detail: cart }));
     }
 
-    function toast(message, isError) {
+    var cartToast;
+    function toast(message, isError, form) {
         var el = document.createElement('div');
         el.className = 'commerce-toast' + (isError ? ' commerce-toast--error' : '');
-        el.setAttribute('role', isError ? 'alert' : 'status');
-        el.textContent = message;
-        document.body.appendChild(el);
-        setTimeout(function () { el.remove(); }, 4000);
+        var action = form?.querySelector('[data-commerce-add-success-action]')?.content.firstElementChild;
+        if (!action) {
+            el.setAttribute('role', isError ? 'alert' : 'status');
+            el.textContent = message;
+            document.body.appendChild(el);
+            setTimeout(function () { el.remove(); }, 4000);
+            return;
+        }
+
+        cartToast?.remove();
+        cartToast = el;
+        el.classList.add('commerce-toast--with-action');
+        var text = document.createElement('span');
+        text.className = 'commerce-toast__message';
+        text.setAttribute('role', 'status');
+        text.textContent = message;
+        el.append(text, action.cloneNode(true));
+        form.after(el);
+
+        var timer;
+        function dismissLater() {
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                el.remove();
+                if (cartToast === el) cartToast = null;
+            }, 8000);
+        }
+
+        el.addEventListener('pointerenter', function () { clearTimeout(timer); });
+        el.addEventListener('focusin', function () { clearTimeout(timer); });
+        el.addEventListener('pointerleave', function () {
+            if (!el.contains(document.activeElement)) dismissLater();
+        });
+        el.addEventListener('focusout', function (event) {
+            if (!el.contains(event.relatedTarget) && !el.matches(':hover')) dismissLater();
+        });
+        dismissLater();
     }
 
     // A failed response may arrive after the server already added the item.
@@ -66,7 +100,7 @@
                 activeAdds.delete(form);
                 if (button) button.removeAttribute('aria-disabled');
                 if (Number.isInteger(result.json.cart?.count)) updateMiniCart(result.json.cart);
-                toast(result.json.message, !result.ok);
+                toast(result.json.message, !result.ok, result.ok ? form : null);
             })
             .catch(function () {
                 var recovery = form.querySelector('[data-commerce-add-recovery]');
@@ -86,6 +120,43 @@
             });
     });
 
+    document.querySelectorAll('[data-commerce-cart]').forEach(function (cart) {
+        var dialog = cart.querySelector('[data-commerce-cart-remove-dialog]');
+        if (typeof dialog?.showModal !== 'function') return;
+
+        var name = dialog.querySelector('[data-commerce-cart-remove-item]');
+        var form;
+        var trigger;
+        function close() {
+            dialog.close();
+            trigger?.focus();
+            form = null;
+            trigger = null;
+        }
+
+        cart.addEventListener('click', function (event) {
+            var opener = event.target.closest('[data-commerce-cart-remove-trigger]');
+            if (!opener) return;
+
+            event.preventDefault();
+            if (dialog.open) return;
+            trigger = opener;
+            form = opener.closest('form');
+            name.textContent = form.dataset.commerceCartRemove;
+            dialog.showModal();
+        });
+        dialog.addEventListener('submit', function (event) {
+            event.preventDefault();
+            var remove = form;
+            close();
+            if (event.submitter?.value === 'remove') remove?.submit();
+        });
+        dialog.addEventListener('cancel', function (event) {
+            event.preventDefault();
+            close();
+        });
+    });
+
     // Checkout: show/hide toggled parts, and refresh rates, payments and totals on change.
     document.querySelectorAll('[data-commerce-checkout]').forEach(function (form) {
         function syncToggles() {
@@ -96,7 +167,21 @@
             });
             var rate = form.querySelector('input[name=shipping_rate]:checked');
             var address = form.querySelector('[data-commerce-shipping-address]');
-            if (address) address.hidden = !!(rate && rate.dataset.pickup === '1');
+            var pickup = !!(rate && rate.dataset.pickup === '1');
+            var pickupNote = form.querySelector('[data-commerce-pickup-note]');
+            if (pickupNote) pickupNote.hidden = !pickup;
+            if (address) address.hidden = !pickupNote && pickup;
+            var pickupContact = form.querySelector('[data-commerce-pickup-contact]');
+            if (pickupContact) {
+                pickupContact.hidden = !pickup;
+                if (pickup) {
+                    ['name', 'phone'].forEach(function (field) {
+                        var input = pickupContact.querySelector('[name="' + field + '"]');
+                        var recipient = form.elements.namedItem('shipping_address[' + field + ']');
+                        if (input && !input.value && recipient?.value) input.value = recipient.value;
+                    });
+                }
+            }
         }
         var timer;
         var revision = 0;
@@ -107,13 +192,138 @@
         var update = form.querySelector('[data-commerce-update]');
         var submit = form.querySelector('button[name=action][value=place]');
         var status = form.querySelector('[data-commerce-checkout-status]');
-        var retry = form.querySelector('[data-commerce-checkout-retry]');
+        var voucherRequest = null;
         var paymentSection = form.querySelector('[data-commerce-payment-section]');
         var paymentStep = form.closest('.commerce-checkout-page')?.querySelector('[data-commerce-payment-step]');
 
+        function fillShippingAddress(address, fields) {
+            fields.forEach(function (input) {
+                var key = input.name.slice('shipping_address['.length, -1);
+                var value = String(address[key] ?? '');
+                if (input.hasAttribute('data-commerce-region')) {
+                    input.length = 1;
+                    input.dataset.value = '';
+                    if (value) input.add(new Option(address[input.dataset.commerceRegion] || value, value));
+                }
+                input.value = value;
+            });
+            // Resync the country and reload its region choices, keeping the selected codes.
+            fields.find(function (input) { return input.name === 'shipping_address[country]'; })?.dispatchEvent(new Event('change'));
+        }
+
+        function enhanceShippingAddress() {
+            var editor = form.querySelector('[data-commerce-address-editor]');
+            var dialog = form.closest('.commerce-checkout-page')?.querySelector('[data-commerce-address-dialog]');
+            if (!editor || typeof dialog?.showModal !== 'function') return null;
+
+            var fields = Array.from(editor.querySelectorAll('[name^="shipping_address["]'));
+            var saved = form.querySelector('[data-commerce-saved-address]');
+            var save = editor.querySelector('[name=save_address]');
+            var card = form.querySelector('[data-commerce-address-card]');
+            var summary = card.querySelector('[data-commerce-address-summary]');
+            var open = card.querySelector('[data-commerce-open-address]');
+            var error = dialog.querySelector('[data-commerce-address-dialog-error]');
+            // Keep the draft outside the checkout form so a refresh only sees the applied address.
+            var committed = document.createElement('div');
+            committed.hidden = true;
+            editor.before(committed);
+            dialog.querySelector('[data-commerce-address-dialog-body]').append(editor);
+            var inputs = (save ? [...fields, save] : fields).map(function (field) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = field.name;
+                committed.append(input);
+                return input;
+            });
+            var activeAddress;
+            var activeId;
+            var shouldSave;
+
+            function apply() {
+                activeAddress = {};
+                fields.forEach(function (field, index) {
+                    var key = field.name.slice('shipping_address['.length, -1);
+                    inputs[index].value = field.disabled ? '' : field.value;
+                    activeAddress[key] = inputs[index].value;
+                    if (field.dataset.commerceRegion) {
+                        activeAddress[field.dataset.commerceRegion] = activeAddress[key] ? field.selectedOptions[0]?.text : '';
+                    }
+                });
+                activeAddress.countryLabel = fields.find(function (field) {
+                    return field.name === 'shipping_address[country]';
+                })?.selectedOptions[0]?.text;
+                activeId = saved?.value || '';
+                shouldSave = save?.checked ?? false;
+                if (save) inputs[fields.length].value = shouldSave ? '1' : '0';
+                var locality = [activeAddress.village, activeAddress.district, activeAddress.city,
+                    activeAddress.country === 'ID' ? activeAddress.province : activeAddress.state,
+                    activeAddress.postal_code].filter(Boolean).join(', ');
+                var recipient = [activeId ? '' : activeAddress.name, activeAddress.phone].filter(Boolean).join(' · ');
+                var street = [activeAddress.line1, activeAddress.line2, locality,
+                    activeAddress.country === 'ID' ? '' : activeAddress.countryLabel].filter(Boolean).join(', ');
+                summary.textContent = [recipient, street].filter(Boolean).join('\n');
+                summary.hidden = !activeAddress.line1;
+                open.textContent = summary.hidden || activeId ? open.dataset.addLabel : open.dataset.changeLabel;
+            }
+
+            function showEditor(startNew) {
+                var draft = startNew && activeId ? {
+                    country: activeAddress.country,
+                    name: activeAddress.name || form.elements.name?.value,
+                    phone: activeAddress.phone || form.elements.phone?.value,
+                } : activeAddress;
+                fillShippingAddress(draft, fields);
+                if (save) save.checked = draft === activeAddress && shouldSave;
+                error.hidden = true;
+                dialog.showModal();
+            }
+
+            var fallback = form.querySelector('[data-commerce-address-fallback]');
+            if (fallback) fallback.hidden = true;
+            card.hidden = false;
+            apply();
+            open.addEventListener('click', function () { showEditor(true); });
+            dialog.querySelector('[data-commerce-cancel-address]').addEventListener('click', function () { dialog.close(); });
+            dialog.addEventListener('close', function () { open.focus({ preventScroll: true }); });
+            dialog.querySelector('[data-commerce-apply-address]').addEventListener('click', function () {
+                var country = editor.querySelector('[data-commerce-country]').value;
+                var missing = fields.find(function (field) {
+                    var key = field.name.slice('shipping_address['.length, -1);
+                    var required = ['name', 'line1', 'country'].includes(key)
+                        || (key === 'phone' && editor.dataset.phoneRequired === '1')
+                        || (key === 'postal_code' && editor.dataset.postalRequired === '1')
+                        || (country === 'ID' ? field.hasAttribute('data-commerce-region') : key === 'city');
+                    return required && !field.value.trim();
+                });
+                error.hidden = !missing;
+                if (missing) {
+                    missing.focus();
+                    return;
+                }
+                if (saved) saved.value = '';
+                apply();
+                dialog.close();
+                refresh();
+            });
+            if (editor.hasAttribute('data-commerce-address-errors') && !form.querySelector('[data-commerce-shipping-address]').hidden) showEditor(false);
+
+            return function (option) {
+                if (!option?.dataset.address) {
+                    saved.value = activeId;
+                    showEditor(true);
+                    return false;
+                }
+                fillShippingAddress(JSON.parse(option.dataset.address), fields);
+                if (save) save.checked = false;
+                apply();
+                return true;
+            };
+        }
+
+        var chooseSavedAddress = enhanceShippingAddress();
+
         function showStatus(message) {
             if (status) status.textContent = status.dataset[message] || '';
-            if (retry) retry.hidden = !failed;
             if (submit) submit.setAttribute('aria-disabled', String(pending || failed || submitting));
         }
 
@@ -129,6 +339,9 @@
 
             if (details && replacement.querySelector('details')) replacement.querySelector('details').open = true;
             if (focused && focused.matches('summary')) replacement.querySelector('summary')?.focus({ preventScroll: true });
+            if (focused && selector === '[data-commerce-checkout-vouchers]' && !focused.matches('summary')) {
+                replacement.querySelector('[name=voucher_code]')?.focus({ preventScroll: true });
+            }
             if (focused && focused.type === 'radio') {
                 var radios = Array.from(replacement.querySelectorAll('input[type=radio]'));
                 var next = radios.find(function (radio) { return radio.value === focused.value; }) || radios[0];
@@ -152,10 +365,18 @@
 
             refreshing = true;
             var sent = revision;
+            var voucher = voucherRequest;
+            voucherRequest = null;
             var data = new FormData(form);
             data.delete('password');
+            var captchaField = form.querySelector('[data-commerce-captcha]')?.dataset.commerceCaptcha;
+            if (captchaField) data.delete(captchaField);
             data.set('_form', 'checkout');
-            fetch(form.dataset.refresh, {
+            if (voucher) {
+                data.set(voucher.name, voucher.value);
+                if (voucher.code !== null) data.set('voucher_code', voucher.code);
+            }
+            fetch(voucher ? voucher.formAction : form.dataset.refresh, {
                 method: 'POST',
                 headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
                 body: data,
@@ -167,6 +388,7 @@
                     return response.json();
                 })
                 .then(function (json) {
+                    if (voucher) replaceFragment('[data-commerce-checkout-vouchers]', json.vouchers_html);
                     if (sent !== revision) return;
                     if (typeof json.hash !== 'string' || !json.hash) throw new Error('Checkout total is missing');
 
@@ -210,17 +432,32 @@
                 if (pending || submitting) event.preventDefault();
                 return;
             }
-            if (pending || (failed && (retry || update)) || submitting) {
+            if (event.submitter?.hasAttribute?.('data-commerce-voucher-submit')) {
                 event.preventDefault();
+                if (submitting) return;
+                var button = event.submitter;
+                voucherRequest = {
+                    name: button.name,
+                    value: button.value,
+                    formAction: button.formAction,
+                    code: button.name === 'apply_voucher' ? form.elements.namedItem('voucher_code').value : null,
+                };
+                refresh();
                 return;
             }
 
+            if (pending || (failed && update) || submitting) {
+                event.preventDefault();
+                return;
+            }
             submitting = true;
             showStatus('submitting');
         });
-        if (retry) retry.addEventListener('click', function () {
-            refresh();
-            if (submit) submit.focus({ preventScroll: true });
+        form.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter' || event.target.name !== 'voucher_code') return;
+            event.preventDefault();
+            var apply = form.querySelector('[name=apply_voucher]');
+            if (apply) form.requestSubmit(apply);
         });
         window.addEventListener('pageshow', function (event) {
             if (!event.persisted) return;
@@ -229,23 +466,16 @@
         });
         form.addEventListener('change', function (event) {
             var t = event.target;
-            if (t.matches('[data-commerce-saved-address]') && t.selectedOptions[0] && t.selectedOptions[0].dataset.address) {
-                var address = JSON.parse(t.selectedOptions[0].dataset.address);
-                form.querySelectorAll('[name^="shipping_address["]').forEach(function (input) {
-                    var key = input.name.slice('shipping_address['.length, -1);
-                    var value = String(address[key] ?? '');
-                    if (input.hasAttribute('data-commerce-region')) {
-                        input.length = 1;
-                        input.dataset.value = '';
-                        if (value) input.add(new Option(address[input.dataset.commerceRegion] || value, value));
-                    }
-                    input.value = value;
-                });
-                // Update visibility and reload this region chain before the form is read.
-                form.querySelector('[name="shipping_address[country]"]')?.dispatchEvent(new Event('change'));
+            if (t.matches('[data-commerce-saved-address]')) {
+                var option = t.selectedOptions[0];
+                if (chooseSavedAddress) {
+                    if (!chooseSavedAddress(option)) return;
+                } else if (option?.dataset.address) {
+                    fillShippingAddress(JSON.parse(option.dataset.address), Array.from(form.querySelectorAll('[name^="shipping_address["]')));
+                }
             }
             syncToggles();
-            if (t.name === 'password' || t.name === 'notes' || t.name === 'terms') return;
+            if (['password', 'notes', 'terms', 'voucher_code'].includes(t.name)) return;
             refresh();
         });
         if (update) update.hidden = true;

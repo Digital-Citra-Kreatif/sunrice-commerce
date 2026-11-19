@@ -263,7 +263,7 @@ and the controllers that render them. Every store page also gets `$seoTitle`.
 | `tag` | `$term`: the tag. |
 | `brands` | `$brands`: brands with live products, each `['name', 'url', 'logo', 'count']`. |
 | `cart` | `$cart`: `CartView`, rendered with `<x-commerce::cart>`. |
-| `checkout` | `$cart` (CartView), `$state` (CalculationState), `$data` (CheckoutData), `$mode` (CheckoutMode), `$settings`, `$needsAddress`, `$paymentMethods`, `$savedAddresses`, `$guest`, `$offerAccount`, `$accountRequired`, `$extraFields`, `$termsUrl`, `$submitLabel`. See [checkout.md](checkout.md). |
+| `checkout` | `$cart` (CartView), `$state` (CalculationState), `$data` (CheckoutData), `$mode` (CheckoutMode), `$settings`, `$needsAddress`, `$paymentMethods`, `$savedAddresses`, `$loyaltyPoints`, `$guest`, `$offerAccount`, `$accountRequired`, `$extraFields`, `$termsUrl`, `$submitLabel`, `$captcha` (optional widget HTML). See [checkout.md](checkout.md). |
 | `order` | `$order`, `$payment`, `$instructionsView`, `$payUrl`, `$whatsappUrl`, `$openWhatsApp`, `$downloads`, `$invoiceUrl`, `$canCancel`, `$invite`, `$registerUrl`. Also renders quotes. See [orders.md](orders.md). |
 | `pay` | `$order`, `$methods`: pay an unpaid order, or choose another method. |
 | `confirm-payment` | The lookup form, or the form for `$order` and its pending `$payment`; `$accounts` (bank accounts paid into), `$proofRequired`, `$captcha` (widget data or null). |
@@ -282,9 +282,9 @@ both itself when you leave them out, so extension pages can extend it directly.
 | Template | Variables |
 | --- | --- |
 | `account.layout` | The account menu beside the page, and flash messages. |
-| `account.login` | Sign in with a password, an emailed code or Google (each shown while its feature is on). |
+| `account.login` | Sign in with a password, an emailed code or Google (each shown while its feature is on), and `$captcha` for password sign-in. |
 | `account.register` | Create an account. |
-| `account.forgot-password` | Request a reset link. |
+| `account.forgot-password` | Request a reset link, with `$captcha` when configured. |
 | `account.reset-password` | `$token`, `$email`. |
 | `account.code` | `$email`: enter the emailed sign-in code. |
 | `account.overview` | `$addresses`. Renders the `account.overview` slot. |
@@ -300,6 +300,7 @@ both itself when you leave them out, so extension pages can extend it directly.
 | Partial | Variables |
 | --- | --- |
 | `partials.assets` | — Links the published theme. Included once by every store page. |
+| `partials.captcha` | `$captcha`: the configured Sunrice widget HTML and its form error. Include inside the form. |
 | `partials.header-links` | — Account, wishlist and mini cart links for your header. |
 | `partials.buy` | `$product` (ProductView). The body of `<x-commerce::product>`. |
 | `partials.price` | `$product`. The body of `<x-commerce::price>`. |
@@ -372,17 +373,18 @@ your own layout's look.
 attributes:
 
 - **Add to cart** (`[data-commerce-add]`): posts the form to the cart API and stays on the page,
-  updates every `[data-commerce-cart-count]` and shows a toast. A submit button named `buy_now` still
-  posts normally. If the API response cannot confirm what happened, Commerce does not resend the
-  request. The `partials.add-recovery` notice provides a link to check the cart. Include it in
-  published overrides of the add-to-cart form for the same inline recovery.
-- **Checkout refresh** (`[data-commerce-checkout]`): on every change (except password, notes and
-  terms) it posts the form to `/checkout/refresh` and replaces the shipping rates, payment methods
-  and summary. It shows and hides the parts behind toggles (billing address, dropship), hides
-  the shipping address for pickup rates, fills the address from a saved one, and provides a status message near the submit button. It keeps
-  the latest selection when requests overlap and offers a retry or the regular "Update shipping"
-  form when refreshing fails. Theme overrides can include the `data-commerce-checkout-status`
-  and `data-commerce-checkout-retry` elements from the default checkout template.
+  updates every `[data-commerce-cart-count]` and shows a toast with a link to the cart after a
+  successful add. A submit button named `buy_now` still posts normally. If the API response cannot
+  confirm what happened, Commerce does not resend the request. Include `partials.add-recovery` in
+  published add-to-cart forms for the success toast link and the inline recovery notice.
+- **Cart removal** uses a trash button and a shared confirmation dialog from `partials.cart`.
+  With JavaScript off, the trash control opens an inline confirmation.
+- **Checkout refresh** (`[data-commerce-checkout]`): changes to pricing inputs post the form to
+  `/checkout/refresh` and replace the shipping rates, payment methods and summary. Choosing pickup
+  keeps the shipping address visible and shows `data-commerce-pickup-note`. Applying or removing
+  a voucher updates both the voucher panel and totals. The checkout keeps the latest selections when
+  requests overlap, announces progress via `data-commerce-checkout-status` and shows the
+  `data-commerce-update` form button if refreshing fails.
 - **Copy buttons** (`[data-commerce-copy-button]`): copy the `data-commerce-copy` value next to them
   (amounts, account numbers) to the clipboard.
 - **Gallery**: when the variant picker picks a variant with its own image, that image replaces the
@@ -470,7 +472,7 @@ Rebuild the route cache (`php artisan route:cache`) after a change. Always build
 - Add to cart, the variant picker, wishlist and compare have standard form submissions. Product
   filters and My Account order filters use GET forms. Address summaries expand with native HTML
   and the address book opens the add or edit form through a normal link.
-- Checkout offers a standard **Update shipping** submission. Entering a new Indonesian address
+- Checkout offers a standard **Update total** submission. Entering a new Indonesian address
   in checkout or My Account requires JavaScript to load provinces, cities and districts. See
   [Regions](regions.md#the-regions-json-endpoint).
 - Inputs have labels; icon-only buttons (×) have an `aria-label`; the shop search has
