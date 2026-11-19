@@ -40,6 +40,7 @@ return [
         'use_saved' => 'Use saved address',
         'choose_saved' => 'Choose a saved address that is still available.',
         'incomplete' => 'Complete the required address fields.',
+        'save_failed' => 'We couldn’t save the address. Try again.',
     ],
     'save_address' => 'Save this address to my account',
     'billing_same' => 'Billing address is the same',

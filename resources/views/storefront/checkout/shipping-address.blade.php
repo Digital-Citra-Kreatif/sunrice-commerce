@@ -4,8 +4,8 @@
     <legend>{{ __('commerce::checkout.sections.shipping') }}</legend>
     <div data-commerce-shipping-address>
         <p class="commerce-muted commerce-checkout__pickup-note" data-commerce-pickup-note @unless ($data->isPickup()) hidden @endunless>{{ __('commerce::checkout.'.($guest ? 'pickup_address_guest' : 'pickup_address')) }}</p>
-        @if ($savedAddresses->isNotEmpty())
-            <label class="commerce-field"><span>{{ __('commerce::checkout.saved_address') }}</span>
+        @unless ($guest)
+            <label class="commerce-field" data-commerce-saved-address-picker @if ($savedAddresses->isEmpty()) hidden @endif><span>{{ __('commerce::checkout.saved_address') }}</span>
                 <select name="address_id" data-commerce-saved-address>
                     <option value="" data-placeholder="{{ __('commerce::checkout.new_address') }}">{{ $data->get('shipping_address.label', __('commerce::checkout.new_address')) }}</option>
                     @foreach ($savedAddresses as $saved)
@@ -13,8 +13,10 @@
                     @endforeach
                 </select>
             </label>
-            <button type="submit" name="action" value="use_saved_address" class="commerce-button commerce-button--secondary" data-commerce-address-fallback>{{ __('commerce::checkout.address_picker.use_saved') }}</button>
-        @endif
+            @if ($savedAddresses->isNotEmpty())
+                <button type="submit" name="action" value="use_saved_address" class="commerce-button commerce-button--secondary" data-commerce-address-fallback>{{ __('commerce::checkout.address_picker.use_saved') }}</button>
+            @endif
+        @endunless
         <div @class(['commerce-checkout-address', 'commerce-checkout-address--guest' => $guest]) data-commerce-address-card hidden>
             @if ($guest)
                 <p class="commerce-checkout-address__hint">{{ __('commerce::checkout.address_picker.delivery_hint') }}</p>
@@ -38,7 +40,7 @@
                 'company' => false, 'line2' => (bool) $settings->get('checkout.address_line2', true),
             ])
             @unless ($guest)
-                <label class="commerce-check"><input type="checkbox" name="save_address" value="1" @checked($data->get('save_address'))> {{ __('commerce::checkout.save_address') }}</label>
+                <label class="commerce-check"><input type="checkbox" name="save_address" value="1" @checked($data->get('save_address', ! $data->get('address_id')))> {{ __('commerce::checkout.save_address') }}</label>
             @endunless
         </div>
         <label class="commerce-check"><input type="checkbox" name="billing_same" value="1" @checked($data->billingSame()) data-commerce-toggle="billing"> {{ __('commerce::checkout.billing_same') }}</label>

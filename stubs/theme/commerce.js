@@ -306,6 +306,7 @@
         var submit = form.querySelector('button[name=action][value=place]');
         var status = form.querySelector('[data-commerce-checkout-status]');
         var voucherRequest = null;
+        var addressRequest = null;
         var paymentSection = form.querySelector('[data-commerce-payment-section]');
         var paymentStep = form.closest('.commerce-checkout-page')?.querySelector('[data-commerce-payment-step]');
 
@@ -331,12 +332,15 @@
 
             var fields = Array.from(editor.querySelectorAll('[name^="shipping_address["]'));
             var saved = form.querySelector('[data-commerce-saved-address]');
+            var picker = form.querySelector('[data-commerce-saved-address-picker]');
             var newAddressOption = saved?.querySelector('option[value=""]');
             var save = editor.querySelector('[name=save_address]');
             var card = form.querySelector('[data-commerce-address-card]');
             var summary = card.querySelector('[data-commerce-address-summary]');
             var open = card.querySelector('[data-commerce-open-address]');
             var error = dialog.querySelector('[data-commerce-address-dialog-error]');
+            var applyButton = dialog.querySelector('[data-commerce-apply-address]');
+            var cancel = dialog.querySelector('[data-commerce-cancel-address]');
             // Keep the draft outside the checkout form so a refresh only sees the applied address.
             var committed = document.createElement('div');
             committed.hidden = true;
@@ -379,7 +383,7 @@
                 var recipient = [activeId ? '' : activeAddress.name, activeAddress.phone].filter(Boolean).join(' · ');
                 var street = [activeAddress.line1, activeAddress.line2, locality,
                     activeAddress.country === 'ID' ? '' : activeAddress.countryLabel].filter(Boolean).join(', ');
-                summary.textContent = [saved ? '' : title, recipient, street].filter(Boolean).join('\n');
+                summary.textContent = [saved && !picker?.hidden ? '' : title, recipient, street].filter(Boolean).join('\n');
                 summary.hidden = !activeAddress.line1;
                 open.textContent = summary.hidden || activeId ? open.dataset.addLabel : open.dataset.changeLabel;
             }
@@ -391,7 +395,7 @@
                     phone: activeAddress.phone || form.elements.phone?.value,
                 } : activeAddress;
                 fillShippingAddress(draft, fields);
-                if (save) save.checked = draft === activeAddress && shouldSave;
+                if (save) save.checked = draft !== activeAddress || !activeAddress.line1 || shouldSave;
                 error.hidden = true;
                 dialog.showModal();
             }
@@ -401,9 +405,12 @@
             card.hidden = false;
             apply();
             open.addEventListener('click', function () { showEditor(true); });
-            dialog.querySelector('[data-commerce-cancel-address]').addEventListener('click', function () { dialog.close(); });
+            cancel.addEventListener('click', function () { dialog.close(); });
+            dialog.addEventListener('cancel', function (event) {
+                if (applyButton.disabled) event.preventDefault();
+            });
             dialog.addEventListener('close', function () { open.focus({ preventScroll: true }); });
-            dialog.querySelector('[data-commerce-apply-address]').addEventListener('click', function () {
+            applyButton.addEventListener('click', function () {
                 var country = editor.querySelector('[data-commerce-country]').value;
                 var missing = fields.find(function (field) {
                     var key = field.name.slice('shipping_address['.length, -1);
@@ -415,7 +422,37 @@
                 });
                 error.hidden = !missing;
                 if (missing) {
+                    error.textContent = error.dataset.incomplete || '';
                     missing.focus();
+                    return;
+                }
+                if (save?.checked && saved) {
+                    applyButton.disabled = cancel.disabled = true;
+                    addressRequest = {
+                        values: fields.map(function (field) { return [field.name, field.disabled ? '' : field.value]; }),
+                        finish: function (result, message) {
+                            applyButton.disabled = cancel.disabled = false;
+                            if (!result) {
+                                error.textContent = message || error.dataset.saveFailed || '';
+                                error.hidden = false;
+                                return;
+                            }
+                            var id = String(result.id);
+                            var option = Array.from(saved.options).find(function (item) { return item.value === id; });
+                            if (!option) {
+                                option = new Option(result.title, id);
+                                saved.add(option);
+                            }
+                            option.dataset.address = JSON.stringify(result.address);
+                            if (picker) picker.hidden = false;
+                            saved.value = id;
+                            fillShippingAddress(result.address, fields);
+                            save.checked = false;
+                            apply();
+                            dialog.close();
+                        },
+                    };
+                    refresh();
                     return;
                 }
                 if (saved) saved.value = '';
@@ -483,13 +520,22 @@
 
             refreshing = true;
             var sent = revision;
-            var voucher = voucherRequest;
-            voucherRequest = null;
+            var address = addressRequest;
+            var addressError;
+            addressRequest = null;
+            var voucher = address ? null : voucherRequest;
+            if (!address) voucherRequest = null;
             var data = new FormData(form);
             data.delete('password');
             var captchaField = form.querySelector('[data-commerce-captcha]')?.dataset.commerceCaptcha;
             if (captchaField) data.delete(captchaField);
             data.set('_form', 'checkout');
+            if (address) {
+                data.set('action', 'apply_address');
+                data.set('save_address', '1');
+                data.set('address_id', '');
+                address.values.forEach(function (field) { data.set(field[0], field[1]); });
+            }
             if (voucher) {
                 data.set(voucher.name, voucher.value);
                 if (voucher.code !== null) data.set('voucher_code', voucher.code);
@@ -502,10 +548,21 @@
                 credentials: 'same-origin',
             })
                 .then(function (response) {
+                    if (address && response.status === 422) {
+                        return response.json().then(function (json) {
+                            addressError = json.message;
+                            throw new Error('Address validation failed');
+                        });
+                    }
                     if (!response.ok) throw new Error('Checkout refresh failed');
                     return response.json();
                 })
                 .then(function (json) {
+                    if (address) {
+                        if (!json.saved_address || typeof json.hash !== 'string' || !json.hash) throw new Error('Checkout refresh failed');
+                        address.finish(json.saved_address);
+                        address = null;
+                    }
                     if (voucher) replaceFragment('[data-commerce-checkout-vouchers]', json.vouchers_html);
                     if (sent !== revision) return;
                     if (typeof json.hash !== 'string' || !json.hash) throw new Error('Checkout total is missing');
@@ -529,11 +586,15 @@
                     syncToggles();
                 })
                 .catch(function () {
+                    if (address) {
+                        address.finish(null, addressError);
+                        return;
+                    }
                     if (sent === revision) failed = true;
                 })
                 .finally(function () {
                     refreshing = false;
-                    if (sent !== revision) {
+                    if (sent !== revision || voucherRequest || addressRequest) {
                         sendRefresh();
                         return;
                     }

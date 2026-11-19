@@ -40,6 +40,7 @@ return [
         'use_saved' => 'Gunakan alamat tersimpan',
         'choose_saved' => 'Pilih alamat tersimpan yang masih tersedia.',
         'incomplete' => 'Lengkapi bagian alamat yang wajib diisi.',
+        'save_failed' => 'Alamat belum bisa disimpan. Silakan coba lagi.',
     ],
     'save_address' => 'Simpan alamat ini ke akun saya',
     'billing_same' => 'Alamat penagihan sama',

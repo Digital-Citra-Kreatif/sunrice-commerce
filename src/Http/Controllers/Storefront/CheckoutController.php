@@ -27,6 +27,8 @@ use Sunrice\Commerce\Checkout\CheckoutRefused;
 use Sunrice\Commerce\Checkout\CheckoutValidator;
 use Sunrice\Commerce\Checkout\Events\CheckoutStarted;
 use Sunrice\Commerce\Checkout\TermsPage;
+use Sunrice\Commerce\Customers\Actions\SaveAddress;
+use Sunrice\Commerce\Customers\Models\Address;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Orders\OrderAccess;
 use Sunrice\Commerce\Payments\Contracts\PaymentMethod;
@@ -146,9 +148,21 @@ class CheckoutController
         $cart = $this->carts()->current();
         abort_if($cart === null, 404);
         $data = $this->postedData($request, $cart);
+        $address = null;
+        if ($request->input('action') === 'apply_address' && $request->boolean('save_address')) {
+            $user = commerce_customer();
+            abort_if($user === null, 403);
+
+            $address = app(SaveAddress::class)->fromCheckout(Customer::forUser($user), $data);
+            $data = $data->merge([
+                'address_id' => $address->id,
+                'shipping_address' => $address->toAddress(),
+                'save_address' => false,
+            ]);
+        }
         $update->handle($cart, $data->toArray());
 
-        return $this->checkoutResponse($cart, $data);
+        return $this->checkoutResponse($cart, $data, savedAddress: $address);
     }
 
     public function voucher(Request $request, UpdateCheckoutData $update, ApplyVoucher $apply, RemoveVoucher $remove): JsonResponse|RedirectResponse
@@ -187,13 +201,18 @@ class CheckoutController
     }
 
     /** @param  array<string, string>  $voucherFeedback */
-    private function checkoutResponse(Cart $cart, CheckoutData $data, array $voucherFeedback = []): JsonResponse
+    private function checkoutResponse(Cart $cart, CheckoutData $data, array $voucherFeedback = [], ?Address $savedAddress = null): JsonResponse
     {
         [$data, $view] = $this->resolveSelections($cart, $data);
         $props = $this->viewData($cart, $data, $view);
         $money = app(MoneyFormatter::class);
 
         return response()->json([
+            'saved_address' => $savedAddress === null ? null : [
+                'id' => $savedAddress->id,
+                'title' => ($savedAddress->label ?: $savedAddress->line1).' · '.$savedAddress->name,
+                'address' => $savedAddress->toAddress(),
+            ],
             'rates' => array_map(fn (array $r) => [...$r, 'cost_formatted' => $money->format((int) $r['cost'])], $view->state->shipping['rates']),
             'selected_rate' => $view->state->shipping['rate']['id'] ?? null,
             'payment_methods' => $props['paymentMethods'],

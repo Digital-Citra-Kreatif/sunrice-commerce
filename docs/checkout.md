@@ -129,7 +129,7 @@ validity and auto-complete. They are described in [orders.md](orders.md).
   - With it off, the customer is signed in straight away and the order belongs to the account.
 - Either way the order gets a `Customer` record, found by email for guests. Name, phone and
   locale are filled in when empty. Ticking marketing consent sets `accepts_marketing`.
-- Signed-in customers who tick "save this address" get it in their address book (not for pickup).
+- Signed-in customers can save an address to their address book from the shipping address dialog.
 
 See [accounts.md](accounts.md).
 
@@ -164,10 +164,11 @@ The order keeps the address as a snapshot, codes and names together. See [region
 At checkout, choosing a saved address fills both its fields and its region codes. Switching
 addresses also clears optional values missing from the new selection. The shipping section shows a
 summary and a saved-address selector when available. **Add address** opens a dialog. Give the
-address an optional title to identify it in the selector. Use **Edit address** to revise the title
-before placing the order. If you save the address to your account, the title is saved with it.
-**Use this address** applies the draft and refreshes shipping rates, while **Cancel** keeps the
-previous address. With JavaScript off, the form is inline and **Use saved address** applies the
+address an optional title to identify it in the selector. The street address is used if the title is
+blank. **Save this address to my account** is selected by default for a new address when signed in.
+**Use this address** saves and selects the address immediately when checked, then refreshes shipping
+rates. Uncheck it to use the address for this checkout only. **Cancel** keeps the previous address.
+With JavaScript off, the form is inline and **Use saved address** applies the
 selection through a regular form submission. For separate billing, the
 billing address is used for any tax rules based on billing. The **Update total** button appears when automatic refresh fails or JavaScript is off.
 
