@@ -7,6 +7,10 @@
 @section('account')
     @php($L = \Sunrice\Commerce\Storefront\Layout::class)
     @php($S = \Sunrice\Commerce\Orders\OrderStatus::class)
+    <a class="commerce-link commerce-link--action commerce-account__back"
+       href="{{ commerce_url($order->isQuote() ? 'commerce.account.quotes' : 'commerce.account.orders') }}">
+        <span aria-hidden="true">←</span> {{ __('commerce::account.orders.'.($order->isQuote() ? 'back_to_quotes' : 'back_to_orders')) }}
+    </a>
     <h1>{{ $order->isQuote() ? __('commerce::checkout.order.quote_title', ['number' => $order->displayNumber()]) : __('commerce::checkout.order.title', ['number' => $order->displayNumber()]) }}</h1>
     <dl class="commerce-order__states">
         <div><dt>{{ __('commerce::checkout.order.status') }}</dt><dd>{{ $S::label($order->status) }}</dd></div>

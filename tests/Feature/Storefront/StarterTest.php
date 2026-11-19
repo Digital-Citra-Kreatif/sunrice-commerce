@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Dom\HTMLDocument;
 use Illuminate\Support\Env;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Storage;
@@ -114,7 +115,8 @@ it('renders every starter page with the demo data', function () {
     $this->get('/products/category/women')->assertSee('data-commerce-filters', false)->assertSee('commerce-swatch', false);
 
     $this->actingAs(User::query()->where('email', StarterStoreSeeder::CUSTOMER_EMAIL)->firstOrFail(), (string) config('commerce.auth.guard', 'commerce'));
-    foreach (['/account', '/account/orders', '/account/orders/'.Order::query()->where('status', 'completed')->value('id'), '/account/downloads',
+    $this->get('/account')->assertRedirect('/account/orders');
+    foreach (['/account/orders', '/account/orders/'.Order::query()->where('status', 'completed')->value('id'), '/account/downloads',
         '/account/addresses', '/account/profile'] as $path) {
         $this->get($path)->assertOk()->assertSee('commerce-account', false);
     }

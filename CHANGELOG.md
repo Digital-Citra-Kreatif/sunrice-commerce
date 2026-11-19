@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- My Account opens Orders, with compact filters, a collapsible date range, and a back link from
+  order details. Points has a balance summary, expiry and history. Staff can publish a localized
+  announcement as the first tab or above or below account content. Update published account
+  templates and the starter stylesheet to pick up the changes.
+
 - Product buttons inherit across Store, Category, Brand, and Product. The product editor shows
   the inherited action and its source, and cart eligibility uses the same rule.
 - Flash Sale separates product selection, pricing and quantity limits. A rule now applies to

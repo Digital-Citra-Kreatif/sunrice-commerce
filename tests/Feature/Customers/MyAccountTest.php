@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Route;
+use Spatie\Permission\Models\Role;
 use Sunrice\Commerce\Customers\Models\Address;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Customers\Notifications\VerifyCustomerEmail;
 use Sunrice\Commerce\Facades\Commerce;
+use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Regions\RegionImporter;
+use Sunrice\Commerce\Settings\Actions\SaveStoreSettings;
+use Sunrice\Commerce\Settings\StoreSettings;
 use Workbench\App\Models\User;
 
 beforeEach(function () {
@@ -116,19 +120,77 @@ it('lists pages registered by extensions', function () {
     Route::middleware(['web', 'commerce.auth'])->get('account/points', fn () => 'points')->name('loyalty.points');
     Commerce::registerAccountPage('points', 'Poin saya', 'loyalty.points', position: 50);
 
-    $this->get('/account')->assertOk()->assertSee('Poin saya');
+    $this->get('/account')->assertRedirect('/account/orders');
+    $this->get('/account/orders')->assertOk()->assertSee('Poin saya');
 });
 
-it('shows recent orders, quick links and the wishlist on the overview', function () {
-    foreach (['ORD-1', 'ORD-2', 'ORD-3', 'ORD-4'] as $i => $number) {
-        makeOrder(['number' => $number, 'user_id' => $this->user->id, 'customer_id' => $this->customer->id, 'placed_at' => now()->subDays(10 - $i)]);
-    }
-    makeOrder(['number' => 'ORD-OTHER', 'placed_at' => now()]);
+it('opens orders by default and links from a detail to all orders', function () {
+    $order = makeOrder(['number' => 'ORD-ACCOUNT', 'user_id' => $this->user->id, 'customer_id' => $this->customer->id]);
+    makeOrder(['number' => 'ORD-OTHER']);
 
-    $this->get('/account')->assertOk()
-        ->assertSeeInOrder(['Pesanan terbaru', 'ORD-4', 'ORD-3', 'ORD-2', 'Lihat semua pesanan'])
-        ->assertDontSee('ORD-1')->assertDontSee('ORD-OTHER')
-        ->assertSee('Tautan cepat')->assertSee(url('/wishlist'), false);
+    $this->get('/account')->assertRedirect('/account/orders');
+    $this->get('/account/orders')->assertOk()->assertSee('ORD-ACCOUNT')->assertDontSee('ORD-OTHER')
+        ->assertDontSee('Tautan cepat')->assertDontSee('Pesanan terbaru');
+    $this->get("/account/orders/{$order->id}")->assertOk()
+        ->assertSee('Kembali ke semua pesanan')
+        ->assertSee('href="'.url('/account/orders').'"  aria-current="page"', false);
+});
+
+it('falls back to the profile when orders are disabled', function () {
+    app(StoreSettings::class)->saveSection('general', ['selling_mode' => 'catalog']);
+    app(ToggleFeature::class)->handle('orders', false);
+
+    $this->get('/account')->assertRedirect('/account/profile');
+});
+
+it('makes an enabled announcement the first tab and default page', function () {
+    $this->get('/account/announcement')->assertNotFound();
+    $settings = app(StoreSettings::class);
+    Role::findOrCreate('Customer', 'web');
+    app(SaveStoreSettings::class)->handle('accounts', array_replace($settings->section('accounts'), [
+        'announcement_enabled' => true,
+        'announcement_position' => 'tab',
+        'announcement_title' => ['id' => 'Jadwal toko'],
+        'announcement_message' => ['id' => '<b>Libur hari Senin</b>'],
+    ]));
+
+    $this->get('/account')->assertRedirect('/account/announcement');
+    $this->get('/account/announcement')->assertOk()
+        ->assertSeeInOrder(['Pengumuman', 'Pesanan', 'Jadwal toko'])
+        ->assertSee('&lt;b&gt;Libur hari Senin&lt;/b&gt;', false)
+        ->assertDontSee('<b>Libur hari Senin</b>', false);
+    $this->get('/account/orders')->assertOk()->assertDontSee('Jadwal toko');
+
+    $settings->saveSection('accounts', ['announcement_enabled' => false]);
+    $this->get('/account')->assertRedirect('/account/orders');
+    $this->get('/account/announcement')->assertNotFound();
+});
+
+it('renders announcements above or below account content without replacing orders', function (string $position) {
+    app(StoreSettings::class)->saveSection('accounts', [
+        'announcement_enabled' => true,
+        'announcement_position' => $position,
+        'announcement_title' => ['id' => 'Jadwal toko'],
+        'announcement_message' => ['id' => 'Libur hari Senin'],
+    ]);
+    $this->get('/account')->assertRedirect('/account/orders');
+    $this->get('/account/announcement')->assertNotFound();
+    $this->get('/account/orders')->assertOk()
+        ->assertSeeInOrder($position === 'above' ? ['Libur hari Senin', '<h1>Pesanan</h1>'] : ['<h1>Pesanan</h1>', 'Libur hari Senin'], false);
+})->with(['above', 'below']);
+
+it('leaves orders as the default until an announcement has a message', function () {
+    app(StoreSettings::class)->saveSection('accounts', ['announcement_enabled' => true, 'announcement_message' => ['id' => '   ']]);
+
+    $this->get('/account')->assertRedirect('/account/orders');
+    $this->get('/account/announcement')->assertNotFound();
+});
+
+it('shows a points summary and history', function () {
+    app(ToggleFeature::class)->handle('loyalty', true);
+    $this->customer->update(['loyalty_points' => 12500]);
+
+    $this->get('/account/points')->assertOk()->assertSeeInOrder(['Poin tersedia', '12.500', 'Riwayat poin']);
 });
 
 it('combines customer order search, status and an inclusive date range', function () {
@@ -145,7 +207,8 @@ it('combines customer order search, status and an inclusive date range', functio
     $this->get('/account/orders?q=ord-match&status=completed&date_from=2026-04-01&date_to=2026-04-30')->assertOk()
         ->assertSee('ORD-MATCH')->assertDontSee('ORD-MATCH-OLD')->assertDontSee('ORD-MATCH-NEW')
         ->assertDontSee('ORD-MATCH-PENDING')->assertDontSee('ORD-MATCH-QUOTE')->assertDontSee('ORD-MATCH-OTHER')
-        ->assertSee('Reset filter');
+        ->assertSee('Reset filter')
+        ->assertSee('commerce-order-filters__dates"  open', false);
     $this->get('/account/orders?q=lookbook%20100%25')->assertOk()->assertSee('ORD-MATCH')->assertDontSee('ORD-MATCH-OTHER');
     $this->get('/account/orders?q=%25%25')->assertOk()->assertSee('Tidak ada pesanan yang cocok.');
     $this->get('/account/orders?date_to=2026-04-30')->assertOk()->assertSee('ORD-MATCH-OLD')->assertDontSee('ORD-MATCH-NEW');
