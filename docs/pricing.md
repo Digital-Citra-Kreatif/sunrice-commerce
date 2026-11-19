@@ -13,7 +13,6 @@ code, a choice); every amount is computed on the server from the catalog and the
 - [Flash sales](#flash-sales)
 - [Vouchers and automatic discounts](#vouchers-and-automatic-discounts)
 - [Loyalty points](#loyalty-points)
-- [Shipping discounts and fees](#shipping-discounts-and-fees)
 - [Taxes](#taxes)
 - [Staff prices in manual orders, edits and quotes](#staff-prices-in-manual-orders-edits-and-quotes)
 - [Running a calculation in code](#running-a-calculation-in-code)

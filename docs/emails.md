@@ -138,6 +138,9 @@ customer's alone.
   its invoice number if it has none yet. See [documents.md](documents.md).
 - Download files are attached only for products delivered by attachment, and only files up to
   `downloads.attachment_max_mb` (10 MB). Larger files and external links are sent as links.
+- Recipients can open a valid download link without signing in. See
+  [Digital products](catalog.md#digital-products) for expiry, download limits and how forwarded
+  links work.
 - A file that fails to attach is reported to your error log; the email still goes out.
 
 ## Languages

@@ -244,25 +244,37 @@ The customer's language is also remembered at the first sign-in, for their email
 | Page | Route | Shows |
 | --- | --- | --- |
 | Overview | `commerce.account` | A greeting, the `account.overview` slot, the three latest orders (needs `orders`), quick links to the other pages and the default shipping address |
-| Orders | `commerce.account.orders` | The customer's orders, 10 per page (needs `orders`) |
+| Orders | `commerce.account.orders` | Search and filter the customer's orders, 10 per page (needs `orders`) |
 | An order | `commerce.account.order` | Timeline, payment instructions and confirmation, tracking, invoice download, downloads, buy again, cancel |
 | Quotes | `commerce.account.quotes` | Quote requests (shown in Quotation mode) |
 | Downloads | `commerce.account.downloads` | The digital library (shown once the customer has downloads) |
 | Points | `commerce.account.points` | The loyalty balance, how points are earned, the next expiry and the history (needs `loyalty`; see [pricing.md](pricing.md#loyalty-points)) |
 | Wishlist | `commerce.wishlist` | The wishlist page (needs `wishlist`) |
-| Addresses | `commerce.account.addresses` | Add, edit and delete addresses; default shipping and billing |
+| Addresses | `commerce.account.addresses` | An expandable address book with shipping and billing defaults |
 | Profile | `commerce.account.profile` | Name, email, phone, marketing consent, the linked Google account, password, account deletion |
 
 Details:
 
+- **Orders** can be searched by all or part of the order number or product name. Combine the search
+  with an order status and either or both dates. Both dates are inclusive in the store's timezone.
+  The filter values stay selected on the next page. **Reset filters** returns to the full order
+  list. The GET parameters are `q`, `status`, `date_from`, `date_to` and `page`; dates use
+  `YYYY-MM-DD`.
 - **Buy again** puts the order's items back in the cart. Items that can't be bought any more are
   named.
 - **Cancel** follows the checkout setting "Customers can cancel unpaid orders". See
   [orders.md](orders.md).
 - **Invoice download** shows on paid orders when the `documents` feature and the setting are on. See
   [documents.md](documents.md).
-- **Addresses** are checked against the region list. The first address becomes the default for both
-  shipping and billing.
+- **Addresses** start collapsed if the customer has several. Each summary shows the label or street,
+  the locality when available, and any shipping or billing default. Open an address to see its
+  details and the Edit and Delete actions. With one address, its details are open by default.
+  **Add an address** opens the form. Save or Cancel returns to the list. The first saved address
+  becomes the default for shipping and billing. New Indonesian addresses require JavaScript to
+  populate the region choices. See [Regions](regions.md#the-regions-json-endpoint).
+- **Downloads** lists grants for orders belonging to the signed-in customer. The file itself is
+  served through a personal link. See [Digital products](catalog.md#digital-products) for how
+  those links work for both account holders and guests.
 - **Password**: changing it needs the current password. Accounts made with a code or Google set
   their first password without one.
 - **Account deletion**: the customer ticks a box and asks. Staff are emailed and anonymize the account

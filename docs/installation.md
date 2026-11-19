@@ -45,6 +45,9 @@ php artisan commerce:install --starter --demo
 php artisan storage:link        # product images are Sunrice assets on the public disk
 ```
 
+Keep uploaded digital products on the private downloads disk. See
+[Digital products](catalog.md#digital-products) for how customers receive those files.
+
 `--starter` publishes everything `--templates` does plus the site around the store: Sunrice's
 layout, a header with the department menu, search and cart, a footer, the home page, content
 pages, search results and the 404 page ([templates.md](templates.md#the-starter-theme)). With

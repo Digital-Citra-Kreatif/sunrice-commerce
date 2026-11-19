@@ -151,7 +151,9 @@ Villages include `postal_code`.
 
 The storefront form is the partial `partials.address-fields`. Its small script fills each select
 from the one above it, hides the Indonesian selects for other countries and shows free-text city
-and state instead. See [templates.md](templates.md).
+and state for those countries. Checkout and My Account both use the partial. Keep JavaScript
+enabled to populate and select regions for a new Indonesian address. The server checks the codes
+and their hierarchy when the address is submitted. See [templates.md](templates.md).
 
 ## Regions in admin forms
 

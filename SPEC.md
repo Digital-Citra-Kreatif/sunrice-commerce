@@ -496,7 +496,8 @@ One page, in sections:
 **Addresses**
 
 - Indonesia uses cascading selects: province → city/regency → district (kecamatan) → village
-  (kelurahan/desa; optional, per settings). The postal code is suggested from the village.
+  (kelurahan/desa; optional, per settings). The storefront loads the choices for a new address
+  with JavaScript. The postal code is suggested from the village.
 - Other countries use free text for state, city and postal code.
 - Signed-in customers can pick one of their saved addresses.
 
@@ -763,12 +764,14 @@ Google), earlier guest orders with that email join the account.
 **My Account (`/account`)**
 
 - Overview: recent orders and quick links.
-- Orders: the list, and each order's details:
+- Orders: the customer's orders, searchable by order number or product name and filterable by
+  status and date, 10 per page. Each order's details include:
   - timeline, payment instructions and payment confirmation;
   - tracking and invoice download;
   - buy again, and cancel (if allowed).
 - Downloads: the digital library.
-- Addresses: add, edit and delete; set defaults.
+- Addresses: expandable summaries for saved addresses, an add form opened by the customer, edit
+  and delete actions, and defaults for shipping and billing.
 - Profile:
   - name and phone;
   - email, with re-verification when changed;
@@ -795,16 +798,18 @@ Google), earlier guest orders with that email join the account.
 - **Files** belong to a product or a variant. They are uploads to a private disk (never public URLs)
   or external links (for example a course URL).
 - **Delivery**: the store sets a default and each product can override it. One or more of:
-  - **Email attachment**: files are attached to the "your downloads" email when their total size is
-    under a limit (default 10 MB); above it, links are sent instead.
+  - **Email attachment**: files up to the per-file limit (default 10 MB) are attached to the
+    "your downloads" email. Larger files are sent as links.
   - **Email link**: personal download links.
   - **My Account library**: downloads are listed under Account → Downloads. Guests are invited to
     create an account; their email links keep working.
 - **Access** starts when the order is paid (setting: or when it is completed).
 - **Limits**: downloads per file (default unlimited) and expiry in days (default never). Per order,
   staff can resend, extend, reset counts or revoke.
-- **Links** are long random tokens. Files stream through the app; S3-type disks use temporary URLs.
-  Every download is logged with its time and IP.
+- **Links** use random tokens and can be opened without signing in. Anyone holding a valid link
+  can use it, including someone to whom it was forwarded. Local files stream through the app;
+  cloud disks that support temporary URLs use a five-minute URL. Every download request that
+  claims a use is logged with its time and IP.
 - Orders with only digital or virtual items skip shipping and can complete automatically when paid
   (setting).
 
@@ -1041,8 +1046,9 @@ Reports take a date range and a comparison period, and export to CSV (`commerce.
 - Interface text ships in Indonesian and English, as publishable translations.
 - Cart, checkout, order, account, wishlist and compare pages are `noindex`.
 
-**JavaScript is optional.** Forms post normally. `commerce.js` adds AJAX add-to-cart, mini cart
-refresh, variant picking, region selects, countdowns and shipping rate refresh.
+**JavaScript.** Standard forms cover add to cart, variant selection, order filters and manual
+shipping refresh. The storefront also uses JavaScript for AJAX, countdowns and interactive
+controls. Entering a new Indonesian address requires JavaScript to load the region choices.
 
 **For developers**: Blade components that contain logic only (the markup is in the templates, as in
 Sunrice) and helpers, all documented:

@@ -102,7 +102,8 @@ away are given back, so build custom roles for narrower access.
 
 ## commerce:publish-assets
 
-Copies the prebuilt admin bundle to `public/vendor/commerce`. Run it after every upgrade
+Copies the prebuilt admin bundle to `public/vendor/commerce` and the fallback storefront theme to
+`public/vendor/commerce/theme`. Run it after every upgrade
 ([upgrading.md](upgrading.md)).
 
 ## Load testing the package
@@ -124,5 +125,6 @@ LOADTEST_ORDERS=20000 vendor/bin/testbench db:seed --class='Workbench\Database\S
 vendor/bin/testbench commerce:stats --rebuild
 ```
 
-At the default size it takes about four minutes and 110 MB in PostgreSQL. Point the workbench at
-PostgreSQL or MySQL with the usual `DB_*` variables in the environment.
+Seeding time and database size vary with the database and machine. Start with smaller
+`LOADTEST_*` counts for a quick run. Point the workbench at PostgreSQL or MySQL with the usual
+`DB_*` variables in the environment.

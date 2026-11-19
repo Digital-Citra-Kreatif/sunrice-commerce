@@ -131,8 +131,9 @@ An address is a `Support\Address`: `name`, `phone`, `company`, `country`, the fo
 their names, `state`, `postal_code`, `line1`, `line2` and `notes`.
 
 - **Indonesia** (`country` `ID`) uses cascading selects: province → city/regency → district →
-  village (village only with `village_level`). The selects load from the regions JSON endpoint.
-  Choosing a village fills an empty postal code.
+  village (village only with `village_level`). The storefront uses JavaScript to load those
+  choices from the regions JSON endpoint. Keep JavaScript enabled to enter a new Indonesian
+  address. Choosing a village fills an empty postal code.
 - **Other countries** use free text for city (required) and state.
 
 `Support\AddressRules` validates an address under a prefix:
@@ -151,6 +152,11 @@ $address = AddressRules::normalize($input); // names from the region table, phon
   postal code from the village when empty, and normalizes the phone.
 
 The order keeps the address as a snapshot, codes and names together. See [regions.md](regions.md).
+
+At checkout, choosing a saved address fills both its fields and its region codes. Switching
+addresses also clears optional values missing from the new selection. For separate billing, the
+billing address is used for any tax rules based on billing. The **Update shipping** form submission
+remains available to refresh the current selections without using AJAX.
 
 ## Shipping and payment choice
 

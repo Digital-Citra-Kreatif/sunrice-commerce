@@ -127,6 +127,16 @@ See [webhooks.md](webhooks.md).
 | --- | --- | --- |
 | `documents.batch_size` | `25` | Bulk packing slips are rendered this many orders at a time into one PDF ([documents.md](documents.md#in-the-admin)) |
 
+### downloads
+
+| Key | Default | |
+| --- | --- | --- |
+| `downloads.disk` | `local` | Disk for digital product uploads. Use private storage outside the public web root. |
+| `downloads.max_upload_mb` | `512` | Maximum digital file upload size in MB |
+| `downloads.attachment_max_mb` | `10` | Maximum digital file size in MB for email attachments |
+
+See [Digital products](catalog.md#digital-products) for how files are served and links are shared.
+
 ### analytics and privacy
 
 | Key | Default | |

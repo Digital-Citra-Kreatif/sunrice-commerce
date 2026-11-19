@@ -2,9 +2,25 @@
 
 ## Unreleased
 
-- Checkout totals follow the billing address when the shopper unchecks the shared address. Payment methods appear if shipping makes a free cart payable.
+- My Account now opens the address form on demand and shows saved addresses in expandable rows.
+  The order history supports search by order number or product name, an order status filter and
+  an inclusive date range, with filters preserved between pages. If you maintain published
+  storefront copies, merge `account/addresses.blade.php`, `account/orders.blade.php`,
+  `commerce.css` and the new account translation keys. See
+  [Published templates](docs/upgrading.md#published-templates).
+
+- Checkout totals follow the billing address when the shopper unchecks the shared address. Payment
+  methods appear if shipping makes a free cart payable. Choosing a saved address updates its region
+  codes and clears any optional fields missing from that address.
 
 - Checkout labels totals as estimated before shipping is selected, preserves the latest selections while refreshing, and offers a retry if the refresh fails.
+
+- The add-to-cart form links customers to their cart if the response is interrupted. For published
+  storefronts, merge the updated checkout and address partials, `commerce.js` and the
+  `partials/add-recovery.blade.php` notice. See [Theme assets](docs/templates.md#theme-assets).
+
+- The load-test seeder uses the current Sunrice CMS APIs. The workbench build publishes the
+  Sunrice Admin assets for the demo. See [Load testing](docs/commands.md#load-testing-the-package).
 
 - **The product import can create products**: tick "Create products for SKUs no product has" and rows with new SKUs and a `product` title become products (rows with the same title one product with variants by `variant`, named by `option`; `category` by name or slug), as drafts or published.
 - **Nothing stays held after a cancellation**: if giving back a cancelled order's stock, sale quantities, vouchers or extension reservations fails, `commerce:tick` tries again (30 days). **Confirmations waiting for review** are sent to staff again after `checkout.confirmation_reminder_hours` (24). Run `php artisan migrate` (`commerce_payment_confirmations.reminded_at`).

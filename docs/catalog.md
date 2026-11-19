@@ -358,9 +358,11 @@ files on the Digital tab:
 "delivery": { "modes": ["link", "account"], "download_limit": 3, "expiry_days": 30 }
 ```
 
-- **Files** are uploads to a private disk (`commerce.downloads.disk`, default `local`; up to
-  `commerce.downloads.max_upload_mb`, default 512) or external links. A file can belong to the
-  product or to one variant (`variants.*.downloads`). Files are never served from a public URL.
+- **Files** are uploaded to `commerce.downloads.disk` (default `local`), up to
+  `commerce.downloads.max_upload_mb` (default 512), or entered as external links. A file can
+  belong to the product or to one variant (`variants.*.downloads`). Keep the upload disk outside
+  the public web root and keep cloud objects private. External links follow the destination's
+  access rules.
 - **Delivery** (`delivery.modes`), any of: `attachment` (attached to the "your downloads" email
   when the file is at most `commerce.downloads.attachment_max_mb`, default 10 MB; otherwise a link
   is sent), `link` (a personal link in the email), `account` (My Account → Downloads). Without
@@ -379,10 +381,18 @@ Store defaults, Settings → Store → Digital products:
 | Downloads per file | `digital.download_limit` | unlimited |
 | Links expire after (days) | `digital.expiry_days` | never |
 
-Downloads go through `/downloads/{token}`: each download is counted against the limit and logged
-with its time and IP. Links redirect; cloud disks redirect to a five-minute URL; local files stream
-through the app. A revoked, expired or used-up grant answers 410. This route keeps working while
-the module is off, so bought files stay available.
+**Download access.** My Account → Downloads lists files for orders belonging to the signed-in
+customer. The order page also shows its download links. The download endpoint,
+`/downloads/{token}`, checks the grant, records the request and deducts one use from the remaining
+limit, if set. It streams local files or redirects to a five-minute cloud URL when the disk
+supports temporary URLs. External files redirect to their configured destination. Revoked,
+expired and used-up grants return HTTP 410. This route stays available when the Digital products
+module is off.
+
+The token itself grants access, so guests can download from email without signing in. Anyone
+who receives a forwarded link can use it while the grant is valid. If a store requires proof of
+the buyer's identity on every download, it needs an additional ownership or email verification
+check before serving the file.
 
 On the order page staff can resend the links, extend a grant by some days, reset its count or
 revoke it (`Digital\Actions\ManageGrant`). Each action goes on the order timeline.

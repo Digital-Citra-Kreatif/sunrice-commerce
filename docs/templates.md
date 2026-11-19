@@ -231,7 +231,8 @@ another family and change `--commerce-font`) to use the system font. The store's
 **JavaScript** (`commerce.js`, no build step) adds the menu drawer (focus kept inside, Escape
 closes it; Escape also closes an open mega panel), the filter drawer on small screens, quantity
 steppers (a cart line saves itself after a change), and the product gallery thumbnails on
-phones. Without JavaScript the menu and filters are shown in the page and every form posts.
+phones. Without JavaScript the menu and filters are shown in the page. The basic form submissions
+are described under [Accessibility](#accessibility).
 
 ## Translations
 
@@ -288,8 +289,8 @@ both itself when you leave them out, so extension pages can extend it directly.
 | `account.code` | `$email`: enter the emailed sign-in code. |
 | `account.overview` | `$addresses`. Renders the `account.overview` slot. |
 | `account.profile` | `$google`: name, email, phone, password, Google link, deleting the account. |
-| `account.addresses` | `$addresses`, `$editing` (the address being edited, or null). |
-| `account.orders` | `$orders` (paginated), `$type`: `order`. |
+| `account.addresses` | `$addresses`, `$editing` (the address being edited, or null), `$showAddressForm` (true for `?add=1` or a valid `?edit={id}`). |
+| `account.orders` | `$orders` (paginated, with filter query parameters), `$type`: `order`, `$orderFilters` (entered values), `$orderFilterErrors` (validation messages), `$filtersActive` (whether any filters were applied). |
 | `account.quotes` | `$orders` (paginated), `$type`: `quote`. |
 | `account.order` | The `order` page's variables. |
 | `account.downloads` | `$grants`: DownloadGrant models. |
@@ -355,8 +356,8 @@ Shown on the order and pay pages for a payment's method ([payments.md](payments.
 The theme ships with the admin assets in `public/vendor/commerce/theme/` (`commerce:install` and
 `commerce:publish-assets` copy it). Publishing the templates also copies it to
 `public/commerce-theme/` for you to edit; `partials.assets` links that copy when it exists, else the
-shipped one, with a version from the file time. Without JavaScript the store still works: forms post
-normally.
+shipped one, with a version from the file time. See [Upgrading](upgrading.md#published-templates)
+for updates to a published theme.
 
 **`commerce.css`** styles the `commerce-*` classes, in sections (tokens, base, header, footer,
 home, components, cards, listings, product, cart, drawer, checkout, order, account, lists, pages).
@@ -466,10 +467,12 @@ Rebuild the route cache (`php artisan route:cache`) after a change. Always build
 
 ## Accessibility
 
-The templates aim to work for everyone, with or without JavaScript:
-
-- Every form works without JavaScript: add to cart, the variant picker (it posts the chosen
-  options), filters (a GET form), checkout (an "Update shipping" button), wishlist and compare.
+- Add to cart, the variant picker, wishlist and compare have standard form submissions. Product
+  filters and My Account order filters use GET forms. Address summaries expand with native HTML
+  and the address book opens the add or edit form through a normal link.
+- Checkout offers a standard **Update shipping** submission. Entering a new Indonesian address
+  in checkout or My Account requires JavaScript to load provinces, cities and districts. See
+  [Regions](regions.md#the-regions-json-endpoint).
 - Inputs have labels; icon-only buttons (×) have an `aria-label`; the shop search has
   `role="search"`.
 - The variant picker is a `fieldset` per option with radio buttons. A sold-out value is described

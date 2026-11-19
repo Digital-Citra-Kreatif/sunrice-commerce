@@ -1426,8 +1426,8 @@ without an account.
 ### C10.2 Delivery by email
 **Depends on:** C10.1, C11.2
 
-**Files:** `DeliverDownloads` and the `downloads_ready` email, with attachments when they are under
-the size limit and links otherwise, per the product's delivery modes.
+**Files:** `SendStoreEmails` handles `DownloadsGranted` and sends the `downloads_ready` email.
+Attachments use a per-file size limit, and delivery follows the product's modes or the store default.
 
 **Done when:** tests cover attachments under the limit, links over it, account-only delivery not
 emailing files, and the timeline record.

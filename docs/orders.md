@@ -32,7 +32,7 @@ Each order has three states, kept and shown apart (`Orders\OrderStatus`):
 | State | Column | Values |
 | --- | --- | --- |
 | Status | `status` | `pending` (Pending payment), `on_hold`, `processing`, `completed`, `cancelled`, `refunded`, `failed` |
-| Payment | `payment_status` | `unpaid`, `awaiting_confirmation`, `paid`, `partially_refunded`, `refunded`, `failed` |
+| Payment | `payment_status` | `unpaid`, `awaiting_confirmation`, `partially_paid`, `paid`, `partially_refunded`, `refunded`, `failed` |
 | Fulfilment | `fulfillment_status` | `unfulfilled`, `partially_shipped`, `shipped`, `not_required` |
 
 Quotes (`type` `quote`) use their own statuses: `requested`, `quoted`, `accepted`, `declined`,
@@ -317,7 +317,8 @@ refused for orders that received a payment, so the books stay complete.
   email and is sent to the order page.
 - **My Account** → Orders and Quotes: the signed-in customer's own orders (guest orders join once
   the email is verified), the same order page, "buy again" (adds the lines to the cart) and cancel.
-  See [accounts.md](accounts.md).
+  Orders can be searched by order number or product name and filtered by order status and date.
+  Filters stay on when paging through the results. See [My Account](accounts.md#my-account).
 - **Cancelling**: with `checkout.customer_cancel` on (default), a customer can cancel an order
   that is Pending payment or Failed with nothing paid. `Orders\Actions\CancelOrderByCustomer`
   checks this (`allowed()`) and cancels with an optional reason.
