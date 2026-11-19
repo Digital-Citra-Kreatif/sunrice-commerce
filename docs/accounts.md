@@ -245,7 +245,8 @@ The customer's language is also remembered at the first sign-in, for their email
 
 | Page | Route | Shows |
 | --- | --- | --- |
-| Overview | `commerce.account` | A greeting, the `account.overview` slot, the three latest orders (needs `orders`), quick links to the other pages and the default shipping address |
+| Account entry | `commerce.account` | Redirects to Orders, to the announcement when it is configured as the first tab, or to Profile when Orders is off |
+| Announcement | `commerce.account.announcement` | Shown as a tab when the enabled announcement uses the first-tab placement |
 | Orders | `commerce.account.orders` | Search and filter the customer's orders, 10 per page (needs `orders`) |
 | An order | `commerce.account.order` | Timeline, payment instructions and confirmation, tracking, invoice download, downloads, buy again, cancel |
 | Quotes | `commerce.account.quotes` | Quote requests (shown in Quotation mode) |
@@ -258,7 +259,8 @@ The customer's language is also remembered at the first sign-in, for their email
 Details:
 
 - **Orders** can be searched by all or part of the order number or product name. Combine the search
-  with an order status and either or both dates. Both dates are inclusive in the store's timezone.
+  with an order status or open the date range to enter either or both dates. Both dates are
+  inclusive in the store's timezone. Order details link back to the full list.
   The filter values stay selected on the next page. **Reset filters** returns to the full order
   list. The GET parameters are `q`, `status`, `date_from`, `date_to` and `page`; dates use
   `YYYY-MM-DD`.
@@ -284,7 +286,7 @@ Details:
   dispatched.
 - **Sign out** is a button in the menu. It signs out of the storefront only.
 
-Templates are in `storefront/account/` (`overview`, `orders`, `order`, `quotes`, `downloads`,
+Templates are in `storefront/account/` (`announcement`, `announcement-banner`, `orders`, `order`, `quotes`, `downloads`,
 `addresses`, `profile`, `login`, `register`, `code`, `forgot-password`, `reset-password` and the
 `layout` with the menu). Publish them with `php artisan vendor:publish --tag=commerce-templates`;
 see [templates.md](templates.md).
@@ -292,6 +294,11 @@ see [templates.md](templates.md).
 ## Settings → Store → Accounts
 
 Shown while accounts are on, for users with `commerce.settings.accounts`.
+
+In **Account announcement**, enable the announcement, pick the first tab or a position above or
+below account page content, and enter the title and message in the store languages. The message
+is rendered as text, with the main language used when a translation is empty. The announcement
+stays hidden until it has a message.
 
 | Setting | Key | Default |
 | --- | --- | --- |

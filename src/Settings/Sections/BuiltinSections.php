@@ -254,6 +254,13 @@ final class BuiltinSections
             ['handle' => 'customer_roles', 'type' => 'select', 'label' => 'Customer roles', 'required' => true,
                 'instructions' => 'Roles given to new customers, and counted as customers in Shop → Customers.', 'config' => ['options' => $roles, 'multiple' => true]],
             ['handle' => 'code_minutes', 'type' => 'number', 'label' => 'Sign-in codes are valid for (minutes)', 'config' => ['min' => 5, 'max' => 60], 'validation' => ['integer']],
+            ['handle' => 'announcement_enabled', 'section' => 'Account announcement', 'type' => 'toggle', 'label' => 'Show an announcement in My Account'],
+            ['handle' => 'announcement_position', 'section' => 'Account announcement', 'type' => 'select', 'label' => 'Placement',
+                'instructions' => 'The first tab becomes the page customers land on. The other placements show on account pages.',
+                'config' => ['options' => self::options(['tab' => 'First tab (default page)', 'above' => 'Above page content', 'below' => 'Below page content'])]],
+            SchemaForm::perLanguage('announcement_title', 'Title', 'text', 120, ['section' => 'Account announcement']),
+            SchemaForm::perLanguage('announcement_message', 'Message', 'textarea', 3000, ['section' => 'Account announcement',
+                'instructions' => 'Enter the announcement in the main language. Other languages can use their own version.']),
         ];
     }
 

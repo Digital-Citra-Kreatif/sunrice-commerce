@@ -87,6 +87,7 @@ return [
         'no_orders' => "You haven't ordered yet.",
         'links' => 'Quick links',
     ],
+    'announcement' => ['title' => 'Announcements'],
     'profile' => [
         'title' => 'Profile',
         'save' => 'Save',
@@ -153,7 +154,10 @@ return [
         'statuses' => ['requested' => 'Requested', 'approved' => 'Approved: send the items back', 'rejected' => 'Not accepted', 'received' => 'Items received', 'closed' => 'Closed'],
     ],
     'orders' => [
+        'back_to_orders' => 'Back to all orders',
+        'back_to_quotes' => 'Back to all quotes',
         'filters' => [
+            'date_range' => 'Date range',
             'title' => 'Order filters',
             'search' => 'Search orders',
             'search_hint' => 'Order number or product name',
@@ -180,6 +184,9 @@ return [
         'unavailable' => 'No longer available: :products.',
     ],
     'points' => [
+        'available' => 'Available points',
+        'value' => 'Worth :value at checkout',
+        'history' => 'Points history',
         'title' => 'Points',
         'balance' => 'You have :points points, worth :value.',
         'how' => 'You earn :percent% of what you spend on products, in points, when an order is completed. Spend them at checkout.',

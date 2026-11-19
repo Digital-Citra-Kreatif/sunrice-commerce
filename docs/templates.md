@@ -80,7 +80,8 @@ customer (`commerce.auth`):
 | `/account/forgot-password` | `commerce.account.password.request` | `account.forgot-password` |
 | `/account/reset-password/{token}` | `commerce.account.password.reset` | `account.reset-password` |
 | `/account/code` | `commerce.account.code` | `account.code` |
-| `/account` | `commerce.account` | `account.overview` |
+| `/account` | `commerce.account` | Redirects to Orders, the announcement tab, or Profile |
+| `/account/announcement` | `commerce.account.announcement` | `account.announcement` (only for the first-tab placement) |
 | `/account/profile` | `commerce.account.profile` | `account.profile` |
 | `/account/addresses` | `commerce.account.addresses` | `account.addresses` |
 | `/account/orders` | `commerce.account.orders` | `account.orders` (needs `orders`) |
@@ -287,10 +288,11 @@ both itself when you leave them out, so extension pages can extend it directly.
 | `account.forgot-password` | Request a reset link, with `$captcha` when configured. |
 | `account.reset-password` | `$token`, `$email`. |
 | `account.code` | `$email`: enter the emailed sign-in code. |
-| `account.overview` | `$addresses`. Renders the `account.overview` slot. |
+| `account.announcement` | `$announcement`: the localized title and message for the first tab. |
+| `account.announcement-banner` | Included by `account.layout` above or below account content according to the Store → Accounts setting. |
 | `account.profile` | `$google`: name, email, phone, password, Google link, deleting the account. |
 | `account.addresses` | `$addresses`, `$editing` (the address being edited, or null), `$showAddressForm` (true for `?add=1` or a valid `?edit={id}`). |
-| `account.orders` | `$orders` (paginated, with filter query parameters), `$type`: `order`, `$orderFilters` (entered values), `$orderFilterErrors` (validation messages), `$filtersActive` (whether any filters were applied). |
+| `account.orders` | `$orders` (paginated, with filter query parameters), `$type`: `order`, `$orderFilters` (entered values), `$orderFilterErrors` (validation messages), `$filtersActive` (whether any filters were applied). Renders the legacy `account.overview` slot. |
 | `account.quotes` | `$orders` (paginated), `$type`: `quote`. |
 | `account.order` | The `order` page's variables. |
 | `account.downloads` | `$grants`: DownloadGrant models. |

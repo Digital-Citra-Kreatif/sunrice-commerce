@@ -12,16 +12,16 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Validation\ValidationException;
+use Sunrice\Commerce\Customers\AccountAnnouncement;
 use Sunrice\Commerce\Customers\AccountNavigation;
 use Sunrice\Commerce\Customers\Actions\RequestAccountDeletion;
 use Sunrice\Commerce\Customers\Actions\SaveAddress;
 use Sunrice\Commerce\Customers\Actions\UpdateProfile;
 use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Customers\Models\Address;
-use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Storefront\Layout;
 
-/** My Account: overview, profile, password, addresses, account deletion. */
+/** My Account: landing page, profile, password, addresses, account deletion. */
 class AccountController
 {
     // Per request (the router keeps controller instances).
@@ -30,15 +30,22 @@ class AccountController
         return app(CurrentCustomer::class);
     }
 
-    public function overview(): View
+    public function landing(AccountAnnouncement $announcement): RedirectResponse
     {
-        return $this->page('overview', __('commerce::account.overview.title'), [
-            'addresses' => $this->current()->get()->addresses()->orderByDesc('default_shipping')->get(),
-            'recentOrders' => commerce_feature('orders')
-                ? Order::query()->where('user_id', $this->current()->user()?->getAuthIdentifier())->where('type', 'order')->latest('placed_at')->latest('id')->limit(3)->get()
-                : collect(),
-            'links' => array_values(array_filter(app(AccountNavigation::class)->items(), fn (array $item) => $item['key'] !== 'overview')),
-        ]);
+        $route = match (true) {
+            $announcement->position() === 'tab' => 'commerce.account.announcement',
+            commerce_feature('orders') => 'commerce.account.orders',
+            default => 'commerce.account.profile',
+        };
+
+        return redirect()->to(commerce_url($route));
+    }
+
+    public function announcement(AccountAnnouncement $announcement): View
+    {
+        abort_unless($announcement->position() === 'tab', 404);
+
+        return $this->page('announcement', $announcement->title(), ['announcement' => $announcement]);
     }
 
     public function profile(): View
@@ -121,7 +128,7 @@ class AccountController
             'customer' => $this->current()->get(),
             'user' => $this->current()->user(),
             'navigation' => app(AccountNavigation::class)->items(),
-            'current' => $name,
+            'current' => $data['current'] ?? $name,
             'seoTitle' => $title,
         ]);
     }

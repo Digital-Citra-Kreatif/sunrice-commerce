@@ -193,7 +193,8 @@ class CommerceServiceProvider extends PackageServiceProvider
     {
         Event::listen(Login::class, Customers\Listeners\MergeOnSignIn::class);
         $nav = $this->app->make(Customers\AccountNavigation::class);
-        $nav->register('overview', fn () => __('commerce::account.overview.title'), 'commerce.account', position: 10);
+        $nav->register('announcement', fn () => __('commerce::account.announcement.title'), 'commerce.account.announcement',
+            fn (): bool => $this->app->make(Customers\AccountAnnouncement::class)->position() === 'tab', position: 10);
         $nav->register('profile', fn () => __('commerce::account.profile.title'), 'commerce.account.profile', position: 80);
         $nav->register('orders', fn () => __('commerce::account.orders.title'), 'commerce.account.orders', 'orders', position: 20);
         $nav->register('quotes', fn () => __('commerce::account.orders.quotes'), 'commerce.account.quotes',

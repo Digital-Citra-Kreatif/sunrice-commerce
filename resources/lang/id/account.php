@@ -87,6 +87,7 @@ return [
         'no_orders' => 'Anda belum pernah memesan.',
         'links' => 'Tautan cepat',
     ],
+    'announcement' => ['title' => 'Pengumuman'],
     'profile' => [
         'title' => 'Profil',
         'save' => 'Simpan',
@@ -153,6 +154,8 @@ return [
         'statuses' => ['requested' => 'Diajukan', 'approved' => 'Disetujui: kirim kembali barangnya', 'rejected' => 'Tidak diterima', 'received' => 'Barang diterima', 'closed' => 'Selesai'],
     ],
     'orders' => [
+        'back_to_orders' => 'Kembali ke semua pesanan',
+        'back_to_quotes' => 'Kembali ke semua penawaran',
         'title' => 'Pesanan',
         'quotes' => 'Penawaran',
         'empty' => 'Anda belum pernah memesan.',
@@ -163,6 +166,7 @@ return [
         'added_again' => 'Produknya sudah masuk keranjang lagi.',
         'unavailable' => 'Sudah tidak tersedia: :products.',
         'filters' => [
+            'date_range' => 'Rentang tanggal',
             'title' => 'Filter pesanan',
             'search' => 'Cari pesanan',
             'search_hint' => 'Nomor pesanan atau nama produk',
@@ -180,6 +184,9 @@ return [
         ],
     ],
     'points' => [
+        'available' => 'Poin tersedia',
+        'value' => 'Senilai :value saat checkout',
+        'history' => 'Riwayat poin',
         'title' => 'Poin',
         'balance' => 'Anda punya :points poin, senilai :value.',
         'how' => 'Anda mendapat :percent% dari belanja produk Anda dalam bentuk poin saat pesanan selesai. Pakai poinnya saat checkout.',

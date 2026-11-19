@@ -378,7 +378,7 @@ The partial gets the slot's variables. Templates render slots with
 | `order.after_payment` | Order page, after the payment box | — |
 | `order.after_summary` | Order page, after the items | `$order` |
 | `order.after` | End of the order page | — |
-| `account.overview` | My Account overview | `$customer` |
+| `account.overview` | Above the order filters on My Account → Orders | `$customer` |
 
 ## Dashboard widgets, reports and health checks
 

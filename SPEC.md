@@ -763,9 +763,13 @@ Google), earlier guest orders with that email join the account.
 
 **My Account (`/account`)**
 
-- Overview: recent orders and quick links.
+- Orders is the default account page. If Orders is disabled, the account opens Profile.
+- Staff can enable an account announcement under Settings → Store → Accounts and choose the
+  first tab, above page content, or below page content. The first-tab placement becomes the
+  default account page. Announcements have a localized title and message.
 - Orders: the customer's orders, searchable by order number or product name and filterable by
-  status and date, 10 per page. Each order's details include:
+  status and date, 10 per page. The date fields expand on demand. Each order's details include:
+  - a link back to the full order list;
   - timeline, payment instructions and payment confirmation;
   - tracking and invoice download;
   - buy again, and cancel (if allowed).

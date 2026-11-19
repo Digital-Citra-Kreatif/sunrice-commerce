@@ -30,7 +30,8 @@ it('signs customers in on the commerce guard without opening the admin', functio
     $this->post('/account/login', ['email' => 'ana@example.com', 'password' => 'secret-pass'])->assertRedirect('/account');
     $this->assertAuthenticated('commerce');
     $this->assertGuest('web');
-    $this->get('/account')->assertOk()->assertSee('Halo, Ana');
+    $this->get('/account')->assertRedirect('/account/orders');
+    $this->get('/account/orders')->assertOk();
     $this->get('/admin')->assertRedirect(); // to the admin login
     expect(Customer::query()->where('email', 'ana@example.com')->exists())->toBeTrue();
 });

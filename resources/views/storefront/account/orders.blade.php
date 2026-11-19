@@ -7,6 +7,7 @@
     @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
     @php($S = \Sunrice\Commerce\Orders\OrderStatus::class)
     <h1>{{ $type === 'quote' ? __('commerce::account.orders.quotes') : __('commerce::account.orders.title') }}</h1>
+    <x-commerce::slot name="account.overview" :customer="$customer" />
     @isset($orderFilters)
         @php($ordersUrl = commerce_url('commerce.account.orders'))
         <form class="commerce-order-filters" method="GET" action="{{ $ordersUrl }}" aria-label="{{ __('commerce::account.orders.filters.title') }}">
@@ -24,14 +25,25 @@
                         @endforeach
                     </select>
                 </label>
-                <label class="commerce-field">
-                    <span>{{ __('commerce::account.orders.filters.date_from') }}</span>
-                    <input type="date" name="date_from" value="{{ $orderFilters['date_from'] ?? '' }}">
-                </label>
-                <label class="commerce-field">
-                    <span>{{ __('commerce::account.orders.filters.date_to') }}</span>
-                    <input type="date" name="date_to" value="{{ $orderFilters['date_to'] ?? '' }}">
-                </label>
+                <button type="submit" class="commerce-button commerce-button--primary commerce-order-filters__apply">{{ __('commerce::account.orders.filters.apply') }}</button>
+            </div>
+            <div class="commerce-order-filters__options">
+                <details class="commerce-order-filters__dates" @if (filled($orderFilters['date_from'] ?? null) || filled($orderFilters['date_to'] ?? null) || $orderFilterErrors->hasAny(['date_from', 'date_to'])) open @endif>
+                    <summary>{{ __('commerce::account.orders.filters.date_range') }}</summary>
+                    <div class="commerce-order-filters__date-fields">
+                        <label class="commerce-field">
+                            <span>{{ __('commerce::account.orders.filters.date_from') }}</span>
+                            <input type="date" name="date_from" value="{{ $orderFilters['date_from'] ?? '' }}">
+                        </label>
+                        <label class="commerce-field">
+                            <span>{{ __('commerce::account.orders.filters.date_to') }}</span>
+                            <input type="date" name="date_to" value="{{ $orderFilters['date_to'] ?? '' }}">
+                        </label>
+                    </div>
+                </details>
+                @if ($filtersActive || $orderFilterErrors->any())
+                    <a class="commerce-link commerce-link--action commerce-order-filters__reset" href="{{ $ordersUrl }}">{{ __('commerce::account.orders.filters.reset') }}</a>
+                @endif
             </div>
             @if ($orderFilterErrors->any())
                 <ul class="commerce-order-filters__errors commerce-field__error" role="alert">
@@ -40,12 +52,6 @@
                     @endforeach
                 </ul>
             @endif
-            <div class="commerce-order-filters__actions">
-                <button type="submit" class="commerce-button commerce-button--primary">{{ __('commerce::account.orders.filters.apply') }}</button>
-                @if ($filtersActive || $orderFilterErrors->any())
-                    <a class="commerce-link commerce-link--action" href="{{ $ordersUrl }}">{{ __('commerce::account.orders.filters.reset') }}</a>
-                @endif
-            </div>
         </form>
     @endisset
     @if ($orders->isEmpty())

@@ -372,6 +372,10 @@ return [
             'require_phone' => false,
             'customer_roles' => ['Customer'],
             'code_minutes' => 10,
+            'announcement_enabled' => false,
+            'announcement_position' => 'tab',
+            'announcement_title' => [],
+            'announcement_message' => [],
         ],
         'taxes' => [
             'prices_include_tax' => true,
