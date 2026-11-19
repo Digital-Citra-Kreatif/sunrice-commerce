@@ -62,8 +62,15 @@ final class ProductDefaults
         foreach (['brand', 'category'] as $scope) {
             foreach ($this->rules($scope) as $rule) {
                 $termId = (int) ($rule['term'] ?? 0);
-                if (($rule[$key] ?? null) !== null && in_array($termId, $termIds ?? [], true)) {
-                    return ['value' => $rule[$key], 'source' => $scope, 'term_id' => $termId];
+                $value = $rule[$key] ?? null;
+                if (($rule['_hidden'] ?? false) === true || ! in_array($termId, $termIds ?? [], true) || $value === 'inherit') {
+                    continue;
+                }
+                if (in_array($key, ['specifications', 'faq'], true) && is_array($value)) {
+                    $value = array_values(array_filter($value, ProductContent::visibleRow(...)));
+                }
+                if (filled($value)) {
+                    return ['value' => $value, 'source' => $scope, 'term_id' => $termId];
                 }
             }
         }

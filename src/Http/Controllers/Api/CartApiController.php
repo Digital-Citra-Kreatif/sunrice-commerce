@@ -53,7 +53,9 @@ class CartApiController
 
     public function update(Request $request, int $item, UpdateCartItem $update): JsonResponse
     {
-        $data = $request->validate(['quantity' => ['required', 'integer', 'min:0', 'max:100000']]);
+        $data = $request->validate(['quantity' => ['required', 'integer', 'min:1', 'max:100000']], [
+            'quantity.min' => __('commerce::storefront.cart.quantity_positive'),
+        ]);
 
         return $this->attempt(fn () => tap(__('commerce::storefront.cart.updated'), fn () => $update->handle($item, (int) $data['quantity'])));
     }

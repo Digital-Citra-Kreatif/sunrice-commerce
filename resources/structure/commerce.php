@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Sunrice\Commerce\Catalog\ProductContentFields;
+
 /*
 | The store structure commerce:scaffold creates in Sunrice (SPEC.md §
 | Installation and scaffolding), in the CMS's structure import format
@@ -17,21 +19,22 @@ return [
     'blueprints' => [
         ['handle' => 'product', 'title' => 'Product', 'fields' => [
             ['handle' => 'product', 'type' => 'commerce_product', 'label' => 'Product data'],
+            ProductContentFields::presentation(),
             ['handle' => 'excerpt', 'type' => 'textarea', 'label' => 'Summary', 'instructions' => 'Shown on product cards and in search results.'],
             ['handle' => 'description', 'type' => 'rich_text', 'label' => 'Description'],
-            ['handle' => 'gallery', 'type' => 'media', 'label' => 'Images', 'config' => ['multiple' => true, 'types' => ['image']]],
-            ['handle' => 'specifications', 'type' => 'repeater', 'label' => 'Specifications', 'fields' => [
+            ['handle' => 'gallery', 'type' => 'commerce_gallery', 'label' => 'Images', 'instructions' => 'Drag images to change the order. The first image is the cover.', 'config' => ['multiple' => true, 'types' => ['image']]],
+            ['handle' => 'specifications', 'type' => 'repeater', 'label' => 'Specifications', 'instructions' => 'Leave empty to use the specifications from the brand, category, or store.', 'fields' => [
                 ['handle' => 'label', 'type' => 'text', 'label' => 'Label'],
                 ['handle' => 'value', 'type' => 'text', 'label' => 'Value'],
             ]],
-            ['handle' => 'faq', 'type' => 'repeater', 'label' => 'Questions and answers', 'fields' => [
+            ['handle' => 'faq', 'type' => 'repeater', 'label' => 'Questions and answers', 'instructions' => 'Leave empty to use the questions from the brand, category, or store.', 'fields' => [
                 ['handle' => 'question', 'type' => 'text', 'label' => 'Question'],
                 ['handle' => 'answer', 'type' => 'textarea', 'label' => 'Answer'],
             ]],
             ['handle' => 'related_products', 'type' => 'entries', 'label' => 'Related products', 'config' => ['collections' => ['products'], 'multiple' => true, 'max' => 12]],
             ['handle' => 'upsells', 'type' => 'entries', 'label' => 'Upsells', 'instructions' => 'Better products shown on the product page.', 'config' => ['collections' => ['products'], 'multiple' => true, 'max' => 6]],
             ['handle' => 'cross_sells', 'type' => 'entries', 'label' => 'Cross-sells', 'instructions' => 'Shown in the cart.', 'config' => ['collections' => ['products'], 'multiple' => true, 'max' => 6]],
-            ['handle' => 'size_guide', 'type' => 'rich_text', 'label' => 'Size guide'],
+            ['handle' => 'size_guide', 'type' => 'rich_text', 'label' => 'Size guide', 'instructions' => 'Leave empty to inherit the guide. Set its visibility in Display options and video.'],
         ]],
         ['handle' => 'product_category', 'title' => 'Product category', 'fields' => [
             $image('image', 'Image'),

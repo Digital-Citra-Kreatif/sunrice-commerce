@@ -90,6 +90,7 @@ it('works without JavaScript: forms with flash messages', function () {
     $item = $cart->items->first();
 
     $this->withCookies($cookie)->get('/cart')->assertOk()->assertSee('Mug')->assertSee('Rp100.000')
+        ->assertSee('name="quantity" value="2" min="1"', false)
         ->assertSee('commerce-icon--trash', false)
         ->assertSee('aria-label="Hapus Mug dari keranjang"', false)
         ->assertSee('data-commerce-cart-remove-dialog', false)
@@ -97,6 +98,8 @@ it('works without JavaScript: forms with flash messages', function () {
         ->assertSee('Hapus produk dari keranjang?')
         ->assertSee('value="cancel" class="commerce-link commerce-link--action" autofocus', false)
         ->assertSee('value="remove" class="commerce-button commerce-button--accent"', false);
+    $this->withCookies($cookie)->patch("/cart/items/{$item->id}", ['quantity' => 0])->assertSessionHasErrors('quantity');
+    expect($item->fresh()->quantity)->toBe(2);
     $this->withCookies($cookie)->patch("/cart/items/{$item->id}", ['quantity' => 9])->assertSessionHas('commerce.error');
     $this->withCookies($cookie)->patch("/cart/items/{$item->id}", ['quantity' => 3])->assertSessionHas('commerce.success');
     expect($item->fresh()->quantity)->toBe(3);
@@ -128,6 +131,9 @@ it('updates quantities and applies and removes vouchers on the cart API', functi
     $item = $cart->items()->sole();
     $this->withCredentials()->withCookies(['commerce_cart' => $cart->token]);
 
+    $this->patchJson("/commerce/api/cart/items/{$item->id}", ['quantity' => 0])
+        ->assertUnprocessable()->assertJsonValidationErrors('quantity');
+    expect($item->fresh()->quantity)->toBe(1);
     $this->patchJson("/commerce/api/cart/items/{$item->id}", ['quantity' => 2])
         ->assertOk()->assertJsonPath('cart.count', 2)->assertJsonPath('cart.totals.total.amount', 100000);
     $this->postJson('/commerce/api/cart/vouchers', ['code' => 'HEMAT'])

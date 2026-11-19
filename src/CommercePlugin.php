@@ -91,6 +91,7 @@ final class CommercePlugin extends BasePlugin
             Admin\Fields\RegionField::class,
             Admin\Fields\TargetsField::class,
             Catalog\ProductField::class,
+            Catalog\GalleryField::class,
         );
     }
 }

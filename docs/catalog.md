@@ -186,12 +186,34 @@ can override them:
 
 - **Requires shipping** (`requires_shipping`): a physical product. Lines with it need a shipping
   method at checkout. The editor shows the Shipping tab for weight and dimensions.
-- **Downloadable** (`downloadable`): a digital product. The editor shows the Digital tab. See
+- **Downloadable** (`downloadable`): a digital product. The editor turns off shipping and shows the Digital tab. Downloadable variants also skip shipping at checkout. See
   [Digital products](#digital-products).
 
 A product that is neither is **virtual**: a service, a ticket or a booking. There is no separate
 "digital" type: a digital product is a simple or variable product with Downloadable on (and usually
 Requires shipping off).
+
+### Storefront content and media
+
+Use **Shop → Settings → Catalog** to set store defaults for specifications, questions and answers,
+and the size guide. Category and brand rules are on the same page. Each field follows the closest
+nonempty setting, in this order: product, brand, category, store. If several rules in the same scope
+match, the first rule with a value for that field wins. A local specification or FAQ list overrides
+the inherited list in full. Compare uses the same specifications as the product page.
+
+The size guide starts hidden. Set its visibility to **Show** and provide content at that scope or
+inherit a guide from a broader scope. Visibility can be set independently from the guide content.
+On the product editor, **Display options and video** can hide each section or override size guide
+visibility. Previously saved size guide content appears once its effective visibility is **Show**.
+
+Drag the images in the product editor to reorder them. The first image is the cover. The product
+gallery extends the CMS media field and stores the same ordered list of image IDs. To publish a
+product video, select a video in the Media Library or enter an HTTPS link under **Display options
+and video**. YouTube links use an embedded player. Other HTTPS sources open as links.
+
+Run migrations when upgrading. The existing product blueprint gains the display and video group and
+sortable gallery while keeping existing field handles and saved content. Update published product
+and compare templates and the starter stylesheet to pick up the storefront changes.
 
 Products can also be **featured** (`featured`): they sort first in the default listing order and
 get the `featured` badge.

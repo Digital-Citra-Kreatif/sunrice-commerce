@@ -24,6 +24,7 @@
     @php($L = \Sunrice\Commerce\Storefront\Layout::class)
     @include($L::view('partials.assets'))
     @php($locale = app()->getLocale())
+    @php($content = app(\Sunrice\Commerce\Catalog\ProductContent::class)->forEntry($entry))
     @php($terms = $entry->terms)
     @php($category = $terms->first(fn ($t) => $t->taxonomy?->handle === config('commerce.catalog.category_taxonomy')))
     @php($brand = $terms->first(fn ($t) => $t->taxonomy?->handle === config('commerce.catalog.brand_taxonomy')))
@@ -57,6 +58,18 @@
                         @endforeach
                     </ul>
                 @endif
+                @if ($video = $content['video'])
+                    <section class="commerce-product-video" aria-labelledby="product-video-title">
+                        <h2 id="product-video-title">{{ __('commerce::storefront.product.video') }}</h2>
+                        @if ($video['type'] === 'youtube')
+                            <iframe src="{{ $video['url'] }}" title="{{ __('commerce::storefront.product.video') }}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                        @elseif ($video['type'] === 'local')
+                            <video src="{{ $video['url'] }}" controls playsinline preload="metadata" aria-labelledby="product-video-title"></video>
+                        @else
+                            <a href="{{ $video['url'] }}" rel="external">{{ __('commerce::storefront.product.watch_video') }}</a>
+                        @endif
+                    </section>
+                @endif
             </div>
             <div class="commerce-product__summary">
                 @if ($brand)
@@ -89,7 +102,7 @@
                         <div class="commerce-product__description commerce-prose">{!! (commerce_values($entry)['description'] ?? null) !!}</div>
                     </details>
                 @endif
-                @if (filled($specs = (commerce_values($entry)['specifications'] ?? null)))
+                @if (filled($specs = $content['specifications']))
                     <details class="commerce-accordion" open>
                         <summary>{{ __('commerce::storefront.product.specifications') }}</summary>
                         <dl class="commerce-specs">
@@ -99,10 +112,10 @@
                         </dl>
                     </details>
                 @endif
-                @if (filled($guide = (commerce_values($entry)['size_guide'] ?? null)))
+                @if (filled($guide = $content['size_guide']))
                     <details class="commerce-accordion commerce-size-guide" id="size-guide"><summary>{{ __('commerce::storefront.product.size_guide') }}</summary><div class="commerce-prose">{!! $guide !!}</div></details>
                 @endif
-                @if (filled($faq = (commerce_values($entry)['faq'] ?? null)))
+                @if (filled($faq = $content['faq']))
                     <details class="commerce-accordion">
                         <summary>{{ __('commerce::storefront.product.faq') }}</summary>
                         @foreach ($faq as $row)

@@ -347,7 +347,7 @@ class PlaceOrder
                         'order_id' => $order->id, 'parent_id' => $item->id, 'product_id' => $variant->product_id, 'variant_id' => $variant->id,
                         'entry_id' => $variant->product->entry_id, 'name' => $this->title($variant, $locale), 'variant_title' => $variant->title ?: null,
                         'sku' => $variant->sku, 'quantity' => $component['quantity'], 'weight' => (int) $variant->weight,
-                        'requires_shipping' => $line->requiresShipping, 'downloadable' => (bool) ($variant->downloadable ?? $variant->product->downloadable),
+                        'requires_shipping' => $line->requiresShipping && $variant->requiresShipping(), 'downloadable' => $variant->isDownloadable(),
                         'options' => $this->options($variant),
                     ]);
                 }

@@ -77,6 +77,9 @@ final class ProductValue
                 $out[$flag] = self::bool($value[$flag]);
             }
         }
+        if ($out['downloadable']) {
+            $out['requires_shipping'] = false;
+        }
         $out['tax_class'] = self::str($value['tax_class'] ?? null);
         $out['external_links'] = array_values(array_map(fn ($link) => [
             'preset' => self::str(is_array($link) ? ($link['preset'] ?? null) : null),
@@ -172,6 +175,9 @@ final class ProductValue
         }
         foreach (['requires_shipping', 'downloadable'] as $key) {
             $out[$key] = array_key_exists($key, $v) && $v[$key] !== null ? self::bool($v[$key]) : null;
+        }
+        if ($out['downloadable'] === true) {
+            $out['requires_shipping'] = false;
         }
         $out['downloads'] = self::normalizeDownloads($v['downloads'] ?? []);
 

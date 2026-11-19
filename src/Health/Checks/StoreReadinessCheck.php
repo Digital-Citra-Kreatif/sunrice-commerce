@@ -45,6 +45,7 @@ class StoreReadinessCheck implements HealthCheck
         if (in_array($mode, ['shop', 'whatsapp'], true) && $features->active('shipping')) {
             $physical = DB::table('commerce_variants')->join('commerce_products', 'commerce_products.id', '=', 'commerce_variants.product_id')
                 ->whereNull('commerce_products.removed_at')->whereNull('commerce_variants.deleted_at')
+                ->where(fn ($q) => $q->where('commerce_variants.downloadable', false)->orWhere(fn ($q) => $q->whereNull('commerce_variants.downloadable')->where('commerce_products.downloadable', false)))
                 ->where(fn ($q) => $q->where('commerce_variants.requires_shipping', true)->orWhere(fn ($q) => $q->whereNull('commerce_variants.requires_shipping')->where('commerce_products.requires_shipping', true)))
                 ->exists();
             $methods = DB::table('commerce_shipping_methods')->where('active', true)->exists();

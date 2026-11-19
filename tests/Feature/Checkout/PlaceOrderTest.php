@@ -316,3 +316,16 @@ it('keeps the signup invitation for a guest who has not opted in', function () {
     $this->get($order->url())->assertOk()->assertSee(__('commerce::checkout.order.invite'))
         ->assertDontSee(__('commerce::checkout.order.account_verification'));
 });
+
+it('skips shipping for existing downloadable variants with shipping flags still set', function () {
+    $this->mug->update(['downloadable' => true, 'requires_shipping' => true]);
+    $cart = cartWith([[$this->mug, 1]]);
+
+    place($cart, ['shipping_address' => null, 'shipping_method' => null])->assertSessionHasNoErrors();
+    $order = Order::query()->sole();
+    expect($order->shipping_address)->toBeNull()
+        ->and($order->shipping_method)->toBeNull()
+        ->and($order->shipping_total)->toBe(0)
+        ->and($order->items->sole()->requires_shipping)->toBeFalse()
+        ->and($order->items->sole()->downloadable)->toBeTrue();
+});
