@@ -54,7 +54,9 @@
         ...$trail->all(),
         ['label' => $entry->title, 'url' => null],
     ]])
-    @include($L::view('partials.messages'))
+    @include($L::view('partials.messages'), ['showSuccess' => ! in_array(session('commerce.success'), [
+        __('commerce::storefront.reviews.thanks'), __('commerce::storefront.reviews.published'),
+    ], true)])
     <article class="commerce-product">
         <div class="commerce-product__primary">
             @include($L::view('partials.product-gallery'))

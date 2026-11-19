@@ -410,7 +410,7 @@ both itself when you leave them out, so extension pages can extend it directly.
 | `partials.product-summary`, `product.heading` | Product information and purchase section. The heading uses `$entry`, `$product`, `$brand` and `$locale`. |
 | `partials.product-details`, `product.description`, `product.specifications`, `product.questions`, `product.size-guide` | The detail group and its individual panels. Description uses `$entry`. The other panels use the product's resolved `$content`. |
 | `product.buy-controls`, `product.actions` | Quantity and add-to-cart controls use `$product`, `$default` and `$action`. Wishlist and Compare controls use `$entry` and `$projectedProduct`. |
-| `partials.reviews`, `product.review-form` | Reviews use `$product`, `$reviews`, `$breakdown` and `$blocked`. The form uses the product and eligibility reason. |
+| `partials.reviews`, `product.review-form` | Reviews use `$product`, `$reviews`, `$breakdown`, `$blocked` and `$ownReview`. The latter contains the signed-in buyer's own review and drives the private moderation status and edit form. |
 | `product.upsells`, `product.related`, `partials.recommendations` | Each product list takes `$entry`. The shared renderer receives `$items`, `$kind` and `$heading`. Cards use `partials.product-card`. |
 | `partials.compare-table`, `partials.wishlist-share` | Comparison receives `$entries`, `$fields`, `$specLabels` and `$specValues`. Sharing receives `$shareUrl` and `$sharedNotice`. |
 | `partials.breadcrumbs` | `$items`: `[{label, url}]`, the last one the current page. |

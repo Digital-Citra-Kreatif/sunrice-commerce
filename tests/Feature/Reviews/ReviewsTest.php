@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use Dom\HTMLDocument;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Customers\Actions\AnonymizeCustomer;
@@ -40,7 +42,17 @@ it('keeps a verified buyer review pending until approved, then shows it with the
         ->assertRedirect('/products/mug#reviews')->assertSessionHas('commerce.success', 'Terima kasih! Ulasan Anda akan tampil setelah diperiksa.');
     $review = Review::query()->sole();
     expect($review->email)->toBe('ana@example.com')->and($review->status)->toBe('pending')->and($this->product->fresh()->rating_count)->toBe(0);
-    $this->get('/products/mug')->assertOk()->assertDontSee('Holds my coffee well.')->assertSee('Belum ada ulasan');
+    $ownerPage = $this->get('/products/mug')->assertOk()->assertSee('Ulasan sudah dikirim')
+        ->assertSee('Edit ulasan')->assertDontSee('Belum ada ulasan')
+        ->assertDontSee('Terima kasih! Ulasan Anda akan tampil setelah diperiksa.');
+    $document = HTMLDocument::createFromString($ownerPage->getContent(), LIBXML_NOERROR);
+    expect($document->querySelector('.commerce-reviews__write')?->hasAttribute('open'))->toBeFalse()
+        ->and($document->querySelector('#review-body')?->textContent)->toBe('Holds my coffee well.');
+    $this->get('/products/mug')->assertOk()->assertSee('Ulasan sudah dikirim');
+
+    Auth::guard('commerce')->logout();
+    $this->get('/products/mug')->assertOk()->assertDontSee('Holds my coffee well.')
+        ->assertDontSee('Ulasan sudah dikirim')->assertSee('Belum ada ulasan');
 
     actingAsUserWith(['commerce.reviews.manage']);
     $this->post('/admin/commerce/reviews/bulk', ['action' => 'approved', 'ids' => [$review->id]])->assertSessionHas('success', '1 review updated.');

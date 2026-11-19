@@ -17,6 +17,7 @@ use Sunrice\Commerce\Reviews\Actions\SubmitReview;
 use Sunrice\Commerce\Reviews\Models\Review;
 use Sunrice\Commerce\Reviews\ProductRating;
 use Sunrice\Commerce\Storefront\Layout;
+use Sunrice\Commerce\Storefront\PageCache;
 
 /**
  * <x-commerce::reviews :entry="$entry" />: the product's rating, its
@@ -34,6 +35,8 @@ class Reviews extends Component
 
     /** sign_in | buyers_only | null (the form shows) */
     public ?string $blocked = null;
+
+    public ?Review $ownReview = null;
 
     /** Kept for published review templates from earlier versions. */
     public bool $guest = false;
@@ -56,6 +59,10 @@ class Reviews extends Component
             app(SubmitReview::class)->purchase($this->product, $customer) === null => 'buyers_only',
             default => null,
         };
+        if ($customer !== null && $this->blocked === null) {
+            PageCache::markDynamic();
+            $this->ownReview = Review::query()->where('product_id', $this->product->id)->where('customer_id', $customer->id)->first();
+        }
     }
 
     public function shouldRender(): bool
