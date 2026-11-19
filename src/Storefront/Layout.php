@@ -16,12 +16,28 @@ final class Layout
     {
         $layout = (string) config('commerce.storefront.layout', 'cms.layout');
 
-        return $layout !== '' && view()->exists($layout) ? $layout : 'commerce::layouts.store';
+        if ($layout !== '' && view()->exists($layout)) {
+            return $layout;
+        }
+
+        return self::view('layouts.store');
     }
 
     /** The app's copy of a store view when it published one, else the package's. */
     public static function view(string $name): string
     {
-        return view()->exists("commerce.{$name}") ? "commerce.{$name}" : "commerce::storefront.{$name}";
+        if (view()->exists("commerce.{$name}")) {
+            return "commerce.{$name}";
+        }
+
+        return $name === 'layouts.store' ? 'commerce::layouts.store' : "commerce::storefront.{$name}";
+    }
+
+    /** Resolve published Commerce payment views and preserve third-party view names. */
+    public static function paymentView(string $view): string
+    {
+        $prefix = 'commerce::storefront.payments.';
+
+        return str_starts_with($view, $prefix) ? self::view('payments.'.substr($view, strlen($prefix))) : $view;
     }
 }

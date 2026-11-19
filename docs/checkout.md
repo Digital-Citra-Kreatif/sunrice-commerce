@@ -177,6 +177,9 @@ billing address is used for any tax rules based on billing. The **Update total**
   the matched zone, plus pickup rates from any zone; see [shipping.md](shipping.md).
   - In Online store and WhatsApp modes a rate must be chosen, and it must be one of the current
     rates. "We can't ship to this address yet." shows when an address gets no rates.
+  - When checkout can quote delivery and has no valid selection, it selects the first available
+    delivery rate in the store's configured order and includes it in the total. Store pickup
+    requires the shopper to choose it.
   - In Quotation mode the rate is optional: staff can set shipping in the quote.
   - Choosing a pickup rate (`pickup:…`) keeps the address and delivery rates available in case
     the customer switches back to delivery. The pickup order stores the location in `meta.pickup`

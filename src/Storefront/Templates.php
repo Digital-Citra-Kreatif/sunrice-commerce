@@ -22,6 +22,7 @@ final class Templates
         $collections = (array) config('commerce.catalog.collections', ['products']);
         $map = [
             __DIR__.'/../../stubs/theme' => public_path('commerce-theme'),
+            __DIR__.'/../../resources/views/layouts/store.blade.php' => resource_path('views/commerce/layouts/store.blade.php'),
             "{$views}/product.blade.php" => resource_path('views/cms/collections/'.($collections[0] ?? 'products').'/show.blade.php'),
             "{$views}/shop.blade.php" => resource_path('views/cms/collections/'.($collections[0] ?? 'products').'/index.blade.php'),
             "{$views}/category.blade.php" => resource_path('views/cms/taxonomies/'.config('commerce.catalog.category_taxonomy', 'product_categories').'/show.blade.php'),

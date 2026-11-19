@@ -12,6 +12,10 @@
         @if (is_file($commerceCss = public_path($commerceTheme.'/commerce.css')))
             <link rel="stylesheet" href="{{ asset($commerceTheme.'/commerce.css') }}?v={{ filemtime($commerceCss) }}">
         @endif
+        @php($commerceSkin = config('commerce.storefront.skin'))
+        @if (is_string($commerceSkin) && str_ends_with($commerceSkin, '.css') && is_file($skinPath = public_path($commerceSkin)))
+            <link rel="stylesheet" href="{{ asset($commerceSkin) }}?v={{ filemtime($skinPath) }}">
+        @endif
         <meta name="csrf-token" content="{{ csrf_token() }}">
     @endpush
     @push('scripts')

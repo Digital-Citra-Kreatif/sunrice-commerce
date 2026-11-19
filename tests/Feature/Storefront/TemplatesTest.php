@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\File;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Orders\Models\Order;
+use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\Templates;
+use Workbench\App\Models\User;
 
 it('ships templates that compile to valid PHP', function () {
     $dir = __DIR__.'/../../../resources/views/storefront';
@@ -25,26 +27,56 @@ it('ships templates that compile to valid PHP', function () {
 
 it('publishes templates that the store then uses, and falls back without them', function () {
     $this->withoutMiddleware(ValidateCsrfToken::class);
-    checkoutStore();
+    $mug = checkoutStore();
     $published = array_values(Templates::publishable());
+    $skin = public_path('test-commerce-skin.css');
     try {
         $this->artisan('vendor:publish', ['--tag' => 'commerce-templates', '--force' => true])->assertSuccessful();
         expect(File::exists(resource_path('views/commerce/cart.blade.php')))->toBeTrue()
             ->and(File::exists(resource_path('views/cms/collections/products/show.blade.php')))->toBeTrue()
             ->and(File::exists(public_path('commerce-theme/commerce.css')))->toBeTrue();
 
-        File::put(resource_path('views/commerce/cart.blade.php'), File::get(resource_path('views/commerce/cart.blade.php')).'{{-- marker --}}<p>APP CART COPY</p>');
-        File::append(resource_path('views/commerce/partials/price.blade.php'), '<span>APP PRICE PARTIAL</span>');
-        $this->get('/cart')->assertOk()->assertSee('APP CART COPY');
-        $this->get('/products/mug')->assertOk()->assertSee('APP PRICE PARTIAL')->assertSee('commerce-theme/commerce.css');
+        File::put($skin, ':root { --commerce-accent: #304350; }');
+        config(['commerce.storefront.layout' => 'missing.app.layout', 'commerce.storefront.skin' => 'test-commerce-skin.css']);
+        foreach ([
+            'layouts/store' => ['<main ', '<main data-app-layout '],
+            'cart/line' => ['<tr ', '<tr data-app-cart-row '],
+            'checkout/contact' => ['<fieldset ', '<fieldset data-app-contact '],
+            'checkout/summary' => ['<aside ', '<aside data-app-summary '],
+            'account/navigation' => ['<nav ', '<nav data-app-navigation '],
+            'account/order-table' => ['<table ', '<table data-app-order-table '],
+            'payments/instructions' => ['<div ', '<div data-app-payment '],
+            'payments/confirm-link' => ['<a ', '<a data-app-confirmation '],
+        ] as $partial => [$from, $to]) {
+            $path = resource_path("views/commerce/{$partial}.blade.php");
+            File::put($path, str_replace($from, $to, File::get($path)));
+        }
+
+        cartWith([[$mug, 1]]);
+        $this->get('/cart')->assertOk()->assertSee('data-app-cart-row', false)->assertSee('data-app-layout', false)
+            ->assertSeeInOrder(['commerce-theme/commerce.css', 'test-commerce-skin.css'])->assertSee('commerce-theme/commerce.js');
+        $this->get('/checkout')->assertOk()->assertSee('data-app-contact', false)->assertSee('data-app-summary', false);
+        $summary = $this->withCredentials()->postJson('/checkout/refresh', checkoutInput())->assertOk()->json('summary');
+        expect($summary)->toContain('data-app-summary', 'data-commerce-summary');
+
+        $user = User::query()->create(['name' => 'Buyer', 'email' => 'buyer@example.com', 'password' => bcrypt('password'), 'email_verified_at' => now()]);
+        app(StoreSettings::class)->saveSection('payments', ['instances' => ['instructions' => ['instructions_qr']]]);
+        $order = makeOrder(['user_id' => $user->id, 'payment_method' => 'instructions_qr']);
+        $order->payments()->create(['method' => 'instructions_qr', 'amount' => 100000, 'status' => 'pending',
+            'instructions' => ['image' => '/proof.png', 'confirmation' => 'optional']]);
+        $this->actingAs($user, 'commerce')->get('/account/orders')->assertOk()
+            ->assertSee('data-app-navigation', false)->assertSee('data-app-order-table', false);
+        $this->get($order->url())->assertOk()
+            ->assertSee('data-app-payment', false)->assertSee('data-app-confirmation', false);
     } finally {
+        File::delete($skin);
         foreach ($published as $path) {
             File::isDirectory($path) ? File::deleteDirectory($path) : File::delete($path);
         }
         File::deleteDirectory(resource_path('views/commerce'));
         app('view')->getFinder()->flush();
     }
-    $this->get('/cart')->assertOk()->assertDontSee('APP CART COPY');
+    $this->get('/cart')->assertOk()->assertDontSee('data-app-cart-row', false)->assertDontSee('data-app-layout', false);
 });
 
 it('publishes the starter theme with the templates', function () {

@@ -32,7 +32,7 @@
             @endif
         </header>
         @if ($showInstructions)
-            @include($instructionsView, ['order' => $order, 'payment' => $payment, 'showAmount' => false])
+            @include(\Sunrice\Commerce\Storefront\Layout::paymentView($instructionsView), ['order' => $order, 'payment' => $payment, 'showAmount' => false])
         @endif
         @if ($payUrl && ! $awaiting)
             <div class="commerce-order__payment-actions">

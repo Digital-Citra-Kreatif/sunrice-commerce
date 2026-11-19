@@ -10,6 +10,9 @@ components the templates use, see [blade-components.md](blade-components.md). Fo
 - [Which pages commerce renders](#which-pages-commerce-renders)
 - [The store layout](#the-store-layout)
 - [Publishing templates](#publishing-templates)
+- [Choosing an override](#choosing-an-override)
+- [Checkout and cart areas](#checkout-and-cart-areas)
+- [My Account and order areas](#my-account-and-order-areas)
 - [The starter theme](#the-starter-theme)
 - [Translations](#translations)
 - [Template reference](#template-reference): pages, account pages, partials, payment partials
@@ -88,6 +91,7 @@ customer (`commerce.auth`):
 | `/account/quotes` | `commerce.account.quotes` | `account.quotes` (needs `orders`) |
 | `/account/orders/{order}` | `commerce.account.order` | `account.order` (needs `orders`) |
 | `/account/downloads` | `commerce.account.downloads` | `account.downloads` |
+| `/account/points` | `commerce.account.points` | `account.points` (needs `loyalty`) |
 
 A page whose feature is off returns 404. See [accounts.md](accounts.md) for sign-in and the account
 menu, and [extending.md](extending.md#my-account-pages) to add your own account page.
@@ -103,7 +107,7 @@ Store pages extend `Storefront\Layout::name()`:
 - the view in `commerce.storefront.layout` when it exists (default `cms.layout`, the site layout
   of the CMS's starter templates and of [the starter theme](#the-starter-theme),
   `resources/views/cms/layout.blade.php`);
-- else commerce's minimal layout, `commerce::layouts.store`.
+- otherwise `resources/views/commerce/layouts/store.blade.php` when present, then the package's minimal layout.
 
 ```php
 // config/commerce.php
@@ -150,19 +154,84 @@ php artisan vendor:publish --tag=commerce-templates
 | `storefront/category.blade.php` | `resources/views/cms/taxonomies/{category taxonomy}/show.blade.php` |
 | `storefront/brand.blade.php` | `resources/views/cms/taxonomies/{brand taxonomy}/show.blade.php` |
 | `storefront/tag.blade.php` | `resources/views/cms/taxonomies/{tag taxonomy}/show.blade.php` |
+| `layouts/store.blade.php` | `resources/views/commerce/layouts/store.blade.php` |
 | every other `storefront/**/*.blade.php` | `resources/views/commerce/…` (same relative path) |
 | `stubs/theme/` | `public/commerce-theme/` (`commerce.css`, `commerce.js`) |
 
 `{collection}` is the first of `commerce.catalog.collections` (default `products`). The taxonomy
 folders use `commerce.catalog.*_taxonomy` (defaults `product_categories`, `brands`,
-`product_tags`). The product, shop and term templates land where Sunrice's template resolution
-finds them; the rest are found by `Layout::view()`.
+`product_tags`). CMS templates follow CMS resolution. Other published views are found by
+`Layout::view()`. Removing an app override restores the package fallback.
 
-The minimal layout (`commerce::layouts.store`) isn't published. To change the layout, point
-`commerce.storefront.layout` at your own.
+## Choosing an override
 
-You can delete any published file you don't change: the package's copy is used again. Keep the
-`<x-commerce::slot>` tags in templates you edit, so extensions still show up.
+| What to change | Entry point |
+| --- | --- |
+| Store colors, typography, or surface styles | Add a [CSS skin](#css-skins) after the default theme |
+| Site header, footer, or page frame | Set `commerce.storefront.layout` or edit the [starter layout and partials](#the-starter-theme) |
+| A specific store page | Copy that file from `resources/views/storefront` in the package to `resources/views/commerce` in the app |
+| A product, catalog, category, or brand page | Use the corresponding [CMS template](#which-pages-commerce-renders) |
+| One shopping UI block | Copy the corresponding partial to the same relative path under `resources/views/commerce` |
+| Content inserted at a supported position | Register a [storefront slot](#storefront-slots) |
+| Text only | [Override the translation](#translations) |
+| Email templates or printed documents | See [emails.md](emails.md) and [documents.md](documents.md) |
+
+For example, copy `resources/views/storefront/checkout/shipping-address.blade.php` from the
+package to `resources/views/commerce/checkout/shipping-address.blade.php` in your app and edit
+that copy. If your app already has a published checkout, cart, product, or account page, merge the
+updated `@include` calls into your copy to adopt the new overrides. Publishing without `--force`
+adds missing files and keeps existing copies. If the site uses full-page caching, clear the
+storefront cache when checking a template change.
+
+## Checkout and cart areas
+
+Names below are relative to the app's `resources/views/commerce` directory. Replace the dots
+with slashes and add `.blade.php`.
+
+| View | Data and responsibility |
+| --- | --- |
+| `checkout` | The page frame and single checkout form. Holds the CSRF token, totals hash, feature checks and checkout slots. |
+| `checkout.contact` | `$data`, `$settings`, `$guest`, `$needsAddress`, `$offerAccount`, `$accountRequired`, `$extraFields`. Contact, optional company and account fields. |
+| `checkout.shipping-address` | `$data`, `$settings`, `$guest`, `$savedAddresses`, `$extraFields`. Saved addresses, the address editor and pickup contact. |
+| `checkout.billing-address` | `$data`. Billing address for an order with a separate billing address. |
+| `checkout.address-dialog` | Dialog shell. The storefront script mounts the shipping address editor here. |
+| `checkout.delivery`, `partials.shipping-methods` | `$data`, `$state`. Delivery section and rates list. |
+| `checkout.payment`, `partials.payment-methods` | `$state`, `$data`, `$paymentMethods` in the section. The list uses `$data` and `$paymentMethods` and is shared with the pay page. |
+| `checkout.points`, `partials.checkout-vouchers` | Available points and voucher controls. Points use `$data` and `$loyaltyPoints`. Vouchers use `$state` and the voucher actions. |
+| `checkout.notes` | `$data`, `$settings`, `$extraFields`. Order notes, dropship details and extension fields. |
+| `checkout.summary`, `partials.checkout-summary` | `$cart`, `$state`. The summary wrapper and its contents, used on the page and by checkout refresh. |
+| `checkout.submit` | `$data`, `$guest`, `$termsUrl`, `$captcha`, `$submitLabel`. Terms, CAPTCHA, status and submit controls. |
+| `cart`, `partials.cart` | The page and cart component frame. The component receives `$cart` and the paginated `$lines`. |
+| `cart.items`, `cart.line` | The paginated lines and one row. A row receives `$row` with `line`, `item` and `entry`, plus `$money` and `$taxDisplay`. |
+| `cart.summary`, `partials.totals` | The checkout link and cart summary use `$cart`. The shared totals view takes `$state`. |
+| `cart.remove-dialog`, `cart.cross-sells` | The shared confirmation dialog and the recommendations resolved from `$cart`. |
+| `partials.mini-cart` | `$count`. Header cart trigger and drawer shell. |
+
+Keep form routes and methods, CSRF fields, field names, validation messages, and the
+`data-commerce-*` hooks when reusing the built-in interactions. The refresh script replaces
+`data-commerce-rates`, `data-commerce-payments`, `data-commerce-summary`, and
+`data-commerce-checkout-vouchers` by their root element. Keep each hook on one root and
+keep the checkout address dialog outside the main form. Cart quantity and removal use separate
+forms per row. Test checkouts with a new and saved address, pickup, vouchers, and payment refresh
+after overriding those areas.
+
+## My Account and order areas
+
+| View | Data and responsibility |
+| --- | --- |
+| `account.layout`, `account.navigation` | Shared signed-in frame and navigation. The navigation receives `$navigation` and the selected `$current` key. Custom account pages can extend `account.layout` and fill `@section('account')`. |
+| `account.orders`, `account.quotes`, `account.order-table` | Order and quote pages and their shared table. The table receives the paginated `$orders`. |
+| `account.order-filters` | `$orderFilters`, `$orderFilterErrors`, `$filtersActive`. Order search, status and date controls. |
+| `account.address-form`, `account.address-card` | `$editing` for the address form. The card takes `$address`, `$addresses`, and `$showAddressForm`. |
+| `account.order`, `account.order-returns` | Account order detail and its return history and form. Returns receive `$order`, `$returns` and `$returnable`. |
+| `account.announcement-banner`, `account.announcement` | Announcement above or below account content, or on its own tab. |
+| `order.confirmation`, `order.sidebar` | Thank-you or quote header, order status, shipping, tracking, and order actions. Both receive `$order`. |
+| `partials.order-payment`, `partials.order-items`, `partials.downloads` | Shared payment, order items, and download markup for order and account screens. |
+
+Profile, points, downloads, sign-in, registration and password recovery are also independently
+overridable. See the [account view reference](#account-pages) for their view names. Keep the
+existing account POST actions and CAPTCHA where configured. Reuse the controller-provided
+order and download links so the server can enforce ownership and access.
 
 ## The starter theme
 
@@ -335,6 +404,13 @@ both itself when you leave them out, so extension pages can extend it directly.
 | `partials.listing` | `$query`, `$without`: the filter column (a drawer on phones), the active filters and the products. Used by the shop, category, brand and tag pages. |
 | `partials.active-filters` | `$query`, `$without`: the filters in use as removable chips. |
 | `partials.product-extras` | `$product`: a bundle's contents, a digital product's delivery, shipping notes. |
+| `partials.product-gallery` | `$entry`, `$gallery`, `$variantImages`, `$content`. Carousel, lightbox and video. |
+| `partials.product-summary`, `product.heading` | Product information and purchase section. The heading uses `$entry`, `$product`, `$brand` and `$locale`. |
+| `partials.product-details`, `product.description`, `product.specifications`, `product.questions`, `product.size-guide` | The detail group and its individual panels. Description uses `$entry`. The other panels use the product's resolved `$content`. |
+| `product.buy-controls`, `product.actions` | Quantity and add-to-cart controls use `$product`, `$default` and `$action`. Wishlist and Compare controls use `$entry` and `$projectedProduct`. |
+| `partials.reviews`, `product.review-form` | Reviews use `$product`, `$reviews`, `$breakdown` and `$blocked`. The form uses the product and eligibility reason. |
+| `product.upsells`, `product.related`, `partials.recommendations` | Each product list takes `$entry`. The shared renderer receives `$items`, `$kind` and `$heading`. Cards use `partials.product-card`. |
+| `partials.compare-table`, `partials.wishlist-share` | Comparison receives `$entries`, `$fields`, `$specLabels` and `$specValues`. Sharing receives `$shareUrl` and `$sharedNotice`. |
 | `partials.breadcrumbs` | `$items`: `[{label, url}]`, the last one the current page. |
 | `partials.empty` | `$title`, `$text`, `$action` (`{url, label}`), `$icon`: an empty state. |
 | `partials.pagination` | The page links (`$paginator->links(Layout::view('partials.pagination'))`). |
@@ -355,6 +431,10 @@ Shown on the order and pay pages for a payment's method ([payments.md](payments.
 | `payments.instructions` | Instructions (QRIS, e-wallet…) from the payment's snapshot |
 | `payments.cod` | Cash on delivery |
 | `payments.confirm-link` | The "I have paid" link, when the method asks for a confirmation |
+| `payments.gateway` | The payment gateway's customer instructions |
+
+Published Commerce payment partials are used on order confirmation and in My Account.
+Third-party gateways can return their own namespaced Blade view via `instructionsView()`.
 
 ## Theme assets
 
@@ -420,6 +500,25 @@ document.addEventListener('commerce:cart-updated', (event) => {
 Two small scripts live in their partials instead, so they work without the theme: the variant
 picker (it updates the price, compare-at price, SKU and button, and dispatches `commerce:variant`
 with the chosen variant, bubbling from the buying block) and the countdown (it ticks every second).
+
+### CSS skins
+
+Save a stylesheet such as `public/themes/studio.css`, then set `'skin' => 'themes/studio.css'`
+in the `storefront` array of `config/commerce.php`. Commerce loads it after the base stylesheet and
+adds the file's modification time to its URL. The starter layout loads it across CMS and Commerce
+pages. If your own layout loads assets, include `partials.assets` before its head and scripts
+stacks render. Clear Laravel's config cache when changing the configured path.
+
+```css
+:root {
+    --commerce-accent: #294b40;
+    --commerce-radius: 6px;
+}
+
+.commerce-quantity-offer {
+    border-radius: var(--commerce-radius);
+}
+```
 
 ## Storefront slots
 

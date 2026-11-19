@@ -10,6 +10,6 @@
     @endif
     <div class="commerce-payment__steps">
         @if (! empty($i['instructions']))<div class="commerce-payment__text">{!! nl2br(e($i['instructions'])) !!}</div>@endif
-        @include('commerce::storefront.payments.confirm-link')
+        @include(\Sunrice\Commerce\Storefront\Layout::view('payments.confirm-link'))
     </div>
 </div>

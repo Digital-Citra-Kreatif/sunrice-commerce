@@ -82,7 +82,7 @@ class CheckoutController
             app(UpdateCheckoutData::class)->handle($cart, ['started_at' => now()->toIso8601String()]);
             CheckoutStarted::dispatch($cart);
         }
-        [$data, $view] = $this->resolvePaymentSelection($cart, $data);
+        [$data, $view] = $this->resolveSelections($cart, $data);
         $view->acknowledgePrices();
 
         return view(Layout::view('checkout'), [
@@ -189,7 +189,7 @@ class CheckoutController
     /** @param  array<string, string>  $voucherFeedback */
     private function checkoutResponse(Cart $cart, CheckoutData $data, array $voucherFeedback = []): JsonResponse
     {
-        [$data, $view] = $this->resolvePaymentSelection($cart, $data);
+        [$data, $view] = $this->resolveSelections($cart, $data);
         $props = $this->viewData($cart, $data, $view);
         $money = app(MoneyFormatter::class);
 
@@ -204,7 +204,7 @@ class CheckoutController
             'rates_html' => view(Layout::view('partials.shipping-methods'), $props)->render(),
             'payments_html' => view(Layout::view('partials.payment-methods'), $props)->render(),
             'vouchers_html' => $voucherFeedback === [] ? null : view(Layout::view('partials.checkout-vouchers'), [...$props, ...$voucherFeedback])->render(),
-            'summary' => '<aside class="commerce-checkout__summary" id="summary" data-commerce-summary>'.view(Layout::view('partials.checkout-summary'), $props)->render().'</aside>',
+            'summary' => view(Layout::view('checkout.summary'), $props)->render(),
         ]);
     }
 
@@ -243,9 +243,18 @@ class CheckoutController
     }
 
     /** @return array{CheckoutData, CartView} */
-    private function resolvePaymentSelection(Cart $cart, CheckoutData $data): array
+    private function resolveSelections(Cart $cart, CheckoutData $data): array
     {
         $view = CartView::for($cart, $data->context());
+        if ($this->mode()->requiresRate() && $view->state->shipping['needed'] && $view->state->shipping['rate'] === null) {
+            // Pickup changes the required contact and address fields. Leave it as an explicit choice.
+            $delivery = array_find($view->state->shipping['rates'], fn (array $rate): bool => ! str_starts_with($rate['id'], 'pickup:'));
+            $rate = $delivery['id'] ?? null;
+            if ($rate !== $data->shippingRate()) {
+                $data = $data->merge(['shipping_rate' => $rate]);
+                $view = CartView::for($cart, $data->context());
+            }
+        }
         $available = $this->availablePayments($view->state);
         $selected = $data->paymentMethod();
         if ($selected === null || ! isset($available[$selected])) {

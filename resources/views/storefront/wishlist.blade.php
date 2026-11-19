@@ -15,22 +15,7 @@
         @php($sharedNotice = __('commerce::storefront.wishlist.shared'))
         @include($L::view('partials.messages'), ['showSuccess' => ! $shareUrl || session('commerce.success') !== $sharedNotice])
         @if (! $readOnly && ($shareUrl || $products->isNotEmpty()))
-            <div class="commerce-wishlist__share">
-                @if ($shareUrl)
-                    <p class="commerce-message commerce-message--success" id="commerce-wishlist-share-notice">{{ $sharedNotice }}</p>
-                    <div class="commerce-inline-form">
-                        <label class="commerce-visually-hidden" for="commerce-share-link">{{ __('commerce::storefront.wishlist.share_link') }}</label>
-                        <input id="commerce-share-link" type="text" readonly value="{{ $shareUrl }}" aria-describedby="commerce-wishlist-share-notice"
-                            data-commerce-copy="{{ $shareUrl }}" onclick="this.select()">
-                        <button type="button" class="commerce-button commerce-button--secondary" data-commerce-copy-button data-copied="{{ __('commerce::payments.copied') }}">{{ __('commerce::payments.copy') }}</button>
-                    </div>
-                @endif
-                <form method="POST" action="{{ commerce_url('commerce.wishlist.share') }}">
-                    @csrf
-                    <input type="hidden" name="on" value="{{ $shareUrl ? 0 : 1 }}">
-                    <button type="submit" @class(['commerce-link commerce-link--action' => $shareUrl, 'commerce-button commerce-button--secondary' => ! $shareUrl])>{{ $shareUrl ? __('commerce::storefront.wishlist.stop_sharing') : __('commerce::storefront.wishlist.share') }}</button>
-                </form>
-            </div>
+            @include($L::view('partials.wishlist-share'))
         @endif
         @if ($products->isEmpty())
             @include($L::view('partials.empty'), ['title' => __('commerce::storefront.wishlist.empty'), 'text' => __('commerce::storefront.theme.wishlist_empty_text'), 'icon' => 'heart',
@@ -47,7 +32,7 @@
                                 <input type="hidden" name="variant" value="{{ $view->defaultVariant()?->id }}">
                                 <input type="hidden" name="quantity" value="{{ $view->defaultVariant()?->minOrderQuantity() ?? 1 }}">
                                 <button type="submit" class="commerce-button commerce-button--primary commerce-button--block">{{ $view->cta['label'] }}</button>
-                                @include(\Sunrice\Commerce\Storefront\Layout::view('partials.add-recovery'))
+                                @include($L::view('partials.add-recovery'))
                             </form>
                         @elseif ($view?->purchasable)
                             <a class="commerce-button commerce-button--secondary commerce-button--block" href="{{ $entry->url() }}">{{ __('commerce::storefront.theme.choose_options') }}</a>
