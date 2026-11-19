@@ -562,6 +562,18 @@ section.commerce-account { display: grid; gap: 24px; grid-template-columns: minm
 .commerce-account__card { padding: 20px; background: var(--commerce-surface); margin-top: 24px; }
 .commerce-account__card h2 { margin-top: 0; }
 .commerce-account__card address, .commerce-address-card address { font-style: normal; font-size: 14px; }
+.commerce-order-filters { margin-bottom: 24px; padding: 16px; border: 1px solid var(--commerce-line); background: var(--commerce-surface); }
+.commerce-order-filters__fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.commerce-order-filters__fields .commerce-field { min-width: 0; margin: 0; }
+.commerce-order-filters__fields input, .commerce-order-filters__fields select { display: block; width: 100%; min-width: 0; }
+.commerce-order-filters__search, .commerce-order-filters__status { grid-column: 1 / -1; }
+.commerce-order-filters__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.commerce-order-filters__errors { margin: 12px 0 0; padding-inline-start: 20px; }
+@media (max-width: 359px) { .commerce-order-filters__fields { grid-template-columns: minmax(0, 1fr); } }
+@media (min-width: 1000px) {
+    .commerce-order-filters__fields { grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .commerce-order-filters__search, .commerce-order-filters__status { grid-column: auto; }
+}
 .commerce-account__orders { width: 100%; border-collapse: collapse; border-top: 1px solid var(--commerce-fg); font-size: 14px; }
 .commerce-account__orders th, .commerce-account__orders td { text-align: left; padding: 14px 8px; border-bottom: 1px solid var(--commerce-line); }
 .commerce-account__orders th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--commerce-muted); }

@@ -130,3 +130,48 @@ it('shows recent orders, quick links and the wishlist on the overview', function
         ->assertDontSee('ORD-1')->assertDontSee('ORD-OTHER')
         ->assertSee('Tautan cepat')->assertSee(url('/wishlist'), false);
 });
+
+it('combines customer order search, status and an inclusive date range', function () {
+    $owner = ['user_id' => $this->user->id, 'customer_id' => $this->customer->id];
+    $match = makeOrder([...$owner, 'number' => 'ORD-MATCH', 'status' => 'completed', 'placed_at' => '2026-04-30 23:59:59']);
+    $match->items()->create(['name' => 'KAIN Lookbook 100%', 'quantity' => 1]);
+    makeOrder([...$owner, 'number' => 'ORD-MATCH-OLD', 'status' => 'completed', 'placed_at' => '2026-03-31 23:59:59']);
+    makeOrder([...$owner, 'number' => 'ORD-MATCH-NEW', 'status' => 'completed', 'placed_at' => '2026-05-01 00:00:00']);
+    makeOrder([...$owner, 'number' => 'ORD-MATCH-PENDING', 'placed_at' => '2026-04-15 12:00:00']);
+    makeOrder([...$owner, 'number' => 'ORD-MATCH-QUOTE', 'type' => 'quote', 'status' => 'completed', 'placed_at' => '2026-04-15 12:00:00']);
+    $unowned = makeOrder(['number' => 'ORD-MATCH-OTHER', 'status' => 'completed', 'placed_at' => '2026-04-15 12:00:00']);
+    $unowned->items()->create(['name' => 'KAIN Lookbook 100%', 'quantity' => 1]);
+
+    $this->get('/account/orders?q=ord-match&status=completed&date_from=2026-04-01&date_to=2026-04-30')->assertOk()
+        ->assertSee('ORD-MATCH')->assertDontSee('ORD-MATCH-OLD')->assertDontSee('ORD-MATCH-NEW')
+        ->assertDontSee('ORD-MATCH-PENDING')->assertDontSee('ORD-MATCH-QUOTE')->assertDontSee('ORD-MATCH-OTHER')
+        ->assertSee('Reset filter');
+    $this->get('/account/orders?q=lookbook%20100%25')->assertOk()->assertSee('ORD-MATCH')->assertDontSee('ORD-MATCH-OTHER');
+    $this->get('/account/orders?q=%25%25')->assertOk()->assertSee('Tidak ada pesanan yang cocok.');
+    $this->get('/account/orders?date_to=2026-04-30')->assertOk()->assertSee('ORD-MATCH-OLD')->assertDontSee('ORD-MATCH-NEW');
+
+    $this->get('/account/orders?date_from=2026-04-30&date_to=2026-04-01')->assertOk()
+        ->assertSee('Tanggal akhir harus sama dengan atau setelah tanggal mulai.');
+    $this->get('/account/orders?status%5B%5D=completed&date_to=2026-02-30')->assertOk()
+        ->assertSee('Pilih status pesanan dari daftar.')->assertSee('Masukkan tanggal akhir yang valid.');
+});
+
+it('keeps order filters across pages and paginates ten results at a time', function () {
+    foreach (range(1, 11) as $number) {
+        makeOrder([
+            'number' => sprintf('ORD-PAGED-%02d', $number),
+            'user_id' => $this->user->id,
+            'status' => 'completed',
+            'placed_at' => '2026-04-15 12:00:00',
+        ]);
+    }
+    $filters = '/account/orders?q=ORD-PAGED&status=completed&date_from=2026-04-15&date_to=2026-04-15';
+    $this->get($filters)->assertOk()
+        ->assertSeeInOrder(['ORD-PAGED-11', 'ORD-PAGED-10', 'ORD-PAGED-02'])
+        ->assertDontSee('ORD-PAGED-01')
+        ->assertSee('q=ORD-PAGED&amp;status=completed&amp;date_from=2026-04-15&amp;date_to=2026-04-15&amp;page=2', false);
+
+    $this->get($filters.'&page=2')->assertOk()
+        ->assertSee('ORD-PAGED-01')->assertDontSee('ORD-PAGED-02')
+        ->assertSee('aria-current="page">2', false);
+});
