@@ -144,6 +144,24 @@ it('updates quantities and applies and removes vouchers on the cart API', functi
         ->assertOk()->assertJsonPath('cart.count', 0)->assertJsonPath('cart.lines', []);
 });
 
+it('keeps cart edits on the cart when an admin tab changed the session’s previous URL', function () {
+    $this->mug->update(['stock_quantity' => 1]);
+    $cart = cartWith([[$this->mug, 1]]);
+    $item = $cart->items()->sole();
+    $editor = url('/admin/cms/entries/picker');
+    $action = "/cart/items/{$item->id}";
+
+    $this->withSession(['_previous' => ['url' => $editor]])->patch($action, ['quantity' => 2])
+        ->assertRedirect('/cart')->assertSessionHas('commerce.error');
+    $this->mug->update(['stock_quantity' => 4]);
+
+    $this->withSession(['_previous' => ['url' => $editor]])->patch($action, ['quantity' => 2, 'page' => 2])
+        ->assertRedirect('/cart?page=2')->assertSessionHas('commerce.success');
+    expect($item->fresh()->quantity)->toBe(2);
+    $this->withSession(['_previous' => ['url' => $editor]])->patch($action, ['quantity' => 0])
+        ->assertRedirect('/cart')->assertSessionHasErrors('quantity');
+});
+
 it('needs CSRF on cart forms', function () {
     $this->withMiddleware(ValidateCsrfToken::class);
     $this->app->instance('env', 'production');

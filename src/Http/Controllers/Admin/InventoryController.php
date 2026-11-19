@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Support\Access;
 use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Admin\Tables\Column;
 use Sunrice\Commerce\Admin\Tables\TableQuery;
@@ -54,6 +56,13 @@ class InventoryController extends Controller
             $table->builder()->orderBy('t.title')->orderBy('commerce_variants.position');
         }
         $rows = $table->defaultPerPage(50)->paginate($request);
+        $user = $request->user();
+        $editUrls = Entry::query()->with('collection')->whereKey($rows->getCollection()->pluck('entry_id')->unique()->all())->get()
+            ->filter(fn (Entry $entry) => Access::entries($user, 'view', $entry->collection, $entry, Locales::default())
+                && Access::entries($user, 'update', $entry->collection, $entry, Locales::default()))
+            ->mapWithKeys(fn (Entry $entry) => [$entry->id => route('sunrice.admin.cms.collections.entries.edit', [
+                'collection' => $entry->collection->handle, 'entry' => $entry->id,
+            ], false)]);
         // Customers waiting for each variant on the page (back-in-stock alerts): one query.
         $alerts = commerce_feature('stock_alerts');
         $waiting = $alerts ? StockAlert::query()->whereNull('notified_at')->whereIn('variant_id', $rows->getCollection()->modelKeys())
@@ -70,6 +79,7 @@ class InventoryController extends Controller
                 'id' => $v->id,
                 'product_title' => trim($v->getAttribute('product_title').($v->title !== '' ? ' — '.$v->title : '')),
                 'entry_id' => $v->getAttribute('entry_id'),
+                'edit_url' => $editUrls->get((int) $v->getAttribute('entry_id')),
                 'sku' => $v->sku,
                 'track_stock' => $v->track_stock,
                 'stock_quantity' => $v->stock_quantity,

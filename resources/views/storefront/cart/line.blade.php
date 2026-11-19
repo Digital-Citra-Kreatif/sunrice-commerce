@@ -28,6 +28,7 @@
     <td class="commerce-cart__qty">
         <form method="POST" action="{{ commerce_url('commerce.cart.update', ['item' => $row['item']->id]) }}">
             @csrf @method('PATCH')
+            @if (($cartPage ?? 1) > 1)<input type="hidden" name="page" value="{{ $cartPage }}">@endif
             <span class="commerce-stepper" data-commerce-stepper data-commerce-autosubmit>
                 <input type="number" name="quantity" value="{{ $line->quantity }}" min="{{ max(1, $line->variant->minOrderQuantity()) }}" step="{{ $line->variant->qty_step }}" required @if ($line->variant->maxOrderQuantity()) max="{{ $line->variant->maxOrderQuantity() }}" @endif aria-label="{{ __('commerce::storefront.cart.quantity') }}">
             </span>
@@ -42,6 +43,7 @@
     <td class="commerce-cart__remove">
         <form method="POST" action="{{ commerce_url('commerce.cart.remove', ['item' => $row['item']->id]) }}" data-commerce-cart-remove="{{ $itemName }}">
             @csrf @method('DELETE')
+            @if (($cartPage ?? 1) > 1)<input type="hidden" name="page" value="{{ $cartPage }}">@endif
             <details class="commerce-cart__remove-disclosure">
                 <summary class="commerce-cart__remove-trigger" data-commerce-cart-remove-trigger
                     aria-label="{{ __('commerce::storefront.cart.remove_item', ['item' => $itemName]) }}">@include($L::view('partials.icon'), ['name' => 'trash'])</summary>

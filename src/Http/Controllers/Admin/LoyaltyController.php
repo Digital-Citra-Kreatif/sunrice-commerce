@@ -17,10 +17,21 @@ use Sunrice\Commerce\Loyalty\Actions\AdjustPoints;
 use Sunrice\Commerce\Loyalty\Models\LoyaltyTransaction;
 use Sunrice\Commerce\Support\ActivityRecorder;
 use Sunrice\Commerce\Support\MoneyFormatter;
+use Sunrice\Commerce\Support\Staff;
 
 /** Shop → Customers → Loyalty points: customers' balances and history; staff add or take points. */
 class LoyaltyController extends Controller
 {
+    private const HISTORY_TYPES = [
+        'earn' => 'Earned',
+        'redeem' => 'Redeemed',
+        'release' => 'Returned',
+        'refund' => 'Refunded',
+        'revoke' => 'Revoked',
+        'adjust' => 'Manual adjustment',
+        'expire' => 'Expired',
+    ];
+
     public function index(Request $request): Response
     {
         $this->guard();
@@ -49,21 +60,73 @@ class LoyaltyController extends Controller
         ]);
     }
 
-    public function edit(Customer $customer, MoneyFormatter $money): Response
+    public function edit(Request $request, Customer $customer, MoneyFormatter $money): Response
     {
         $this->guard();
-        $history = LoyaltyTransaction::query()->with('order')->where('customer_id', $customer->id)->latest('id')->limit(50)->get()
-            ->map(fn (LoyaltyTransaction $t) => ($t->created_at?->isoFormat('D MMM YYYY') ?? '').': '.ucfirst($t->kind).' '.($t->points > 0 ? '+' : '').number_format($t->points, 0, ',', '.')
-                .($t->order !== null ? ' ('.$t->order->displayNumber().')' : '').($t->note ? ' — '.$t->note : ''))->implode(' · ');
+        $history = TableQuery::for(LoyaltyTransaction::query()->where('customer_id', $customer->id)
+            ->with(['order' => fn ($query) => $query->withTrashed()])
+            ->select('commerce_loyalty_transactions.*')
+            // Subtract every later movement, including ones excluded by the current table filter.
+            ->selectRaw('(
+                SELECT wallet.loyalty_points FROM commerce_customers AS wallet
+                WHERE wallet.id = commerce_loyalty_transactions.customer_id
+            ) - COALESCE((
+                SELECT SUM(later.points) FROM commerce_loyalty_transactions AS later
+                WHERE later.customer_id = commerce_loyalty_transactions.customer_id
+                    AND later.id > commerce_loyalty_transactions.id
+            ), 0) AS balance_after'))
+            ->searchable(['note'])
+            ->filter('kind', fn ($query, $kind) => isset(self::HISTORY_TYPES[$kind]) ? $query->where('kind', $kind) : $query)
+            ->apply($request);
+        $history->builder()->latest('id');
+        $rows = $history->defaultPerPage(25)->paginate($request);
+        $staffIds = $rows->getCollection()->pluck('user_id')->filter()->unique();
+        $users = Staff::userModel();
+        $names = $staffIds->isEmpty() ? collect() : $users::query()->whereIn('id', $staffIds)->pluck('name', 'id');
+        $canViewOrders = commerce_feature('orders') && $request->user()->can('commerce.orders.view');
+        $kinds = collect(self::HISTORY_TYPES)->map(fn (string $label, string $kind) => ['label' => $label, 'value' => $kind])->values()->all();
 
-        return Inertia::render('Commerce/Shared/SchemaForm', [
+        return Inertia::render('Commerce/Loyalty/Show', [
             'title' => 'Points: '.($customer->name ?: $customer->email),
-            'description' => 'Balance '.number_format($customer->loyalty_points, 0, ',', '.').' points ('.$money->format($customer->loyalty_points).')'.($history !== '' ? ' · '.$history : ''),
+            'description' => 'Balance '.number_format($customer->loyalty_points, 0, ',', '.').' points ('.$money->format($customer->loyalty_points).')',
+            'balance' => $customer->loyalty_points,
+            'history' => $this->tableProps('commerce-loyalty-history', $history, [
+                new Column('created_at', 'Date and time'),
+                new Column('kind', 'Activity'),
+                new Column('points', 'Change', type: 'number'),
+                new Column('balance_after', 'Balance after', type: 'number'),
+                new Column('order_number', 'Order'),
+                new Column('actor', 'Source'),
+                new Column('expires_at', 'Expires'),
+                new Column('note', 'Reason'),
+            ], $rows->through(function (Model $transaction) use ($names, $canViewOrders): array {
+                if (! $transaction instanceof LoyaltyTransaction) {
+                    throw new \LogicException('Expected a loyalty transaction.');
+                }
+
+                $order = $transaction->order;
+
+                return [
+                    'id' => $transaction->id,
+                    'created_at' => $transaction->created_at?->toIso8601String(),
+                    'kind' => self::HISTORY_TYPES[$transaction->kind] ?? ucfirst($transaction->kind),
+                    'points' => $transaction->points,
+                    'balance_after' => (int) $transaction->getAttribute('balance_after'),
+                    'order_number' => $order?->displayNumber(),
+                    'order_url' => $canViewOrders && $order !== null ? route('sunrice.admin.commerce.orders.show', $order, false) : null,
+                    'actor' => $transaction->user_id === null
+                        ? ($transaction->kind === 'redeem' ? 'Checkout' : 'System')
+                        : ($names->get($transaction->user_id) ?? 'Staff #'.$transaction->user_id),
+                    'expires_at' => $transaction->expires_at?->toIso8601String(),
+                    'note' => $transaction->note,
+                ];
+            }), [
+                ['key' => 'kind', 'label' => 'Activity', 'type' => 'select', 'options' => $kinds],
+            ]),
             'form' => SchemaForm::make([
                 ['handle' => 'points', 'type' => 'number', 'label' => 'Add points', 'required' => true, 'instructions' => 'Negative to take points away (never below zero).', 'validation' => ['integer']],
                 ['handle' => 'note', 'type' => 'text', 'label' => 'Why', 'translatable' => false, 'instructions' => 'Shown to staff in the history.', 'validation' => ['max:500']],
             ], ['points' => null, 'note' => null])->action(route('sunrice.admin.commerce.loyalty.update', $customer, false), 'put'),
-            'breadcrumbs' => [['label' => 'Shop', 'href' => 'commerce'], ['label' => 'Loyalty points', 'href' => 'commerce/loyalty']],
         ]);
     }
 
@@ -77,7 +140,7 @@ class LoyaltyController extends Controller
         $adjust->handle($customer, (int) $data['values']['points'], $data['values']['note'] ?? null, (int) $request->user()->getAuthIdentifier());
         app(ActivityRecorder::class)->record('updated', 'Points of '.($customer->email ?? $customer->name), ['points' => (int) $data['values']['points']], 'customer');
 
-        return back()->with('success', 'Points saved.');
+        return redirect()->route('sunrice.admin.commerce.loyalty.edit', $customer)->with('success', 'Points saved.');
     }
 
     protected function guard(): void

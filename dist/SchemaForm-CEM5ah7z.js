@@ -1,14 +1,14 @@
-import { d as u, u as v, a as r, R as p, j as x, b as a, P as b, c as g, i as w, o as S } from "./main-DxgJLs0v.js";
+import { d as u, u as v, a as r, R as p, j as x, b as a, P as b, c as g, i as w, k } from "./main-BjsacfA0.js";
 const n = "commerce-schema-form";
-function y({ title: o, description: l, form: s, breadcrumbs: t = [], deleteUrl: i, deleteConfirm: d }) {
+function y({ title: t, description: l, form: s, breadcrumbs: o = [], deleteUrl: i, deleteConfirm: d }) {
   const { Button: m } = g;
-  u(), v([...t.map((e) => ({ ...e, href: e.href ? r(e.href) : void 0 })), { label: o }]);
-  const [f, h] = p.useState(!1), c = [...t].reverse().find((e) => e.href && e.href !== "commerce");
+  u(), v([...o.map((e) => ({ ...e, href: e.href ? r(e.href) : void 0 })), { label: t }]);
+  const [f, h] = p.useState(!1), c = [...o].reverse().find((e) => e.href && e.href !== "commerce");
   return /* @__PURE__ */ x("div", { className: "cm:flex cm:min-w-0 cm:max-w-5xl cm:flex-col cm:gap-6", children: [
     /* @__PURE__ */ a(
       b,
       {
-        title: o,
+        title: t,
         description: l,
         back: c?.href ? { href: r(c.href), label: `Back to ${c.label.toLowerCase()}` } : void 0,
         actions: i ? /* @__PURE__ */ a(
@@ -24,7 +24,7 @@ function y({ title: o, description: l, form: s, breadcrumbs: t = [], deleteUrl: 
         primary: /* @__PURE__ */ a(m, { type: "submit", form: n, disabled: f, children: s.submitLabel })
       }
     ),
-    /* @__PURE__ */ a(S, { form: s, id: n, onProcessing: h, storageKey: `commerce:form:${s.action.replace(/\/\d+/g, "")}` })
+    /* @__PURE__ */ a(k, { form: s, id: n, onProcessing: h, storageKey: `commerce:form:${s.action.replace(/\/\d+/g, "")}` })
   ] });
 }
 export {

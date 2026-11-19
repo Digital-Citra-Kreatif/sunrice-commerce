@@ -10,7 +10,7 @@
     <caption class="commerce-visually-hidden">{{ __('commerce::storefront.cart.title') }}</caption>
     <tbody>
         @foreach ($lines as $row)
-            @include($L::view('cart.line'))
+            @include($L::view('cart.line'), ['cartPage' => $lines->currentPage()])
         @endforeach
     </tbody>
 </table>

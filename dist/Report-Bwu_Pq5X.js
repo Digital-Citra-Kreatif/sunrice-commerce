@@ -1,4 +1,4 @@
-import { i as T, d as j, u as B, a as d, R as E, j as c, b as e, P as H, F as p, S as k, c as O, f as a } from "./main-DxgJLs0v.js";
+import { i as T, d as j, u as B, a as d, R as E, j as c, b as e, P as H, F as p, S as k, c as O, f as a } from "./main-BjsacfA0.js";
 import { r as m } from "./marketing-Bya9hWH-.js";
 const b = (r) => `${r.toLocaleString()} ${r === 1 ? "person" : "people"}`, s = (r) => r ? new Date(r).toLocaleString(void 0, { dateStyle: "medium", timeStyle: "short" }) : "—", _ = { sent: "ok", queued: "info", sending: "info", failed: "error", skipped: "neutral", active: "ok", paused: "warning", cancelled: "error", scheduled: "info" };
 function F({ campaign: r, stats: n, links: g, recipients: f }) {

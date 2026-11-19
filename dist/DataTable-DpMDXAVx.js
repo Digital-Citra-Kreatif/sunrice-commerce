@@ -1,4 +1,4 @@
-import { j as n, b as c, p as D, U as fe, i as ve, q as be, r as ke } from "./main-DxgJLs0v.js";
+import { b as c, j as n, p as L, U as fe, i as ve, q as be, r as ke } from "./main-BjsacfA0.js";
 const W = [10, 25, 50, 100, 200];
 function ye(t, h = {}) {
   const r = { ...t, ...h }, u = {};
@@ -9,7 +9,7 @@ function ye(t, h = {}) {
 function X(t) {
   return t == null || t === "" ? "—" : typeof t == "boolean" ? t ? "Yes" : "No" : String(t);
 }
-function d({ className: t, children: h }) {
+function m({ className: t, children: h }) {
   return /* @__PURE__ */ c(
     "svg",
     {
@@ -26,14 +26,14 @@ function d({ className: t, children: h }) {
     }
   );
 }
-const xe = (t) => /* @__PURE__ */ n(d, { ...t, children: [
+const xe = (t) => /* @__PURE__ */ n(m, { ...t, children: [
   /* @__PURE__ */ c("circle", { cx: "11", cy: "11", r: "8" }),
   /* @__PURE__ */ c("path", { d: "m21 21-4.3-4.3" })
-] }), we = (t) => /* @__PURE__ */ n(d, { ...t, children: [
+] }), we = (t) => /* @__PURE__ */ n(m, { ...t, children: [
   /* @__PURE__ */ c("rect", { width: "18", height: "18", x: "3", y: "3", rx: "2" }),
   /* @__PURE__ */ c("path", { d: "M9 3v18M15 3v18" })
-] }), Ne = (t) => /* @__PURE__ */ c(d, { ...t, children: /* @__PURE__ */ c("path", { d: "M22 3H2l8 9.46V19l4 2v-8.54L22 3z" }) }), Ce = (t) => /* @__PURE__ */ c(d, { ...t, children: /* @__PURE__ */ c("path", { d: "m5 12 7-7 7 7M12 19V5" }) }), Se = (t) => /* @__PURE__ */ c(d, { ...t, children: /* @__PURE__ */ c("path", { d: "M12 5v14M19 12l-7 7-7-7" }) }), Me = (t) => /* @__PURE__ */ c(d, { ...t, children: /* @__PURE__ */ c("path", { d: "m21 16-4 4-4-4M17 20V4M3 8l4-4 4 4M7 4v16" }) }), Ie = (t) => /* @__PURE__ */ c(d, { ...t, children: /* @__PURE__ */ c("path", { d: "m15 18-6-6 6-6" }) }), Pe = (t) => /* @__PURE__ */ c(d, { ...t, children: /* @__PURE__ */ c("path", { d: "m9 18 6-6-6-6" }) }), Te = (t) => /* @__PURE__ */ c(d, { ...t, children: /* @__PURE__ */ c("path", { d: "M18 6 6 18M6 6l12 12" }) }), { router: L, Link: _e } = ve, ze = fe, De = ke, j = "__all", Y = 3;
-function je(t) {
+] }), Ne = (t) => /* @__PURE__ */ c(m, { ...t, children: /* @__PURE__ */ c("path", { d: "M22 3H2l8 9.46V19l4 2v-8.54L22 3z" }) }), Ce = (t) => /* @__PURE__ */ c(m, { ...t, children: /* @__PURE__ */ c("path", { d: "m5 12 7-7 7 7M12 19V5" }) }), Se = (t) => /* @__PURE__ */ c(m, { ...t, children: /* @__PURE__ */ c("path", { d: "M12 5v14M19 12l-7 7-7-7" }) }), Me = (t) => /* @__PURE__ */ c(m, { ...t, children: /* @__PURE__ */ c("path", { d: "m21 16-4 4-4-4M17 20V4M3 8l4-4 4 4M7 4v16" }) }), Ie = (t) => /* @__PURE__ */ c(m, { ...t, children: /* @__PURE__ */ c("path", { d: "m15 18-6-6 6-6" }) }), Pe = (t) => /* @__PURE__ */ c(m, { ...t, children: /* @__PURE__ */ c("path", { d: "m9 18 6-6-6-6" }) }), Te = (t) => /* @__PURE__ */ c(m, { ...t, children: /* @__PURE__ */ c("path", { d: "M18 6 6 18M6 6l12 12" }) }), je = (t) => /* @__PURE__ */ c(m, { ...t, children: /* @__PURE__ */ c("path", { d: "m14 6 4 4M4 20l4-.8L20 7l-4-4L4 15z" }) }), { router: D, Link: _e } = ve, ze = fe, Le = ke, j = "__all", Y = 3;
+function Ae(t) {
   const {
     Input: h,
     Button: r,
@@ -58,13 +58,13 @@ function je(t) {
     Popover: ae,
     PopoverTrigger: re,
     PopoverContent: ie
-  } = ze, { meta: i, rows: l } = t, [E, $] = D(i.search ?? ""), [f, k] = D([]), F = t.visibleColumns !== void 0 && t.tableKey !== void 0, [y, se] = D(t.visibleColumns), oe = De(t.tableKey ?? "commerce-table", F ? { columns: t.visibleColumns } : null), me = (e, s) => {
+  } = ze, { meta: i, rows: l } = t, [E, $] = L(i.search ?? ""), [f, k] = L([]), F = t.visibleColumns !== void 0 && t.tableKey !== void 0, [y, se] = L(t.visibleColumns), oe = Le(t.tableKey ?? "commerce-table", F ? { columns: t.visibleColumns } : null), me = (e, s) => {
     const a = t.columns.map((o) => o.key).filter((o) => o === e ? s : (y ?? []).includes(o));
     a.length !== 0 && (se(a), oe.setColumns(a));
   }, x = y ? t.columns.filter((e) => y.includes(e.key)) : t.columns, H = x.filter((e) => e.type === "badge" && t.mobileBadgeColumns?.includes(e.key)), w = (t.bulkActions ?? []).length > 0 && t.bulkUrl !== void 0, P = l.data.map((e) => e.id).filter((e) => e !== void 0), T = t.filters ?? [], de = T.slice(0, Y), _ = T.slice(Y), O = (e) => (i.filters?.[e] ?? "") !== "", q = _.filter((e) => O(e.key)).length, K = T.some((e) => O(e.key)) || !!i.search, p = (e) => {
-    k([]), L.get(window.location.pathname, ye(i, e), { preserveState: !0, preserveScroll: !0, replace: !0 });
+    k([]), D.get(window.location.pathname, ye(i, e), { preserveState: !0, preserveScroll: !0, replace: !0 });
   }, he = (e, s) => p({ filters: { ...i.filters, [e]: s === j ? "" : s } }), ue = (e) => p({ sort: e.key, direction: i.sort === e.key && i.direction === "asc" ? "desc" : "asc" }), ge = (e) => {
-    e.confirm && !window.confirm(e.confirm) || L.post(t.bulkUrl, { action: e.key, ids: f }, { preserveScroll: !0, onSuccess: () => k([]) });
+    e.confirm && !window.confirm(e.confirm) || D.post(t.bulkUrl, { action: e.key, ids: f }, { preserveScroll: !0, onSuccess: () => k([]) });
   }, G = (e, s) => /* @__PURE__ */ n(B, { value: i.filters?.[e.key] || j, onValueChange: (a) => he(e.key, a), children: [
     /* @__PURE__ */ c(R, { className: s, "aria-label": e.label, children: /* @__PURE__ */ c(U, {}) }),
     /* @__PURE__ */ n(V, { children: [
@@ -165,14 +165,14 @@ function je(t) {
         /* @__PURE__ */ n(Z, { children: [
           l.data.length === 0 && /* @__PURE__ */ c(S, { className: "cm:hover:bg-transparent", children: /* @__PURE__ */ c(M, { colSpan: pe, className: "cm:h-24 cm:text-center cm:text-muted-foreground", children: K ? "Nothing matches." : "Nothing here yet." }) }),
           l.data.map((e, s) => {
-            const a = t.rowHref?.(e) ?? null, o = e.id, z = t.onRowClick ? () => t.onRowClick(e) : a ? () => L.visit(a) : void 0;
+            const a = t.rowHref?.(e) ?? null, o = e.id, z = t.onRowClick ? () => t.onRowClick(e) : a ? () => D.visit(a) : void 0;
             return /* @__PURE__ */ n(
               S,
               {
                 "data-state": o !== void 0 && f.includes(o) ? "selected" : void 0,
                 className: z ? "cm:cursor-pointer" : void 0,
-                onClick: z ? (m) => {
-                  m.target.closest('a, button, input, label, [role="checkbox"]') || z();
+                onClick: z ? (d) => {
+                  d.target.closest('a, button, input, label, [role="checkbox"]') || z();
                 } : void 0,
                 children: [
                   w && /* @__PURE__ */ c(M, { children: o !== void 0 && /* @__PURE__ */ c(
@@ -180,15 +180,15 @@ function je(t) {
                     {
                       "aria-label": "Select row",
                       checked: f.includes(o),
-                      onCheckedChange: (m) => k((b) => m ? [...b, o] : b.filter((N) => N !== o))
+                      onCheckedChange: (d) => k((b) => d ? [...b, o] : b.filter((N) => N !== o))
                     }
                   ) }),
-                  x.map((m, b) => {
-                    const N = t.renderCell?.(e, m), Q = N === void 0 ? X(e[m.key]) : N;
+                  x.map((d, b) => {
+                    const N = t.renderCell?.(e, d), Q = N === void 0 ? X(e[d.key]) : N;
                     return /* @__PURE__ */ n(M, { className: "cm:whitespace-nowrap", children: [
                       a && b === 0 ? /* @__PURE__ */ c(_e, { href: a, className: "cm:font-medium cm:underline-offset-4 cm:hover:underline", children: Q }) : Q,
-                      b === 0 && H.some((g) => g.key !== m.key && e[g.key] != null) && /* @__PURE__ */ c("div", { "aria-hidden": "true", "data-mobile-badges": !0, className: "cm:mt-1 cm:flex cm:max-w-48 cm:flex-wrap cm:gap-1 cm:md:hidden", children: H.map((g) => g.key !== m.key && e[g.key] != null && /* @__PURE__ */ c(be, { children: t.renderCell?.(e, g) ?? X(e[g.key]) }, g.key)) })
-                    ] }, m.key);
+                      b === 0 && H.some((g) => g.key !== d.key && e[g.key] != null) && /* @__PURE__ */ c("div", { "aria-hidden": "true", "data-mobile-badges": !0, className: "cm:mt-1 cm:flex cm:max-w-48 cm:flex-wrap cm:gap-1 cm:md:hidden", children: H.map((g) => g.key !== d.key && e[g.key] != null && /* @__PURE__ */ c(be, { children: t.renderCell?.(e, g) ?? X(e[g.key]) }, g.key)) })
+                    ] }, d.key);
                   })
                 ]
               },
@@ -247,5 +247,6 @@ function je(t) {
   ] });
 }
 export {
-  je as D
+  Ae as D,
+  je as P
 };
