@@ -1,4 +1,4 @@
-import { c } from "./main-CTh7Ju_w.js";
+import { c } from "./main-UjOiT65M.js";
 function n({ message: r, id: t }) {
   return r ? /* @__PURE__ */ c("p", { id: t, className: "cm:text-sm cm:text-destructive", children: r }) : null;
 }

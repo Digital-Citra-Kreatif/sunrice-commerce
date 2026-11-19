@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Sunrice\Cms\Models\EntryTranslation;
@@ -18,12 +19,13 @@ use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Admin\Tables\Column;
 use Sunrice\Commerce\Admin\Tables\TableQuery;
 use Sunrice\Commerce\Catalog\Models\Product;
+use Sunrice\Commerce\Reviews\Actions\CreateManualReview;
 use Sunrice\Commerce\Reviews\Actions\DeleteReviews;
 use Sunrice\Commerce\Reviews\Actions\ReplyToReview;
 use Sunrice\Commerce\Reviews\Actions\SetReviewStatus;
 use Sunrice\Commerce\Reviews\Models\Review;
 
-/** Shop → Products → Reviews: approve, reject, reply to and delete product reviews. */
+/** Shop → Products → Reviews: create, edit, moderate and delete product reviews. */
 class ReviewsController extends Controller
 {
     private const STATUS_LABELS = ['pending' => 'Waiting', 'approved' => 'Shown', 'rejected' => 'Rejected'];
@@ -46,7 +48,7 @@ class ReviewsController extends Controller
         return Inertia::render('Commerce/Shared/ResourceIndex', [
             'title' => 'Reviews',
             'description' => 'Product reviews from customers. They show on the product page once approved.',
-            'createUrl' => null,
+            'createUrl' => 'commerce/reviews/create',
             'bulkUrl' => route('sunrice.admin.commerce.reviews.bulk', [], false),
             ...$this->tableProps('commerce-reviews', $table, [
                 new Column('review', 'Review'),
@@ -93,6 +95,45 @@ class ReviewsController extends Controller
         return back()->with('success', $done === 1 ? '1 review updated.' : "{$done} reviews updated.");
     }
 
+    public function create(): Response
+    {
+        $this->guard();
+
+        return Inertia::render('Commerce/Shared/SchemaForm', [
+            'title' => 'Add review',
+            'description' => 'Record a review shared by a buyer. The order verifies the purchase and supplies the reviewer’s name.',
+            'form' => SchemaForm::make([
+                ['handle' => 'order_number', 'type' => 'text', 'label' => 'Order number', 'required' => true, 'width' => 50,
+                    'config' => ['max' => 190], 'instructions' => 'Use the number shown in Shop → Orders.'],
+                ['handle' => 'product', 'type' => 'commerce_targets', 'label' => 'Product from the order', 'required' => true, 'width' => 50,
+                    'config' => ['types' => ['product'], 'single' => true]],
+                ...$this->contentFields(),
+            ], ['status' => 'pending'])->action(route('sunrice.admin.commerce.reviews.store', [], false)),
+            'breadcrumbs' => $this->breadcrumbs(),
+        ]);
+    }
+
+    public function store(Request $request, CreateManualReview $create): RedirectResponse
+    {
+        $this->guard();
+        $data = $request->validate([
+            ...$this->contentRules(),
+            'values.order_number' => ['required', 'string', 'max:190'],
+            'values.product' => ['required', 'array', 'size:1'],
+            'values.product.0.type' => ['required', Rule::in(['product'])],
+            'values.product.0.id' => ['required', 'integer'],
+        ])['values'];
+        $product = Product::query()->whereNull('removed_at')->find($data['product'][0]['id']);
+        if ($product === null) {
+            throw ValidationException::withMessages(['values.product' => 'Choose a product that is still in the catalog.']);
+        }
+        $review = $create->handle($product, $data['order_number'], [
+            'rating' => (int) $data['rating'], 'title' => $data['title'] ?? null, 'body' => $data['body'], 'status' => $data['status'],
+        ]);
+
+        return redirect()->route('sunrice.admin.commerce.reviews.edit', $review)->with('success', 'Review added.');
+    }
+
     public function edit(Review $review): Response
     {
         $this->guard();
@@ -101,16 +142,14 @@ class ReviewsController extends Controller
 
         return Inertia::render('Commerce/Shared/SchemaForm', [
             'title' => "Review by {$review->name}",
-            // What the customer wrote, with the product and when.
-            'description' => str_repeat('★', $review->rating).' · '.($title ?? "Product #{$review->product_id}").($review->verified() ? ' · verified purchase' : '')
-                .' · '.$review->created_at?->isoFormat('D MMM YYYY').($review->email ? " · {$review->email}" : '')
-                .' — '.($review->title ? "{$review->title}: " : '').$review->body,
+            'description' => ($title ?? "Product #{$review->product_id}").($review->verified() ? ' · verified purchase' : '')
+                .' · '.$review->created_at?->isoFormat('D MMM YYYY').($review->email ? " · {$review->email}" : ''),
             'form' => SchemaForm::make([
-                ['handle' => 'status', 'type' => 'select', 'label' => 'Status', 'required' => true, 'config' => ['options' => array_map(fn (string $k, string $l) => ['value' => $k, 'label' => $l], array_keys(self::STATUS_LABELS), self::STATUS_LABELS)]],
+                ...$this->contentFields(),
                 ['handle' => 'reply', 'type' => 'textarea', 'label' => 'Your reply', 'instructions' => 'Shown under the review, as from the store.', 'validation' => ['max:5000']],
-            ], ['status' => $review->status, 'reply' => $review->reply])
+            ], [...$review->only(['title', 'body', 'status', 'reply']), 'rating' => (string) $review->rating])
                 ->action(route('sunrice.admin.commerce.reviews.update', $review, false), 'put'),
-            'breadcrumbs' => [['label' => 'Shop', 'href' => 'commerce'], ['label' => 'Reviews', 'href' => 'commerce/reviews']],
+            'breadcrumbs' => $this->breadcrumbs(),
             'deleteUrl' => "commerce/reviews/{$review->id}",
         ]);
     }
@@ -119,10 +158,10 @@ class ReviewsController extends Controller
     {
         $this->guard();
         $data = $request->validate([
-            'values.status' => ['required', Rule::in(Review::STATUSES)],
+            ...$this->contentRules(partial: true),
             'values.reply' => ['nullable', 'string', 'max:5000'],
-        ]);
-        $reply->handle($review, $data['values']['reply'] ?? null, $data['values']['status']);
+        ])['values'];
+        $reply->handle($review, $data['reply'] ?? null, $data['status'], array_intersect_key($data, array_flip(['rating', 'title', 'body'])));
 
         return back()->with('success', 'Review saved.');
     }
@@ -133,6 +172,38 @@ class ReviewsController extends Controller
         $delete->handle([$review]);
 
         return redirect()->route('sunrice.admin.commerce.reviews')->with('success', 'Review deleted.');
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function contentFields(): array
+    {
+        return [
+            ['handle' => 'rating', 'type' => 'select', 'label' => 'Rating', 'required' => true, 'width' => 50,
+                'config' => ['options' => array_map(fn (int $rating) => ['value' => (string) $rating, 'label' => "{$rating} / 5"], [5, 4, 3, 2, 1])]],
+            ['handle' => 'status', 'type' => 'select', 'label' => 'Status', 'required' => true, 'width' => 50,
+                'config' => ['options' => array_map(fn (string $key, string $label) => ['value' => $key, 'label' => $label], array_keys(self::STATUS_LABELS), self::STATUS_LABELS)]],
+            ['handle' => 'title', 'type' => 'text', 'label' => 'Review title', 'config' => ['max' => 150]],
+            ['handle' => 'body', 'type' => 'textarea', 'label' => 'Review text', 'required' => true, 'config' => ['max' => 5000]],
+        ];
+    }
+
+    /** @return array<string, list<mixed>> */
+    private function contentRules(bool $partial = false): array
+    {
+        $required = $partial ? ['sometimes', 'required'] : ['required'];
+
+        return [
+            'values.rating' => [...$required, 'integer', 'between:1,5'],
+            'values.status' => ['required', Rule::in(Review::STATUSES)],
+            'values.title' => ['nullable', 'string', 'max:150'],
+            'values.body' => [...$required, 'string', 'max:5000'],
+        ];
+    }
+
+    /** @return list<array{label: string, href: string}> */
+    private function breadcrumbs(): array
+    {
+        return [['label' => 'Shop', 'href' => 'commerce'], ['label' => 'Reviews', 'href' => 'commerce/reviews']];
     }
 
     protected function guard(): void

@@ -111,6 +111,8 @@ Route::prefix('commerce')->name('commerce.')->middleware(ScopeAdminOrders::class
     Route::get('returns/{return}', [Admin\ReturnsController::class, 'edit'])->whereNumber('return')->name('returns.edit');
     Route::put('returns/{return}', [Admin\ReturnsController::class, 'update'])->whereNumber('return')->name('returns.update');
     Route::get('reviews', [Admin\ReviewsController::class, 'index'])->name('reviews');
+    Route::get('reviews/create', [Admin\ReviewsController::class, 'create'])->name('reviews.create');
+    Route::post('reviews', [Admin\ReviewsController::class, 'store'])->name('reviews.store');
     Route::post('reviews/bulk', [Admin\ReviewsController::class, 'bulk'])->name('reviews.bulk');
     Route::get('reviews/{review}', [Admin\ReviewsController::class, 'edit'])->whereNumber('review')->name('reviews.edit');
     Route::put('reviews/{review}', [Admin\ReviewsController::class, 'update'])->whereNumber('review')->name('reviews.update');

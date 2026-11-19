@@ -7,6 +7,8 @@ type Target = { type: 'product' | 'variant' | 'term'; id: number; label: string;
 export default function TargetsField({ field, value, onChange, id }: FieldProps<Target[] | null>) {
     const { Input, Badge } = ui;
     const config = field.config ?? {};
+    const single = config.single === true;
+    const productsOnly = Array.isArray(config.types) && config.types.length === 1 && config.types[0] === 'product';
     const targets = Array.isArray(value) ? value : [];
     const [query, setQuery] = React.useState('');
     const [results, setResults] = React.useState<Target[]>([]);
@@ -38,7 +40,7 @@ export default function TargetsField({ field, value, onChange, id }: FieldProps<
                 </div>
             )}
             <div className="cm:relative">
-                <Input id={id} value={query} placeholder={config.types && (config.types as string[]).every((type) => type !== 'term')
+                <Input id={id} value={query} placeholder={productsOnly ? 'Search products…' : config.types && (config.types as string[]).every((type) => type !== 'term')
                     ? 'Search products, variants or SKUs…' : 'Search products, SKUs, categories, brands…'} onFocus={() => setOpen(true)}
                     onBlur={() => setTimeout(() => setOpen(false), 150)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)} />
                 {open && results.length > 0 && (
@@ -46,7 +48,12 @@ export default function TargetsField({ field, value, onChange, id }: FieldProps<
                         {results.map((r) => (
                             <li key={`${r.type}:${r.id}`}>
                                 <button type="button" disabled={has(r)} className="cm:flex cm:w-full cm:justify-between cm:gap-3 cm:px-3 cm:py-2 cm:text-left cm:text-sm cm:hover:bg-muted cm:disabled:opacity-50"
-                                    onMouseDown={(e) => e.preventDefault()} onClick={() => { onChange([...targets, { type: r.type, id: r.id, label: r.label }]); setQuery(''); }}>
+                                    onMouseDown={(e) => e.preventDefault()} onClick={() => {
+                                        const target = { type: r.type, id: r.id, label: r.label };
+                                        onChange(single ? [target] : [...targets, target]);
+                                        setQuery('');
+                                        if (single) setOpen(false);
+                                    }}>
                                     <span>{r.label}</span><span className="cm:text-xs cm:text-muted-foreground">{r.group}</span>
                                 </button>
                             </li>
