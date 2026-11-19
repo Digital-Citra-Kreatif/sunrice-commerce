@@ -70,6 +70,8 @@ it('labels the total as estimated until a shipping method is selected', function
     $this->get('/checkout')->assertOk()
         ->assertSee('Estimasi total')
         ->assertSee('Pilih metode pengiriman')
+        ->assertSee('Tambahkan alamat pengiriman untuk melihat pilihan kurir.')
+        ->assertSee('commerce-checkout-address--guest')
         ->assertSee('data-commerce-checkout-status', false);
 
     $result = $this->withCredentials()->postJson('/checkout/refresh', checkoutInput())->assertOk()->json();
@@ -107,7 +109,7 @@ it('keeps the selected address and courier rates available while pickup is selec
         ->assertOk()->assertJsonPath('selected_rate', $pickupRate)->assertJsonPath('totals.shipping.amount', 0)
         ->assertJsonFragment(['id' => $input['shipping_rate']]);
     $this->get('/checkout')->assertOk()->assertSee('Jl. Sarijadi 1')
-        ->assertSee('Alamat ini dipakai jika Anda memilih kurir.')->assertDontSee('data-commerce-shipping-address hidden', false);
+        ->assertSee('Alamat pengiriman opsional jika Anda mengambil pesanan di toko.')->assertDontSee('data-commerce-shipping-address hidden', false);
     $this->withCredentials()->postJson('/checkout/refresh', ['shipping_rate' => $input['shipping_rate']])
         ->assertOk()->assertJsonPath('selected_rate', $input['shipping_rate'])->assertJsonPath('totals.shipping.amount', 10000);
     expect($cart->fresh()->checkout['shipping_address']['line1'])->toBe('Jl. Sarijadi 1');

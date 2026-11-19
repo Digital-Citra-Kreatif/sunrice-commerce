@@ -73,7 +73,7 @@
                 <fieldset class="commerce-checkout__section" id="shipping">
                     <legend>{{ __('commerce::checkout.sections.shipping') }}</legend>
                     <div data-commerce-shipping-address>
-                        <p class="commerce-muted commerce-checkout__pickup-note" data-commerce-pickup-note @unless ($data->isPickup()) hidden @endunless>{{ __('commerce::checkout.pickup_address') }}</p>
+                        <p class="commerce-muted commerce-checkout__pickup-note" data-commerce-pickup-note @unless ($data->isPickup()) hidden @endunless>{{ __('commerce::checkout.'.($guest ? 'pickup_address_guest' : 'pickup_address')) }}</p>
                         @if ($savedAddresses->isNotEmpty())
                             <label class="commerce-field"><span>{{ __('commerce::checkout.saved_address') }}</span>
                                 <select name="address_id" data-commerce-saved-address>
@@ -85,7 +85,10 @@
                             </label>
                             <button type="submit" name="action" value="use_saved_address" class="commerce-button commerce-button--secondary" data-commerce-address-fallback>{{ __('commerce::checkout.address_picker.use_saved') }}</button>
                         @endif
-                        <div class="commerce-checkout-address" data-commerce-address-card hidden>
+                        <div @class(['commerce-checkout-address', 'commerce-checkout-address--guest' => $guest]) data-commerce-address-card hidden>
+                            @if ($guest)
+                                <p class="commerce-checkout-address__hint">{{ __('commerce::checkout.address_picker.delivery_hint') }}</p>
+                            @endif
                             <address data-commerce-address-summary aria-live="polite" hidden></address>
                             <button type="button" class="commerce-link commerce-checkout-address__add" data-commerce-open-address
                                 data-add-label="{{ __('commerce::checkout.address_picker.open') }}" data-change-label="{{ __('commerce::checkout.address_picker.edit') }}"

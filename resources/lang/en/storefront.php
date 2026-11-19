@@ -16,6 +16,7 @@ return [
         'featured' => 'Featured',
         'tiers' => 'Buy more, pay less',
         'tier_row' => 'From :qty pcs',
+        'tier_unit' => 'each',
     ],
     'product' => [
         'quantity' => 'Quantity',

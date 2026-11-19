@@ -37,7 +37,8 @@ it('renders a product page through the fallback template', function () {
         ->assertSee('data-commerce-picker', false)
         ->assertSee('AggregateOffer', false)
         ->assertSee('"lowPrice":"99000"', false)
-        ->assertSee('Mulai 10 pcs');
+        ->assertSee('Mulai 10 pcs')
+        ->assertSeeText('Rp89.100 per pcs');
 });
 
 it('shows a simple product with its sale price, stock and SKU', function () {

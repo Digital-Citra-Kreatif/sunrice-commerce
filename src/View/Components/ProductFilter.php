@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\View\Components;
 
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
 use Illuminate\View\Component;
 use Sunrice\Cms\Models\Taxonomy;
+use Sunrice\Cms\Models\Term;
 use Sunrice\Commerce\Catalog\PriceVisibility;
 use Sunrice\Commerce\Catalog\ProductQuery;
 use Sunrice\Commerce\Storefront\Layout;
@@ -43,6 +45,38 @@ class ProductFilter extends Component
             config('commerce.catalog.tag_taxonomy') => 'tag',
             default => "attr[{$taxonomy}]",
         };
+    }
+
+    /**
+     * Load ancestors in batches, including parents with no products of their own.
+     *
+     * @param  Collection<int, Term>  $categories
+     * @return array<int, string>
+     */
+    public function categoryLabels(Collection $categories): array
+    {
+        $known = $frontier = $categories->keyBy('id');
+        $queried = $known->keys();
+        while ($frontier->isNotEmpty()) {
+            $parents = $frontier->pluck('parent_id')->filter()->unique()->diff($queried);
+            if ($parents->isEmpty()) {
+                break;
+            }
+            $frontier = Term::query()->with('translations')->whereKey($parents->all())->get()->keyBy('id');
+            $known = $known->union($frontier);
+            $queried = $queried->concat($parents);
+        }
+
+        $labels = [];
+        foreach ($categories as $category) {
+            $path = [];
+            for ($node = $category; $node !== null && ! isset($path[$node->id]); $node = $known->get($node->parent_id ?? 0)) {
+                $path[$node->id] = $node->title();
+            }
+            $labels[$category->id] = implode(' › ', array_reverse($path));
+        }
+
+        return $labels;
     }
 
     public function render(): View

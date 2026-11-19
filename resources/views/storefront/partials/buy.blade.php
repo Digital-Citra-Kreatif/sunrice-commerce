@@ -20,14 +20,19 @@
     @endif
 
     @if ($product->tiers !== [])
-        <table class="commerce-tiers" data-commerce-tiers>
-            <caption>{{ __('commerce::storefront.price.tiers') }}</caption>
-            <tbody>
-                @foreach ($product->tiers as $tier)
-                    <tr><th scope="row">{{ __('commerce::storefront.price.tier_row', ['qty' => $tier['min_qty']]) }}</th><td>{{ $tier['price'] ?? '-'.$tier['label'] }}</td></tr>
-                @endforeach
-            </tbody>
-        </table>
+        <div class="commerce-quantity-offer">
+            <table class="commerce-tiers" data-commerce-tiers>
+                <caption>{{ __('commerce::storefront.price.tiers') }}</caption>
+                <tbody>
+                    @foreach ($product->tiers as $tier)
+                        <tr>
+                            <th scope="row">{{ __('commerce::storefront.price.tier_row', ['qty' => $tier['min_qty']]) }}</th>
+                            <td><strong>{{ $tier['price'] ?? '-'.$tier['label'] }}</strong>@if (isset($tier['price'])) <span>{{ __('commerce::storefront.price.tier_unit') }}</span>@endif</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     @endif
 
     @if ($product->cta['type'] === 'cart')

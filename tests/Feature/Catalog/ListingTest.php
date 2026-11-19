@@ -84,6 +84,21 @@ it('counts facets without their own filter', function () {
         ->and($facets['price'])->toBe(['min' => 100000, 'max' => 250000]);
 });
 
+it('distinguishes categories with the same name even when their ancestors are missing from the facet', function () {
+    $women = term('product_categories', 'Women');
+    $men = term('product_categories', 'Men');
+    $outerwear = term('product_categories', 'Outerwear', $men);
+    $menCoats = term('product_categories', 'Coats', $outerwear);
+    $menCoats->translations()->update(['slug' => 'men-coats']);
+    $womenCoats = term('product_categories', 'Coats', $women);
+    listed('Raincoat', 100000, [$menCoats]);
+    listed('Trench coat', 200000, [$womenCoats]);
+
+    $this->get('/products')->assertOk()
+        ->assertSeeText('Men › Outerwear › Coats (1)')
+        ->assertSeeText('Women › Coats (1)');
+});
+
 it('drops price filters and sorts when prices are hidden', function () {
     app(StoreSettings::class)->saveSection('catalog', ['price_visibility' => 'nobody']);
 

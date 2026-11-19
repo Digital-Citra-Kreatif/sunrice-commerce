@@ -16,6 +16,7 @@ return [
         'featured' => 'Unggulan',
         'tiers' => 'Beli banyak lebih hemat',
         'tier_row' => 'Mulai :qty pcs',
+        'tier_unit' => 'per pcs',
     ],
     'product' => [
         'quantity' => 'Jumlah',
