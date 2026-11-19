@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Back-in-stock alerts follow the selected variant, and the product's Add to cart button has more
+  padding. Merge the product buying, stock, stock-alert and variant-picker partials and theme CSS
+  into published copies.
+
 - Checkout shows an address summary and lets shoppers pick a saved address or enter a new one in a
   dialog. Merge the updated `checkout.blade.php`, checkout translations and storefront theme assets
   into published copies.

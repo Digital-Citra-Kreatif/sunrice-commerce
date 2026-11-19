@@ -307,9 +307,9 @@ threshold dispatches `StockLow`, reaching zero `StockOut`, and going back above 
 | Low stock at | `catalog.low_stock_threshold` | `5` |
 | Hide out-of-stock products from listings | `catalog.hide_out_of_stock` | off |
 
-**Back-in-stock alerts** (`stock_alerts` module, needs Stock tracking): under the stock line of a
-sold-out product, a form asks for an email (none for signed-in customers) and, for a variable
-product, which of the sold-out variants (`partials.stock-alert`). Within a minute of the variant
+**Back-in-stock alerts** (`stock_alerts` module, needs Stock tracking): the form appears under the
+stock line when the selected variant is sold out and asks guests for an email
+(`partials.stock-alert`). Within a minute of the variant
 becoming available again (in stock or on backorder, by any route: a stock adjustment, an order
 cancelled, the product editor), `commerce:tick` sends the "Back in stock" email
 ([emails.md](emails.md)) once to everyone waiting, 200 a minute. Shop → Inventory shows how many

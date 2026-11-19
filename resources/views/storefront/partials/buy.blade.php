@@ -1,5 +1,8 @@
 {{-- The buying block (<x-commerce::product>). $product: ProductView. --}}
 @php($default = $product->defaultVariant())
+@if ($product->isVariable() && isset($errors) && $errors->hasAny(['variant', 'email']))
+    @php($default = $product->product->variants->first(fn ($variant) => $variant->active && $variant->id === (int) old('variant')) ?? $default)
+@endif
 <div class="commerce-buy" data-commerce-product="{{ $product->id() }}">
     @include(\Sunrice\Commerce\Storefront\Layout::view('partials.badges'))
     @include(\Sunrice\Commerce\Storefront\Layout::view('partials.price'))
