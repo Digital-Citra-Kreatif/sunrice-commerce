@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Event;
@@ -13,8 +14,11 @@ use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
 use Sunrice\Commerce\Checkout\CheckoutData;
 use Sunrice\Commerce\Checkout\CheckoutRefused;
+use Sunrice\Commerce\Contracts\Inventory;
 use Sunrice\Commerce\Customers\Actions\LinkGuestOrders;
 use Sunrice\Commerce\Customers\Models\Customer;
+use Sunrice\Commerce\Inventory\DatabaseInventory;
+use Sunrice\Commerce\Inventory\OutOfStock;
 use Sunrice\Commerce\Notifications\GuestOrderCode;
 use Sunrice\Commerce\Notifications\StoreEmail;
 use Sunrice\Commerce\Orders\Events\OrderPaid;
@@ -172,6 +176,30 @@ it('reserves stock, sale quantities and vouchers all or nothing', function () {
         ->and($placed->order->total)->toBe(2 * 45000 - 5000 + 10000)
         ->and($placed->order->adjustments->where('kind', 'discount')->sole()->amount)->toBe(-5000)
         ->and($placed->order->meta('reserved'))->toMatchArray(['stock' => true, 'vouchers' => true]);
+});
+
+it('tells the customer which product ran out, not the variant id, when stock goes before placing', function () {
+    $cart = cartWith([[$this->mug, 2]]);
+    app()->setLocale('id');
+    $input = checkoutInput();
+    $hash = seenHash($cart, $input);
+    // Another order took the stock between the calculation and the reservation.
+    app()->instance(Inventory::class, new class extends DatabaseInventory
+    {
+        public function reserve(array $lines, ?Model $reference = null, string $reason = 'order'): void
+        {
+            throw new OutOfStock($lines[0][0], 2, 1);
+        }
+    });
+
+    expect(fn () => app(PlaceOrder::class)->handle($cart, CheckoutData::fromCart($cart)->merge($input), $hash))
+        ->toThrow(CheckoutRefused::class, 'Stok Mug tinggal 1.');
+    expect(Order::query()->count())->toBe(0);
+
+    app()->setLocale('en');
+    expect((new OutOfStock($this->mug, 2, 0))->customerMessage())->toBe('Mug is out of stock.');
+    $this->mug->product->forceFill(['entry_id' => null]);
+    expect((new OutOfStock($this->mug, 2, 0))->customerMessage())->toBe(__('commerce::storefront.availability.stock_changed'));
 });
 
 it('starts each selling mode in its states', function () {

@@ -204,6 +204,7 @@ return [
         'price_hidden' => 'Sign in to buy this product.',
         'feature_off' => 'The cart is closed.',
         'out_of_stock' => ':product is out of stock.',
+        'stock_changed' => 'Product stock has changed. Please check the quantities in your cart or order.',
         'not_enough_stock' => 'Only :count of :product left.',
         'qty_rules' => ':product: choose a valid quantity.',
         'flash_sale_limit' => 'You can buy :count more of :product at the sale price.',

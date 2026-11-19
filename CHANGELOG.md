@@ -13,6 +13,7 @@
 - Warn when dated reports may be stale due to a missing queue heartbeat.
 - Batch image queries on the starter homepage and product page, reject unreadable payment
   images, and return successful reviews to their product page.
+- Show a localized stock message if inventory changes while placing an order or accepting a quote.
 
 - Group product settings separately from content. Reuse specifications, questions and size guides
   across store, category and brand defaults. Product editors can override or hide sections.
@@ -212,6 +213,11 @@ the public API; each change is listed here with the steps to take. Commerce is a
 (`sunrice/cms`), on PHP 8.4 and Laravel 13: products are CMS entries edited in the CMS's entry
 editor, the store's admin pages live in the panel under Shop, and the storefront renders through
 the CMS's templates and full-page cache.
+
+### Fixes
+- `commerce:install` stops with instructions when the app has no Sunrice panel or the panel
+  doesn't have `CommercePlugin`, instead of failing on the store structure with "The selected
+  type is invalid". The quick start runs `sunrice:install --plugins` first.
 
 ### Loyalty points
 - `loyalty` module (off by default, Online store mode): a points wallet on each customer account

@@ -7,6 +7,8 @@ namespace Sunrice\Commerce\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 use Spatie\OneTimePasswords\Models\Concerns\HasOneTimePasswords;
+use Sunrice\Admin\Panel;
+use Sunrice\Commerce\CommercePlugin;
 use Sunrice\Commerce\Database\Seeders\DemoStoreSeeder;
 use Sunrice\Commerce\Database\Seeders\StarterStoreSeeder;
 use Sunrice\Commerce\Support\Staff;
@@ -32,6 +34,10 @@ class InstallCommand extends Command
 
     public function handle(): int
     {
+        if (! $this->panelReady()) {
+            return self::FAILURE;
+        }
+
         $force = (bool) $this->option('force');
 
         $this->components->task('Config and admin assets', function () use ($force) {
@@ -78,6 +84,29 @@ class InstallCommand extends Command
         $this->nextSteps();
 
         return self::SUCCESS;
+    }
+
+    /**
+     * The store is a plugin of the Sunrice panel: its field types, permissions
+     * and admin pages exist only when CommercePlugin is on the app's panel.
+     * Without it the store structure can't be created ("The selected type is
+     * invalid"), so stop first and say how to set the panel up.
+     */
+    protected function panelReady(): bool
+    {
+        if ($this->laravel->bound(Panel::class) && $this->laravel->make(Panel::class)->hasPlugin(CommercePlugin::ID)) {
+            return true;
+        }
+        $this->components->error($this->laravel->bound(Panel::class)
+            ? 'The Sunrice panel doesn\'t have the Commerce plugin.'
+            : 'This app has no Sunrice panel yet: Commerce is a plugin of it.');
+        $this->components->bulletList([
+            'Run php artisan sunrice:install --plugins (it creates the panel provider and adds '.CommercePlugin::class.' to it),',
+            'or add ->plugin(CommercePlugin::make()) after ->plugin(CmsPlugin::make()) in your panel provider,',
+            'then run php artisan commerce:install again.',
+        ]);
+
+        return false;
     }
 
     /** Sign-in with an emailed code needs HasOneTimePasswords on the user model. */
