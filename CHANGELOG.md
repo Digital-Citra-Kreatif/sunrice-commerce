@@ -17,6 +17,9 @@
   setting. Automatic uses the localized catalog with a homepage fallback. Staff can choose a
   published CMS page or collection listing.
 
+- Add space inside the scrollable catalog sidebar so checkbox borders and keyboard focus rings
+  stay visible when zoomed.
+
 - Product buttons inherit across Store, Category, Brand, and Product. The product editor shows
   the inherited action and its source, and cart eligibility uses the same rule.
 - Flash Sale separates product selection, pricing and quantity limits. A rule now applies to
