@@ -54,6 +54,7 @@ return [
         'addresses' => 'Addresses updated',
         'expired' => 'Payment deadline passed',
         'paid_after_cancel' => 'Payment of :amount received after the order was cancelled: refund it or reinstate the order',
+        'amount_mismatch' => ':method reported :amount paid, not the :expected due: not recorded as paid. Check the payment in the gateway\'s dashboard',
         'underpaid' => ':method reported :amount paid, less than the :expected due: not recorded as paid',
         'deposit_asked' => 'Deposit of :amount asked; the balance of :balance is due by :date',
         'balance_overdue' => 'The balance of :amount was due by :date and is not paid',

@@ -54,6 +54,7 @@ return [
         'addresses' => 'Alamat diperbarui',
         'expired' => 'Batas waktu pembayaran lewat',
         'paid_after_cancel' => 'Pembayaran :amount diterima setelah pesanan dibatalkan: kembalikan dana atau aktifkan kembali pesanan',
+        'amount_mismatch' => ':method melaporkan pembayaran :amount, bukan :expected yang harus dibayar: tidak dicatat sebagai lunas. Periksa pembayaran di dashboard gateway',
         'underpaid' => ':method melaporkan pembayaran :amount, kurang dari :expected yang harus dibayar: tidak dicatat sebagai lunas',
         'deposit_asked' => 'DP :amount diminta; pelunasan :balance jatuh tempo :date',
         'balance_overdue' => 'Pelunasan :amount jatuh tempo :date dan belum dibayar',
