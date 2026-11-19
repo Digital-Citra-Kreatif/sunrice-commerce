@@ -19,9 +19,9 @@ use Throwable;
 /** The pay page (order/{key}/pay) and the return from a gateway. */
 class PayController
 {
-    public function show(string $key, OrderController $orders, PayWithMethod $pay): View|RedirectResponse
+    public function show(Request $request, string $key, OrderController $orders, PayWithMethod $pay): View|RedirectResponse
     {
-        $order = $orders->find($key, 'order');
+        $order = $orders->find($request, $key);
         if (! $pay->payable($order)) {
             return redirect($order->url());
         }
@@ -31,7 +31,7 @@ class PayController
 
     public function pay(Request $request, string $key, OrderController $orders, PayWithMethod $pay): RedirectResponse
     {
-        $order = $orders->find($key, 'order');
+        $order = $orders->find($request, $key);
         $data = $request->validate(['payment_method' => ['required', 'string', 'max:60']]);
         try {
             $start = $pay->handle($order, $data['payment_method']);
@@ -44,7 +44,7 @@ class PayController
 
     public function return(Request $request, string $key, OrderController $orders, PaymentManager $payments, RecordPaymentResult $record): RedirectResponse
     {
-        $order = $orders->find($key, 'order');
+        $order = $orders->find($request, $key);
         $payment = $order->payments()->latest('id')->first();
         $method = $payment !== null ? $payments->get($payment->method) : null;
         if ($payment !== null && $method instanceof HandlesReturn) {

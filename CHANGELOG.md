@@ -26,6 +26,10 @@
 - Show the voucher field directly before payment in a dedicated checkout panel. Order notes use
   the storefront’s accordion styling.
 
+- Require order ownership or a verified guest session for storefront orders, payment pages,
+  invoices and quote actions. Guests can verify their email with a short-lived one-time code.
+  Update the published track-order template when upgrading.
+
 - Product buttons inherit across Store, Category, Brand, and Product. The product editor shows
   the inherited action and its source, and cart eligibility uses the same rule.
 - Flash Sale separates product selection, pricing and quantity limits. A rule now applies to
