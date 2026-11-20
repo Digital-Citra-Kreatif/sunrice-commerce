@@ -58,7 +58,7 @@ return [
         'intro' => 'Use this code to sign in:',
         'expires' => 'It works for :minutes minutes.',
         'ignore' => "If you didn't try to sign in, ignore this email.",
-        'sent' => "If :email has an account, we've emailed it a code.",
+        'sent' => 'If you have an account with :email, you’ll receive a sign-in code. Check your inbox and spam folder.',
         'label' => 'Sign-in code',
         'submit' => 'Sign in',
         'resend' => 'Send a new code',

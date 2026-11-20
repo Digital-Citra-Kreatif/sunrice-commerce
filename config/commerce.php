@@ -350,6 +350,7 @@ return [
             'attribute_taxonomies' => [],
         ],
         'checkout' => [
+            'require_verified_account' => false,
             'guest_checkout' => true,
             'create_account' => 'offer',
             'require_phone' => true,

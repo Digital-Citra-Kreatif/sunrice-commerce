@@ -283,6 +283,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         RateLimiter::for('commerce-downloads', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
         RateLimiter::for('commerce-webhooks', fn (Request $request) => Limit::perMinute(300)->by($request->ip()));
         RateLimiter::for('commerce-checkout', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));
+        RateLimiter::for('commerce-checkout-code', fn (Request $request) => Limit::perMinutes(10, 10)->by($request->ip()));
         Settings\Actions\SaveStoreSettings::guardUsing(function (string $section, array $values, Settings\StoreSettings $settings): array {
             $code = $values['currency']['code'] ?? null;
             if ($section !== 'general' || $code === null || $code === $settings->get('general.currency.code')) {
