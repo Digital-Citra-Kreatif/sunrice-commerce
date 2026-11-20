@@ -12,11 +12,11 @@ export interface Kpi {
 }
 
 /** A KpiCard's place while its figure loads: the same card, so nothing moves when it arrives. */
-export function KpiCardSkeleton() {
+export function KpiCardSkeleton({ className }: { className?: string }) {
     const { Card, CardContent } = ui;
 
     return (
-        <Card aria-hidden="true">
+        <Card aria-hidden="true" className={className}>
             <CardContent className="cm:grid cm:gap-1 cm:pt-6">
                 <span className="cm:my-0.5 cm:h-4 cm:w-24 cm:animate-pulse cm:rounded cm:bg-muted" />
                 <span className="cm:my-1 cm:h-6 cm:w-20 cm:animate-pulse cm:rounded cm:bg-muted" />
@@ -27,7 +27,7 @@ export function KpiCardSkeleton() {
 }
 
 /** A figure with its change against the comparison period. */
-export function KpiCard({ kpi }: { kpi: Kpi }) {
+export function KpiCard({ kpi, className }: { kpi: Kpi; className?: string }) {
     const { Card, CardContent } = ui;
     const { Link } = inertia;
     const change = kpi.change ?? null;
@@ -48,5 +48,5 @@ export function KpiCard({ kpi }: { kpi: Kpi }) {
         </CardContent>
     );
 
-    return <Card>{kpi.href ? <Link href={adminUrl(kpi.href)} className="cm:block">{body}</Link> : body}</Card>;
+    return <Card className={className}>{kpi.href ? <Link href={adminUrl(kpi.href)} className="cm:block">{body}</Link> : body}</Card>;
 }

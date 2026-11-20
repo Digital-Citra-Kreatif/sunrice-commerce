@@ -1,5 +1,5 @@
-import { q as z, j as l, b as c, r as fe, U as be, s as ve, X as pe, v as ke, A as ye, w as xe, x as Ne, i as Ce, y as we, z as Se, B as Ie, D as Pe } from "./main-My8PzgVe.js";
-const G = [10, 25, 50, 100, 200];
+import { r as z, j as l, b as c, s as fe, U as be, v as ve, X as pe, w as ke, A as ye, x as xe, y as Ne, i as Ce, z as we, B as Se, D as Ie, G as Pe } from "./main-qm0WOjIH.js";
+const q = [10, 25, 50, 100, 200];
 function Te(t, g = {}) {
   const r = { ...t, ...g }, d = {};
   r.search && (d.search = r.search);
@@ -38,7 +38,7 @@ function Be(t) {
   } = De, { meta: s, rows: a } = t, [E, $] = z(s.search ?? ""), [f, p] = z([]), F = t.visibleColumns !== void 0 && t.tableKey !== void 0, [k, se] = z(t.visibleColumns), ie = ze(t.tableKey ?? "commerce-table", F ? { columns: t.visibleColumns } : null), oe = (e, i) => {
     const n = t.columns.map((o) => o.key).filter((o) => o === e ? i : (k ?? []).includes(o));
     n.length !== 0 && (se(n), ie.setColumns(n));
-  }, y = k ? t.columns.filter((e) => k.includes(e.key)) : t.columns, H = y.filter((e) => e.type === "badge" && t.mobileBadgeColumns?.includes(e.key)), x = (t.bulkActions ?? []).length > 0 && t.bulkUrl !== void 0, P = a.data.map((e) => e.id).filter((e) => e !== void 0), T = t.filters ?? [], me = T.slice(0, Y), _ = T.slice(Y), O = (e) => (s.filters?.[e] ?? "") !== "", V = _.filter((e) => O(e.key)).length, q = T.some((e) => O(e.key)) || !!s.search, u = (e) => {
+  }, y = k ? t.columns.filter((e) => k.includes(e.key)) : t.columns, H = y.filter((e) => e.type === "badge" && t.mobileBadgeColumns?.includes(e.key)), x = (t.bulkActions ?? []).length > 0 && t.bulkUrl !== void 0, P = a.data.map((e) => e.id).filter((e) => e !== void 0), T = t.filters ?? [], me = T.slice(0, Y), _ = T.slice(Y), O = (e) => (s.filters?.[e] ?? "") !== "", V = _.filter((e) => O(e.key)).length, G = T.some((e) => O(e.key)) || !!s.search, u = (e) => {
     p([]), A.get(window.location.pathname, Te(s, e), { preserveState: !0, preserveScroll: !0, replace: !0 });
   }, de = (e, i) => u({ filters: { ...s.filters, [e]: i === B ? "" : i } }), he = (e) => u({ sort: e.key, direction: s.sort === e.key && s.direction === "asc" ? "desc" : "asc" }), ue = (e) => {
     e.confirm && !window.confirm(e.confirm) || A.post(t.bulkUrl, { action: e.key, ids: f }, { preserveScroll: !0, onSuccess: () => p([]) });
@@ -82,7 +82,7 @@ function Be(t) {
           K(e, "cm:w-full")
         ] }, e.key)) })
       ] }),
-      q && /* @__PURE__ */ l(r, { variant: "ghost", onClick: () => {
+      G && /* @__PURE__ */ l(r, { variant: "ghost", onClick: () => {
         $(""), u({ search: "", filters: {} });
       }, children: [
         /* @__PURE__ */ c(pe, {}),
@@ -140,7 +140,7 @@ function Be(t) {
           ) : e.label }, e.key))
         ] }) }),
         /* @__PURE__ */ l(W, { children: [
-          a.data.length === 0 && /* @__PURE__ */ c(w, { className: "cm:hover:bg-transparent", children: /* @__PURE__ */ c(S, { colSpan: ge, className: "cm:h-24 cm:text-center cm:text-muted-foreground", children: q ? "Nothing matches." : "Nothing here yet." }) }),
+          a.data.length === 0 && /* @__PURE__ */ c(w, { className: "cm:hover:bg-transparent", children: /* @__PURE__ */ c(S, { colSpan: ge, className: "cm:h-24 cm:text-center cm:text-muted-foreground", children: G ? "Nothing matches." : "Nothing here yet." }) }),
           a.data.map((e, i) => {
             const n = t.rowHref?.(e) ?? null, o = e.id, D = t.onRowClick ? () => t.onRowClick(e) : n ? () => A.visit(n) : void 0;
             return /* @__PURE__ */ l(
@@ -177,9 +177,9 @@ function Be(t) {
       /* @__PURE__ */ l("div", { className: "cm:flex cm:flex-wrap cm:items-center cm:justify-between cm:gap-4 cm:border-t cm:px-6 cm:py-3 cm:text-sm cm:text-muted-foreground", children: [
         /* @__PURE__ */ l("div", { className: "cm:flex cm:items-center cm:gap-4", children: [
           /* @__PURE__ */ c("span", { children: a.total === 0 ? "No rows" : `${a.from}–${a.to} of ${a.total}` }),
-          a.total > G[0] && /* @__PURE__ */ l(L, { value: String(s.perPage), onValueChange: (e) => u({ perPage: Number(e) }), children: [
+          a.total > q[0] && /* @__PURE__ */ l(L, { value: String(s.perPage), onValueChange: (e) => u({ perPage: Number(e) }), children: [
             /* @__PURE__ */ c(M, { className: "cm:h-8 cm:w-auto", "aria-label": "Rows per page", children: /* @__PURE__ */ c(R, {}) }),
-            /* @__PURE__ */ c(U, { children: G.map((e) => /* @__PURE__ */ l(I, { value: String(e), children: [
+            /* @__PURE__ */ c(U, { children: q.map((e) => /* @__PURE__ */ l(I, { value: String(e), children: [
               e,
               " per page"
             ] }, e)) })

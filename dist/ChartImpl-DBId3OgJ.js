@@ -1,4 +1,4 @@
-import { G as ve, H as Pe, I as re, J as x, L as Je, N as Ae, O as jt, Q as sh, V as St, q as je, W as Y, Y as te, Z as fe, _ as fh, $ as Oe, a0 as Ct, y as lt, a1 as rb, a2 as nb, a3 as ib, j as $o, F as ab, b as Gt } from "./main-My8PzgVe.js";
+import { H as ve, I as Pe, J as re, L as x, N as Je, O as Ae, Q as jt, V as sh, W as St, r as je, Y, Z as te, _ as fe, $ as fh, a0 as Oe, a1 as Ct, z as lt, a2 as rb, a3 as nb, a4 as ib, j as $o, F as ab, b as Gt } from "./main-qm0WOjIH.js";
 var ob = ["dangerouslySetInnerHTML", "onCopy", "onCopyCapture", "onCut", "onCutCapture", "onPaste", "onPasteCapture", "onCompositionEnd", "onCompositionEndCapture", "onCompositionStart", "onCompositionStartCapture", "onCompositionUpdate", "onCompositionUpdateCapture", "onFocus", "onFocusCapture", "onBlur", "onBlurCapture", "onChange", "onChangeCapture", "onBeforeInput", "onBeforeInputCapture", "onInput", "onInputCapture", "onReset", "onResetCapture", "onSubmit", "onSubmitCapture", "onInvalid", "onInvalidCapture", "onLoad", "onLoadCapture", "onError", "onErrorCapture", "onKeyDown", "onKeyDownCapture", "onKeyPress", "onKeyPressCapture", "onKeyUp", "onKeyUpCapture", "onAbort", "onAbortCapture", "onCanPlay", "onCanPlayCapture", "onCanPlayThrough", "onCanPlayThroughCapture", "onDurationChange", "onDurationChangeCapture", "onEmptied", "onEmptiedCapture", "onEncrypted", "onEncryptedCapture", "onEnded", "onEndedCapture", "onLoadedData", "onLoadedDataCapture", "onLoadedMetadata", "onLoadedMetadataCapture", "onLoadStart", "onLoadStartCapture", "onPause", "onPauseCapture", "onPlay", "onPlayCapture", "onPlaying", "onPlayingCapture", "onProgress", "onProgressCapture", "onRateChange", "onRateChangeCapture", "onSeeked", "onSeekedCapture", "onSeeking", "onSeekingCapture", "onStalled", "onStalledCapture", "onSuspend", "onSuspendCapture", "onTimeUpdate", "onTimeUpdateCapture", "onVolumeChange", "onVolumeChangeCapture", "onWaiting", "onWaitingCapture", "onAuxClick", "onAuxClickCapture", "onClick", "onClickCapture", "onContextMenu", "onContextMenuCapture", "onDoubleClick", "onDoubleClickCapture", "onDrag", "onDragCapture", "onDragEnd", "onDragEndCapture", "onDragEnter", "onDragEnterCapture", "onDragExit", "onDragExitCapture", "onDragLeave", "onDragLeaveCapture", "onDragOver", "onDragOverCapture", "onDragStart", "onDragStartCapture", "onDrop", "onDropCapture", "onMouseDown", "onMouseDownCapture", "onMouseEnter", "onMouseLeave", "onMouseMove", "onMouseMoveCapture", "onMouseOut", "onMouseOutCapture", "onMouseOver", "onMouseOverCapture", "onMouseUp", "onMouseUpCapture", "onSelect", "onSelectCapture", "onTouchCancel", "onTouchCancelCapture", "onTouchEnd", "onTouchEndCapture", "onTouchMove", "onTouchMoveCapture", "onTouchStart", "onTouchStartCapture", "onPointerDown", "onPointerDownCapture", "onPointerMove", "onPointerMoveCapture", "onPointerUp", "onPointerUpCapture", "onPointerCancel", "onPointerCancelCapture", "onPointerEnter", "onPointerEnterCapture", "onPointerLeave", "onPointerLeaveCapture", "onPointerOver", "onPointerOverCapture", "onPointerOut", "onPointerOutCapture", "onGotPointerCapture", "onGotPointerCaptureCapture", "onLostPointerCapture", "onLostPointerCaptureCapture", "onScroll", "onScrollCapture", "onWheel", "onWheelCapture", "onAnimationStart", "onAnimationStartCapture", "onAnimationEnd", "onAnimationEndCapture", "onAnimationIteration", "onAnimationIterationCapture", "onTransitionEnd", "onTransitionEndCapture"];
 function cl(e) {
   if (typeof e != "string")
@@ -17859,39 +17859,39 @@ var AR = {
   ref: t
 }));
 const Yi = ["var(--chart-1, var(--primary))", "var(--chart-2, var(--muted-foreground))", "var(--chart-3, #f59e0b)", "var(--chart-4, #10b981)"];
-function jR({ data: e, xKey: t, series: r, kind: n = "line", height: i = 260, format: a, formatX: o, label: u }) {
-  const l = { stroke: "var(--muted-foreground)", fontSize: 12, tickLine: !1, axisLine: !1 }, c = /* @__PURE__ */ Gt(
+function jR({ data: e, xKey: t, series: r, kind: n = "line", height: i = 260, format: a, formatAxis: o, formatX: u, interpolation: l = "monotone", label: c }) {
+  const s = { stroke: "var(--muted-foreground)", fontSize: 12, tickLine: !1, axisLine: !1 }, f = /* @__PURE__ */ Gt(
     QE,
     {
-      formatter: (f) => a && typeof f == "number" ? a(f) : String(f),
-      labelFormatter: (f) => o ? o(String(f)) : String(f),
+      formatter: (v) => a && typeof v == "number" ? a(v) : String(v),
+      labelFormatter: (v) => u ? u(String(v)) : String(v),
       contentStyle: { background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--popover-foreground)" }
     }
-  ), s = /* @__PURE__ */ $o(ab, { children: [
+  ), d = /* @__PURE__ */ $o(ab, { children: [
     /* @__PURE__ */ Gt(O0, { stroke: "var(--border)", vertical: !1 }),
-    /* @__PURE__ */ Gt(z0, { dataKey: t, ...l, tickFormatter: o, minTickGap: 16 }),
-    /* @__PURE__ */ Gt(B0, { ...l, width: 72, tickFormatter: a }),
-    c,
+    /* @__PURE__ */ Gt(z0, { dataKey: t, ...s, tickFormatter: u, minTickGap: 16 }),
+    /* @__PURE__ */ Gt(B0, { ...s, width: 72, tickFormatter: o ?? a }),
+    f,
     r.length > 1 && /* @__PURE__ */ Gt(ry, { wrapperStyle: { fontSize: 12 } })
   ] });
-  return /* @__PURE__ */ Gt("div", { role: "img", "aria-label": u, style: { width: "100%", height: i }, children: /* @__PURE__ */ Gt(E1, { width: "100%", height: "100%", children: n === "bar" ? /* @__PURE__ */ $o(_R, { data: e, children: [
-    s,
-    r.map((f, d) => /* @__PURE__ */ Gt(L0, { dataKey: f.key, name: f.label, fill: f.color ?? Yi[d % Yi.length], radius: [4, 4, 0, 0] }, f.key))
+  return /* @__PURE__ */ Gt("div", { role: "img", "aria-label": c, style: { width: "100%", height: i }, children: /* @__PURE__ */ Gt(E1, { width: "100%", height: "100%", children: n === "bar" ? /* @__PURE__ */ $o(_R, { data: e, children: [
+    d,
+    r.map((v, h) => /* @__PURE__ */ Gt(L0, { dataKey: v.key, name: v.label, fill: v.color ?? Yi[h % Yi.length], radius: [4, 4, 0, 0], maxBarSize: e.length === 1 ? 48 : void 0, isAnimationActive: !1 }, v.key))
   ] }) : /* @__PURE__ */ $o(SR, { data: e, children: [
-    s,
-    r.map((f, d) => /* @__PURE__ */ Gt(
+    d,
+    r.map((v, h) => /* @__PURE__ */ Gt(
       T0,
       {
-        type: "monotone",
-        dataKey: f.key,
-        name: f.label,
-        stroke: f.color ?? Yi[d % Yi.length],
+        type: l,
+        dataKey: v.key,
+        name: v.label,
+        stroke: v.color ?? Yi[h % Yi.length],
         strokeWidth: 2,
-        strokeDasharray: f.dashed ? "4 4" : void 0,
+        strokeDasharray: v.dashed ? "4 4" : void 0,
         dot: !1,
         isAnimationActive: !1
       },
-      f.key
+      v.key
     ))
   ] }) }) });
 }

@@ -496,6 +496,10 @@ Scripts that may load first queue their calls:
 `SectionNav`, `SettingsLayout`, `KpiCard` and `Chart` (recharts, loaded on first use). Load your
 script with `Sunrice::registerAdminScript()`.
 
+`Chart` accepts `formatAxis` for numeric tick labels while `format` also formats tooltip values.
+Line charts accept `interpolation="linear"` for straight segments between points. `KpiCard` accepts
+an optional `className` on the card container.
+
 ## Events
 
 Order, payment and shipment events are dispatched after the database transaction commits. Payloads

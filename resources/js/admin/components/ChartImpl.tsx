@@ -4,7 +4,7 @@ import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContai
 const palette = ['var(--chart-1, var(--primary))', 'var(--chart-2, var(--muted-foreground))', 'var(--chart-3, #f59e0b)', 'var(--chart-4, #10b981)'];
 
 /** The recharts implementation behind Chart, loaded on first use. */
-export default function ChartImpl({ data, xKey, series, kind = 'line', height = 260, format, formatX, label }: ChartProps) {
+export default function ChartImpl({ data, xKey, series, kind = 'line', height = 260, format, formatAxis, formatX, interpolation = 'monotone', label }: ChartProps) {
     const axis = { stroke: 'var(--muted-foreground)', fontSize: 12, tickLine: false, axisLine: false } as const;
     const tooltip = (
         <Tooltip
@@ -17,7 +17,7 @@ export default function ChartImpl({ data, xKey, series, kind = 'line', height = 
         <>
             <CartesianGrid stroke="var(--border)" vertical={false} />
             <XAxis dataKey={xKey} {...axis} tickFormatter={formatX} minTickGap={16} />
-            <YAxis {...axis} width={72} tickFormatter={format} />
+            <YAxis {...axis} width={72} tickFormatter={formatAxis ?? format} />
             {tooltip}
             {series.length > 1 && <Legend wrapperStyle={{ fontSize: 12 }} />}
         </>
@@ -30,14 +30,14 @@ export default function ChartImpl({ data, xKey, series, kind = 'line', height = 
                     <BarChart data={data}>
                         {common}
                         {series.map((s, i) => (
-                            <Bar key={s.key} dataKey={s.key} name={s.label} fill={s.color ?? palette[i % palette.length]} radius={[4, 4, 0, 0]} />
+                            <Bar key={s.key} dataKey={s.key} name={s.label} fill={s.color ?? palette[i % palette.length]} radius={[4, 4, 0, 0]} maxBarSize={data.length === 1 ? 48 : undefined} isAnimationActive={false} />
                         ))}
                     </BarChart>
                 ) : (
                     <LineChart data={data}>
                         {common}
                         {series.map((s, i) => (
-                            <Line key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={s.color ?? palette[i % palette.length]}
+                            <Line key={s.key} type={interpolation} dataKey={s.key} name={s.label} stroke={s.color ?? palette[i % palette.length]}
                                 strokeWidth={2} strokeDasharray={s.dashed ? '4 4' : undefined} dot={false} isAnimationActive={false} />
                         ))}
                     </LineChart>
