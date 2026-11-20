@@ -7,6 +7,7 @@ namespace Sunrice\Commerce\Customers\Auth;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Auth;
 use Spatie\OneTimePasswords\Enums\ConsumeOneTimePasswordResult;
+use Sunrice\Commerce\Checkout\VerifiedAccountCheckout;
 use Sunrice\Commerce\Customers\Actions\LinkGuestOrders;
 use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Customers\Notifications\CustomerLoginCode;
@@ -29,6 +30,12 @@ class LoginCodes
         $model = Staff::userModel();
 
         return method_exists($model, 'createOneTimePassword');
+    }
+
+    public function available(): bool
+    {
+        return $this->supported()
+            && (commerce_feature('passwordless_login') || app(VerifiedAccountCheckout::class)->required());
     }
 
     /** Creates and emails a code (replacing an earlier one). */

@@ -484,6 +484,12 @@ One page, in sections:
 **Settings**
 
 - Guest checkout allowed (default yes).
+- Require a verified account at checkout (default off). When enabled, verified shoppers
+  continue directly. Other shoppers enter an emailed code or sign in with an existing
+  password. A valid checkout code verifies the email and creates the account if needed.
+  The cart survives sign-in, and order ownership and contact email come from the verified
+  account. This mode takes priority over guest checkout and account creation on the order
+  form. Older guest orders keep their existing ownership and remain trackable by order number.
 - Create an account at checkout: offer / always / never.
 - Require a phone number (default yes).
 - Ask for company and tax ID.
@@ -763,7 +769,8 @@ webhooks through the payment method contract. The core records the results.
 - New accounts get the Customer role and a welcome email.
 
 **Linking guest orders**: when a customer verifies an email (verification link, sign-in code or
-Google), earlier guest orders with that email join the account.
+Google), earlier guest orders with that email join the account unless verified-account checkout
+is enabled. In that mode, existing orders keep their ownership.
 
 **My Account (`/account`)**
 

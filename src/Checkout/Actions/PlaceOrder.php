@@ -27,6 +27,7 @@ use Sunrice\Commerce\Checkout\Completion\CheckoutCompletion;
 use Sunrice\Commerce\Checkout\Completion\CompletionResponse;
 use Sunrice\Commerce\Checkout\Completion\Completions;
 use Sunrice\Commerce\Checkout\PlacedOrder;
+use Sunrice\Commerce\Checkout\VerifiedAccountCheckout;
 use Sunrice\Commerce\Contracts\Inventory;
 use Sunrice\Commerce\Customers\Actions\AssignCustomerRole;
 use Sunrice\Commerce\Customers\Actions\SaveAddress;
@@ -97,15 +98,31 @@ class PlaceOrder
      */
     public function handle(Cart $cart, CheckoutData $data, ?string $totalsHash, array $extra = [], array $client = []): PlacedOrder
     {
+        $policy = app(VerifiedAccountCheckout::class);
+        $verifiedUser = $policy->required()
+            ? ($policy->user() ?? throw new CheckoutRefused(__('commerce::checkout-access.required')))
+            : null;
+        if ($verifiedUser !== null) {
+            $data = $data->merge(['email' => $verifiedUser->getAttribute('email'), 'create_account' => false]);
+        }
+
         $completion = $this->completions->get($this->mode->completion());
         $created = false;
 
-        $order = DB::transaction(function () use ($cart, $data, $totalsHash, $extra, $client, $completion, &$created): Order {
+        $order = DB::transaction(function () use ($cart, $data, $totalsHash, $extra, $client, $completion, $verifiedUser, &$created): Order {
             // 1. One order per cart.
             /** @var Cart $locked */
             $locked = Cart::query()->whereKey($cart->id)->lockForUpdate()->firstOrFail();
+            if ($verifiedUser !== null && $locked->customer_id !== null
+                && ! Customer::query()->whereKey($locked->customer_id)->where('user_id', $verifiedUser->getAuthIdentifier())->exists()) {
+                throw new CheckoutRefused(__('commerce::checkout-access.cart_account'));
+            }
             $existing = $this->existing($locked);
             if ($existing !== null) {
+                if ($verifiedUser !== null && (string) $existing->user_id !== (string) $verifiedUser->getAuthIdentifier()) {
+                    throw new CheckoutRefused(__('commerce::checkout-access.cart_account'));
+                }
+
                 return $existing;
             }
 
@@ -148,6 +165,9 @@ class PlaceOrder
         // 12. After commit.
         if ($created) {
             $order->refresh();
+            if ($verifiedUser !== null && $verifiedUser->getAttribute('name') === '' && filled($order->customer_name)) {
+                $verifiedUser->newQuery()->whereKey($verifiedUser->getKey())->where('name', '')->update(['name' => $order->customer_name]);
+            }
             $order->isQuote() ? QuoteRequested::dispatch($order) : OrderPlaced::dispatch($order);
             if ($order->payment_status === OrderStatus::PAID) {
                 OrderPaid::dispatch($order);

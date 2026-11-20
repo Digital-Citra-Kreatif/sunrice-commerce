@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added an opt-in verified-account checkout with an emailed code, automatic account creation after
+  email verification, and a password sign-in option for returning shoppers. See
+  [Verified-account checkout](docs/checkout.md#verified-account-checkout).
+
 ## 0.3.1 (2026-11-19)
 
 A fix for orders with more than one payment. Update with `composer update sunrice/commerce`; nothing

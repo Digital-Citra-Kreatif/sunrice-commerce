@@ -58,7 +58,7 @@ return [
         'intro' => 'Gunakan kode ini untuk masuk:',
         'expires' => 'Berlaku :minutes menit.',
         'ignore' => 'Abaikan email ini jika Anda tidak mencoba masuk.',
-        'sent' => 'Jika :email terdaftar, kami sudah mengirim kode ke email itu.',
+        'sent' => 'Jika Anda memiliki akun dengan email :email, Anda akan menerima kode masuk. Periksa kotak masuk dan folder spam Anda.',
         'label' => 'Kode masuk',
         'submit' => 'Masuk',
         'resend' => 'Kirim kode baru',

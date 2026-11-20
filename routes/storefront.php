@@ -10,6 +10,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use Spatie\Honeypot\ProtectAgainstSpam;
 use Sunrice\Commerce\Http\Controllers\Storefront;
+use Sunrice\Commerce\Http\Middleware\RequireVerifiedCheckout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 
 /** @var string $suffix */
@@ -47,12 +48,22 @@ Route::middleware(['commerce.feature:compare', 'commerce.noindex'])->prefix(Stor
     Route::delete('items/{product}', [Storefront\CompareController::class, 'remove'])->whereNumber('product')->name('commerce.compare.remove'.$suffix);
 });
 
-Route::middleware(['commerce.feature:checkout', 'commerce.noindex'])->prefix(StorefrontRoutes::path('checkout'))->group(function () use ($suffix): void {
+Route::middleware(['commerce.feature:checkout', 'commerce.noindex', RequireVerifiedCheckout::class])->prefix(StorefrontRoutes::path('checkout'))->group(function () use ($suffix): void {
     Route::get('/', [Storefront\CheckoutController::class, 'show'])->name('commerce.checkout'.$suffix);
     Route::post('/', [Storefront\CheckoutController::class, 'submit'])->middleware('throttle:commerce-checkout')->name('commerce.checkout.submit'.$suffix);
     Route::post('refresh', [Storefront\CheckoutController::class, 'refresh'])->middleware('throttle:commerce-cart')->name('commerce.checkout.refresh'.$suffix);
     Route::post('voucher', [Storefront\CheckoutController::class, 'voucher'])->middleware(['commerce.feature:vouchers', 'throttle:commerce-voucher'])->name('commerce.checkout.voucher'.$suffix);
 });
+
+Route::middleware(['commerce.feature:checkout', 'commerce.feature:accounts', 'commerce.noindex', RequireVerifiedCheckout::class.':access'])
+    ->prefix(StorefrontRoutes::path('checkout').'/access')->group(function () use ($suffix): void {
+        Route::get('/', [Storefront\CheckoutAccessController::class, 'show'])->name('commerce.checkout-access'.$suffix);
+        Route::get('password', [Storefront\CheckoutAccessController::class, 'password'])->name('commerce.checkout-access.password'.$suffix);
+        Route::get('code', [Storefront\CheckoutAccessController::class, 'code'])->name('commerce.checkout-access.code'.$suffix);
+        Route::post('code', [Storefront\CheckoutAccessController::class, 'send'])
+            ->middleware([ProtectAgainstSpam::class, 'throttle:commerce-checkout-code'])->name('commerce.checkout-access.send'.$suffix);
+        Route::post('verify', [Storefront\CheckoutAccessController::class, 'verify'])->name('commerce.checkout-access.verify'.$suffix);
+    });
 
 Route::middleware(['commerce.feature:orders', 'commerce.noindex'])->group(function () use ($suffix): void {
     Route::get(StorefrontRoutes::path('order').'/{key}', [Storefront\OrderController::class, 'show'])->name('commerce.order'.$suffix);

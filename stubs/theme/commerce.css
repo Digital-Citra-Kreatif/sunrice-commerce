@@ -792,6 +792,9 @@ section.commerce-account { display: grid; gap: 24px; grid-template-columns: minm
 .commerce-auth__or { display: flex; align-items: center; gap: 12px; margin: 24px 0; color: var(--commerce-muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
 .commerce-auth__or::before, .commerce-auth__or::after { content: ""; flex: 1; border-top: 1px solid var(--commerce-line); }
 .commerce-auth__google { width: 100%; margin-top: 12px; }
+.commerce-checkout-access__panel > p { margin: 0 0 20px; color: var(--commerce-muted); }
+.commerce-checkout-access__actions { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 16px; font-size: 14px; }
+.commerce-checkout-access__actions form { margin: 0; }
 
 /* 14. Wishlist, compare, brands, flash sales -------------------------------- */
 .commerce-wishlist-button, .commerce-compare-button { display: inline; margin: 0; }

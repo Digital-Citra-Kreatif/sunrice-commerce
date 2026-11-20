@@ -28,6 +28,7 @@ use Sunrice\Commerce\Checkout\CheckoutRefused;
 use Sunrice\Commerce\Checkout\CheckoutValidator;
 use Sunrice\Commerce\Checkout\Events\CheckoutStarted;
 use Sunrice\Commerce\Checkout\TermsPage;
+use Sunrice\Commerce\Checkout\VerifiedAccountCheckout;
 use Sunrice\Commerce\Customers\Actions\SaveAddress;
 use Sunrice\Commerce\Customers\Models\Address;
 use Sunrice\Commerce\Customers\Models\Customer;
@@ -266,6 +267,10 @@ class CheckoutController
                 $defaults['address_id'] = $address->id;
             }
         }
+        $policy = app(VerifiedAccountCheckout::class);
+        if ($policy->required()) {
+            $defaults['email'] = $policy->user()?->getAttribute('email');
+        }
 
         return $data->merge(array_filter($defaults));
     }
@@ -327,6 +332,7 @@ class CheckoutController
             'savedAddresses' => $customer?->addresses()->orderByDesc('default_shipping')->orderBy('id')->get() ?? collect(),
             'loyaltyPoints' => commerce_feature('loyalty') ? (int) ($customer->loyalty_points ?? 0) : 0,
             'guest' => $user === null,
+            'verifiedCheckoutEmail' => app(VerifiedAccountCheckout::class)->required() ? $data->email() : null,
             'offerAccount' => $user === null && commerce_feature('accounts') && $this->settings()->get('accounts.registration', true)
                 && $this->settings()->get('checkout.create_account', 'offer') !== 'never',
             'accountRequired' => $user === null && $validator->createsAccount($data->merge(['create_account' => true])) && $this->settings()->get('checkout.create_account') === 'always',

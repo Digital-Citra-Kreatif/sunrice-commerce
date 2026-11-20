@@ -23,7 +23,7 @@
             <button type="submit" class="commerce-button commerce-button--primary commerce-button--block">{{ __('commerce::account.login.submit') }}</button>
             <a class="commerce-auth__forgot" href="{{ commerce_url('commerce.account.password.request') }}">{{ __('commerce::account.login.forgot') }}</a>
         </form>
-        @if (commerce_feature('passwordless_login') && app(\Sunrice\Commerce\Customers\Auth\LoginCodes::class)->supported())
+        @if (app(\Sunrice\Commerce\Customers\Auth\LoginCodes::class)->available())
             <p class="commerce-auth__or">{{ __('commerce::account.login.or') }}</p>
             <form method="POST" action="{{ commerce_url('commerce.account.code.send') }}" class="commerce-form">
                 @csrf <x-honeypot />

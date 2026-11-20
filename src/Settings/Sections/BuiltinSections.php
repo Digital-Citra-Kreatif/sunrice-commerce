@@ -200,6 +200,8 @@ final class BuiltinSections
         $resets = self::options(['never' => 'Never', 'yearly' => 'Every year', 'monthly' => 'Every month', 'daily' => 'Every day']);
 
         return [
+            ['handle' => 'require_verified_account', 'type' => 'toggle', 'label' => 'Require a verified account at checkout',
+                'instructions' => 'Requires the Accounts feature. Shoppers use an email code or their existing password. This takes priority over the guest and account settings below.'],
             ['handle' => 'guest_checkout', 'type' => 'toggle', 'label' => 'Allow checkout without an account'],
             ['handle' => 'create_account', 'type' => 'select', 'label' => 'Accounts at checkout', 'config' => ['options' => self::options([
                 'never' => "Don't offer", 'offer' => 'Offer to create one', 'always' => 'Always create one',

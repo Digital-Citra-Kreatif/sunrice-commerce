@@ -98,6 +98,7 @@ Settings → Store → Checkout (section `checkout`, permission `commerce.settin
 
 | Setting | Key | Default | Effect |
 | --- | --- | --- | --- |
+| Require a verified account at checkout | `require_verified_account` | off | Verify email before checkout. This takes priority over the two settings below. |
 | Allow checkout without an account | `guest_checkout` | on | Off: guests are sent to sign in. |
 | Accounts at checkout | `create_account` | `offer` | `never`, `offer` (a checkbox) or `always` (guests must set a password). |
 | Require a phone number | `require_phone` | on | Contact phone and address phone are required. |
@@ -109,6 +110,30 @@ Settings → Store → Checkout (section `checkout`, permission `commerce.settin
 | Dropshipper details | `dropshipper` | off | Sender name and phone, saved on the order (`dropship`) and printed on the packing slip. |
 | Minimum order | `minimum_order` | `0` | See below. |
 | Terms page | `terms_page` | none | An entry; customers must tick that they accept it. |
+
+### Verified-account checkout
+
+Enable **Require a verified account at checkout** with the **Accounts** feature on.
+Shoppers can fill a cart before they sign in. At checkout, the default prompt sends an
+eight-digit code to their email. The code lasts 10 minutes and is tied to the browser
+session. Shoppers can correct the email or request a new code, which replaces the old one.
+
+A valid code signs in the existing account or creates a verified account. This checkout
+path can create an account even when the separate registration page is disabled. Returning
+shoppers can use their existing password. A shopper who signs in to an unverified account
+still needs to verify their email. Both paths preserve the cart and return to checkout.
+My Account also offers sign-in codes when the user model supports the package's
+[emailed-code sign-in](accounts.md#emailed-code), including for shoppers who have never set a password.
+
+The order uses the verified account's identity and email. **Track order** still provides
+single-order access for older guest orders. While this mode is enabled, signing in or
+verifying a customer account does not link historical guest orders by email.
+
+Configure a working mail transport. The package sends checkout codes after returning the
+web response, without a queue worker. With Laravel's `log` mailer, look for the checkout
+verification email in the configured log. If you publish storefront templates, update the
+checkout contact template to show the verified address as read-only. The server always uses
+the verified address.
 
 The same section holds order settings: customer cancelling, order and quote numbers, quote
 validity and auto-complete. They are described in [orders.md](orders.md).

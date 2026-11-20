@@ -6,7 +6,7 @@
         <p class="commerce-checkout__signin">{{ __('commerce::checkout.have_account') }} <a href="{{ commerce_url('commerce.account.login') }}">{{ __('commerce::checkout.sign_in') }}</a></p>
     @endif
     <label class="commerce-field"><span>{{ __('commerce::checkout.fields.email') }} *</span>
-        <input type="email" name="email" value="{{ old('email', $data->email()) }}" required autocomplete="email">
+        <input type="email" name="email" value="{{ $verifiedCheckoutEmail ?? old('email', $data->email()) }}" @readonly(isset($verifiedCheckoutEmail)) required autocomplete="email">
         @include($L::view('partials.field-error'), ['name' => 'email'])
     </label>
     @unless ($needsAddress)

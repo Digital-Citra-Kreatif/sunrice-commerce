@@ -109,6 +109,8 @@ never). See [checkout.md](checkout.md).
 | Sign in with Google | `laravel/socialite` keys | `google_login` (off by default) |
 
 Messages never say whether an email has an account.
+Stores with [verified-account checkout](checkout.md#verified-account-checkout) enabled also
+offer codes here when the user model supports them.
 
 ### Password
 
@@ -144,7 +146,8 @@ How codes work:
 - A code works only in the browser that asked for it (same IP address and user agent).
 - At most 5 tries per minute. A code can be requested once a minute per email, and 10 times an
   hour per IP address.
-- Using a code marks the email verified and links earlier guest orders.
+- Using a code marks the email verified. Earlier guest orders link according to the store's
+  checkout policy.
 - The sign-in code email is sent straight away, not queued, so it arrives while the customer waits.
 
 The code length, the try limit and the same-browser rule are the package's own settings
@@ -176,7 +179,8 @@ What happens at the callback:
 - Otherwise, a new account is created (when registration is open): verified email, the customer
   roles, no password yet. The customer can set one in their profile.
 - An unverified Google email never matches or creates an account.
-- The customer stays signed in (remember me), and earlier guest orders with the email are linked.
+- The customer stays signed in (remember me). Earlier guest orders link according to the store's
+  checkout policy.
 
 Links are stored in `commerce_social_accounts`. The profile page shows the linked Google email.
 
@@ -221,7 +225,8 @@ notification, never the admin's.
 **Guest orders.** When a customer verifies an email (the verification link, a sign-in code or
 Google), earlier guest orders with that email join the account (`Customers\Actions\LinkGuestOrders`).
 They then appear in My Account → Orders. Signing in with a password alone doesn't link orders, so an
-unverified email can't claim someone else's orders.
+unverified email can't claim someone else's orders. With [verified-account checkout](checkout.md#verified-account-checkout)
+enabled, older guest orders keep their existing ownership and customers can track them by order number.
 
 **Carts.** At every storefront sign-in (`Customers\Listeners\MergeOnSignIn`, on Laravel's `Login`
 event for the `commerce` guard):

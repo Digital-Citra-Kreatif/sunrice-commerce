@@ -19,7 +19,7 @@ class LoginCodeController
 {
     public function send(Request $request, LoginCodes $codes): RedirectResponse
     {
-        abort_unless(commerce_feature('passwordless_login') && $codes->supported(), 404);
+        abort_unless($codes->available(), 404);
         $data = $request->validate(['email' => ['required', 'string', 'email', 'max:190']]);
         $email = mb_strtolower($data['email']);
 
@@ -42,9 +42,9 @@ class LoginCodeController
         return redirect(StorefrontRoutes::url('commerce.account.code'))->with('commerce.success', __('commerce::account.code.sent', ['email' => $email]));
     }
 
-    public function show(Request $request): View|RedirectResponse
+    public function show(Request $request, LoginCodes $codes): View|RedirectResponse
     {
-        abort_unless(commerce_feature('passwordless_login'), 404);
+        abort_unless($codes->available(), 404);
         $email = $request->session()->get('commerce.code_email');
         if (! is_string($email)) {
             return redirect(StorefrontRoutes::url('commerce.account.login'));
@@ -55,7 +55,7 @@ class LoginCodeController
 
     public function consume(Request $request, LoginCodes $codes): RedirectResponse
     {
-        abort_unless(commerce_feature('passwordless_login') && $codes->supported(), 404);
+        abort_unless($codes->available(), 404);
         $data = $request->validate(['code' => ['required', 'string', 'max:20']]);
         $email = (string) $request->session()->get('commerce.code_email', '');
         $model = Staff::userModel();
