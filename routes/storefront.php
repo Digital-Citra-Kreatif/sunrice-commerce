@@ -55,7 +55,7 @@ Route::middleware(['commerce.feature:checkout', 'commerce.noindex', RequireVerif
     Route::post('voucher', [Storefront\CheckoutController::class, 'voucher'])->middleware(['commerce.feature:vouchers', 'throttle:commerce-voucher'])->name('commerce.checkout.voucher'.$suffix);
 });
 
-Route::middleware(['commerce.feature:checkout', 'commerce.feature:accounts', 'commerce.noindex', RequireVerifiedCheckout::class.':access'])
+Route::middleware(['commerce.feature:checkout', 'commerce.noindex', RequireVerifiedCheckout::class.':access'])
     ->prefix(StorefrontRoutes::path('checkout').'/access')->group(function () use ($suffix): void {
         Route::get('/', [Storefront\CheckoutAccessController::class, 'show'])->name('commerce.checkout-access'.$suffix);
         Route::get('password', [Storefront\CheckoutAccessController::class, 'password'])->name('commerce.checkout-access.password'.$suffix);

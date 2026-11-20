@@ -13,6 +13,7 @@ use Sunrice\Cms\Models\Term;
 use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Catalog\ProductContentFields;
 use Sunrice\Commerce\Catalog\ProductDefaults;
+use Sunrice\Commerce\Checkout\VerifiedAccountCheckout;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Settings\SettingsRegistry;
 use Sunrice\Commerce\Settings\SettingsSection;
@@ -200,12 +201,19 @@ final class BuiltinSections
         $resets = self::options(['never' => 'Never', 'yearly' => 'Every year', 'monthly' => 'Every month', 'daily' => 'Every day']);
 
         return [
-            ['handle' => 'require_verified_account', 'type' => 'toggle', 'label' => 'Require a verified account at checkout',
-                'instructions' => 'Requires the Accounts feature. Shoppers use an email code or their existing password. This takes priority over the guest and account settings below.'],
-            ['handle' => 'guest_checkout', 'type' => 'toggle', 'label' => 'Allow checkout without an account'],
-            ['handle' => 'create_account', 'type' => 'select', 'label' => 'Accounts at checkout', 'config' => ['options' => self::options([
-                'never' => "Don't offer", 'offer' => 'Offer to create one', 'always' => 'Always create one',
-            ])]],
+            ['handle' => 'access', 'type' => 'select', 'label' => 'Who can check out',
+                'instructions' => 'A confirmed email needs a working mail setup: shoppers get an eight-digit code by email.',
+                'config' => ['default' => app(VerifiedAccountCheckout::class)->mode(), 'options' => self::options([
+                    'guest' => 'Anyone, as a guest or signed in',
+                    'guest_verified' => 'Anyone, after confirming their email with a code (no account needed)',
+                    'account' => 'Only customers who sign in to an account',
+                    'verified_account' => 'Only verified accounts: the code signs in or creates an account for every buyer',
+                ])]],
+            ['handle' => 'create_account', 'type' => 'select', 'label' => 'Accounts at checkout', 'instructions' => 'For shoppers who aren\'t signed in.',
+                'condition' => ['match' => 'any', 'rules' => [['field' => 'access', 'operator' => 'equals', 'value' => 'guest'], ['field' => 'access', 'operator' => 'equals', 'value' => 'guest_verified']]],
+                'config' => ['options' => self::options([
+                    'never' => "Don't offer", 'offer' => 'Offer to create one', 'always' => 'Always create one',
+                ])]],
             ['handle' => 'require_phone', 'type' => 'toggle', 'label' => 'Require a phone number'],
             ['handle' => 'company_fields', 'type' => 'toggle', 'label' => 'Ask for a company name and tax number'],
             ['handle' => 'address_line2', 'type' => 'toggle', 'label' => 'Second address line'],
