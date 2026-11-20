@@ -47,6 +47,8 @@ class CommerceServiceProvider extends PackageServiceProvider
         // Per request (and per queued job): settings and module states.
         $this->app->scoped(Settings\StoreSettings::class);
         $this->app->scoped(Features\Features::class);
+        // One per request: a checkout sent as a quote request is one for the validator and PlaceOrder too.
+        $this->app->scoped(Checkout\CheckoutMode::class);
         $this->app->scoped(Support\MoneyFormatter::class);
         $this->app->scoped(Webhooks\Webhooks::class);
         $this->app->singleton(Storefront\Slots::class);
@@ -199,7 +201,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         $nav->register('profile', fn () => __('commerce::account.profile.title'), 'commerce.account.profile', position: 80);
         $nav->register('orders', fn () => __('commerce::account.orders.title'), 'commerce.account.orders', 'orders', position: 20);
         $nav->register('quotes', fn () => __('commerce::account.orders.quotes'), 'commerce.account.quotes',
-            fn (): bool => commerce_feature('orders') && $this->app->make(Settings\StoreSettings::class)->get('general.selling_mode') === 'quote', position: 25);
+            fn (): bool => commerce_feature('orders') && $this->app->make(Checkout\CheckoutMode::class)->quotesPossible(), position: 25);
         $nav->register('downloads', fn () => __('commerce::digital.title'), 'commerce.account.downloads',
             fn (): bool => Digital\Models\DownloadGrant::query()->whereHas('order', fn ($q) => $q->where('user_id', commerce_customer()?->getAuthIdentifier()))->exists(), position: 30);
         $nav->register('wishlist', fn () => __('commerce::storefront.wishlist.title'), 'commerce.wishlist', 'wishlist', position: 60);

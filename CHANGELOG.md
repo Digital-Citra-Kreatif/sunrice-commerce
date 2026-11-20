@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Checkout: in Online store mode, **Customers can also request a quote** (`checkout.quote_requests`:
+  everyone, or only some customer roles) adds **Request a quote instead** below Place order. The same
+  cart goes through the existing quote flow (staff price it, the customer accepts it into an order);
+  My Account → Quotes shows whenever quote requests are possible.
+
 - Fix: the header cart count counted lines that can't be bought now (for example after the store's
   button changed from Add to cart), so it showed items while the cart page was empty. It now counts
   what the cart shows; those lines stay saved for when they can be bought again. The cart notice

@@ -355,6 +355,8 @@ return [
             'require_verified_account' => false,
             'guest_checkout' => true,
             'create_account' => 'offer',
+            'quote_requests' => 'off',
+            'quote_request_roles' => [],
             'require_phone' => true,
             'company_fields' => false,
             'address_line2' => true,
