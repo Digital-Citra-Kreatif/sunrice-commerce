@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Sunrice\Admin\Security\Captcha;
 use Sunrice\Commerce\Checkout\Actions\CheckoutCode;
 use Sunrice\Commerce\Checkout\Actions\SignInWithCheckoutCode;
+use Sunrice\Commerce\Checkout\VerifiedAccountCheckout;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 
@@ -22,6 +23,7 @@ class CheckoutAccessController
 
     public function password(Request $request, CheckoutCode $codes, Captcha $captcha): View
     {
+        abort_unless(commerce_feature('accounts'), 404);
         $request->session()->put('url.intended', StorefrontRoutes::url('commerce.checkout'));
 
         return $this->page('password', $codes->email($request), $captcha->widget(app()->getLocale()));
@@ -49,10 +51,17 @@ class CheckoutAccessController
         return redirect(StorefrontRoutes::url('commerce.checkout-access.code'));
     }
 
-    public function verify(Request $request, SignInWithCheckoutCode $signIn, CheckoutCode $codes): RedirectResponse
+    public function verify(Request $request, SignInWithCheckoutCode $signIn, CheckoutCode $codes, VerifiedAccountCheckout $access): RedirectResponse
     {
         $data = $request->validate(['code' => ['required', 'string', 'regex:/^[0-9]{8}$/']]);
-        if ($signIn->handle($request, $data['code'])) {
+        if ($access->required()) {
+            if ($signIn->handle($request, $data['code'])) {
+                return redirect(StorefrontRoutes::url('commerce.checkout'));
+            }
+        } elseif (($email = $codes->verify($request, $data['code'])) !== null) {
+            // A guest who confirmed the email: no sign-in, no account.
+            $request->session()->put(VerifiedAccountCheckout::SESSION_EMAIL, $email);
+
             return redirect(StorefrontRoutes::url('commerce.checkout'));
         }
 
@@ -67,6 +76,9 @@ class CheckoutAccessController
     {
         return view(Layout::view('checkout-access'), [
             'step' => $step,
+            // Confirming a guest's email (no account), or signing in to a verified account.
+            'guest' => ! app(VerifiedAccountCheckout::class)->required(),
+            'passwords' => commerce_feature('accounts'),
             'email' => $email,
             'captcha' => $captcha,
             'seoTitle' => __('commerce::checkout-access.title'),

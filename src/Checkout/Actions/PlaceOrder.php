@@ -105,6 +105,9 @@ class PlaceOrder
             : null;
         if ($verifiedUser !== null) {
             $data = $data->merge(['email' => $verifiedUser->getAttribute('email'), 'create_account' => false]);
+        } elseif ($policy->codeRequired()) {
+            // A guest's order goes to the email they confirmed with the code.
+            $data = $data->merge(['email' => $policy->verifiedEmail() ?? throw new CheckoutRefused(__('commerce::checkout-access.required'))]);
         }
 
         $completion = $this->completions->get($this->mode->completion());
@@ -259,16 +262,22 @@ class PlaceOrder
         }
         $user = $model::query()->create(['name' => $data->get('name'), 'email' => $email, 'password' => Hash::make($password)]);
         app(AssignCustomerRole::class)->handle($user);
-        DB::afterCommit(function () use ($user): void {
+        // Confirmed with the checkout code already: verified now, no link to follow.
+        $confirmed = app(VerifiedAccountCheckout::class)->verifiedEmail() === $email;
+        if ($confirmed) {
+            $user->forceFill(['email_verified_at' => now()])->save();
+        }
+        $verify = $this->settings->get('accounts.verify_email', true) && ! $confirmed;
+        DB::afterCommit(function () use ($user, $verify): void {
             event(new Registered($user));
-            if ($this->settings->get('accounts.verify_email', true)) {
+            if ($verify) {
                 $user->notify(new VerifyCustomerEmail(app()->getLocale()));
             } else {
                 auth()->guard((string) config('commerce.auth.guard', 'commerce'))->login($user);
             }
         });
 
-        return $this->settings->get('accounts.verify_email', true) ? null : $user;
+        return $verify ? null : $user;
     }
 
     /**

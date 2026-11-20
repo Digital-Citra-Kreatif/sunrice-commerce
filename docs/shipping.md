@@ -163,6 +163,22 @@ Commerce::registerCourier('rpx', 'RPX', 'https://www.rpx.co.id/track/{tracking}'
 
 A shipment with a free-text courier name has no tracking link.
 
+### Managing couriers in the admin
+
+**Settings → Store → Shipping → Edit couriers** lists every preset. There you can rename one,
+change or clear its tracking link, switch it off, remove it, reorder the list and add your own.
+Each courier has a **Code**, the key stored on its shipments, made from the name when left empty.
+The saved list is stored under `couriers.list` in the store settings, and the presets from code
+(the config and `registerCourier()`) are only the starting list:
+
+- A preset from code that you remove stays removed (`couriers.removed`).
+- A preset a package adds later joins the end of the list.
+- A courier you switch off isn't offered for new shipments. Its existing shipments keep their
+  name and tracking link, and the order page still offers it when you edit those shipments.
+
+`Couriers::all()` returns every preset with `active`; `Couriers::offered()` returns only the ones
+switched on.
+
 ## Shipments and tracking
 
 Staff with `commerce.shipments.manage` add shipments on the order page, for orders that are
