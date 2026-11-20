@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Payments;
 
+use Sunrice\Admin\Media\Media;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Payments\Contracts\PaymentMethod;
 use Sunrice\Commerce\Settings\StoreSettings;
@@ -81,6 +82,38 @@ class PaymentManager
         }
 
         return array_filter($this->all(), fn (PaymentMethod $m) => $this->isActive($m) && $m->isAvailable($ctx));
+    }
+
+    /**
+     * The display data shared by the checkout and pay pages. Fetch the selected
+     * media together and keep the order set by the merchant.
+     *
+     * @param  array<string, PaymentMethod>  $methods
+     * @return list<array{key: string, title: string, description: string|null, logos: list<array{url: string, alt: string}>}>
+     */
+    public function displayOptions(array $methods): array
+    {
+        $logoIds = array_map(fn (PaymentMethod $method): array => $method instanceof PaymentMethodBase
+            ? (array) $method->setting('checkout_logos', []) : [], $methods);
+        $ids = array_unique(array_merge(...array_values($logoIds)));
+        $images = $ids === [] ? collect() : Media::query()->whereKey($ids)->get()->filter(fn (Media $image): bool => $image->isImage())->keyBy('id');
+
+        $options = [];
+        foreach ($methods as $key => $method) {
+            $logos = [];
+            foreach ($logoIds[$key] as $id) {
+                $image = $images->get($id);
+                if ($image instanceof Media) {
+                    $logos[] = ['url' => $image->url(), 'alt' => $image->altIn() ?? ''];
+                }
+            }
+            $options[] = [
+                'key' => $key, 'title' => self::titleOf($method), 'description' => method_exists($method, 'description') ? $method->description() : null,
+                'logos' => $logos,
+            ];
+        }
+
+        return $options;
     }
 
     public function flush(): void

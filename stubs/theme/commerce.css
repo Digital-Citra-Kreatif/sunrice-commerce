@@ -583,6 +583,8 @@ form.commerce-checkout > :not(.commerce-checkout__main):not(.commerce-checkout__
 .commerce-radio__meta, .commerce-radio__detail { color: var(--commerce-muted); font-size: 12px; }
 .commerce-radio__meta { grid-column: 2; grid-row: 2; }
 .commerce-radio__detail { grid-column: 2 / -1; }
+.commerce-radio__logos { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.commerce-radio__logo { width: 48px; height: 26px; object-fit: contain; padding: 3px; border: 1px solid var(--commerce-line); border-radius: 3px; background: #fff; }
 .commerce-radio__price { font-weight: 800; grid-row: 1; grid-column: 3; }
 .commerce-summary__lines { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; font-size: 14px; }
 .commerce-summary__lines li { display: flex; gap: 12px; align-items: center; }

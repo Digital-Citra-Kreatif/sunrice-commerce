@@ -44,6 +44,7 @@ Every method extending `Payments\PaymentMethodBase` has these fields:
 | Active | `active` | Off by default. |
 | Title, per language | `title` | What customers see; empty uses the method's label. |
 | Description at checkout, per language | `description` | |
+| Checkout logos | `checkout_logos` | Optional images from the media library. |
 | Only from an order total of | `min_total` | |
 | Only up to an order total of | `max_total` | `0` or empty: no limit. |
 | Only for countries | `countries` | ISO codes, comma separated (`ID, SG`). Empty: everywhere. |
@@ -55,6 +56,10 @@ Every method extending `Payments\PaymentMethodBase` has these fields:
 | Payment deadline (hours) | `deadline_hours` | `24` by default; `0`: never. |
 
 A method is offered when it is active, its module is on and all its rules match the order.
+
+Choose **Checkout logos** to show bank, card or wallet logos below a payment method’s name.
+Add alt text to the images in the media library. The logos describe the payment options the
+method accepts. The gateway’s own settings control which payment options are available.
 
 ## Bank transfer
 

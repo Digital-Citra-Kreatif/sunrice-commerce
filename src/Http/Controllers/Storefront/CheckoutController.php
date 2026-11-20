@@ -364,10 +364,6 @@ class CheckoutController
         $state = $view->state;
         $user = commerce_customer();
         $customer = $user !== null ? Customer::forUser($user) : null;
-        $methods = [];
-        foreach ($this->availablePayments($state) as $key => $method) {
-            $methods[] = ['key' => $key, 'title' => PaymentManager::titleOf($method), 'description' => method_exists($method, 'description') ? $method->description() : null];
-        }
         $validator = app(CheckoutValidator::class);
 
         return [
@@ -377,7 +373,7 @@ class CheckoutController
             'mode' => $this->mode(),
             'settings' => $this->settings(),
             'needsAddress' => $state->shipping['needed'] && $this->mode()->shipping(),
-            'paymentMethods' => $methods,
+            'paymentMethods' => $this->payments()->displayOptions($this->availablePayments($state)),
             'savedAddresses' => $customer?->addresses()->orderByDesc('default_shipping')->orderBy('id')->get() ?? collect(),
             'loyaltyPoints' => commerce_feature('loyalty') ? (int) ($customer->loyalty_points ?? 0) : 0,
             'guest' => $user === null,
