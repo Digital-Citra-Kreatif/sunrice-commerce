@@ -41,7 +41,7 @@ table) is on and the email is switched on.
 | `return_updated` | Return updated | `returns` | Staff change a return's status, with their note |
 | `back_in_stock` | Back in stock | `stock_alerts` | A sold-out variant someone asked about can be ordered again |
 | `downloads_ready` | Downloads ready | `digital` | Digital access is granted: links or files |
-| `quote_received` | Quote request received | `orders` | A quote request is placed (Quotation mode) |
+| `quote_received` | Quote request received | `orders` | A quote request is placed (Quotation mode, or **Request a quote instead** at an Online store checkout) |
 | `quote_ready` | Quote ready | `orders` | Staff send the priced quote, with the accept link |
 | `account_welcome` | Welcome | `accounts` | An account's email is verified (by the link, the first emailed code or Google sign-up), or right after registering when verification is off |
 | `verify_email` | Verify email | `accounts` | Registration, a sign-in attempt before verifying, an email change ([accounts.md](accounts.md#email-verification)) |

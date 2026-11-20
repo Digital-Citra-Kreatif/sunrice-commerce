@@ -254,7 +254,7 @@ The customer's language is also remembered at the first sign-in, for their email
 | Announcement | `commerce.account.announcement` | Shown as a tab when the enabled announcement uses the first-tab placement |
 | Orders | `commerce.account.orders` | Search and filter the customer's orders, 10 per page (needs `orders`) |
 | An order | `commerce.account.order` | Timeline, payment instructions and confirmation, tracking, invoice download, downloads, buy again, cancel |
-| Quotes | `commerce.account.quotes` | Quote requests (shown in Quotation mode) |
+| Quotes | `commerce.account.quotes` | Quote requests (shown in Quotation mode, and in Online store mode when customers can also request a quote) |
 | Downloads | `commerce.account.downloads` | The digital library (shown once the customer has downloads) |
 | Points | `commerce.account.points` | The loyalty balance, how points are earned, the next expiry and the history (needs `loyalty`; see [pricing.md](pricing.md#loyalty-points)) |
 | Wishlist | `commerce.wishlist` | The wishlist page (needs `wishlist`) |

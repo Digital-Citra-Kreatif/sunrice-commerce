@@ -238,7 +238,7 @@ billing address is used for any tax rules based on billing. The **Update total**
   - When checkout can quote delivery and has no valid selection, it selects the first available
     delivery rate in the store's configured order and includes it in the total. Store pickup
     requires the shopper to choose it.
-  - In Quotation mode the rate is optional: staff can set shipping in the quote.
+  - For a quote request (Quotation mode, or **Request a quote instead**) the rate is optional: staff can set shipping in the quote.
   - Choosing a pickup rate (`pickup:…`) keeps the address and delivery rates available in case
     the customer switches back to delivery. The pickup order stores the location in `meta.pickup`
     and has an empty shipping address.

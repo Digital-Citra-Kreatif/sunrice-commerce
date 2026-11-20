@@ -231,7 +231,7 @@ Rp120.000"). Ticking "notify" emails the customer "order changed" (`OrderEdited`
 
 ## Quotes
 
-A quote request comes from checkout in Quotation mode (see [checkout.md](checkout.md#quote-requests)).
+A quote request comes from checkout: every checkout in Quotation mode, or **Request a quote instead** in Online store mode when the store offers it (see [checkout.md](checkout.md#quote-requests)).
 
 | Step | Who | Action | Result |
 | --- | --- | --- | --- |
