@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Tax rates: one rate can apply to several countries, and in Indonesia to several provinces and
+  cities, chosen from searchable lists. It is saved as one row per place, and the form shows those
+  rows as one rate again. The earlier `region` input still works.
+
 - Settings → Emails: the customer and staff lists fold away (remembered per browser), say how many
   of their emails are sent while folded, and can be expanded or collapsed together.
 

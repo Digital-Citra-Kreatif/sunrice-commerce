@@ -383,10 +383,15 @@ Each product picks a **tax class** (`tax_class` in product data; empty is `stand
 | Name | For example PPN. Invoices show tax per rate name. |
 | Tax class | |
 | Rate (%) | For example 11 |
-| Where | A country, optionally a province or city; empty for everywhere |
+| Countries | Several can be chosen; empty for everywhere |
+| Provinces and cities in Indonesia | With Indonesia among the countries: several provinces, cities or regencies; empty for the whole country |
 | Compound | Charged on top of the other taxes |
 | Also on shipping | Taxes the shipping cost too |
 | Priority | Order of the rates |
+
+A rate is stored as one row per place (`commerce_tax_rates`, one `country` and `region_code`
+each), so the calculation is unchanged. The form shows rows that are alike but for where they
+apply as one rate. Everywhere, whole countries and Indonesian regions stay separate rates.
 
 How tax is worked out:
 
