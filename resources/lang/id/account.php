@@ -194,6 +194,7 @@ return [
         'title' => 'Poin',
         'balance' => 'Anda punya :points poin, senilai :value.',
         'how' => 'Anda mendapat :percent% dari belanja produk Anda dalam bentuk poin saat pesanan selesai. Pakai poinnya saat checkout.',
+        'max' => 'Maksimal :max poin per pesanan.',
         'expiring' => ':points poin kedaluwarsa pada :date.',
         'none' => 'Belum ada poin.',
         'date' => 'Tanggal',

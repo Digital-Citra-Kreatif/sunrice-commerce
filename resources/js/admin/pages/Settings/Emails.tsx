@@ -6,16 +6,17 @@ import type { MenuItem } from '../../lib/store';
 interface EmailRow { key: string; label: string; audience: 'customer' | 'staff'; description: string; enabled: boolean; locked: boolean; edit_url: string; preview_url: string | null }
 
 export default function Emails({ sections, emails }: { sections: MenuItem[]; emails: EmailRow[] }) {
-    const { Card, CardContent, CardHeader, CardTitle, Switch, Button } = ui;
+    const { CollapsibleCard, CollapsibleCardGroup, Switch, Button } = ui;
     const { Link, router } = inertia;
     const groups: Array<[string, EmailRow[]]> = [['To customers', emails.filter((e) => e.audience === 'customer')], ['To staff', emails.filter((e) => e.audience === 'staff')]];
 
     return (
         <SettingsLayout sections={sections} current="emails" title="Emails" description="What the store sends, and to whom. Open an email to change its texts, recipients and attachments.">
+            <CollapsibleCardGroup className="cm:gap-6">
             {groups.map(([title, rows]) => rows.length > 0 && (
-                <Card key={title}>
-                    <CardHeader><CardTitle>{title}</CardTitle></CardHeader>
-                    <CardContent className="cm:p-0">
+                // Folds away, remembered per browser; folded, it says how many are sent.
+                <CollapsibleCard key={title} title={title} storageKey={`commerce:settings:emails:${title}`} contentClassName="cm:p-0"
+                    summary={`${rows.filter((e) => e.locked || e.enabled).length} of ${rows.length} sent`}>
                         <ul className="cm:divide-y cm:divide-border">
                             {rows.map((e) => (
                                 <li key={e.key} className="cm:flex cm:items-center cm:justify-between cm:gap-3 cm:px-6 cm:py-3">
@@ -38,9 +39,9 @@ export default function Emails({ sections, emails }: { sections: MenuItem[]; ema
                                 </li>
                             ))}
                         </ul>
-                    </CardContent>
-                </Card>
+                </CollapsibleCard>
             ))}
+            </CollapsibleCardGroup>
         </SettingsLayout>
     );
 }

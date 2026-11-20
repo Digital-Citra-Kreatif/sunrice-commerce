@@ -1,6 +1,7 @@
 import { React, ui } from '../../lib/sunrice';
 import { cn } from '../../lib/cn';
 import { MoneyInput } from '../../components/MoneyInput';
+import { fromUnit, toUnit, type Unit } from '../../lib/units';
 
 /** Small labelled controls used across the product editor tabs. */
 export function Row({ label, hint, children, htmlFor, className }: { label: string; hint?: string; children: React.ReactNode; htmlFor?: string; className?: string }) {
@@ -27,6 +28,24 @@ export function NumberInput({ id, value, onChange, min = 0, placeholder }: { id?
     return (
         <Input id={id} type="number" inputMode="numeric" min={min} value={value ?? ''} placeholder={placeholder}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value === '' ? null : Math.round(Number(e.target.value)))} />
+    );
+}
+
+/**
+ * A weight or size typed in the store's unit (kg, cm…) and kept in grams or
+ * millimetres. What is typed stays as typed ("0.", "1,5") while it means the value.
+ */
+export function UnitInput({ id, value, onChange, unit, placeholder }: { id?: string; value: number | null; onChange: (v: number | null) => void; unit: Unit; placeholder?: string }) {
+    const { Input } = ui;
+    const [text, setText] = React.useState(() => toUnit(value, unit));
+    // A new value from outside (another variant, the unit changing) replaces the text.
+    React.useEffect(() => {
+        if (fromUnit(text, unit) !== value) setText(toUnit(value, unit));
+    }, [value, unit]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    return (
+        <Input id={id} type="text" inputMode="decimal" value={text} placeholder={placeholder}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setText(e.target.value); onChange(fromUnit(e.target.value, unit)); }} />
     );
 }
 

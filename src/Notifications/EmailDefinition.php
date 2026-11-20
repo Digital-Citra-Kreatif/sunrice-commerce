@@ -14,7 +14,7 @@ final class EmailDefinition
 {
     /**
      * @param  'customer'|'staff'  $audience
-     * @param  array<int, string>  $attachments  invoice | quotation | packing_slip | downloads
+     * @param  array<int, string>  $attachments  invoice | invoice_to_pay (the invoice only while a manual payment is awaited) | quotation | packing_slip | downloads
      * @param  array<int, string>  $defaultAttachments
      */
     public function __construct(

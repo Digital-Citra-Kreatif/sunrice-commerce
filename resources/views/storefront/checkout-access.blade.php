@@ -28,7 +28,7 @@
             </div>
             @include($L::view('partials.field-error'), ['name' => 'email'])
         @else
-            <p>{{ __('commerce::checkout-access.'.($step === 'password' ? 'password_intro' : 'intro')) }}</p>
+            <p>{{ __('commerce::checkout-access.'.($step === 'password' ? 'password_intro' : (($guest ?? false) ? 'guest_intro' : 'intro'))) }}</p>
             <form method="POST" action="{{ commerce_url($step === 'password' ? 'commerce.account.login.attempt' : 'commerce.checkout-access.send') }}" class="commerce-form">
                 @csrf <x-honeypot />
                 <label class="commerce-field">
@@ -53,8 +53,8 @@
             @if ($step === 'password')
                 <a href="{{ commerce_url('commerce.checkout-access') }}">{{ __('commerce::checkout-access.use_code') }}</a>
                 <a href="{{ commerce_url('commerce.account.password.request') }}">{{ __('commerce::account.login.forgot') }}</a>
-            @else
-                <a href="{{ commerce_url('commerce.checkout-access.password') }}">{{ __('commerce::checkout-access.use_password') }}</a>
+            @elseif ($passwords ?? true)
+                <a href="{{ commerce_url('commerce.checkout-access.password') }}">{{ __('commerce::checkout-access.'.(($guest ?? false) ? 'guest_password' : 'use_password')) }}</a>
             @endif
         </div>
     </section>

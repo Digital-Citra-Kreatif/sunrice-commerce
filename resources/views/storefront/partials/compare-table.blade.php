@@ -33,7 +33,7 @@
                         <td>{{ match ($field) {
                             'sku' => $view?->isVariable() ? '—' : ($variant?->sku ?? '—'),
                             'stock' => $view?->stock['message'] ?? '—',
-                            'weight' => $variant?->weight ? number_format($variant->weight / 1000, 2, ',', '.').' kg' : '—',
+                            'weight' => $variant?->weight ? \Sunrice\Commerce\Support\Units::weight($variant->weight) : '—',
                             'dimensions' => $variant?->length ? ($variant->length / 10).' × '.($variant->width / 10).' × '.($variant->height / 10).' cm' : '—',
                             'excerpt' => (string) ((commerce_values($entry)['excerpt'] ?? null) ?? '—'),
                             'brand', 'categories' => $entry->terms->filter(fn ($t) => $t->taxonomy?->handle === config($field === 'brand' ? 'commerce.catalog.brand_taxonomy' : 'commerce.catalog.category_taxonomy'))

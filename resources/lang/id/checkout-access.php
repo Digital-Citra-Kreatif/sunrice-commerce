@@ -5,6 +5,9 @@ declare(strict_types=1);
 return [
     'title' => 'Lanjutkan ke checkout',
     'intro' => 'Masukkan email untuk menerima kode sekali pakai. Jika Anda belum punya akun toko, akun akan dibuat setelah email diverifikasi.',
+    'guest_intro' => 'Masukkan email Anda, kami akan mengirim kode sekali pakai untuk mengonfirmasinya. Anda tidak perlu punya akun.',
+    'guest_password' => 'Punya akun? Masuk dengan kata sandi',
+    'use_another' => 'Pakai email lain',
     'password_intro' => 'Masuk dengan kata sandi akun toko Anda.',
     'use_password' => 'Masuk dengan kata sandi',
     'use_code' => 'Masuk dengan kode email',
