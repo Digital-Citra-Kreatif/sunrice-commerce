@@ -1,5 +1,6 @@
 import type { FieldProps } from '../sunrice';
 import type * as ReactTypes from 'react';
+import ChoicesField from './ChoicesField';
 import DateTimeRangeField from './DateTimeRangeField';
 import GalleryField from './GalleryField';
 import MoneyField from './MoneyField';
@@ -21,6 +22,7 @@ const fields: Record<string, Field> = {
     commerce_targets: TargetsField,
     commerce_product: ProductEditor,
     commerce_gallery: GalleryField,
+    commerce_choices: ChoicesField,
 };
 
 /**

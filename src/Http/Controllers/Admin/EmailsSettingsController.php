@@ -56,6 +56,7 @@ class EmailsSettingsController extends Controller
 
         return Inertia::render('Commerce/Settings/Section', [
             'section' => ['key' => 'emails', 'label' => 'Email: '.$email->label],
+            'parent' => ['label' => 'Emails', 'href' => 'commerce/settings/emails'],
             'sections' => SettingsController::menu($request->user()),
             'form' => SchemaForm::make($this->fields($email), $values)->action(route('sunrice.admin.commerce.settings.emails.update', $key, false), 'put'),
         ]);

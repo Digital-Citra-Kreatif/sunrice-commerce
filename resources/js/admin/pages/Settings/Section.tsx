@@ -9,12 +9,12 @@ import type { MenuItem } from '../../lib/store';
  * window.SunriceCommerce.registerSettingsSection(key, Component): the
  * component gets the schema form (values, action) and replaces the form.
  */
-export default function Section({ section, sections, form }: { section: { key: string; label: string }; sections: MenuItem[]; form: SchemaFormProps }) {
+export default function Section({ section, sections, form, parent }: { section: { key: string; label: string }; sections: MenuItem[]; form: SchemaFormProps; parent?: { label: string; href: string } }) {
     const Custom = api.settingsSections()[section.key];
     const [saving, setSaving] = React.useState(false);
 
     return (
-        <SettingsLayout sections={sections} current={section.key} title={`${section.label} settings`}
+        <SettingsLayout sections={sections} current={section.key} title={`${section.label} settings`} parent={parent}
             primary={Custom ? undefined : <ui.Button type="submit" form="commerce-settings-form" disabled={saving}>Save</ui.Button>}>
             {/* A fresh form per section: values don't carry over between sections. */}
             {Custom ? <Custom key={section.key} section={section} form={form} />

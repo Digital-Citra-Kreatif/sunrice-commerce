@@ -47,10 +47,10 @@ Every method extending `Payments\PaymentMethodBase` has these fields:
 | Checkout logos | `checkout_logos` | Optional images from the media library. |
 | Only from an order total of | `min_total` | |
 | Only up to an order total of | `max_total` | `0` or empty: no limit. |
-| Only for countries | `countries` | ISO codes, comma separated (`ID, SG`). Empty: everywhere. |
-| Only for provinces | `provinces` | Province codes, comma separated (`31, 32`). Empty: everywhere. |
-| Only with shipping method types | `shipping_methods` | Comma separated (`flat, weight, pickup`). Empty: any. |
-| Only for customer roles | `roles` | Role names, comma separated. Empty: everyone. |
+| Only for countries | `countries` | ISO codes (`['ID', 'SG']`), chosen from a searchable list or typed. Empty: everywhere. |
+| Only for provinces | `provinces` | Province codes (`['31', '32']`), chosen from the imported provinces or typed. Empty: everywhere. |
+| Only with shipping method types | `shipping_methods` | Shipping type keys (`['flat', 'pickup']`). Empty: any. |
+| Only for customer roles | `roles` | Role names. Empty: everyone. |
 | Fee (fixed) | `fee_fixed` | See [Fees](#fees). |
 | Fee (%) | `fee_percent` | |
 | Payment deadline (hours) | `deadline_hours` | `24` by default; `0`: never. |

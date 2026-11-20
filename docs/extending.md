@@ -72,7 +72,13 @@ is dispatched when it changes.
 
 A section on Settings → Store, stored under its key in the store settings and validated by its
 fields (Sunrice field definitions, plus `commerce_money`, `commerce_region`, `commerce_targets`,
-`commerce_datetime_range`).
+`commerce_datetime_range`, `commerce_choices`).
+
+`commerce_choices` stores a list of strings picked from a searchable dropdown. `config.options`
+lists them (`[{value, label}]` or strings), or `config.source` fills them when the form is drawn
+(`countries`, `provinces`, `shipping_types`, `roles`). Values not in the list can be added as
+typed unless `creatable` is `false`; `uppercase` stores them in capitals. A comma-separated string
+is read as its parts.
 
 ```php
 Commerce::registerSettingsSection(new SettingsSection(

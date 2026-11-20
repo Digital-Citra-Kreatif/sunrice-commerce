@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Testing\TestResponse;
+use Spatie\Permission\Models\Role;
 use Sunrice\Admin\Media\Media;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Commerce;
@@ -172,6 +173,29 @@ it('manages methods in Settings → Payments', function () {
         ->and(app(StoreSettings::class)->get('payments.methods.fake_gateway.active'))->toBeFalse()
         ->and(app(StoreSettings::class)->get('payments.methods.test_transfer.countries'))->toBe(['ID', 'SG'])
         ->and(app(StoreSettings::class)->get('payments.methods.test_transfer.account'))->toBe('777');
+});
+
+it('offers availability as searchable lists, keeps values not in them, and links back to Payments', function () {
+    actingAsUserWith(['commerce.settings.payments']);
+    Role::findOrCreate('Wholesale', 'web');
+    $field = fn (array $fields, string $handle): array => collect($fields)->firstWhere('handle', $handle);
+    $this->get('/admin/commerce/settings/payments/test_transfer')->assertOk()->assertInertia(fn ($p) => $p->component('Commerce/Settings/Section')
+        ->where('parent.href', 'commerce/settings/payments')
+        ->where('form.fields', function ($fields) use ($field) {
+            $fields = collect($fields)->all();
+
+            return $field($fields, 'countries')['type'] === 'commerce_choices'
+                && collect($field($fields, 'countries')['config']['options'])->contains('value', 'SG')
+                && collect($field($fields, 'shipping_methods')['config']['options'])->contains('value', 'pickup')
+                && collect($field($fields, 'roles')['config']['options'])->contains('value', 'Wholesale');
+        }));
+
+    $this->put('/admin/commerce/settings/payments/test_transfer', ['values' => ['countries' => ['id', 'SG', 'id'], 'roles' => ['Wholesale', 'VIP club'], 'account' => '1']])
+        ->assertRedirect('/admin/commerce/settings/payments');
+    app()->forgetScopedInstances();
+    expect(app(StoreSettings::class)->get('payments.methods.test_transfer.countries'))->toBe(['ID', 'SG'])
+        ->and(app(StoreSettings::class)->get('payments.methods.test_transfer.roles'))->toBe(['Wholesale', 'VIP club']);
+    $this->get('/admin/commerce/settings/payments/test_transfer')->assertInertia(fn ($p) => $p->where('form.values.roles', ['Wholesale', 'VIP club']));
 });
 
 it('saves image logos for a gateway and shows them on checkout and the pay page', function () {

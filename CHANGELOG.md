@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Payment method settings: countries, provinces, shipping method types and customer roles are now
+  searchable multi-select dropdowns (new `commerce_choices` field type) that also accept values
+  not in the list. Payment method and email settings pages link back to their list in the
+  breadcrumbs and header.
+
 - Added optional media library logos to each payment method’s checkout and pay-page rows.
 
 - Added support for cancellable hosted checkout sessions. Shoppers can return to their saved

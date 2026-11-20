@@ -1,4 +1,4 @@
-import { d as u, u as v, a as r, R as p, j as x, b as a, P as b, c as g, i as w, k } from "./main-CZfVdPYb.js";
+import { d as u, u as v, a as r, R as p, j as x, b as a, P as b, c as g, i as w, l as S } from "./main-My8PzgVe.js";
 const n = "commerce-schema-form";
 function y({ title: t, description: l, form: s, breadcrumbs: o = [], deleteUrl: i, deleteConfirm: d }) {
   const { Button: m } = g;
@@ -24,7 +24,7 @@ function y({ title: t, description: l, form: s, breadcrumbs: o = [], deleteUrl: 
         primary: /* @__PURE__ */ a(m, { type: "submit", form: n, disabled: f, children: s.submitLabel })
       }
     ),
-    /* @__PURE__ */ a(k, { form: s, id: n, onProcessing: h, storageKey: `commerce:form:${s.action.replace(/\/\d+/g, "")}` })
+    /* @__PURE__ */ a(S, { form: s, id: n, onProcessing: h, storageKey: `commerce:form:${s.action.replace(/\/\d+/g, "")}` })
   ] });
 }
 export {

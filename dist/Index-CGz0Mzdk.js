@@ -1,10 +1,10 @@
-import { i as y, R as h, d as j, u as _, a as g, j as a, b as t, P as D, c as k, S, h as q } from "./main-CZfVdPYb.js";
-import { D as C, P as $ } from "./DataTable-BWYNcNTh.js";
+import { i as y, R as h, d as j, u as _, a as g, j as a, b as t, P as D, c as k, h as S, S as q, k as C } from "./main-My8PzgVe.js";
+import { D as $ } from "./DataTable-Azd7lF_N.js";
 const F = { in_stock: "ok", out_of_stock: "error", backorder: "warning" };
 function I({ row: s, reasons: m, onClose: r }) {
   const { Dialog: i, DialogContent: o, DialogHeader: n, DialogTitle: d, DialogDescription: N, DialogFooter: x, Button: p, Input: v, Label: l } = k, c = y.useForm({ mode: "add", quantity: 0, reason: "manual", note: "" }), [u, f] = h.useState(null);
   h.useEffect(() => {
-    q(g(`commerce/inventory/${s.id}/history`)).then((e) => f(e.data)).catch(() => f([]));
+    C(g(`commerce/inventory/${s.id}/history`)).then((e) => f(e.data)).catch(() => f([]));
   }, [s.id]);
   const b = c.data.mode === "set" ? c.data.quantity : (s.stock_quantity ?? 0) + c.data.quantity;
   return /* @__PURE__ */ t(i, { open: !0, onOpenChange: (e) => !e && r(), children: /* @__PURE__ */ a(o, { className: "cm:max-w-lg", children: [
@@ -74,12 +74,12 @@ function I({ row: s, reasons: m, onClose: r }) {
     ] })
   ] }) });
 }
-function A(s) {
+function B(s) {
   const { Button: m } = k, { Link: r } = y, [i, o] = h.useState(null);
   return j(), _([{ label: "Shop", href: g("commerce") }, { label: "Inventory" }]), /* @__PURE__ */ a("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6", children: [
     /* @__PURE__ */ t(D, { title: "Inventory", description: "Stock of every product variant. Every change is recorded." }),
     /* @__PURE__ */ t(
-      C,
+      $,
       {
         ...s,
         searchPlaceholder: "Search products or SKUs…",
@@ -87,9 +87,9 @@ function A(s) {
         renderCell: (n, d) => {
           if (d.key === "product_title" && n.edit_url) return /* @__PURE__ */ a("span", { className: "cm:inline-flex cm:items-center cm:gap-2", children: [
             n.product_title,
-            /* @__PURE__ */ t(m, { asChild: !0, variant: "ghost", size: "icon", className: "cm:size-8 cm:shrink-0", children: /* @__PURE__ */ t(r, { href: n.edit_url, title: "Edit product", "aria-label": `Edit product ${n.product_title}`, children: /* @__PURE__ */ t($, {}) }) })
+            /* @__PURE__ */ t(m, { asChild: !0, variant: "ghost", size: "icon", className: "cm:size-8 cm:shrink-0", children: /* @__PURE__ */ t(r, { href: n.edit_url, title: "Edit product", "aria-label": `Edit product ${n.product_title}`, children: /* @__PURE__ */ t(S, {}) }) })
           ] });
-          if (d.key === "status") return /* @__PURE__ */ t(S, { tone: n.low ? "warning" : F[n.status], children: n.low ? "Low" : n.status.replace(/_/g, " ") });
+          if (d.key === "status") return /* @__PURE__ */ t(q, { tone: n.low ? "warning" : F[n.status], children: n.low ? "Low" : n.status.replace(/_/g, " ") });
           if (d.key === "stock_quantity") return n.track_stock ? n.stock_quantity : /* @__PURE__ */ t("span", { className: "cm:text-muted-foreground", children: "—" });
         }
       }
@@ -98,5 +98,5 @@ function A(s) {
   ] });
 }
 export {
-  A as default
+  B as default
 };
