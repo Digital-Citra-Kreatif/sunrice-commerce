@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Email settings: the subject, heading and text show their default wording (an unchanged default
+  isn't stored, so it keeps following translations), placeholders are chips that insert at the
+  cursor, and copy, staff address and role recipients are chosen as chips. The order received email
+  attaches the invoice by default when the customer pays by transfer, QRIS or another manual method
+  (`invoice_to_pay`); the payment link email attaches it by default, and order completed can.
+
 - Payment method settings: countries, provinces, shipping method types and customer roles are now
   searchable multi-select dropdowns (new `commerce_choices` field type) that also accept values
   not in the list. Payment method and email settings pages link back to their list in the
