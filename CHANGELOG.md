@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Settings → Catalog: **Default storefront button** moved to the top card and defaults to **Add to
+  cart** (`catalog.default_purchase_mode` = `cart`, the same behaviour as the earlier `default`).
+
 - Store address: optional **Map coordinates** (pasted as "latitude, longitude"), and a separate
   **Shipping origin** when **Ship from the store address** is off. Invoices keep the store address;
   `ShippingOrigins::store()` returns the origin and `ShippingOrigins::storeAddress()` the store

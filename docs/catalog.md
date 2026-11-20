@@ -259,13 +259,14 @@ Modes with a cart are Online store, Quotation and WhatsApp order, while the Cart
 (see [features.md](features.md#selling-modes)). So in Online store mode one product can show "Ask
 for a price" (inquiry) or "Buy on Tokopedia" (external) instead of Add to cart.
 
-Set the store default and the category and brand rules in **Settings → Store → Catalog →
-Product button defaults**. An explicit product choice wins, then an assigned brand, then an assigned
+Set the store default in **Settings → Store → Catalog → Default storefront button** (at the top;
+**Add to cart** until changed) and the category and brand rules further down. An explicit product choice wins, then an assigned brand, then an assigned
 category, then the store default. When several assigned terms have rules in the same scope, the
 first matching rule in that list wins. The editor shows the inherited action and its source using
 the saved draft classifications. The storefront and cart use published classifications.
 
-The default store selection follows the selling mode. Choosing **Links to other shops** still
+**Add to cart** and **Follow selling mode** do the same: the cart button where the selling mode
+has a cart, the store's call to action where it doesn't. Choosing **Links to other shops** still
 uses each product's own links. An inherited rule can choose the button type, and the product
 editor exposes the links when that type requires them.
 

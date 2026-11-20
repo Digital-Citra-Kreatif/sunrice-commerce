@@ -329,7 +329,7 @@ return [
         'catalog' => [
             'price_visibility' => 'everyone',
             'price_visibility_roles' => [],
-            'default_purchase_mode' => 'default',
+            'default_purchase_mode' => 'cart',
             'specifications' => [],
             'faq' => [],
             'size_guide_visibility' => 'hide',
