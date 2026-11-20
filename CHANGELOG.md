@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added optional media library logos to each payment method’s checkout and pay-page rows.
+
 - Added support for cancellable hosted checkout sessions. Shoppers can return to their saved
   checkout before they start payment. Confirmed pending and paid transactions place the order.
 

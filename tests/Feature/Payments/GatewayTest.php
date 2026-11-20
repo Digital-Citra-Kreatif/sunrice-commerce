@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Testing\TestResponse;
+use Sunrice\Admin\Media\Media;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Commerce;
 use Sunrice\Commerce\Notifications\StoreEmail;
@@ -171,6 +172,32 @@ it('manages methods in Settings → Payments', function () {
         ->and(app(StoreSettings::class)->get('payments.methods.fake_gateway.active'))->toBeFalse()
         ->and(app(StoreSettings::class)->get('payments.methods.test_transfer.countries'))->toBe(['ID', 'SG'])
         ->and(app(StoreSettings::class)->get('payments.methods.test_transfer.account'))->toBe('777');
+});
+
+it('saves image logos for a gateway and shows them on checkout and the pay page', function () {
+    actingAsUserWith(['commerce.settings.payments']);
+    $upload = fn (string $filename, string $mime, string $alt): Media => Media::query()->create([
+        'disk' => 'public', 'path' => $filename, 'filename' => $filename, 'mime_type' => $mime, 'size' => 10, 'alt' => $alt,
+    ]);
+    $visa = $upload('visa.png', 'image/png', 'Visa');
+    $bank = $upload('bank.png', 'image/png', 'Bank logo');
+    $pdf = $upload('guide.pdf', 'application/pdf', 'Guide');
+    $settings = '/admin/commerce/settings/payments/fake_gateway';
+    $values = ['active' => true, 'title' => ['id' => 'Kartu'], 'secret' => 's3cret', 'fee_percent' => 2];
+
+    $this->put($settings, ['values' => [...$values, 'checkout_logos' => [$pdf->id]]])->assertSessionHasErrors('values.checkout_logos.0');
+    $this->put($settings, ['values' => [...$values, 'checkout_logos' => [$bank->id, $visa->id]]])->assertRedirect('/admin/commerce/settings/payments');
+
+    $cart = cartWith([[$this->mug, 1]]);
+    $input = checkoutInput(['payment_method' => 'fake_gateway']);
+    $cart->update(['checkout' => $input]);
+    $logos = ['alt="Bank logo"', 'alt="Visa"'];
+    $this->get('/checkout')->assertOk()->assertSeeInOrder($logos, false);
+    $response = $this->withCredentials()->postJson('/checkout/refresh', $input)->assertOk();
+    expect($response->json('payments_html'))->toContain(...$logos);
+
+    $order = placeWithGateway($this->mug);
+    $this->get($order->url().'/pay')->assertOk()->assertSeeInOrder($logos, false);
 });
 
 it('adds and removes payment instruction methods', function () {

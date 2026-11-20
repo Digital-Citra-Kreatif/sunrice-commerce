@@ -14,7 +14,6 @@ use Sunrice\Commerce\Payments\Contracts\PaymentMethod;
 use Sunrice\Commerce\Payments\Models\Payment;
 use Sunrice\Commerce\Payments\PaymentContext;
 use Sunrice\Commerce\Payments\PaymentManager;
-use Sunrice\Commerce\Payments\PaymentMethodBase;
 use Sunrice\Commerce\Payments\PaymentResult;
 use Sunrice\Commerce\Payments\PaymentStart;
 use Sunrice\Commerce\Payments\UniqueCodes;
@@ -145,18 +144,14 @@ class PayWithMethod
     /**
      * The methods offered on the pay page.
      *
-     * @return array<int, array{key: string, title: string, description: string|null}>
+     * @return list<array{key: string, title: string, description: string|null, logos: list<array{url: string, alt: string}>}>
      */
     public function options(Order $order): array
     {
-        $out = [];
         // Offer methods by the amount before any payment fee.
         $fees = (int) $order->adjustments()->where('source_type', 'payment_fee')->sum('amount');
         $baseOrder = (clone $order)->forceFill(['total' => $order->total - $fees, 'fee_total' => $order->fee_total - $fees]);
-        foreach ($this->payments->available(PaymentContext::fromOrder($baseOrder)) as $key => $method) {
-            $out[] = ['key' => $key, 'title' => PaymentManager::titleOf($method), 'description' => $method instanceof PaymentMethodBase ? $method->description() : null];
-        }
 
-        return $out;
+        return $this->payments->displayOptions($this->payments->available(PaymentContext::fromOrder($baseOrder)));
     }
 }
