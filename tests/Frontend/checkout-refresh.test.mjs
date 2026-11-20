@@ -8,6 +8,7 @@ const theme = readFileSync(new URL('../../stubs/theme/commerce.js', import.meta.
 test('checkout reveals the payment step and confirms the auto-selected fee before submitting', async () => {
     const listeners = new Map();
     const requests = [];
+    let reloads = 0;
     const step = { hidden: true };
     const payment = { hidden: true };
     const hash = { value: 'free' };
@@ -52,7 +53,10 @@ test('checkout reveals the payment step and confirms the auto-selected fee befor
             querySelectorAll: (selector) => selector === '[data-commerce-checkout]' ? [form] : [],
             documentElement: { classList: { add() {} } },
         },
-        window: { addEventListener: (name, listener) => listeners.set(name, listener) },
+        window: {
+            location: { reload() { reloads++; } },
+            addEventListener: (name, listener) => listeners.set(name, listener),
+        },
         setTimeout, clearTimeout, AbortSignal,
         FormData: class {
             constructor() {
@@ -156,7 +160,8 @@ test('checkout reveals the payment step and confirms the auto-selected fee befor
     listeners.get('formdata')({ formData });
     assert.equal(formData.get('action'), 'place');
     assert.equal(submit(button), true);
+    listeners.get('pageshow')({ persisted: false });
+    assert.equal(reloads, 0);
     listeners.get('pageshow')({ persisted: true });
-    assert.equal(button.disabled, false);
-    assert.equal(label.textContent, 'Place order');
+    assert.equal(reloads, 1);
 });
