@@ -26,3 +26,159 @@
     --color-border: var(--border);
     --color-ring: var(--ring);
 }
+
+.commerce-dashboard {
+    container: commerce-dashboard / inline-size;
+    --commerce-dashboard-current: #0f766e;
+    --commerce-dashboard-previous: #64748b;
+}
+
+.dark .commerce-dashboard {
+    --commerce-dashboard-current: #5eead4;
+    --commerce-dashboard-previous: #94a3b8;
+}
+
+.commerce-dashboard-period {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: .25rem;
+    border: 1px solid var(--border);
+    border-radius: .65rem;
+    background: var(--card);
+    padding: .25rem;
+}
+
+.commerce-dashboard-kpis,
+.commerce-dashboard-grid {
+    display: grid;
+    min-width: 0;
+    gap: 1rem;
+}
+
+.commerce-dashboard-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .75rem;
+}
+
+.commerce-dashboard-kpis > * {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.commerce-dashboard-kpis [data-slot="card"] { padding-block: 1rem; }
+.commerce-dashboard-kpis [data-slot="card-content"] { padding-block: 0; }
+
+.commerce-dashboard-grid > [data-slot="card"] {
+    padding-block: 1.2rem;
+    gap: 1rem;
+}
+
+.commerce-dashboard-kpis [data-slot="card-content"],
+.commerce-dashboard-grid > [data-slot="card"] > :is([data-slot="card-header"], [data-slot="card-content"]) {
+    padding-inline: clamp(.875rem, 2.1cqi, 1.375rem);
+}
+
+.commerce-dashboard-sales-kpi {
+    grid-column: span 2;
+}
+
+.commerce-dashboard-kpis .commerce-dashboard-sales-kpi {
+    background: color-mix(in srgb, var(--commerce-dashboard-current) 7%, var(--card));
+    border-color: color-mix(in srgb, var(--commerce-dashboard-current) 33%, var(--border));
+}
+
+.commerce-dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .875rem;
+    line-height: 1.4;
+}
+
+.commerce-dashboard-table th,
+.commerce-dashboard-table td {
+    padding: .7rem .55rem;
+    text-align: start;
+    vertical-align: middle;
+}
+
+.commerce-dashboard-table th:first-child,
+.commerce-dashboard-table td:first-child { padding-inline-start: 0; }
+.commerce-dashboard-table th:last-child,
+.commerce-dashboard-table td:last-child { padding-inline-end: 0; }
+
+.commerce-dashboard-table thead th {
+    padding-block-start: 0;
+    color: var(--muted-foreground);
+    font-size: .75rem;
+    font-weight: 600;
+}
+
+.commerce-dashboard-table tbody tr { border-top: 1px solid var(--border); }
+.commerce-dashboard-table tbody th { font-weight: 500; overflow-wrap: anywhere; }
+
+.commerce-dashboard-table .commerce-dashboard-number {
+    text-align: end;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.commerce-dashboard-table a { color: inherit; text-underline-offset: .2em; }
+.commerce-dashboard-table a:hover { color: var(--commerce-dashboard-current); text-decoration: underline; }
+
+.commerce-dashboard-orders .commerce-dashboard-order-customer,
+.commerce-dashboard-orders .commerce-dashboard-order-date { display: none; }
+.commerce-dashboard-mobile-customer { display: block; }
+
+.commerce-dashboard-tasks { display: grid; gap: .5rem; list-style: none; margin: 0; padding: 0; }
+
+.commerce-dashboard-tasks a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .7rem .85rem;
+    border-radius: .5rem;
+    background: var(--muted);
+    color: var(--foreground);
+    font-size: .875rem;
+    font-weight: 500;
+}
+
+.commerce-dashboard-tasks a:hover { background: var(--accent); }
+
+.commerce-dashboard-tasks strong {
+    min-width: 2rem;
+    border: 1px solid var(--border);
+    border-radius: .375rem;
+    padding: .2rem .45rem;
+    background: var(--card);
+    color: var(--commerce-dashboard-current);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.commerce-dashboard a:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+}
+
+@container commerce-dashboard (min-width: 540px) {
+    .commerce-dashboard-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .commerce-dashboard-orders .commerce-dashboard-order-customer { display: table-cell; }
+    .commerce-dashboard-mobile-customer { display: none; }
+}
+
+@container commerce-dashboard (min-width: 690px) {
+    .commerce-dashboard-orders .commerce-dashboard-order-date { display: table-cell; }
+}
+
+@container commerce-dashboard (min-width: 930px) {
+    .commerce-dashboard-kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .commerce-dashboard-kpis:has(.commerce-dashboard-sales-kpi) {
+        grid-template-columns: minmax(0, 1.2fr) repeat(4, minmax(0, 1fr));
+    }
+    .commerce-dashboard-sales-kpi { grid-column: auto; }
+    .commerce-dashboard-grid { grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr); }
+    .commerce-dashboard-activity { grid-template-columns: minmax(0, 2.4fr) minmax(0, 1fr); align-items: start; }
+    .commerce-dashboard-activity[data-has-orders="false"] { grid-template-columns: minmax(0, 1fr); }
+}

@@ -16,6 +16,8 @@ export interface ChartProps {
     height?: number;
     /** Formats values on the axis and in the tooltip. */
     format?: (value: number) => string;
+    formatAxis?: (value: number) => string;
+    interpolation?: 'linear' | 'monotone';
     /** Formats the x labels (dates…). */
     formatX?: (value: string) => string;
     /** Accessible description of what the chart shows. */
