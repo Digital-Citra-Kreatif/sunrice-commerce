@@ -524,6 +524,10 @@ an "Update shipping" button does the same.
 - **Online store**: the order is Pending payment. Zero-total orders and cash on delivery go straight
   to Processing. The payment method then takes over (it shows instructions or sends the customer to
   a gateway), and the order page follows.
+  For gateways that support cancellable hosted checkout sessions, opening the payment page holds
+  the checkout's stock and discounts but leaves the cart active. Going back before payment starts
+  returns to the saved checkout once the old session is cancelled. A confirmed pending or paid
+  gateway transaction places the order with the original totals.
 - **Quotation**: a quote request is created. The thank-you page says the store will reply, and the
   customer and staff are emailed.
 - **WhatsApp**: the order is Pending, with payment "Arranged via WhatsApp". The thank-you page opens

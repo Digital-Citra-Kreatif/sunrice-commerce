@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added support for cancellable hosted checkout sessions. Shoppers can return to their saved
+  checkout before they start payment. Confirmed pending and paid transactions place the order.
+
 - Added an opt-in verified-account checkout with an emailed code, automatic account creation after
   email verification, and a password sign-in option for returning shoppers. See
   [Verified-account checkout](docs/checkout.md#verified-account-checkout).

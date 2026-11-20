@@ -7,7 +7,9 @@ namespace Sunrice\Commerce\Http\Controllers;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Sunrice\Commerce\Checkout\Actions\ResolveCheckoutSession;
 use Sunrice\Commerce\Orders\Actor;
+use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Actions\RecordPaymentResult;
 use Sunrice\Commerce\Payments\Contracts\HandlesWebhooks;
 use Sunrice\Commerce\Payments\InvalidWebhook;
@@ -63,7 +65,13 @@ class WebhookController
         }
 
         try {
-            $changed = $record->handle($payment, $event->result, Actor::gateway($method));
+            $draft = Order::onlyTrashed()->whereKey($payment->order_id)->where('type', ResolveCheckoutSession::TYPE)->exists();
+            if ($draft) {
+                $sessions = app(ResolveCheckoutSession::class);
+                $changed = $sessions->committed($event->result) && $sessions->observe($payment);
+            } else {
+                $changed = $record->handle($payment, $event->result, Actor::gateway($method));
+            }
         } catch (Throwable $e) {
             report($e);
             // Give the event id back, so the gateway's retry is processed instead of ignored as a duplicate.

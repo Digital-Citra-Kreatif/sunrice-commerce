@@ -46,6 +46,7 @@ use Sunrice\Commerce\Orders\OrderStatus;
 use Sunrice\Commerce\Orders\Timeline;
 use Sunrice\Commerce\Payments\Actions\StartPayment;
 use Sunrice\Commerce\Payments\Contracts\AddsUniqueCode;
+use Sunrice\Commerce\Payments\Contracts\StartsCheckoutSession;
 use Sunrice\Commerce\Payments\Models\Payment;
 use Sunrice\Commerce\Payments\PaymentManager;
 use Sunrice\Commerce\Payments\UniqueCodes;
@@ -156,13 +157,37 @@ class PlaceOrder
             }
 
             // 11. The cart is done.
-            $locked->forceFill(['status' => 'converted', 'order_id' => $order->id])->save();
+            if ($order->type !== ResolveCheckoutSession::TYPE) {
+                $locked->forceFill(['status' => 'converted', 'order_id' => $order->id])->save();
+            }
             $created = true;
 
             return $order;
         }, 3);
 
-        // 12. After commit.
+        // 12. A hosted session holds the checkout snapshot. The order is placed when payment starts.
+        if ($order->type === ResolveCheckoutSession::TYPE) {
+            [$locked, $start] = DB::transaction(function () use ($order): array {
+                $locked = Order::withTrashed()->whereKey($order->id)->lockForUpdate()->first();
+                $payment = $locked?->payment();
+
+                return [$locked, $locked?->type === ResolveCheckoutSession::TYPE && $payment !== null
+                    ? app(StartPayment::class)->handle($locked, $payment)
+                    : null];
+            });
+            if ($locked !== null && $locked->type !== ResolveCheckoutSession::TYPE) {
+                return new PlacedOrder($locked, $completion->afterPlaced($locked), false);
+            }
+            if ($start?->kind !== 'redirect' || blank($start->url)) {
+                app(ResolveCheckoutSession::class)->releaseUnopened($order);
+
+                throw new CheckoutRefused(__('commerce::checkout.errors.payment_status'));
+            }
+
+            return new PlacedOrder($order, new CompletionResponse($start->url), false);
+        }
+
+        // 13. After commit.
         if ($created) {
             $order->refresh();
             if ($verifiedUser !== null && $verifiedUser->getAttribute('name') === '' && filled($order->customer_name)) {
@@ -265,6 +290,7 @@ class PlaceOrder
         $isQuote = $completion->orderType() === 'quote';
         $method = ! $isQuote && $completion->requiresPayment() && $state->totals['total'] > 0 && $data->paymentMethod() !== null
             ? $this->payments->get($data->paymentMethod()) : null;
+        $draft = $method instanceof StartsCheckoutSession && $completion::key() === 'order';
         $whatsapp = $completion::key() === 'whatsapp';
         $country = (string) ($data->shippingAddress()['country'] ?? 'ID');
         $rate = $state->shipping['rate'];
@@ -276,8 +302,8 @@ class PlaceOrder
         $user = commerce_customer();
         $order = new Order;
         $order->forceFill([
-            'type' => $completion->orderType(),
-            'number' => $isQuote ? null : $this->numbering->next('order'),
+            'type' => $draft ? ResolveCheckoutSession::TYPE : $completion->orderType(),
+            'number' => $isQuote || $draft ? null : $this->numbering->next('order'),
             'quote_number' => $isQuote ? $this->numbering->next('quote') : null,
             'order_key' => Str::random(40),
             'checkout_token' => hash('sha256', $cart->token),
@@ -309,12 +335,13 @@ class PlaceOrder
             'customer_note' => $this->settings->get('checkout.order_notes', true) ? $data->get('notes') : null,
             'dropship' => $this->settings->get('checkout.dropshipper', false) && $data->dropship()['enabled'] ? $data->dropship() : null,
             'fields' => $data->fields() ?: null,
-            'meta' => ['placed_as_guest' => $user === null, 'checkout_account_requested' => $user === null && $this->validator->createsAccount($data), ...array_filter(['codes' => $state->appliedCodes ?: null, 'pickup' => $data->isPickup() ? ($rate['meta']['location'] ?? null) : null,
+            'meta' => ['placed_as_guest' => $user === null, 'checkout_account_requested' => $user === null && $this->validator->createsAccount($data), ...array_filter(['checkout_cart_id' => $draft ? $cart->id : null, 'codes' => $state->appliedCodes ?: null, 'pickup' => $data->isPickup() ? ($rate['meta']['location'] ?? null) : null,
                 // Shipped from somewhere else than the store (an extension's origin): carriers book it from there.
                 'shipping_origin' => $state->shipping['needed'] && ! $data->isPickup() ? app(ShippingOrigins::class)->custom($state)?->toArray() : null])],
             'ip_address' => $client['ip_address'] ?? null,
             'user_agent' => isset($client['user_agent']) ? mb_substr((string) $client['user_agent'], 0, 255) : null,
-            'placed_at' => now(),
+            'placed_at' => $draft ? null : now(),
+            'deleted_at' => $draft ? now() : null,
             'paid_at' => $states->payment === OrderStatus::PAID ? now() : null,
             'quote_valid_until' => null,
         ])->save();
@@ -325,8 +352,10 @@ class PlaceOrder
             $order->adjustments()->create(['kind' => 'unique_code', 'source_type' => 'unique_code', 'label' => __('commerce::payments.unique_code'),
                 'amount' => $uniqueCode, 'created_at' => now()]);
         }
-        $this->timeline->record($order, 'status', Timeline::text($isQuote ? 'commerce::orders.timeline.quote_requested' : 'commerce::orders.timeline.placed'),
-            ['to' => $order->status, 'channel' => 'storefront'], Actor::customer());
+        if (! $draft) {
+            $this->timeline->record($order, 'status', Timeline::text($isQuote ? 'commerce::orders.timeline.quote_requested' : 'commerce::orders.timeline.placed'),
+                ['to' => $order->status, 'channel' => 'storefront'], Actor::customer());
+        }
 
         if ($method !== null) {
             $deadline = $method->deadline($order);
@@ -344,9 +373,9 @@ class PlaceOrder
             Payment::query()->create([
                 'order_id' => $order->id, 'method' => $order->payment_method, 'method_title' => $order->payment_method_title,
                 'amount' => $deposit !== null ? $order->deposit_total : $order->total, 'currency' => $order->currency, 'status' => 'pending', 'expires_at' => $deadline,
-                'meta' => $deposit !== null ? ['part' => 'deposit'] : null,
+                'meta' => array_filter(['part' => $deposit !== null ? 'deposit' : null, 'checkout_session' => $draft]) ?: null,
             ]);
-            $order->forceFill(['expires_at' => $deadline])->save();
+            $order->forceFill(['expires_at' => $deadline ?? ($draft ? now()->addDay() : null)])->save();
         }
 
         return $order;

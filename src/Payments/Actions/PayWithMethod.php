@@ -36,6 +36,14 @@ class PayWithMethod
 
     public function payable(Order $order): bool
     {
+        if ($order->meta('checkout_cart_id') !== null) {
+            $payment = $order->payment();
+            if ($payment !== null && ($payment->meta['checkout_session'] ?? false)
+                && in_array($payment->status, ['pending', 'awaiting_confirmation'], true)) {
+                return false;
+            }
+        }
+
         return $this->firstPayment($order) || $this->balancePayment($order);
     }
 

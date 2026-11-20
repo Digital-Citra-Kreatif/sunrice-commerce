@@ -19,6 +19,7 @@ use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\VariantFromOptions;
 use Sunrice\Commerce\Catalog\LiveEntries;
+use Sunrice\Commerce\Checkout\Actions\ResolveCheckoutSession;
 use Sunrice\Commerce\Loyalty\Actions\UsePoints;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
@@ -26,9 +27,15 @@ use Sunrice\Commerce\Storefront\StorefrontRoutes;
 /** The cart page and its forms (work without JavaScript: redirects with flash messages). */
 class CartController
 {
-    public function show(CartManager $carts): View
+    public function show(Request $request, CartManager $carts): View|RedirectResponse
     {
-        $view = CartView::for($carts->current());
+        $cart = $carts->current();
+        if ($request->session()->has(ResolveCheckoutSession::SESSION_KEY)
+            || ($cart !== null && app(ResolveCheckoutSession::class)->draft($cart) !== null)) {
+            return redirect(StorefrontRoutes::url('commerce.checkout'));
+        }
+
+        $view = CartView::for($cart);
 
         return tap(view(Layout::view('cart'), ['cart' => $view, 'seoTitle' => __('commerce::storefront.cart.title')]), fn () => $view->acknowledgePrices());
     }

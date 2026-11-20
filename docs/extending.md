@@ -172,6 +172,9 @@ Optional contracts:
   `InvalidWebhook` on a bad signature. Duplicates are ignored by event id;
 - `SupportsRefunds::refund(Payment, int $amount, string $reason): RefundResult`;
 - `SupportsCancel::cancel(Payment)`;
+- `StartsCheckoutSession` — opens a hosted session before an order is placed. Implement
+  `checkoutStatus(Payment)` and `cancelCheckoutSession(Payment)` so Commerce can safely resume
+  either checkout or payment. See [Hosted checkout sessions](payments.md#hosted-checkout-sessions).
 - `SupportsStatusCheck::check(Payment): PaymentResult` — asked once before an unpaid order
   expires, so a payment the webhook missed isn't lost;
 - `AddsUniqueCode::uniqueCodeRange(): ?array` — a unique amount for bank transfers.

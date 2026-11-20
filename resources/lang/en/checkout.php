@@ -83,7 +83,9 @@ return [
         'quote' => 'Request a quote',
         'whatsapp' => 'Order via WhatsApp',
     ],
+    'retry_payment_status' => 'Check payment status again',
     'errors' => [
+        'payment_status' => 'We couldn’t confirm your payment status. Try again to check before editing your checkout.',
         'empty' => 'Your cart is empty.',
         'sign_in' => 'Please sign in to check out.',
         'minimum' => 'The minimum order is :amount.',

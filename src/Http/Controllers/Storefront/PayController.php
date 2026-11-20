@@ -7,6 +7,9 @@ namespace Sunrice\Commerce\Http\Controllers\Storefront;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Sunrice\Commerce\Cart\CartManager;
+use Sunrice\Commerce\Checkout\Actions\ResolveCheckoutSession;
+use Sunrice\Commerce\Checkout\CheckoutRefused;
 use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\OrderAccess;
@@ -56,12 +59,24 @@ class PayController
     public function return(Request $request, string $key, OrderAccess $access, PaymentManager $payments, RecordPaymentResult $record): RedirectResponse
     {
         abort_unless(strlen($key) === 40, 404);
-        $order = Order::query()->where('order_key', $key)->first();
+        $order = Order::withTrashed()->where('order_key', $key)->first();
         abort_if($order === null, 404);
+        $wasDraft = $order->type === ResolveCheckoutSession::TYPE;
+        if ($wasDraft) {
+            try {
+                $order = app(ResolveCheckoutSession::class)->handle($order, $access->allows($request, $order));
+            } catch (CheckoutRefused) {
+                return redirect(StorefrontRoutes::url('commerce.checkout'));
+            }
+            if ($order === null) {
+                return redirect(StorefrontRoutes::url('commerce.checkout'));
+            }
+        }
+        abort_if($order->trashed(), 404);
 
         $payment = $order->payments()->reorder('id', 'desc')->first();
         $method = $payment !== null ? $payments->get($payment->method) : null;
-        if ($payment !== null && $method instanceof HandlesReturn) {
+        if (! $wasDraft && $payment !== null && $method instanceof HandlesReturn) {
             try {
                 $record->handle($payment, $method->handleReturn($request, $payment), Actor::gateway($payment->method));
             } catch (Throwable $e) {
@@ -70,6 +85,15 @@ class PayController
         }
 
         if ($access->allows($request, $order)) {
+            if ($request->session()->get(ResolveCheckoutSession::SESSION_KEY) === $key) {
+                $request->session()->forget(ResolveCheckoutSession::SESSION_KEY);
+                $carts = app(CartManager::class);
+                $cart = $carts->current();
+                if ($cart === null || $cart->id === (int) $order->meta('checkout_cart_id')) {
+                    $carts->forget();
+                }
+            }
+
             return redirect($order->url());
         }
         $message = __('commerce::payments.return_verify', ['number' => $order->displayNumber()]);

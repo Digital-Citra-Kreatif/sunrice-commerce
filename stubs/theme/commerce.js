@@ -690,7 +690,10 @@
         });
         window.addEventListener('pageshow', function (event) {
             if (!event.persisted) return;
-            submitting = false;
+            if (submitting) {
+                window.location.reload();
+                return;
+            }
             showStatus(pending ? 'updating' : failed ? 'failed' : '');
         });
         form.addEventListener('change', function (event) {

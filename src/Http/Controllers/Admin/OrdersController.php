@@ -20,6 +20,7 @@ use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Admin\Tables\Column;
 use Sunrice\Commerce\Admin\Tables\TableQuery;
 use Sunrice\Commerce\Analytics\Day;
+use Sunrice\Commerce\Checkout\Actions\ResolveCheckoutSession;
 use Sunrice\Commerce\Digital\Models\DownloadGrant;
 use Sunrice\Commerce\Documents\Documents;
 use Sunrice\Commerce\Loyalty\Loyalty;
@@ -648,7 +649,7 @@ class OrdersController extends Controller
     {
         $this->guard();
         $this->authorize('commerce.orders.delete');
-        $model = Order::onlyTrashed()->findOrFail($order);
+        $model = Order::onlyTrashed()->where('type', '!=', ResolveCheckoutSession::TYPE)->findOrFail($order);
         $trash->restore($model);
 
         return back()->with('success', 'Order restored.');
@@ -658,7 +659,7 @@ class OrdersController extends Controller
     {
         $this->guard();
         $this->authorize('commerce.orders.delete');
-        $model = Order::onlyTrashed()->findOrFail($order);
+        $model = Order::onlyTrashed()->where('type', '!=', ResolveCheckoutSession::TYPE)->findOrFail($order);
         try {
             $trash->forceDelete($model);
         } catch (DomainException $e) {
@@ -676,7 +677,7 @@ class OrdersController extends Controller
 
     protected function table(Request $request): TableQuery
     {
-        $table = TableQuery::for(app(AdminOrderScopes::class)->apply(Order::query()->withTrashed()->with('customer')))
+        $table = TableQuery::for(app(AdminOrderScopes::class)->apply(Order::withTrashed()->where('type', '!=', ResolveCheckoutSession::TYPE)->with('customer')))
             ->searchUsing(function (Builder $q, string $term): void {
                 $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $term).'%';
                 $q->where(fn (Builder $w) => $w->whereLike('number', $like)->orWhereLike('quote_number', $like)->orWhereLike('customer_name', $like)

@@ -30,7 +30,7 @@ class ReleaseReservations
         $this->release($event->order);
     }
 
-    public function release(Order $order): void
+    public function release(Order $order, bool $cancelPayments = true): void
     {
         DB::transaction(function () use ($order): void {
             /** @var Order $locked */
@@ -68,8 +68,10 @@ class ReleaseReservations
             $locked->save();
         });
 
-        foreach ($order->payments()->whereIn('status', ['pending', 'failed'])->get() as $payment) {
-            app(RecordPaymentResult::class)->handle($payment, PaymentResult::cancelled(), Actor::system());
+        if ($cancelPayments) {
+            foreach ($order->payments()->whereIn('status', ['pending', 'failed'])->get() as $payment) {
+                app(RecordPaymentResult::class)->handle($payment, PaymentResult::cancelled(), Actor::system());
+            }
         }
     }
 }

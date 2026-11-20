@@ -327,3 +327,18 @@ and unique codes as optional contracts. See [extending.md](extending.md#payments
 
 Each adds a module (Settings → Store → Features, Payments) and a method under Settings → Store →
 Payments; its README covers the keys and the webhook URL.
+
+### Hosted checkout sessions
+
+A redirect gateway implementing `Payments\Contracts\StartsCheckoutSession` can open a
+payment page before an order is placed in Online store mode. Commerce passes the gateway an order
+snapshot for the amount and customer details. It holds the checkout's stock and discounts until
+payment starts or Commerce confirms the shopper can return to editing.
+
+- `checkoutStatus(Payment)` returns `null` only when the provider has no transaction for the
+  session. Throw for connectivity errors or ambiguous responses.
+- `cancelCheckoutSession(Payment)` returns `true` only when the hosted session can no longer
+  accept a payment. A missing transaction alone is insufficient.
+- A verified pending, awaiting-confirmation, or paid result promotes the snapshot to a numbered
+  order. The browser return, checkout page, and webhooks can all reconcile the payment.
+  `commerce:tick` reconciles overdue reservations using the gateway's payment deadline.
