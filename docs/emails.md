@@ -102,6 +102,11 @@ in the main language; add `?lang=en` to the preview URL for another language.
 
 **Test** sends the email to your own address, right away, with the same order.
 
+The subject, heading and text show their default wording until you change it. Placeholders
+(`:number`, `:name`, `:store`, and `:product`, `:balance` and `:due_date` where the email has them) are
+chips under each text: a click puts one where the cursor is. A text saved as its default isn't
+stored, so it keeps following the default (and its translations); clear a text to go back to it.
+
 Saving is recorded in the activity log. The values are stored under `emails.<key>` in the store
 settings: `enabled`, `subject`, `heading` and `intro` (each `{locale: text}`), `attachments`, and for
 staff emails `addresses` and `roles`.
@@ -110,7 +115,7 @@ staff emails `addresses` and `roles`.
 
 Each staff email goes to:
 
-- the addresses in **Send to** (comma separated); and
+- the addresses in **Send to** (type one and press Enter); and
 - every user with one of the roles in **And to users with the roles** (default: Shop Manager).
 
 When **Send to** is empty and no roles have been saved for the email, it goes to the store email
@@ -119,7 +124,7 @@ goes to those users only. Each address gets the email once.
 
 ## Copies of customer emails
 
-Customer emails have **Also send a copy to**: addresses (comma separated) that get a hidden copy
+Customer emails have **Also send a copy to**: addresses (type one and press Enter) that get a hidden copy
 (BCC) of every one sent, for example the owner's inbox for order confirmations. The emails with a
 sign-in code, a verification link or a password reset link have no copies: those stay the
 customer's alone.
@@ -128,11 +133,18 @@ customer's alone.
 
 | Email | Can attach | By default |
 | --- | --- | --- |
-| `order_received` | Invoice PDF | — |
+| `order_received` | Invoice PDF, always or only while a manual payment is awaited | Invoice while awaiting a manual payment |
+| `payment_link` | Invoice PDF | Invoice |
 | `payment_received` | Invoice PDF | Invoice |
+| `order_completed` | Invoice PDF | — |
 | `quote_ready` | Quotation PDF | Quotation |
 | `staff_new_order` | Packing slip PDF | — |
 | `downloads_ready` | Download files | Download files |
+
+"While a manual payment is awaited" (`invoice_to_pay`) attaches the invoice only when the order is
+unpaid and paid by bank transfer, payment instructions (QRIS) or another manual method, not cash on
+delivery or a gateway. The invoice then lists the accounts to transfer to, so it works as the bill.
+After payment, **Payment received** sends it again as the receipt.
 
 - PDFs are attached only while the `documents` feature is on. Attaching an invoice gives the order
   its invoice number if it has none yet. See [documents.md](documents.md).
