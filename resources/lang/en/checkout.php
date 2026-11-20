@@ -89,6 +89,7 @@ return [
     ],
     'retry_payment_status' => 'Check payment status again',
     'errors' => [
+        'on_request' => 'Some products in your cart have no price for you yet. Send the cart as a quote request instead.',
         'payment_status' => 'We couldn’t confirm your payment status. Try again to check before editing your checkout.',
         'empty' => 'Your cart is empty.',
         'sign_in' => 'Please sign in to check out.',

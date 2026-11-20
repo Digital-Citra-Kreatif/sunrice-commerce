@@ -258,7 +258,7 @@ class OrdersController extends Controller
                 'id' => $order->id, 'number' => $order->displayNumber(), 'customer' => $order->customer_name ?? $order->email,
                 'lines' => $order->items()->whereNull('parent_id')->get()->map(fn (OrderItem $i) => [
                     'item_id' => $i->id, 'variant_id' => $i->variant_id, 'label' => $i->title(), 'sku' => $i->sku, 'quantity' => $i->quantity,
-                    'price' => $i->unit_price, 'unit_price' => $i->unit_price,
+                    'price' => $i->unit_price, 'unit_price' => $this->needsPrice($i) ? null : $i->unit_price, 'needs_price' => $this->needsPrice($i),
                 ])->all(),
                 'shipping' => $order->shipping_method !== null ? ['label' => $order->shipping_method['label'] ?? '', 'cost' => $order->shipping_total] : null,
                 'discount' => $discount > 0 ? ['label' => '', 'amount' => $discount] : null,
@@ -271,6 +271,12 @@ class OrdersController extends Controller
             'previewUrl' => route('sunrice.admin.commerce.orders.preview', ['order' => $order->id, 'quote' => 1], false),
             'submitUrl' => route('sunrice.admin.commerce.orders.quote.update', $order, false),
         ]);
+    }
+
+    /** A line asked for without a price (the product has none): staff set one before sending the quote. */
+    protected function needsPrice(OrderItem $item): bool
+    {
+        return (bool) ($item->meta['on_request'] ?? false) && $item->variant !== null && ! $item->variant->hasPrice() && ! $item->variant->product->isBundle();
     }
 
     public function updateQuote(Request $request, Order $order, RespondToQuote $respond): RedirectResponse

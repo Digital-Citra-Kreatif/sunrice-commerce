@@ -19,8 +19,12 @@
                 @if ($line->priceSource['type'] === 'flash_sale')<span class="commerce-badge commerce-badge--sale">{{ $line->priceSource['label'] ?? '' }}</span>@endif
                 <span class="commerce-cart__price">
                     <span class="commerce-visually-hidden">{{ __('commerce::storefront.cart.unit_price') }}</span>
-                    @if ($line->regularUnitPrice > $line->unitPrice)<del>{{ $money->format($taxDisplay->line($line, $line->regularUnitPrice)) }}</del>@endif
-                    {{ $money->format($taxDisplay->line($line, $line->unitPrice)) }}
+                    @if ($line->onRequest)
+                        {{ __('commerce::storefront.cta.price_on_request') }}
+                    @else
+                        @if ($line->regularUnitPrice > $line->unitPrice)<del>{{ $money->format($taxDisplay->line($line, $line->regularUnitPrice)) }}</del>@endif
+                        {{ $money->format($taxDisplay->line($line, $line->unitPrice)) }}
+                    @endif
                 </span>
             </span>
         </div>
@@ -37,8 +41,12 @@
     </td>
     <td class="commerce-cart__total">
         <span class="commerce-visually-hidden">{{ __('commerce::storefront.cart.line_total') }}</span>
-        @if ($line->discount() > 0)<del>{{ $money->format($taxDisplay->line($line, $line->subtotal)) }}</del>@endif
-        {{ $money->format($taxDisplay->line($line, $line->net())) }}
+        @if ($line->onRequest)
+            {{ __('commerce::storefront.cta.price_on_request') }}
+        @else
+            @if ($line->discount() > 0)<del>{{ $money->format($taxDisplay->line($line, $line->subtotal)) }}</del>@endif
+            {{ $money->format($taxDisplay->line($line, $line->net())) }}
+        @endif
     </td>
     <td class="commerce-cart__remove">
         <form method="POST" action="{{ commerce_url('commerce.cart.remove', ['item' => $row['item']->id]) }}" data-commerce-cart-remove="{{ $itemName }}">

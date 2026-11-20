@@ -1,11 +1,11 @@
-import { b as e, p as J, j as c, c as D, M as ie, R as x, H as X, I as Q, l as K, a as M, g as H, t as ae, J as W, L as O, S as re, n as se, d as oe, i as ce, e as de } from "./main-CFlXDyeG.js";
+import { b as e, p as V, j as c, c as D, M as ae, R as x, H as X, I as Q, l as K, a as M, g as W, t as re, J as G, L, S as se, n as oe, d as ce, i as de, e as me } from "./main-Bl32mM8r.js";
 function B() {
   return (globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`).replace(/-/g, "").slice(0, 32);
 }
-function V(t) {
+function Y(t) {
   return Object.keys(t).sort().map((n) => `${n}=${t[n]}`).join("|");
 }
-function me(t) {
+function ue(t) {
   let n = [{}];
   for (const a of t) {
     if (a.values.length === 0) return [];
@@ -17,14 +17,14 @@ function me(t) {
   }
   return t.length === 0 ? [] : n;
 }
-function ue(t, n, a, r = 100) {
-  const s = new Map(n.map((l) => [V(l.options), l]));
-  return me(t).slice(0, r).map((l) => {
-    const i = s.get(V(l));
+function he(t, n, a, r = 100) {
+  const s = new Map(n.map((l) => [Y(l.options), l]));
+  return ue(t).slice(0, r).map((l) => {
+    const i = s.get(Y(l));
     return i ? { ...i, options: l } : { ...a, id: B(), sku: null, options: l, active: !0, price: a.price ?? 0 };
   });
 }
-function Z(t, n, a = {}) {
+function ee(t, n, a = {}) {
   return t.map((r) => {
     const s = r.values.find((l) => l.id === n.options[r.id]);
     return s ? s.label ?? (s.term_id ? a[s.term_id] ?? `#${s.term_id}` : "?") : "?";
@@ -32,14 +32,14 @@ function Z(t, n, a = {}) {
 }
 function f({ label: t, hint: n, children: a, htmlFor: r, className: s }) {
   const { Label: l } = D;
-  return /* @__PURE__ */ c("div", { className: J("cm:grid cm:content-start cm:gap-1.5", s), children: [
+  return /* @__PURE__ */ c("div", { className: V("cm:grid cm:content-start cm:gap-1.5", s), children: [
     /* @__PURE__ */ e(l, { htmlFor: r, children: t }),
     a,
     n && /* @__PURE__ */ e("p", { className: "cm:text-xs cm:text-muted-foreground", children: n })
   ] });
 }
-function P({ children: t, cols: n = 3 }) {
-  return /* @__PURE__ */ e("div", { className: J("cm:grid cm:items-start cm:gap-4", { 2: "cm:sm:grid-cols-2", 3: "cm:sm:grid-cols-2 cm:lg:grid-cols-3", 4: "cm:sm:grid-cols-2 cm:lg:grid-cols-4" }[n]), children: t });
+function O({ children: t, cols: n = 3 }) {
+  return /* @__PURE__ */ e("div", { className: V("cm:grid cm:items-start cm:gap-4", { 2: "cm:sm:grid-cols-2", 3: "cm:sm:grid-cols-2 cm:lg:grid-cols-3", 4: "cm:sm:grid-cols-2 cm:lg:grid-cols-4" }[n]), children: t });
 }
 function U({ id: t, value: n, onChange: a, min: r = 0, placeholder: s }) {
   const { Input: l } = D;
@@ -87,8 +87,8 @@ function E({ id: t, value: n, onChange: a, placeholder: r, onBlur: s }) {
     }
   );
 }
-function L({ id: t, value: n, onChange: a, nullable: r = !0 }) {
-  return /* @__PURE__ */ e(ie, { id: t, value: n, allowNull: r, onChange: a });
+function P({ id: t, value: n, onChange: a, nullable: r = !0, placeholder: s }) {
+  return /* @__PURE__ */ e(ae, { id: t, value: n, allowNull: r, onChange: a, placeholder: s });
 }
 function R({ id: t, label: n, checked: a, onChange: r, hint: s, disabled: l = !1 }) {
   const { Switch: i, Label: o } = D;
@@ -100,9 +100,9 @@ function R({ id: t, label: n, checked: a, onChange: r, hint: s, disabled: l = !1
     ] })
   ] });
 }
-const he = "cm:h-10 cm:w-full cm:rounded-md cm:border cm:border-border cm:bg-background cm:px-3 cm:text-sm";
+const pe = "cm:h-10 cm:w-full cm:rounded-md cm:border cm:border-border cm:bg-background cm:px-3 cm:text-sm";
 function I({ id: t, value: n, onChange: a, options: r }) {
-  return /* @__PURE__ */ e("select", { id: t, className: he, value: n, onChange: (s) => a(s.target.value), children: r.map(([s, l]) => /* @__PURE__ */ e("option", { value: s, children: l }, s)) });
+  return /* @__PURE__ */ e("select", { id: t, className: pe, value: n, onChange: (s) => a(s.target.value), children: r.map(([s, l]) => /* @__PURE__ */ e("option", { value: s, children: l }, s)) });
 }
 function A({ title: t, description: n, children: a, actions: r }) {
   return /* @__PURE__ */ c("section", { className: "cm:grid cm:gap-4", children: [
@@ -116,13 +116,13 @@ function A({ title: t, description: n, children: a, actions: r }) {
     a
   ] });
 }
-function pe({ value: t, update: n, path: a }) {
+function ge({ value: t, update: n, path: a }) {
   const { Button: r, Input: s } = D, l = t.bundle ?? { pricing: "fixed", value: 0, items: [] }, [i, o] = x.useState({}), [k, N] = x.useState(""), [C, h] = x.useState([]), y = l.items.map((m) => m.variant_id).filter((m) => !!m);
   x.useEffect(() => {
     const m = y.filter((b) => !(b in i));
     if (m.length === 0) return;
     const d = Object.fromEntries(m.map((b) => [b, null]));
-    K(M(`commerce/api/variants?bundle_components=1&${m.map((b) => `ids[]=${b}`).join("&")}`)).then((b) => o((S) => ({ ...S, ...d, ...Object.fromEntries(b.data.map((p) => [p.id, p])) }))).catch(() => o((b) => ({ ...b, ...d })));
+    K(M(`commerce/api/variants?bundle_components=1&${m.map((b) => `ids[]=${b}`).join("&")}`)).then((b) => o((S) => ({ ...S, ...d, ...Object.fromEntries(b.data.map((g) => [g.id, g])) }))).catch(() => o((b) => ({ ...b, ...d })));
   }, [y.join(",")]), x.useEffect(() => {
     if (k.trim().length < 2) return h([]);
     const m = setTimeout(() => K(M(`commerce/api/variants?q=${encodeURIComponent(k)}`)).then((d) => h(d.data)).catch(() => {
@@ -139,8 +139,8 @@ function pe({ value: t, update: n, path: a }) {
             /* @__PURE__ */ e("span", { children: b?.label || (b === void 0 ? "Loading product…" : "Unavailable product") }),
             b?.available === !1 && /* @__PURE__ */ e("p", { className: "cm:text-xs cm:text-destructive", children: "Replace this unavailable variant to sell the bundle." })
           ] }),
-          /* @__PURE__ */ e("div", { className: "cm:w-24", children: /* @__PURE__ */ e(U, { min: 1, value: m.quantity, onChange: (S) => _({ items: l.items.map((p, w) => w === d ? { ...p, quantity: S ?? 1 } : p) }) }) }),
-          /* @__PURE__ */ e(r, { type: "button", variant: "ghost", size: "sm", onClick: () => _({ items: l.items.filter((S, p) => p !== d) }), children: "Remove" })
+          /* @__PURE__ */ e("div", { className: "cm:w-24", children: /* @__PURE__ */ e(U, { min: 1, value: m.quantity, onChange: (S) => _({ items: l.items.map((g, w) => w === d ? { ...g, quantity: S ?? 1 } : g) }) }) }),
+          /* @__PURE__ */ e(r, { type: "button", variant: "ghost", size: "sm", onClick: () => _({ items: l.items.filter((S, g) => g !== d) }), children: "Remove" })
         ] }, d);
       }),
       /* @__PURE__ */ c("div", { className: "cm:relative", children: [
@@ -161,13 +161,13 @@ function pe({ value: t, update: n, path: a }) {
                   m.sku
                 ] })
               ] }),
-              /* @__PURE__ */ e("span", { children: H(m.price) })
+              /* @__PURE__ */ e("span", { children: W(m.price) })
             ]
           }
         ) }, m.id)) })
       ] })
     ] }),
-    /* @__PURE__ */ e(A, { title: "Bundle price", description: v ? `The products cost ${H(u)} together.` : "Add available products to see the combined price.", children: /* @__PURE__ */ c("div", { className: "cm:grid cm:gap-3 cm:sm:grid-cols-2", children: [
+    /* @__PURE__ */ e(A, { title: "Bundle price", description: v ? `The products cost ${W(u)} together.` : "Add available products to see the combined price.", children: /* @__PURE__ */ c("div", { className: "cm:grid cm:gap-3 cm:sm:grid-cols-2", children: [
       /* @__PURE__ */ e(f, { label: "Price", htmlFor: `${a}-bundle-pricing`, children: /* @__PURE__ */ e(
         I,
         {
@@ -178,14 +178,14 @@ function pe({ value: t, update: n, path: a }) {
         }
       ) }),
       l.pricing === "percent_off" && /* @__PURE__ */ e(f, { label: "Percent off", htmlFor: `${a}-bundle-value`, children: /* @__PURE__ */ e(U, { id: `${a}-bundle-value`, value: l.value / 100, onChange: (m) => _({ value: Math.round((m ?? 0) * 100) }) }) }),
-      l.pricing === "amount_off" && /* @__PURE__ */ e(f, { label: "Amount off", htmlFor: `${a}-bundle-value`, children: /* @__PURE__ */ e(L, { id: `${a}-bundle-value`, value: l.value, nullable: !1, onChange: (m) => _({ value: m ?? 0 }) }) })
+      l.pricing === "amount_off" && /* @__PURE__ */ e(f, { label: "Amount off", htmlFor: `${a}-bundle-value`, children: /* @__PURE__ */ e(P, { id: `${a}-bundle-value`, value: l.value, nullable: !1, onChange: (m) => _({ value: m ?? 0 }) }) })
     ] }) })
   ] });
 }
-function ge() {
+function fe() {
   return decodeURIComponent(document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]+)/)?.[1] ?? "");
 }
-function fe({ value: t, update: n, path: a }) {
+function be({ value: t, update: n, path: a }) {
   const { Button: r } = D, [s, l] = x.useState(!1), i = x.useRef(null), o = t.delivery ?? { modes: ["link", "account"], download_limit: null, expiry_days: null }, k = (h) => n({ delivery: { ...o, ...h } }), N = (h, y) => n({ downloads: t.downloads.map((_, u) => u === h ? { ..._, ...y } : _) }), C = async (h) => {
     if (h?.length) {
       l(!0);
@@ -194,13 +194,13 @@ function fe({ value: t, update: n, path: a }) {
         for (const _ of Array.from(h)) {
           const u = new FormData();
           u.append("file", _);
-          const v = await fetch(M("commerce/api/downloads"), { method: "POST", body: u, headers: { "X-XSRF-TOKEN": ge(), Accept: "application/json" }, credentials: "same-origin" }), m = await v.json();
+          const v = await fetch(M("commerce/api/downloads"), { method: "POST", body: u, headers: { "X-XSRF-TOKEN": fe(), Accept: "application/json" }, credentials: "same-origin" }), m = await v.json();
           if (!v.ok) throw new Error(m.message ?? "Upload failed");
           y.push({ id: B(), type: "file", file_id: m.data.id, url: null, name: _.name.replace(/\.[^.]+$/, ""), file: m.data });
         }
         n({ downloads: [...t.downloads, ...y] });
       } catch (y) {
-        ae.error(y instanceof Error ? y.message : "Upload failed");
+        re.error(y instanceof Error ? y.message : "Upload failed");
       } finally {
         l(!1), i.current && (i.current.value = "");
       }
@@ -245,7 +245,7 @@ function fe({ value: t, update: n, path: a }) {
     ] })
   ] });
 }
-function ee({ id: t, value: n, onChange: a, entryId: r }) {
+function te({ id: t, value: n, onChange: a, entryId: r }) {
   const [s, l] = x.useState(null);
   return /* @__PURE__ */ c("div", { className: "cm:grid cm:gap-1", children: [
     /* @__PURE__ */ e(E, { id: t, value: n, onChange: (o) => {
@@ -262,27 +262,27 @@ function ee({ id: t, value: n, onChange: a, entryId: r }) {
     ] })
   ] });
 }
-const Y = [
+const Z = [
   ["cart", "Add to cart"],
   ["inquiry", "Inquiry form"],
   ["whatsapp", "Ask on WhatsApp"],
   ["external", "Links to other shops"],
   ["none", "No button"]
 ];
-function be({ value: t, update: n, updateVariant: a, config: r, purchaseDefault: s, entryId: l, path: i }) {
+function ve({ value: t, update: n, updateVariant: a, config: r, purchaseDefault: s, entryId: l, path: i }) {
   const { Button: o } = D, k = [["simple", "Simple product"]];
   (r.features.variants || t.type === "variable") && k.push(["variable", "Variable product (sizes, colors…)"]), (r.features.bundles || t.type === "bundle") && k.push(["bundle", "Bundle of other products"]);
-  const N = t.variants[0], h = t.external_links.some((d) => d.url) ? s?.with_links : s?.without_links, y = Y.find(([d]) => d === h?.type)?.[1], _ = h?.source_name ? `${h.source} settings (${h.source_name})` : `${h?.source ?? "store"} settings`, u = y ? `Default · ${y}` : "Default · Inherit settings", v = t.purchase_mode === "default" ? y ? `Inherited from ${_}.` : "Uses the closest saved setting in brand, category, or store." : "This product overrides the inherited setting.", m = t.purchase_mode === "external" || t.purchase_mode === "default" && s?.with_links.type === "external";
+  const N = t.variants[0], h = t.external_links.some((d) => d.url) ? s?.with_links : s?.without_links, y = Z.find(([d]) => d === h?.type)?.[1], _ = h?.source_name ? `${h.source} settings (${h.source_name})` : `${h?.source ?? "store"} settings`, u = y ? `Default · ${y}` : "Default · Inherit settings", v = t.purchase_mode === "default" ? y ? `Inherited from ${_}.` : "Uses the closest saved setting in brand, category, or store." : "This product overrides the inherited setting.", m = t.purchase_mode === "external" || t.purchase_mode === "default" && s?.with_links.type === "external";
   return /* @__PURE__ */ c("div", { className: "cm:grid cm:gap-6", children: [
-    /* @__PURE__ */ c(P, { cols: 2, children: [
+    /* @__PURE__ */ c(O, { cols: 2, children: [
       /* @__PURE__ */ e(f, { label: "Product type", htmlFor: `${i}-type`, children: /* @__PURE__ */ e(I, { id: `${i}-type`, value: t.type, options: k, onChange: (d) => n({ type: d }) }) }),
-      /* @__PURE__ */ e(f, { label: "Storefront button", htmlFor: `${i}-mode`, hint: v, children: /* @__PURE__ */ e(I, { id: `${i}-mode`, value: t.purchase_mode, options: [["default", u], ...Y], onChange: (d) => n({ purchase_mode: d }) }) })
+      /* @__PURE__ */ e(f, { label: "Storefront button", htmlFor: `${i}-mode`, hint: v, children: /* @__PURE__ */ e(I, { id: `${i}-mode`, value: t.purchase_mode, options: [["default", u], ...Z], onChange: (d) => n({ purchase_mode: d }) }) })
     ] }),
-    t.type !== "variable" && N && /* @__PURE__ */ e(A, { title: "Pricing and SKU", children: /* @__PURE__ */ c(P, { cols: 4, children: [
-      /* @__PURE__ */ e(f, { label: "Price", htmlFor: `${i}-price`, children: /* @__PURE__ */ e(L, { id: `${i}-price`, value: N.price, nullable: !1, onChange: (d) => a(0, { price: d ?? 0 }) }) }),
-      /* @__PURE__ */ e(f, { label: "Compare-at price", htmlFor: `${i}-compare`, hint: "Shown struck through when higher.", children: /* @__PURE__ */ e(L, { id: `${i}-compare`, value: N.compare_at_price, onChange: (d) => a(0, { compare_at_price: d }) }) }),
-      /* @__PURE__ */ e(f, { label: "Cost", htmlFor: `${i}-cost`, hint: "For profit reports; never shown.", children: /* @__PURE__ */ e(L, { id: `${i}-cost`, value: N.cost, onChange: (d) => a(0, { cost: d }) }) }),
-      /* @__PURE__ */ e(f, { label: "SKU", htmlFor: `${i}-sku`, children: /* @__PURE__ */ e(ee, { id: `${i}-sku`, value: N.sku, entryId: l, onChange: (d) => a(0, { sku: d }) }) })
+    t.type !== "variable" && N && /* @__PURE__ */ e(A, { title: "Pricing and SKU", children: /* @__PURE__ */ c(O, { cols: 4, children: [
+      /* @__PURE__ */ e(f, { label: "Price", htmlFor: `${i}-price`, hint: "Empty: price on request. Customers ask for a quote and you price it.", children: /* @__PURE__ */ e(P, { id: `${i}-price`, value: N.price, placeholder: "On request", onChange: (d) => a(0, { price: d }) }) }),
+      /* @__PURE__ */ e(f, { label: "Compare-at price", htmlFor: `${i}-compare`, hint: "Shown struck through when higher.", children: /* @__PURE__ */ e(P, { id: `${i}-compare`, value: N.compare_at_price, onChange: (d) => a(0, { compare_at_price: d }) }) }),
+      /* @__PURE__ */ e(f, { label: "Cost", htmlFor: `${i}-cost`, hint: "For profit reports; never shown.", children: /* @__PURE__ */ e(P, { id: `${i}-cost`, value: N.cost, onChange: (d) => a(0, { cost: d }) }) }),
+      /* @__PURE__ */ e(f, { label: "SKU", htmlFor: `${i}-sku`, children: /* @__PURE__ */ e(te, { id: `${i}-sku`, value: N.sku, entryId: l, onChange: (d) => a(0, { sku: d }) }) })
     ] }) }),
     (m || t.external_links.length > 0) && /* @__PURE__ */ e(
       A,
@@ -291,25 +291,25 @@ function be({ value: t, update: n, updateVariant: a, config: r, purchaseDefault:
         description: "Buttons such as 'Buy on Tokopedia'.",
         actions: t.external_links.length < 10 && /* @__PURE__ */ e(o, { type: "button", variant: "outline", size: "sm", onClick: () => n({ external_links: [...t.external_links, { preset: "tokopedia", label: null, url: null }] }), children: "Add link" }),
         children: t.external_links.map((d, b) => {
-          const S = (p) => n({ external_links: t.external_links.map((w, g) => g === b ? { ...w, ...p } : w) });
+          const S = (g) => n({ external_links: t.external_links.map((w, p) => p === b ? { ...w, ...g } : w) });
           return /* @__PURE__ */ c("div", { className: "cm:grid cm:items-end cm:gap-3 cm:sm:grid-cols-[10rem_1fr_2fr_auto]", children: [
             /* @__PURE__ */ e(f, { label: "Shop", htmlFor: `${i}-link-${b}-preset`, children: /* @__PURE__ */ e(
               I,
               {
                 id: `${i}-link-${b}-preset`,
                 value: d.preset ?? "",
-                onChange: (p) => S({ preset: p || null }),
+                onChange: (g) => S({ preset: g || null }),
                 options: [...Object.entries(r.link_presets), ["", "Other…"]]
               }
             ) }),
-            /* @__PURE__ */ e(f, { label: "Button label", htmlFor: `${i}-link-${b}-label`, children: /* @__PURE__ */ e(E, { id: `${i}-link-${b}-label`, value: d.label, placeholder: d.preset ? `Buy on ${r.link_presets[d.preset]}` : "", onChange: (p) => S({ label: p }) }) }),
-            /* @__PURE__ */ e(f, { label: "Link", htmlFor: `${i}-link-${b}-url`, children: /* @__PURE__ */ e(E, { id: `${i}-link-${b}-url`, value: d.url, placeholder: "https://", onChange: (p) => S({ url: p }) }) }),
-            /* @__PURE__ */ e(o, { type: "button", variant: "ghost", size: "sm", onClick: () => n({ external_links: t.external_links.filter((p, w) => w !== b) }), children: "Remove" })
+            /* @__PURE__ */ e(f, { label: "Button label", htmlFor: `${i}-link-${b}-label`, children: /* @__PURE__ */ e(E, { id: `${i}-link-${b}-label`, value: d.label, placeholder: d.preset ? `Buy on ${r.link_presets[d.preset]}` : "", onChange: (g) => S({ label: g }) }) }),
+            /* @__PURE__ */ e(f, { label: "Link", htmlFor: `${i}-link-${b}-url`, children: /* @__PURE__ */ e(E, { id: `${i}-link-${b}-url`, value: d.url, placeholder: "https://", onChange: (g) => S({ url: g }) }) }),
+            /* @__PURE__ */ e(o, { type: "button", variant: "ghost", size: "sm", onClick: () => n({ external_links: t.external_links.filter((g, w) => w !== b) }), children: "Remove" })
           ] }, b);
         })
       }
     ),
-    /* @__PURE__ */ e(A, { title: "Fulfillment", children: /* @__PURE__ */ c(P, { cols: 2, children: [
+    /* @__PURE__ */ e(A, { title: "Fulfillment", children: /* @__PURE__ */ c(O, { cols: 2, children: [
       (r.features.digital || t.downloadable) && /* @__PURE__ */ e(R, { id: `${i}-downloadable`, label: "Downloadable", checked: t.downloadable, onChange: (d) => n({ downloadable: d }), hint: "Deliver files or links after payment." }),
       /* @__PURE__ */ e(
         R,
@@ -323,7 +323,7 @@ function be({ value: t, update: n, updateVariant: a, config: r, purchaseDefault:
         }
       )
     ] }) }),
-    /* @__PURE__ */ e(A, { title: "Catalog and tax", children: /* @__PURE__ */ c(P, { cols: 2, children: [
+    /* @__PURE__ */ e(A, { title: "Catalog and tax", children: /* @__PURE__ */ c(O, { cols: 2, children: [
       r.features.taxes && /* @__PURE__ */ e(f, { label: "Tax class", htmlFor: `${i}-tax`, children: /* @__PURE__ */ e(
         I,
         {
@@ -337,7 +337,7 @@ function be({ value: t, update: n, updateVariant: a, config: r, purchaseDefault:
     ] }) })
   ] });
 }
-function te({ variantKey: t, tab: n, sku: a }) {
+function ne({ variantKey: t, tab: n, sku: a }) {
   const r = n.live?.variants[t], s = n.live?.stock_adjustment?.reasons, [l, i] = x.useState(!1), { Button: o } = D;
   return !r || r.stock_quantity === null ? null : /* @__PURE__ */ c(f, { label: "In stock", children: [
     /* @__PURE__ */ c("div", { className: "cm:flex cm:min-h-10 cm:flex-wrap cm:items-center cm:gap-x-3 cm:gap-y-1", children: [
@@ -345,7 +345,7 @@ function te({ variantKey: t, tab: n, sku: a }) {
       s && /* @__PURE__ */ e(o, { type: "button", size: "sm", variant: "outline", onClick: () => i(!0), children: "Adjust stock" })
     ] }),
     l && s && /* @__PURE__ */ e(
-      ve,
+      ke,
       {
         id: r.id,
         stock: r.stock_quantity,
@@ -358,19 +358,19 @@ function te({ variantKey: t, tab: n, sku: a }) {
     )
   ] });
 }
-function ve({ id: t, stock: n, sku: a, reasons: r, onClose: s, onAdjusted: l }) {
-  const { Button: i, Dialog: o, DialogContent: k, DialogDescription: N, DialogFooter: C, DialogHeader: h, DialogTitle: y, Input: _ } = D, [u, v] = x.useState("add"), [m, d] = x.useState(""), [b, S] = x.useState(r[0]), [p, w] = x.useState(null), [g, $] = x.useState(""), [F, j] = x.useState(!1), T = x.useId();
-  async function ne(q) {
-    if (q.preventDefault(), q.stopPropagation(), !(F || g || m === "")) {
+function ke({ id: t, stock: n, sku: a, reasons: r, onClose: s, onAdjusted: l }) {
+  const { Button: i, Dialog: o, DialogContent: k, DialogDescription: N, DialogFooter: C, DialogHeader: h, DialogTitle: y, Input: _ } = D, [u, v] = x.useState("add"), [m, d] = x.useState(""), [b, S] = x.useState(r[0]), [g, w] = x.useState(null), [p, $] = x.useState(""), [F, j] = x.useState(!1), q = x.useId();
+  async function le(T) {
+    if (T.preventDefault(), T.stopPropagation(), !(F || p || m === "")) {
       j(!0), $("");
       try {
-        const le = await K(M(`commerce/inventory/${t}/adjust`), {
+        const ie = await K(M(`commerce/inventory/${t}/adjust`), {
           method: "POST",
           signal: AbortSignal.timeout(15e3),
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mode: u, quantity: Number(m), reason: b, note: p })
+          body: JSON.stringify({ mode: u, quantity: Number(m), reason: b, note: g })
         });
-        l(le.stock_quantity), s();
+        l(ie.stock_quantity), s();
       } catch {
         $("The adjustment could not be confirmed. Check the current stock in Inventory before retrying.");
       } finally {
@@ -378,8 +378,8 @@ function ve({ id: t, stock: n, sku: a, reasons: r, onClose: s, onAdjusted: l }) 
       }
     }
   }
-  return /* @__PURE__ */ e(o, { open: !0, onOpenChange: (q) => {
-    !q && !F && s();
+  return /* @__PURE__ */ e(o, { open: !0, onOpenChange: (T) => {
+    !T && !F && s();
   }, children: /* @__PURE__ */ c(k, { className: "cm:max-w-lg", children: [
     /* @__PURE__ */ c(h, { children: [
       /* @__PURE__ */ e(y, { children: "Adjust stock" }),
@@ -390,23 +390,23 @@ function ve({ id: t, stock: n, sku: a, reasons: r, onClose: s, onAdjusted: l }) 
         ". This saves immediately and records a stock movement."
       ] })
     ] }),
-    /* @__PURE__ */ c("form", { id: T, className: "cm:grid cm:gap-4", onSubmit: ne, children: [
+    /* @__PURE__ */ c("form", { id: q, className: "cm:grid cm:gap-4", onSubmit: le, children: [
       /* @__PURE__ */ c("div", { className: "cm:grid cm:items-start cm:gap-3 cm:sm:grid-cols-2", children: [
-        /* @__PURE__ */ e(f, { label: "Adjustment", htmlFor: `${T}-mode`, children: /* @__PURE__ */ e(
+        /* @__PURE__ */ e(f, { label: "Adjustment", htmlFor: `${q}-mode`, children: /* @__PURE__ */ e(
           I,
           {
-            id: `${T}-mode`,
+            id: `${q}-mode`,
             value: u,
-            onChange: (q) => {
-              v(q), d("");
+            onChange: (T) => {
+              v(T), d("");
             },
             options: [["add", "Add or remove units"], ["set", "Set total stock"]]
           }
         ) }),
-        /* @__PURE__ */ e(f, { label: u === "set" ? "New stock total" : "Units (+/−)", htmlFor: `${T}-quantity`, children: /* @__PURE__ */ e(
+        /* @__PURE__ */ e(f, { label: u === "set" ? "New stock total" : "Units (+/−)", htmlFor: `${q}-quantity`, children: /* @__PURE__ */ e(
           _,
           {
-            id: `${T}-quantity`,
+            id: `${q}-quantity`,
             type: "number",
             inputMode: "numeric",
             required: !0,
@@ -414,29 +414,29 @@ function ve({ id: t, stock: n, sku: a, reasons: r, onClose: s, onAdjusted: l }) 
             max: 1e6,
             step: 1,
             value: m,
-            onChange: (q) => d(q.target.value)
+            onChange: (T) => d(T.target.value)
           }
         ) }),
-        /* @__PURE__ */ e(f, { label: "Reason", htmlFor: `${T}-reason`, children: /* @__PURE__ */ e(
+        /* @__PURE__ */ e(f, { label: "Reason", htmlFor: `${q}-reason`, children: /* @__PURE__ */ e(
           I,
           {
-            id: `${T}-reason`,
+            id: `${q}-reason`,
             value: b,
             onChange: S,
-            options: r.map((q) => [q, q[0].toUpperCase() + q.slice(1)])
+            options: r.map((T) => [T, T[0].toUpperCase() + T.slice(1)])
           }
         ) }),
-        /* @__PURE__ */ e(f, { label: "Note (optional)", htmlFor: `${T}-note`, children: /* @__PURE__ */ e(_, { id: `${T}-note`, value: p ?? "", maxLength: 255, onChange: (q) => w(q.target.value || null) }) })
+        /* @__PURE__ */ e(f, { label: "Note (optional)", htmlFor: `${q}-note`, children: /* @__PURE__ */ e(_, { id: `${q}-note`, value: g ?? "", maxLength: 255, onChange: (T) => w(T.target.value || null) }) })
       ] }),
-      g && /* @__PURE__ */ e("p", { role: "alert", className: "cm:text-sm cm:text-destructive", children: g })
+      p && /* @__PURE__ */ e("p", { role: "alert", className: "cm:text-sm cm:text-destructive", children: p })
     ] }),
     /* @__PURE__ */ c(C, { children: [
       /* @__PURE__ */ e(i, { type: "button", variant: "ghost", disabled: F, onClick: s, children: "Cancel" }),
-      /* @__PURE__ */ e(i, { type: "submit", form: T, disabled: F || m === "" || !!g, children: F ? "Saving…" : "Save adjustment" })
+      /* @__PURE__ */ e(i, { type: "submit", form: q, disabled: F || m === "" || !!p, children: F ? "Saving…" : "Save adjustment" })
     ] })
   ] }) });
 }
-function ke(t) {
+function ye(t) {
   const { value: n, updateVariant: a, live: r, path: s } = t, l = n.variants[0];
   if (!l) return null;
   const i = r?.variants[l.id];
@@ -451,8 +451,8 @@ function ke(t) {
         hint: "Reduce stock when an order is placed and restore it when the order is cancelled."
       }
     ),
-    l.track_stock ? /* @__PURE__ */ c(P, { cols: 3, children: [
-      i?.track_stock && i.stock_quantity !== null ? /* @__PURE__ */ e(te, { variantKey: l.id, tab: t, sku: l.sku }) : /* @__PURE__ */ e(f, { label: "Starting stock", htmlFor: `${s}-initial`, hint: "Set once, when the product is published.", children: /* @__PURE__ */ e(U, { id: `${s}-initial`, value: l.initial_stock, onChange: (o) => a(0, { initial_stock: o }) }) }),
+    l.track_stock ? /* @__PURE__ */ c(O, { cols: 3, children: [
+      i?.track_stock && i.stock_quantity !== null ? /* @__PURE__ */ e(ne, { variantKey: l.id, tab: t, sku: l.sku }) : /* @__PURE__ */ e(f, { label: "Starting stock", htmlFor: `${s}-initial`, hint: "Set once, when the product is published.", children: /* @__PURE__ */ e(U, { id: `${s}-initial`, value: l.initial_stock, onChange: (o) => a(0, { initial_stock: o }) }) }),
       /* @__PURE__ */ e(f, { label: "When sold out", htmlFor: `${s}-backorders`, children: /* @__PURE__ */ e(
         I,
         {
@@ -474,7 +474,7 @@ function ke(t) {
     ) })
   ] });
 }
-function ye({ value: t, update: n, path: a }) {
+function _e({ value: t, update: n, path: a }) {
   const { Button: r } = D, s = (l, i) => n({ tiers: t.tiers.map((o, k) => k === l ? { ...o, ...i } : o) });
   return /* @__PURE__ */ c(
     A,
@@ -504,14 +504,14 @@ function ye({ value: t, update: n, path: a }) {
               options: [["percent_off", "Percent off"], ["amount_off", "Amount off per unit"], ["fixed_price", "Fixed unit price"]]
             }
           ) }),
-          /* @__PURE__ */ e(f, { label: l.type === "percent_off" ? "Percent" : "Amount", htmlFor: `${a}-tier-${i}-value`, children: l.type === "percent_off" ? /* @__PURE__ */ e(U, { id: `${a}-tier-${i}-value`, value: l.value / 100, onChange: (o) => s(i, { value: Math.round((o ?? 0) * 100) }) }) : /* @__PURE__ */ e(L, { id: `${a}-tier-${i}-value`, value: l.value, nullable: !1, onChange: (o) => s(i, { value: o ?? 0 }) }) }),
+          /* @__PURE__ */ e(f, { label: l.type === "percent_off" ? "Percent" : "Amount", htmlFor: `${a}-tier-${i}-value`, children: l.type === "percent_off" ? /* @__PURE__ */ e(U, { id: `${a}-tier-${i}-value`, value: l.value / 100, onChange: (o) => s(i, { value: Math.round((o ?? 0) * 100) }) }) : /* @__PURE__ */ e(P, { id: `${a}-tier-${i}-value`, value: l.value, nullable: !1, onChange: (o) => s(i, { value: o ?? 0 }) }) }),
           /* @__PURE__ */ e(f, { label: "For", htmlFor: `${a}-tier-${i}-variant`, children: /* @__PURE__ */ e(
             I,
             {
               id: `${a}-tier-${i}-variant`,
               value: l.variant ?? "",
               onChange: (o) => s(i, { variant: o || null }),
-              options: [["", "All variants"], ...t.type === "variable" ? t.variants.map((o) => [o.id, Z(t.options, o)]) : []]
+              options: [["", "All variants"], ...t.type === "variable" ? t.variants.map((o) => [o.id, ee(t.options, o)]) : []]
             }
           ) }),
           /* @__PURE__ */ e(r, { type: "button", variant: "ghost", size: "sm", onClick: () => n({ tiers: t.tiers.filter((o, k) => k !== i) }), children: "Remove" })
@@ -520,18 +520,18 @@ function ye({ value: t, update: n, path: a }) {
     }
   );
 }
-function _e({ value: t, update: n, updateVariant: a, path: r }) {
+function $e({ value: t, update: n, updateVariant: a, path: r }) {
   const s = t.variants[0];
   if (!s) return null;
   const l = (i) => t.type === "variable" ? n({ variants: t.variants.map((o) => ({ ...o, ...i })) }) : a(0, i);
-  return /* @__PURE__ */ e(A, { title: "Package", description: t.type === "variable" ? "Applies to every variant; a variant can have its own weight under More." : "Used for shipping rates.", children: /* @__PURE__ */ c(P, { cols: 4, children: [
-    /* @__PURE__ */ e(f, { label: `Weight (${W()})`, htmlFor: `${r}-weight`, children: /* @__PURE__ */ e(z, { id: `${r}-weight`, unit: W(), value: s.weight, onChange: (i) => l({ weight: i }) }) }),
-    /* @__PURE__ */ e(f, { label: `Length (${O()})`, htmlFor: `${r}-length`, children: /* @__PURE__ */ e(z, { id: `${r}-length`, unit: O(), value: s.length, onChange: (i) => l({ length: i }) }) }),
-    /* @__PURE__ */ e(f, { label: `Width (${O()})`, htmlFor: `${r}-width`, children: /* @__PURE__ */ e(z, { id: `${r}-width`, unit: O(), value: s.width, onChange: (i) => l({ width: i }) }) }),
-    /* @__PURE__ */ e(f, { label: `Height (${O()})`, htmlFor: `${r}-height`, children: /* @__PURE__ */ e(z, { id: `${r}-height`, unit: O(), value: s.height, onChange: (i) => l({ height: i }) }) })
+  return /* @__PURE__ */ e(A, { title: "Package", description: t.type === "variable" ? "Applies to every variant; a variant can have its own weight under More." : "Used for shipping rates.", children: /* @__PURE__ */ c(O, { cols: 4, children: [
+    /* @__PURE__ */ e(f, { label: `Weight (${G()})`, htmlFor: `${r}-weight`, children: /* @__PURE__ */ e(z, { id: `${r}-weight`, unit: G(), value: s.weight, onChange: (i) => l({ weight: i }) }) }),
+    /* @__PURE__ */ e(f, { label: `Length (${L()})`, htmlFor: `${r}-length`, children: /* @__PURE__ */ e(z, { id: `${r}-length`, unit: L(), value: s.length, onChange: (i) => l({ length: i }) }) }),
+    /* @__PURE__ */ e(f, { label: `Width (${L()})`, htmlFor: `${r}-width`, children: /* @__PURE__ */ e(z, { id: `${r}-width`, unit: L(), value: s.width, onChange: (i) => l({ width: i }) }) }),
+    /* @__PURE__ */ e(f, { label: `Height (${L()})`, htmlFor: `${r}-height`, children: /* @__PURE__ */ e(z, { id: `${r}-height`, unit: L(), value: s.height, onChange: (i) => l({ height: i }) }) })
   ] }) });
 }
-const G = {
+const J = {
   options: {},
   sku: null,
   barcode: null,
@@ -555,8 +555,8 @@ const G = {
   qty_step: 1,
   active: !0,
   downloads: []
-};
-function $e({ option: t, onChange: n, onRemove: a, config: r, path: s }) {
+}, H = (t) => t.flatMap((n) => n.price === null ? [] : [n.price]);
+function xe({ option: t, onChange: n, onRemove: a, config: r, path: s }) {
   const { Button: l, Input: i, Badge: o } = D, [k, N] = x.useState(""), C = () => {
     const u = k.split(",").map((v) => v.trim()).filter(Boolean).filter((v) => !t.values.some((m) => (m.label ?? "").toLowerCase() === v.toLowerCase()));
     u.length && n({ ...t, values: [...t.values, ...u.map((v) => ({ id: B(), label: v }))] }), N("");
@@ -587,7 +587,7 @@ function $e({ option: t, onChange: n, onRemove: a, config: r, path: s }) {
       /* @__PURE__ */ e(l, { type: "button", variant: "ghost", size: "sm", onClick: a, children: "Remove option" })
     ] }),
     t.taxonomy ? /* @__PURE__ */ e(
-      se,
+      oe,
       {
         fields: [{ handle: "terms", type: "terms", label: "Values", config: {
           multiple: !0,
@@ -623,22 +623,22 @@ function $e({ option: t, onChange: n, onRemove: a, config: r, path: s }) {
     ] })
   ] });
 }
-function xe({ variant: t, index: n, updateVariant: a, tab: r }) {
+function we({ variant: t, index: n, updateVariant: a, tab: r }) {
   const { MediaPickerInput: s } = D, l = `${r.path}-v${n}`, i = r.live?.variants[t.id];
   return /* @__PURE__ */ c("div", { className: "cm:grid cm:gap-4 cm:bg-muted/40 cm:p-4", children: [
-    /* @__PURE__ */ c(P, { cols: 4, children: [
-      /* @__PURE__ */ e(f, { label: "Cost", htmlFor: `${l}-cost`, children: /* @__PURE__ */ e(L, { id: `${l}-cost`, value: t.cost, onChange: (o) => a(n, { cost: o }) }) }),
+    /* @__PURE__ */ c(O, { cols: 4, children: [
+      /* @__PURE__ */ e(f, { label: "Cost", htmlFor: `${l}-cost`, children: /* @__PURE__ */ e(P, { id: `${l}-cost`, value: t.cost, onChange: (o) => a(n, { cost: o }) }) }),
       /* @__PURE__ */ e(f, { label: "Barcode", htmlFor: `${l}-barcode`, children: /* @__PURE__ */ e(E, { id: `${l}-barcode`, value: t.barcode, onChange: (o) => a(n, { barcode: o }) }) }),
-      /* @__PURE__ */ e(f, { label: `Weight (${W()})`, htmlFor: `${l}-weight`, children: /* @__PURE__ */ e(z, { id: `${l}-weight`, unit: W(), value: t.weight, onChange: (o) => a(n, { weight: o }), placeholder: "Product's" }) }),
+      /* @__PURE__ */ e(f, { label: `Weight (${G()})`, htmlFor: `${l}-weight`, children: /* @__PURE__ */ e(z, { id: `${l}-weight`, unit: G(), value: t.weight, onChange: (o) => a(n, { weight: o }), placeholder: "Product's" }) }),
       /* @__PURE__ */ e(f, { label: "Min / max / step", htmlFor: `${l}-min`, children: /* @__PURE__ */ c("div", { className: "cm:grid cm:grid-cols-3 cm:gap-1", children: [
         /* @__PURE__ */ e(U, { id: `${l}-min`, min: 1, value: t.min_qty, onChange: (o) => a(n, { min_qty: o ?? 1 }) }),
         /* @__PURE__ */ e(U, { min: 1, value: t.max_qty, onChange: (o) => a(n, { max_qty: o }), placeholder: "–" }),
         /* @__PURE__ */ e(U, { min: 1, value: t.qty_step, onChange: (o) => a(n, { qty_step: o ?? 1 }) })
       ] }) })
     ] }),
-    r.config.features.inventory && /* @__PURE__ */ c(P, { cols: 4, children: [
+    r.config.features.inventory && /* @__PURE__ */ c(O, { cols: 4, children: [
       /* @__PURE__ */ e(R, { id: `${l}-track`, label: "Track stock", checked: t.track_stock, onChange: (o) => a(n, { track_stock: o }) }),
-      t.track_stock && (i?.track_stock && i.stock_quantity !== null ? /* @__PURE__ */ e(te, { variantKey: t.id, tab: r, sku: t.sku }) : /* @__PURE__ */ e(f, { label: "Starting stock", htmlFor: `${l}-initial`, children: /* @__PURE__ */ e(U, { id: `${l}-initial`, value: t.initial_stock, onChange: (o) => a(n, { initial_stock: o }) }) })),
+      t.track_stock && (i?.track_stock && i.stock_quantity !== null ? /* @__PURE__ */ e(ne, { variantKey: t.id, tab: r, sku: t.sku }) : /* @__PURE__ */ e(f, { label: "Starting stock", htmlFor: `${l}-initial`, children: /* @__PURE__ */ e(U, { id: `${l}-initial`, value: t.initial_stock, onChange: (o) => a(n, { initial_stock: o }) }) })),
       t.track_stock ? /* @__PURE__ */ e(f, { label: "When sold out", htmlFor: `${l}-backorders`, children: /* @__PURE__ */ e(
         I,
         {
@@ -660,8 +660,8 @@ function xe({ variant: t, index: n, updateVariant: a, tab: r }) {
     /* @__PURE__ */ e(f, { label: "Image", htmlFor: `${l}-image`, children: /* @__PURE__ */ e(s, { id: `${l}-image`, value: t.image, types: ["image"], onChange: (o) => a(n, { image: o }) }) })
   ] });
 }
-function we(t) {
-  const { value: n, update: a, updateVariant: r, config: s, entryId: l, live: i } = t, { Button: o, Table: k, TableBody: N, TableCell: C, TableHead: h, TableHeader: y, TableRow: _, Switch: u } = D, [v, m] = x.useState(null), d = Object.fromEntries(t.config.attribute_taxonomies.flatMap((p) => p.terms.map((w) => [w.id, w.title]))), b = n.variants[0] ?? { ...G, id: B() }, S = (p = n.options) => a({ options: p, variants: ue(p, n.variants, { ...b, initial_stock: null, image: null }, s.max_variants) });
+function Ce(t) {
+  const { value: n, update: a, updateVariant: r, config: s, entryId: l, live: i } = t, { Button: o, Table: k, TableBody: N, TableCell: C, TableHead: h, TableHeader: y, TableRow: _, Switch: u } = D, [v, m] = x.useState(null), d = Object.fromEntries(t.config.attribute_taxonomies.flatMap((g) => g.terms.map((w) => [w.id, w.title]))), b = n.variants[0] ?? { ...J, id: B() }, S = (g = n.options) => a({ options: g, variants: he(g, n.variants, { ...b, initial_stock: null, image: null }, s.max_variants) });
   return /* @__PURE__ */ c("div", { className: "cm:grid cm:gap-6", children: [
     /* @__PURE__ */ e(
       A,
@@ -669,16 +669,16 @@ function we(t) {
         title: "Options",
         description: `Up to ${s.max_options} options, such as size and color. Variants are made for every combination.`,
         actions: n.options.length < s.max_options && /* @__PURE__ */ e(o, { type: "button", variant: "outline", size: "sm", onClick: () => a({ options: [...n.options, { id: B(), name: "", taxonomy: null, values: [] }] }), children: "Add option" }),
-        children: n.options.map((p, w) => /* @__PURE__ */ e(
-          $e,
+        children: n.options.map((g, w) => /* @__PURE__ */ e(
+          xe,
           {
-            option: p,
+            option: g,
             config: s,
             path: `${t.path}-o${w}`,
-            onChange: (g) => S(n.options.map(($, F) => F === w ? g : $)),
-            onRemove: () => S(n.options.filter((g, $) => $ !== w))
+            onChange: (p) => S(n.options.map(($, F) => F === w ? p : $)),
+            onRemove: () => S(n.options.filter((p, $) => $ !== w))
           },
-          p.id
+          g.id
         ))
       }
     ),
@@ -699,36 +699,37 @@ function we(t) {
               /* @__PURE__ */ e(h, { children: "On sale" }),
               /* @__PURE__ */ e(h, {})
             ] }) }),
-            /* @__PURE__ */ e(N, { children: n.variants.map((p, w) => {
-              const g = i?.variants[p.id];
+            /* @__PURE__ */ e(N, { children: n.variants.map((g, w) => {
+              const p = i?.variants[g.id];
               return /* @__PURE__ */ c(x.Fragment, { children: [
-                /* @__PURE__ */ c(_, { className: p.active ? "" : "cm:opacity-60", children: [
-                  /* @__PURE__ */ e(C, { className: "cm:font-medium cm:whitespace-nowrap", children: Z(n.options, p, d) }),
-                  /* @__PURE__ */ e(C, { className: "cm:min-w-36", children: /* @__PURE__ */ e(ee, { value: p.sku, entryId: l, onChange: ($) => r(w, { sku: $ }) }) }),
-                  /* @__PURE__ */ e(C, { className: "cm:min-w-32", children: /* @__PURE__ */ e(L, { value: p.price, nullable: !1, onChange: ($) => r(w, { price: $ ?? 0 }) }) }),
-                  /* @__PURE__ */ e(C, { className: "cm:min-w-32", children: /* @__PURE__ */ e(L, { value: p.compare_at_price, onChange: ($) => r(w, { compare_at_price: $ }) }) }),
-                  s.features.inventory && /* @__PURE__ */ e(C, { className: "cm:whitespace-nowrap cm:text-sm", children: p.track_stock ? g?.stock_quantity ?? p.initial_stock ?? 0 : /* @__PURE__ */ e(re, { children: p.stock_status.replace("_", " ") }) }),
-                  /* @__PURE__ */ e(C, { children: /* @__PURE__ */ e(u, { checked: p.active, "aria-label": "Sell this variant", onCheckedChange: ($) => r(w, { active: $ }) }) }),
-                  /* @__PURE__ */ e(C, { children: /* @__PURE__ */ e(o, { type: "button", variant: "ghost", size: "sm", "aria-expanded": v === p.id, onClick: () => m(v === p.id ? null : p.id), children: v === p.id ? "Close" : "More" }) })
+                /* @__PURE__ */ c(_, { className: g.active ? "" : "cm:opacity-60", children: [
+                  /* @__PURE__ */ e(C, { className: "cm:font-medium cm:whitespace-nowrap", children: ee(n.options, g, d) }),
+                  /* @__PURE__ */ e(C, { className: "cm:min-w-36", children: /* @__PURE__ */ e(te, { value: g.sku, entryId: l, onChange: ($) => r(w, { sku: $ }) }) }),
+                  /* @__PURE__ */ e(C, { className: "cm:min-w-32", children: /* @__PURE__ */ e(P, { value: g.price, placeholder: "On request", onChange: ($) => r(w, { price: $ }) }) }),
+                  /* @__PURE__ */ e(C, { className: "cm:min-w-32", children: /* @__PURE__ */ e(P, { value: g.compare_at_price, onChange: ($) => r(w, { compare_at_price: $ }) }) }),
+                  s.features.inventory && /* @__PURE__ */ e(C, { className: "cm:whitespace-nowrap cm:text-sm", children: g.track_stock ? p?.stock_quantity ?? g.initial_stock ?? 0 : /* @__PURE__ */ e(se, { children: g.stock_status.replace("_", " ") }) }),
+                  /* @__PURE__ */ e(C, { children: /* @__PURE__ */ e(u, { checked: g.active, "aria-label": "Sell this variant", onCheckedChange: ($) => r(w, { active: $ }) }) }),
+                  /* @__PURE__ */ e(C, { children: /* @__PURE__ */ e(o, { type: "button", variant: "ghost", size: "sm", "aria-expanded": v === g.id, onClick: () => m(v === g.id ? null : g.id), children: v === g.id ? "Close" : "More" }) })
                 ] }),
-                v === p.id && /* @__PURE__ */ e(_, { children: /* @__PURE__ */ e(C, { colSpan: 7, className: "cm:p-0", children: /* @__PURE__ */ e(xe, { variant: p, index: w, updateVariant: r, tab: t }) }) })
-              ] }, p.id);
+                v === g.id && /* @__PURE__ */ e(_, { children: /* @__PURE__ */ e(C, { colSpan: 7, className: "cm:p-0", children: /* @__PURE__ */ e(we, { variant: g, index: w, updateVariant: r, tab: t }) }) })
+              ] }, g.id);
             }) })
           ] }) }),
-          n.variants.length > 0 && /* @__PURE__ */ c("p", { className: "cm:text-xs cm:text-muted-foreground", children: [
+          H(n.variants).length > 0 && /* @__PURE__ */ c("p", { className: "cm:text-xs cm:text-muted-foreground", children: [
             "Prices from ",
-            H(Math.min(...n.variants.map((p) => p.price))),
+            W(Math.min(...H(n.variants))),
             " to ",
-            H(Math.max(...n.variants.map((p) => p.price))),
-            "."
+            W(Math.max(...H(n.variants))),
+            ".",
+            H(n.variants).length < n.variants.length && " Variants without a price are on request."
           ] })
         ]
       }
     )
   ] });
 }
-function Ce(t) {
-  const n = t ?? {}, a = (n.variants?.length ? n.variants : [{ ...G, id: B() }]).map((r) => ({ ...G, ...r, id: r.id ?? B() }));
+function Ne(t) {
+  const n = t ?? {}, a = (n.variants?.length ? n.variants : [{ ...J, id: B() }]).map((r) => ({ ...J, ...r, id: r.id ?? B() }));
   return {
     type: n.type ?? "simple",
     purchase_mode: n.purchase_mode ?? "default",
@@ -745,30 +746,30 @@ function Ce(t) {
     tiers: n.tiers ?? []
   };
 }
-function Se({ field: t, value: n, onChange: a, errors: r, id: s = "data-product" }) {
-  oe();
-  const l = t.config ?? {}, i = Ce(n), { props: o } = ce.usePage(), k = o.entry?.id ?? null, [N, C] = x.useState(), [h, y] = x.useState(null);
+function Fe({ field: t, value: n, onChange: a, errors: r, id: s = "data-product" }) {
+  ce();
+  const l = t.config ?? {}, i = Ne(n), { props: o } = de.usePage(), k = o.entry?.id ?? null, [N, C] = x.useState(), [h, y] = x.useState(null);
   x.useEffect(() => {
     if (!k) return;
-    const g = new AbortController();
-    return K(M(`commerce/api/products/${k}`), { signal: g.signal }).then(($) => {
-      g.signal.aborted || (y($.data), C($.purchase_default));
+    const p = new AbortController();
+    return K(M(`commerce/api/products/${k}`), { signal: p.signal }).then(($) => {
+      p.signal.aborted || (y($.data), C($.purchase_default));
     }).catch(() => {
-    }), () => g.abort();
+    }), () => p.abort();
   }, [k, o.entry]);
-  const _ = (g) => {
-    const $ = { ...i, ...g };
-    $.downloadable && ($.requires_shipping = !1), g.type && g.type !== "variable" && ($.options = [], $.variants = [{ ...$.variants[0], options: {} }]), g.type === "bundle" && !$.bundle && ($.bundle = { pricing: "fixed", value: 0, items: [] }), a($);
-  }, u = (g, $) => _({ variants: i.variants.map((F, j) => j === g ? { ...F, ...$ } : F) }), v = [{ key: "general", label: "General", render: (g) => /* @__PURE__ */ e(be, { ...g }) }];
-  i.type === "variable" && v.push({ key: "variants", label: "Variants", render: (g) => /* @__PURE__ */ e(we, { ...g }) }), i.type === "bundle" && v.push({ key: "bundle", label: "Bundle", render: (g) => /* @__PURE__ */ e(pe, { ...g }) }), i.type !== "variable" && (l.features?.inventory ?? !0) && v.push({ key: "inventory", label: "Inventory", render: (g) => /* @__PURE__ */ e(ke, { ...g }) }), i.requires_shipping && v.push({ key: "shipping", label: "Shipping", render: (g) => /* @__PURE__ */ e(_e, { ...g }) }), (l.features?.pricing_rules !== !1 || i.tiers.length > 0) && v.push({ key: "pricing", label: "Bulk pricing", render: (g) => /* @__PURE__ */ e(ye, { ...g }) }), i.downloadable && v.push({ key: "digital", label: "Digital", render: (g) => /* @__PURE__ */ e(fe, { ...g }) });
-  for (const [g, $] of Object.entries(de.productTabs()))
-    v.push({ key: `ext-${g}`, label: $.label ?? g, render: (F) => /* @__PURE__ */ e($, { ...F }) });
-  const [m, d] = x.useState("general"), b = v.find((g) => g.key === m) ?? v[0], S = r?.[""], p = (g, $, F) => {
+  const _ = (p) => {
+    const $ = { ...i, ...p };
+    $.downloadable && ($.requires_shipping = !1), p.type && p.type !== "variable" && ($.options = [], $.variants = [{ ...$.variants[0], options: {} }]), p.type === "bundle" && !$.bundle && ($.bundle = { pricing: "fixed", value: 0, items: [] }), a($);
+  }, u = (p, $) => _({ variants: i.variants.map((F, j) => j === p ? { ...F, ...$ } : F) }), v = [{ key: "general", label: "General", render: (p) => /* @__PURE__ */ e(ve, { ...p }) }];
+  i.type === "variable" && v.push({ key: "variants", label: "Variants", render: (p) => /* @__PURE__ */ e(Ce, { ...p }) }), i.type === "bundle" && v.push({ key: "bundle", label: "Bundle", render: (p) => /* @__PURE__ */ e(ge, { ...p }) }), i.type !== "variable" && (l.features?.inventory ?? !0) && v.push({ key: "inventory", label: "Inventory", render: (p) => /* @__PURE__ */ e(ye, { ...p }) }), i.requires_shipping && v.push({ key: "shipping", label: "Shipping", render: (p) => /* @__PURE__ */ e($e, { ...p }) }), (l.features?.pricing_rules !== !1 || i.tiers.length > 0) && v.push({ key: "pricing", label: "Bulk pricing", render: (p) => /* @__PURE__ */ e(_e, { ...p }) }), i.downloadable && v.push({ key: "digital", label: "Digital", render: (p) => /* @__PURE__ */ e(be, { ...p }) });
+  for (const [p, $] of Object.entries(me.productTabs()))
+    v.push({ key: `ext-${p}`, label: $.label ?? p, render: (F) => /* @__PURE__ */ e($, { ...F }) });
+  const [m, d] = x.useState("general"), b = v.find((p) => p.key === m) ?? v[0], S = r?.[""], g = (p, $, F) => {
     y((j) => {
-      const T = j?.variants[g];
-      return !j || !T || T.id !== $ ? j : { ...j, variants: { ...j.variants, [g]: { ...T, stock_quantity: F } } };
+      const q = j?.variants[p];
+      return !j || !q || q.id !== $ ? j : { ...j, variants: { ...j.variants, [p]: { ...q, stock_quantity: F } } };
     });
-  }, w = { value: i, update: _, updateVariant: u, config: l, live: h, purchaseDefault: N ?? l.purchase_default, updateLiveStock: p, entryId: k, path: s };
+  }, w = { value: i, update: _, updateVariant: u, config: l, live: h, purchaseDefault: N ?? l.purchase_default, updateLiveStock: g, entryId: k, path: s };
   return /* @__PURE__ */ c("div", { className: "cm:grid cm:gap-5", children: [
     h?.sync_status === "failed" && /* @__PURE__ */ c("div", { role: "alert", className: "cm:rounded-md cm:border cm:border-destructive/40 cm:bg-destructive/5 cm:px-3 cm:py-2 cm:text-sm cm:text-destructive", children: [
       "The published version couldn't be applied to the store, so it can't be bought: ",
@@ -776,23 +777,23 @@ function Se({ field: t, value: n, onChange: a, errors: r, id: s = "data-product"
       ". Fix it and publish again."
     ] }),
     S && /* @__PURE__ */ e("p", { role: "alert", className: "cm:text-sm cm:text-destructive", children: S }),
-    /* @__PURE__ */ e("div", { role: "tablist", "aria-label": "Product data", className: "cm:flex cm:flex-wrap cm:gap-x-2 cm:border-b", children: v.map((g) => /* @__PURE__ */ e(
+    /* @__PURE__ */ e("div", { role: "tablist", "aria-label": "Product data", className: "cm:flex cm:flex-wrap cm:gap-x-2 cm:border-b", children: v.map((p) => /* @__PURE__ */ e(
       "button",
       {
         type: "button",
-        id: `${s}-tab-${g.key}`,
+        id: `${s}-tab-${p.key}`,
         role: "tab",
         "aria-controls": `${s}-panel`,
-        "aria-selected": g.key === b.key,
-        onClick: () => d(g.key),
-        className: J("cm:-mb-px cm:border-b-2 cm:px-3 cm:py-2 cm:text-sm", g.key === b.key ? "cm:border-primary cm:font-medium" : "cm:border-transparent cm:text-muted-foreground cm:hover:text-foreground"),
-        children: g.label
+        "aria-selected": p.key === b.key,
+        onClick: () => d(p.key),
+        className: V("cm:-mb-px cm:border-b-2 cm:px-3 cm:py-2 cm:text-sm", p.key === b.key ? "cm:border-primary cm:font-medium" : "cm:border-transparent cm:text-muted-foreground cm:hover:text-foreground"),
+        children: p.label
       },
-      g.key
+      p.key
     )) }),
     /* @__PURE__ */ e("div", { id: `${s}-panel`, role: "tabpanel", "aria-labelledby": `${s}-tab-${b.key}`, children: b.render(w) })
   ] });
 }
 export {
-  Se as default
+  Fe as default
 };

@@ -57,7 +57,7 @@ class ProductCsv
         foreach ($query->lazyById(500, 'commerce_variants.id', 'id') as $v) {
             yield [
                 'sku' => $v->sku, 'product' => (string) $v->getAttribute('product_title'), 'variant' => $v->title,
-                'price' => $this->major((int) $v->price), 'compare_at_price' => $v->compare_at_price === null ? '' : $this->major((int) $v->compare_at_price),
+                'price' => $v->price === null ? '' : $this->major((int) $v->price), 'compare_at_price' => $v->compare_at_price === null ? '' : $this->major((int) $v->compare_at_price),
                 'cost' => $v->cost === null ? '' : $this->major((int) $v->cost), 'stock' => $v->track_stock ? (int) $v->stock_quantity : '',
                 'weight' => $v->weight ?? '', 'active' => $v->active ? 'yes' : 'no',
             ];

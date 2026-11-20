@@ -8,6 +8,7 @@ use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Catalog\Catalog;
 use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Catalog\PriceVisibility;
 use Sunrice\Commerce\Pricing\CalculationState;
 use Sunrice\Commerce\Pricing\Contracts\CalculationStage;
 
@@ -19,7 +20,7 @@ use Sunrice\Commerce\Pricing\Contracts\CalculationStage;
  */
 class ResolveLines implements CalculationStage
 {
-    public function __construct(protected Catalog $catalog) {}
+    public function __construct(protected Catalog $catalog, protected PriceVisibility $prices) {}
 
     public function run(CalculationState $state): void
     {
@@ -50,6 +51,8 @@ class ResolveLines implements CalculationStage
             $check[$key] = [$variant, $line->quantity];
         }
         $results = $staff ? [] : $this->catalog->checkMany($check, $state->ctx->customer);
+        // Prices hidden from this customer: every line is on request (the catalog let them in for a quote).
+        $pricesHidden = ! $staff && ! $this->prices->visibleTo($state->ctx->customer);
 
         foreach ($state->lines as $key => $line) {
             $availability = $results[$key] ?? null;
@@ -73,6 +76,7 @@ class ResolveLines implements CalculationStage
                 }
             }
             $product = $line->product();
+            $line->onRequest = ! $staff && ($pricesHidden || (! $product->isBundle() && ! $line->variant->hasPrice()));
             $line->requiresShipping = $line->variant->requiresShipping();
             $line->downloadable = $line->variant->isDownloadable();
             $line->taxClass = $product->tax_class;

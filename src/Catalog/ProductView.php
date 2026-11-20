@@ -53,7 +53,7 @@ final class ProductView implements JsonSerializable
     }
 
     /**
-     * @param  array{amount: int|null, compareAt: int|null, isRange: bool, from: int|null, to: int|null, hidden: bool, signIn: bool, formatted: string, compareFormatted: string|null}  $price
+     * @param  array{amount: int|null, compareAt: int|null, isRange: bool, from: int|null, to: int|null, hidden: bool, signIn: bool, quotable?: bool, formatted: string, compareFormatted: string|null}  $price
      * @param  array<int, string>  $badges  sale | new | out_of_stock | backorder | featured
      * @param  array{status: string, quantity: int|null, message: string}  $stock
      * @param  array{type: string, label: string, url: string|null, links: array<int, array{label: string, url: string}>}  $cta
@@ -143,7 +143,7 @@ final class ProductView implements JsonSerializable
 
     public function canAddToCart(): bool
     {
-        return $this->cta['type'] === 'cart' && $this->purchasable && ! $this->price['hidden'];
+        return $this->cta['type'] === 'cart' && $this->purchasable && (! $this->price['hidden'] || ($this->price['quotable'] ?? false) === true);
     }
 
     /** The default variant (the first active one). */

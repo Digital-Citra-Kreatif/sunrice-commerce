@@ -4,7 +4,8 @@ import { MoneyInput } from '../../components/MoneyInput';
 import { useCommerceShared } from '../../lib/store';
 import RegionField from '../../fields/RegionField';
 
-interface Line { item_id?: number | null; variant_id: number; label: string; sku: string | null; quantity: number; price: number; unit_price: number | null }
+/** `needs_price`: a product without a price the customer asked a quote for; it needs one before sending. */
+interface Line { item_id?: number | null; variant_id: number; label: string; sku: string | null; quantity: number; price: number; unit_price: number | null; needs_price?: boolean }
 interface Props {
     mode: 'create' | 'edit' | 'quote';
     order: { id: number; number: string; customer: string; lines: Line[]; shipping: { label: string; cost: number } | null; discount: { label: string; amount: number } | null; needs_shipping: boolean; valid_until?: string } | null;
@@ -99,7 +100,8 @@ export default function OrderEditor({ mode, order, paymentMethods, canOverride, 
                                             <div className="cm:min-w-0 cm:text-sm"><p className="cm:font-medium">{line.label}</p>{line.sku && <p className="cm:text-xs cm:text-muted-foreground">{line.sku}</p>}</div>
                                             <Input type="number" min={1} aria-label="Quantity" value={line.quantity} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLine(index, { quantity: Math.max(1, Number(e.target.value)) })} />
                                             {canOverride
-                                                ? <MoneyInput value={line.unit_price} placeholder={priceOf(line.variant_id)?.unit_price_formatted ?? ''} onChange={(v: number | null) => setLine(index, { unit_price: v })} />
+                                                ? <MoneyInput value={line.unit_price} invalid={!!line.needs_price && line.unit_price === null && !!(form.errors as Record<string, string>)[`lines.${index}.unit_price`]}
+                                                    placeholder={line.needs_price ? 'Set a price' : (priceOf(line.variant_id)?.unit_price_formatted ?? '')} onChange={(v: number | null) => setLine(index, { unit_price: v })} />
                                                 : <span className="cm:text-sm">{priceOf(line.variant_id)?.unit_price_formatted ?? '…'}</span>}
                                             <span className="cm:text-sm cm:font-medium cm:sm:text-right">{priceOf(line.variant_id)?.total ?? ''}</span>
                                             <Button type="button" variant="ghost" size="sm" aria-label="Remove" onClick={() => form.setData('lines', form.data.lines.filter((_, i) => i !== index))}>×</Button>

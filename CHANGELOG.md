@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Price on request: a variant's price can be left empty (`price` is now nullable; migration
+  `allow_variants_without_a_price`). Customers who can't see prices, or products without one, can go
+  into the cart when checkout can become a quote request (Quotation mode or **Customers can also
+  request a quote**). Such a cart shows no prices or totals and is always sent as a quote request;
+  the quote shows "To be quoted" until staff price it, and an unpriced line must be priced before the
+  quote is sent. Without a quote path the cart refuses them as before.
+
 - Checkout: in Online store mode, **Customers can also request a quote** (`checkout.quote_requests`:
   everyone, or only some customer roles) adds **Request a quote instead** below Place order. The same
   cart goes through the existing quote flow (staff price it, the customer accepts it into an order);

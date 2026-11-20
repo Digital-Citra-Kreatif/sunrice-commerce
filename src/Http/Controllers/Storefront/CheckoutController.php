@@ -154,8 +154,11 @@ class CheckoutController
         }
         $update->handle($cart, $data->toArray());
 
-        // "Request a quote" (Online store mode, when offered): the same cart as a quote request.
-        $quote = $request->input('action') === 'request_quote' && $this->mode()->requestQuote();
+        // "Request a quote" (Online store mode, when offered): the same cart as a quote request. A cart with
+        // a price on request can only be one, whichever button sent it.
+        $placing = in_array($request->input('action'), ['place', 'request_quote'], true);
+        $quote = $placing && ($request->input('action') === 'request_quote' || CartView::for($cart, $data->context())->state->onRequest())
+            && $this->mode()->requestQuote();
         if ($request->input('action') !== 'place' && ! $quote) {
             $section = $request->input('action') === 'update_points' ? '#checkout-points' : '#shipping';
 
@@ -282,7 +285,9 @@ class CheckoutController
             'selected_rate' => $view->state->shipping['rate']['id'] ?? null,
             'payment_methods' => $props['paymentMethods'],
             'selected_payment_method' => $data->paymentMethod(),
-            'totals' => array_map(fn (int $a) => ['amount' => $a, 'formatted' => $money->format($a)], $view->state->totals),
+            // A price on request: no totals for this customer (0, so no payment step either).
+            'totals' => array_map(fn (int $a) => $view->state->onRequest() ? ['amount' => 0, 'formatted' => __('commerce::storefront.cta.price_on_request')]
+                : ['amount' => $a, 'formatted' => $money->format($a)], $view->state->totals),
             'hash' => $view->state->hash(),
             'notices' => $view->state->notices,
             'rates_html' => view(Layout::view('partials.shipping-methods'), $props)->render(),
@@ -337,6 +342,10 @@ class CheckoutController
     private function resolveSelections(Cart $cart, CheckoutData $data): array
     {
         $view = CartView::for($cart, $data->context());
+        // A price on request: this checkout can only be a quote request (the catalog let the line in for one).
+        if ($view->state->onRequest()) {
+            $this->mode()->requestQuote();
+        }
         if ($this->mode()->requiresRate() && $view->state->shipping['needed'] && $view->state->shipping['rate'] === null) {
             // Pickup changes the required contact and address fields. Leave it as an explicit choice.
             $delivery = array_find($view->state->shipping['rates'], fn (array $rate): bool => ! str_starts_with($rate['id'], 'pickup:'));
@@ -392,7 +401,8 @@ class CheckoutController
             'accountRequired' => $user === null && $validator->createsAccount($data->merge(['create_account' => true])) && $this->settings()->get('checkout.create_account') === 'always',
             'extraFields' => app(CheckoutFields::class)->for($data, $state),
             'submitLabel' => __('commerce::checkout.submit.'.$this->mode()->completion()),
-            'quoteOffered' => $this->mode()->quoteOffered(),
+            // Already a quote request (a price on request): no second button.
+            'quoteOffered' => $this->mode()->quoteOffered() && ! $this->mode()->quoteRequested(),
         ];
     }
 }

@@ -177,6 +177,16 @@ class Order extends Model
         return $this->type === 'quote';
     }
 
+    /**
+     * A quote request with a line the customer saw no price for (price on request), not
+     * priced by staff yet: it shows no prices or totals to the customer until it is.
+     */
+    public function awaitsPrices(): bool
+    {
+        return $this->isQuote() && $this->status === OrderStatus::REQUESTED
+            && $this->items->contains(fn (OrderItem $item) => $item->parent_id === null && (bool) ($item->meta['on_request'] ?? false));
+    }
+
     /** The number shown to people: the order number, or the quote number. */
     public function displayNumber(): string
     {

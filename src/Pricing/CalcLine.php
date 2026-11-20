@@ -35,6 +35,12 @@ final class CalcLine
 
     public bool $downloadable = false;
 
+    /**
+     * Its price isn't for this customer to see (no price on the variant, or prices hidden
+     * from them): it can only go into a quote request, and shows "price on request".
+     */
+    public bool $onRequest = false;
+
     public ?string $taxClass = null;
 
     /**
@@ -63,7 +69,7 @@ final class CalcLine
     {
         $product = $this->product();
 
-        return $this->basePrice ??= $product->isBundle() ? app(Bundles::class)->price($product, $this->variant) : $this->variant->price;
+        return $this->basePrice ??= $product->isBundle() ? app(Bundles::class)->price($product, $this->variant) : (int) $this->variant->price;
     }
 
     public function discount(): int

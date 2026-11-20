@@ -38,9 +38,15 @@ class RespondToQuote
         if (! $quote->isQuote() || ! in_array($quote->status, [OrderStatus::REQUESTED, OrderStatus::QUOTED], true)) {
             throw ValidationException::withMessages(['lines' => 'Only open quote requests can be priced.']);
         }
-        $items = $quote->items()->whereNull('parent_id')->get()->keyBy('id');
-        foreach ($lines as &$line) {
+        $items = $quote->items()->whereNull('parent_id')->with('variant.product')->get()->keyBy('id');
+        $unpriced = [];
+        foreach ($lines as $i => &$line) {
             $item = isset($line['item_id']) ? $items->get((int) $line['item_id']) : null;
+            // Asked for without a price (the product has none): it needs one before the quote goes out.
+            if ($send && $item !== null && ! isset($line['unit_price']) && ($item->meta['on_request'] ?? false)
+                && $item->variant !== null && ! $item->variant->hasPrice() && ! $item->variant->product->isBundle()) {
+                $unpriced["lines.{$i}.unit_price"] = 'Set a price for '.$item->title().' before sending.';
+            }
             if ($item !== null && ! isset($line['unit_price'])) {
                 $line['variant_id'] = (int) $item->variant_id;
                 $line['frozen'] = $item->unit_price;
@@ -48,6 +54,9 @@ class RespondToQuote
             }
         }
         unset($line);
+        if ($unpriced !== []) {
+            throw ValidationException::withMessages($unpriced);
+        }
         $state = $this->pricing->calculate($lines, $quote->customer?->user(), $quote->shipping_address, array_filter(['shipping' => $shipping, 'discount' => $discount]),
             $staff, channel: 'quote', email: $quote->email, pricesAllowed: true, billing: $quote->billing_address);
         if ($state->isEmpty()) {

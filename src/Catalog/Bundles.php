@@ -21,11 +21,11 @@ class Bundles
     public function price(Product $bundle, Variant $variant): int
     {
         if ($bundle->bundle_pricing === null || $bundle->bundle_pricing === 'fixed') {
-            return $variant->price;
+            return (int) $variant->price;
         }
         $sum = 0;
         foreach ($this->items($bundle) as $item) {
-            $sum += $item->variant->price * $item->quantity;
+            $sum += (int) $item->variant->price * $item->quantity;
         }
         $value = (int) $bundle->bundle_value;
 

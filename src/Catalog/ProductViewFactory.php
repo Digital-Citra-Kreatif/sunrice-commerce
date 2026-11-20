@@ -12,6 +12,7 @@ use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Commerce\Catalog\Models\PriceTier;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Checkout\CheckoutMode;
 use Sunrice\Commerce\Contracts\Inventory;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Pricing\PricingContext;
@@ -190,9 +191,12 @@ class ProductViewFactory
     {
         PageCache::markDynamic();
         $loadOptionValues = $this->optionValues;
-        $hidden = ! $this->visibility->visible();
         $variants = $product->variants->filter(fn (Variant $v) => $v->active)->values();
-        $current = $variants->mapWithKeys(fn (Variant $v) => [$v->uid => $this->currentPrice($product, $v)]);
+        // Price on request: prices hidden from this visitor, or no variant has a price.
+        $unpriced = fn (Variant $v): bool => ! $product->isBundle() && ! $v->hasPrice();
+        $noPrice = $variants->isNotEmpty() && $variants->every($unpriced);
+        $hidden = ! $this->visibility->visible() || $noPrice;
+        $current = $variants->reject($unpriced)->mapWithKeys(fn (Variant $v) => [$v->uid => $this->currentPrice($product, $v)]);
 
         // Price display
         $prices = $current->values();
@@ -215,7 +219,9 @@ class ProductViewFactory
             'from' => $hidden ? null : $from,
             'to' => $hidden ? null : $to,
             'hidden' => $hidden,
-            'signIn' => $hidden && $this->visibility->signInReveals(),
+            'signIn' => $hidden && ! $noPrice && $this->visibility->signInReveals(),
+            // Hidden, yet it can go into a cart that becomes a quote request.
+            'quotable' => $hidden && app(CheckoutMode::class)->quoteAvailable(),
             'formatted' => $hidden ? '' : $formatted,
             'compareFormatted' => $hidden || $compareAt === null ? null : $this->money->format($compareAt),
             'taxSuffix' => $hidden || ! app(Features::class)->active('taxes') ? null : match ($this->settings->get('taxes.display_prices', 'incl')) {
@@ -265,7 +271,7 @@ class ProductViewFactory
         };
 
         // Bulk prices for this visitor: the product's tiers and matching pricing rules.
-        $tiers = $hidden || $single === null ? [] : $this->tierTable($product, $single, $current[$single->uid] ?? $single->price);
+        $tiers = $hidden || $single === null || ! isset($current[$single->uid]) ? [] : $this->tierTable($product, $single, $current[$single->uid]);
 
         $view = new ProductView(
             entry: $entry,
@@ -302,7 +308,8 @@ class ProductViewFactory
         $optionUids = $product->options->pluck('uid', 'id')->all();
 
         return $variants->map(function (Variant $v, int $i) use ($product, $current, $statuses, $hidden, $preview, $optionUids): array {
-            $regular = $hidden ? null : $this->regularPrice($product, $v);
+            $priced = ! $hidden && isset($current[$v->uid]);
+            $regular = $priced ? $this->regularPrice($product, $v) : null;
 
             return [
                 'id' => $v->id,
@@ -312,11 +319,11 @@ class ProductViewFactory
                 'options' => $preview ? (array) $v->getAttribute('option_uids') : $v->optionValues->mapWithKeys(fn ($value) => [
                     (string) ($optionUids[$value->option_id] ?? '') => $value->uid,
                 ])->all(),
-                'price' => $hidden ? null : $current[$v->uid],
-                'price_formatted' => $hidden ? null : $this->money->format($current[$v->uid]),
+                'price' => $priced ? $current[$v->uid] : null,
+                'price_formatted' => $priced ? $this->money->format($current[$v->uid]) : null,
                 // Before discounts (flash sales, rules), as shown: what a sale price is compared with.
                 'regular' => $regular,
-                'compare_at' => $regular !== null && $regular > $current[$v->uid] ? $this->money->format($regular) : null,
+                'compare_at' => $priced && $regular !== null && $regular > $current[$v->uid] ? $this->money->format($regular) : null,
                 'stock' => $statuses[$i],
                 'min_qty' => $v->minOrderQuantity(),
                 'max_qty' => $v->maxOrderQuantity(),
@@ -366,7 +373,7 @@ class ProductViewFactory
 
     protected function basePrice(Product $product, Variant $variant): int
     {
-        return $product->isBundle() ? app(Bundles::class)->price($product, $variant) : $variant->price;
+        return $product->isBundle() ? app(Bundles::class)->price($product, $variant) : (int) $variant->price;
     }
 
     protected function currentPrice(Product $product, Variant $variant): int

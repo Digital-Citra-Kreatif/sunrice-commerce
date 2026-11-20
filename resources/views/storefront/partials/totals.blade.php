@@ -1,6 +1,13 @@
 {{-- Totals of a calculation. $state: Sunrice\Commerce\Pricing\CalculationState --}}
 @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
 @php($shippingPending = $state->shipping['needed'] && ! $state->shipping['rate'])
+@if ($state instanceof \Sunrice\Commerce\Pricing\CalculationState && $state->onRequest())
+    {{-- A price on request: no totals; staff send them in the quote. --}}
+    <dl class="commerce-totals commerce-totals--on-request">
+        <div class="commerce-totals__total"><dt>{{ __('commerce::storefront.cart.total') }}</dt><dd>{{ __('commerce::storefront.cta.price_on_request') }}</dd></div>
+    </dl>
+    <p class="commerce-muted commerce-totals__note">{{ __('commerce::storefront.cart.on_request_note') }}</p>
+@else
 <dl class="commerce-totals">
     <div><dt>{{ __('commerce::storefront.cart.subtotal') }}</dt><dd>{{ $money->format($state->totals['subtotal']) }}</dd></div>
     @foreach ($state->adjustmentsOfType('discount') as $adjustment)
@@ -27,3 +34,4 @@
         <div class="commerce-totals__balance"><dt>{{ ($state->deposit['balance_due_at'] ?? null) ? __('commerce::payments.balance_due_by', ['date' => \Illuminate\Support\Carbon::parse($state->deposit['balance_due_at'])->translatedFormat('j F Y')]) : __('commerce::payments.balance_later') }}</dt><dd>{{ $money->format($state->totals['total'] - $deposit) }}</dd></div>
     @endif
 </dl>
+@endif

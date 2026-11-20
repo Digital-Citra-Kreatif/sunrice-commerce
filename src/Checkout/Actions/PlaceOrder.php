@@ -441,7 +441,9 @@ class PlaceOrder
             'weight' => (int) $variant->weight,
             'requires_shipping' => $line->requiresShipping,
             'downloadable' => $line->downloadable,
-            'meta' => array_filter(['line' => $line->meta ?: null, 'price' => $line->priceMeta ?: null, 'taxes' => $line->taxes ?: null, 'discounts' => $line->discounts ?: null]) ?: null,
+            // on_request: the customer saw no price for it; a quote shows none until staff price it.
+            'meta' => array_filter(['line' => $line->meta ?: null, 'price' => $line->priceMeta ?: null, 'taxes' => $line->taxes ?: null, 'discounts' => $line->discounts ?: null,
+                'on_request' => $line->onRequest ?: null]) ?: null,
         ];
     }
 

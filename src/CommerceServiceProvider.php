@@ -346,7 +346,7 @@ class CommerceServiceProvider extends PackageServiceProvider
                 return $price;
             }
             $product = $variant->product;
-            $base = $product->isBundle() ? $this->app->make(Catalog\Bundles::class)->price($product, $variant) : $variant->price;
+            $base = $product->isBundle() ? $this->app->make(Catalog\Bundles::class)->price($product, $variant) : (int) $variant->price;
 
             return min($price, $item->priceFor($base));
         };

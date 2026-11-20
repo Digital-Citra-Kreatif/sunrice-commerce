@@ -15,7 +15,7 @@
                 <span class="commerce-summary__thumb">@if (is_object($image))<img src="{{ $image->url() }}" alt="" width="48" height="60" loading="lazy">@endif<span class="commerce-summary__badge">{{ $row['line']->quantity }}</span></span>
                 <span class="commerce-summary__qty">{{ $row['line']->quantity }} ×</span>
                 <span class="commerce-summary__name">{{ $row['entry']?->title ?? $row['entry']?->draft_title }}@if ($row['line']->variant->title !== '') ({{ $row['line']->variant->title }})@endif @foreach (app(\Sunrice\Commerce\Cart\LineDetails::class)->for($row['line']->meta) as $detail)<small class="commerce-summary__detail">{{ $detail }}</small>@endforeach</span>
-                <span class="commerce-summary__price">{{ $money->format($row['line']->subtotal) }}</span>
+                <span class="commerce-summary__price">{{ $row['line']->onRequest ? __('commerce::storefront.cta.price_on_request') : $money->format($row['line']->subtotal) }}</span>
             </li>
         @endforeach
     </ul>
