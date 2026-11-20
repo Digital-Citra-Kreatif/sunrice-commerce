@@ -3,6 +3,7 @@ import * as Ui from '../shims/ui';
 import { cn } from '../lib/cn';
 import type { FieldProps } from '../sunrice';
 import { errorsUnder, fromSelect, isShown, numberValue, optionsOf, SELECT_NONE, selectValue, summaryValues, toSelect, type FieldDef } from '../lib/fields';
+import ChoicesField from '../fields/ChoicesField';
 import DateTimeRangeField from '../fields/DateTimeRangeField';
 import MoneyField from '../fields/MoneyField';
 import RegionField from '../fields/RegionField';
@@ -20,6 +21,7 @@ export const COMMERCE_INPUTS: Record<string, React.ComponentType<FieldProps<any>
     commerce_datetime_range: DateTimeRangeField,
     commerce_region: RegionField,
     commerce_targets: TargetsField,
+    commerce_choices: ChoicesField,
 };
 
 

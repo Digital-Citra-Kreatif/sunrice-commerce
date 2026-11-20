@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Payment method settings: countries, provinces, shipping method types and customer roles are now
+  searchable multi-select dropdowns (new `commerce_choices` field type) that also accept values
+  not in the list. Payment method and email settings pages link back to their list in the
+  breadcrumbs and header.
+
 - Redesigned the store dashboard with clearer period comparisons, highlighted total sales,
   and tables for top products and recent orders. Today compares directly with yesterday.
 

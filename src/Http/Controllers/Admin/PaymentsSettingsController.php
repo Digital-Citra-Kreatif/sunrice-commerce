@@ -51,6 +51,7 @@ class PaymentsSettingsController extends Controller
 
         return Inertia::render('Commerce/Settings/Section', [
             'section' => ['key' => 'payments', 'label' => PaymentManager::titleOf($instance)],
+            'parent' => ['label' => 'Payments', 'href' => 'commerce/settings/payments'],
             'sections' => SettingsController::menu($request->user()),
             'form' => SchemaForm::make($this->fields($instance), $this->stored($method))
                 ->action(route('sunrice.admin.commerce.settings.payments.update', $method, false), 'put'),
@@ -62,14 +63,6 @@ class PaymentsSettingsController extends Controller
         $this->guard();
         $instance = $this->method($payments, $method);
         $values = SchemaForm::make($this->fields($instance))->validate((array) $request->input('values', []), $instance->settingsRules());
-        foreach (['countries', 'provinces', 'shipping_methods', 'roles'] as $list) {
-            if (array_key_exists($list, $values)) {
-                $values[$list] = array_values(array_filter(array_map('trim', explode(',', (string) $values[$list]))));
-                if ($list === 'countries') {
-                    $values[$list] = array_map('strtoupper', $values[$list]);
-                }
-            }
-        }
         $this->save($settings, fn (array $section) => [...$section, 'methods' => [...(array) ($section['methods'] ?? []), $method => $values]]);
         app(ActivityRecorder::class)->record('updated', "Payment method: {$method}", [], 'store_setting');
 
@@ -164,8 +157,9 @@ class PaymentsSettingsController extends Controller
     {
         $values = (array) app(StoreSettings::class)->get("payments.methods.{$key}", []);
         foreach (['countries', 'provinces', 'shipping_methods', 'roles'] as $list) {
-            if (is_array($values[$list] ?? null)) {
-                $values[$list] = implode(', ', $values[$list]);
+            // Saved before these were lists: "ID, SG".
+            if (is_string($values[$list] ?? null)) {
+                $values[$list] = array_values(array_filter(array_map('trim', explode(',', $values[$list]))));
             }
         }
 

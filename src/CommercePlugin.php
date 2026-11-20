@@ -90,6 +90,7 @@ final class CommercePlugin extends BasePlugin
             Admin\Fields\DateTimeRangeField::class,
             Admin\Fields\RegionField::class,
             Admin\Fields\TargetsField::class,
+            Admin\Fields\ChoicesField::class,
             Catalog\ProductField::class,
             Catalog\GalleryField::class,
         );

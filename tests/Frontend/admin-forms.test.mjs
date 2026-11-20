@@ -91,3 +91,8 @@ test('sums up a folded card from what a reader sees: labels for options, groups 
         ['Percentage off', 10, 2]);
     assert.deepEqual(summaryValues(fields, null), []);
 });
+
+test('summarizes a choices field by its options\' labels', () => {
+    const field = { handle: 'countries', type: 'commerce_choices', config: { options: [{ value: 'ID', label: 'Indonesia (ID)' }] } };
+    assert.deepEqual(summaryValues([field], { countries: ['ID', 'XX'] }), ['Indonesia (ID), XX']);
+});

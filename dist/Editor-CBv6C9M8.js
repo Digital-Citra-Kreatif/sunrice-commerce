@@ -1,5 +1,5 @@
-import { d as U, u as z, a as v, i as A, R as b, k as E, j as i, b as a, P as B, c as H, M as k, n as L, F as M } from "./main-CbiNZeRv.js";
-function G({ mode: l, order: r, paymentMethods: x, canOverride: P, variantsUrl: R, previewUrl: j, submitUrl: w }) {
+import { d as U, u as z, a as v, i as A, R as b, l as E, j as i, b as a, P as B, c as H, M as w, o as L, F as M } from "./main-qm0WOjIH.js";
+function G({ mode: l, order: r, paymentMethods: x, canOverride: P, variantsUrl: R, previewUrl: j, submitUrl: k }) {
   const { Card: h, CardContent: p, CardHeader: u, CardTitle: g, Button: F, Input: d, Label: s, Checkbox: y, Textarea: I } = H;
   U(), z([
     { label: "Shop", href: v("commerce") },
@@ -50,7 +50,7 @@ function G({ mode: l, order: r, paymentMethods: x, canOverride: P, variantsUrl: 
     const n = t.data.lines.findIndex((c) => c.variant_id === e.id && !c.item_id);
     t.setData("lines", n >= 0 ? t.data.lines.map((c, m) => m === n ? { ...c, quantity: c.quantity + 1 } : c) : [...t.data.lines, { variant_id: e.id, label: e.label, sku: e.sku, quantity: 1, price: e.price, unit_price: null }]), q(""), N([]);
   }, $ = (e, n) => t.setData("lines", t.data.lines.map((c, m) => m === e ? { ...c, ...n } : c)), J = (e) => {
-    e.preventDefault(), t.transform((n) => ({ ...n, lines: n.lines.map(({ item_id: c, variant_id: m, quantity: S, unit_price: Q }) => ({ item_id: c, variant_id: m, quantity: S, unit_price: Q })) })), l === "create" ? t.post(v(w)) : t.put(v(w));
+    e.preventDefault(), t.transform((n) => ({ ...n, lines: n.lines.map(({ item_id: c, variant_id: m, quantity: S, unit_price: Q }) => ({ item_id: c, variant_id: m, quantity: S, unit_price: Q })) })), l === "create" ? t.post(v(k)) : t.put(v(k));
   }, D = (e) => o?.lines.find((n) => n.variant_id === e);
   return /* @__PURE__ */ i("form", { onSubmit: J, className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6 cm:max-w-5xl", children: [
     /* @__PURE__ */ a(
@@ -82,7 +82,7 @@ function G({ mode: l, order: r, paymentMethods: x, canOverride: P, variantsUrl: 
                 e.sku && /* @__PURE__ */ a("p", { className: "cm:text-xs cm:text-muted-foreground", children: e.sku })
               ] }),
               /* @__PURE__ */ a(d, { type: "number", min: 1, "aria-label": "Quantity", value: e.quantity, onChange: (c) => $(n, { quantity: Math.max(1, Number(c.target.value)) }) }),
-              P ? /* @__PURE__ */ a(k, { value: e.unit_price, placeholder: D(e.variant_id)?.unit_price_formatted ?? "", onChange: (c) => $(n, { unit_price: c }) }) : /* @__PURE__ */ a("span", { className: "cm:text-sm", children: D(e.variant_id)?.unit_price_formatted ?? "…" }),
+              P ? /* @__PURE__ */ a(w, { value: e.unit_price, placeholder: D(e.variant_id)?.unit_price_formatted ?? "", onChange: (c) => $(n, { unit_price: c }) }) : /* @__PURE__ */ a("span", { className: "cm:text-sm", children: D(e.variant_id)?.unit_price_formatted ?? "…" }),
               /* @__PURE__ */ a("span", { className: "cm:text-sm cm:font-medium cm:sm:text-right", children: D(e.variant_id)?.total ?? "" }),
               /* @__PURE__ */ a(F, { type: "button", variant: "ghost", size: "sm", "aria-label": "Remove", onClick: () => t.setData("lines", t.data.lines.filter((c, m) => m !== n)), children: "×" })
             ] }, `${e.item_id ?? "n"}-${e.variant_id}-${n}`)) }),
@@ -144,7 +144,7 @@ function G({ mode: l, order: r, paymentMethods: x, canOverride: P, variantsUrl: 
             ] }),
             /* @__PURE__ */ i("div", { className: "cm:grid cm:gap-1", children: [
               /* @__PURE__ */ a(s, { htmlFor: "s-cost", children: "Shipping cost" }),
-              /* @__PURE__ */ a(k, { id: "s-cost", allowNull: !1, value: t.data.shipping.cost, onChange: (e) => t.setData("shipping", { ...t.data.shipping, cost: e ?? 0 }) })
+              /* @__PURE__ */ a(w, { id: "s-cost", allowNull: !1, value: t.data.shipping.cost, onChange: (e) => t.setData("shipping", { ...t.data.shipping, cost: e ?? 0 }) })
             ] }),
             /* @__PURE__ */ i("div", { className: "cm:grid cm:gap-1", children: [
               /* @__PURE__ */ a(s, { htmlFor: "d-label", children: "Discount label" }),
@@ -152,7 +152,7 @@ function G({ mode: l, order: r, paymentMethods: x, canOverride: P, variantsUrl: 
             ] }),
             /* @__PURE__ */ i("div", { className: "cm:grid cm:gap-1", children: [
               /* @__PURE__ */ a(s, { htmlFor: "d-amount", children: "Discount" }),
-              /* @__PURE__ */ a(k, { id: "d-amount", allowNull: !1, value: t.data.discount.amount, onChange: (e) => t.setData("discount", { ...t.data.discount, amount: e ?? 0 }) })
+              /* @__PURE__ */ a(w, { id: "d-amount", allowNull: !1, value: t.data.discount.amount, onChange: (e) => t.setData("discount", { ...t.data.discount, amount: e ?? 0 }) })
             ] })
           ] })
         ] }),

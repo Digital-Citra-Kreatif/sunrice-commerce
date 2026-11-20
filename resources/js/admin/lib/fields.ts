@@ -98,7 +98,7 @@ export function summaryValues(fields: readonly FieldDef[], values: Record<string
     return fields.filter((field) => isShown(field, values) && !UNSUMMED.has(field.type) && !field.config?.secret).flatMap((field): unknown[] => {
         const value = values[field.handle];
         if (field.type === 'group') return summaryValues(field.fields ?? [], value as Record<string, unknown>);
-        if (field.type === 'select') {
+        if (field.type === 'select' || field.type === 'commerce_choices') {
             const options = optionsOf(field);
             const label = (one: unknown) => options.find((o) => o.value === String(one))?.label ?? one;
             return [Array.isArray(value) ? value.map(label).join(', ') : value === null || value === undefined ? value : label(value)];
