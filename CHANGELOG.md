@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fix: the weight and dimension unit settings now apply. The product editor shows and takes
+  weights and sizes in them (stored values stay grams and millimetres, so changing a unit converts
+  nothing), and the storefront compare table shows weights in the weight unit.
+
 - Payment method settings: countries, provinces, shipping method types and customer roles are now
   searchable multi-select dropdowns (new `commerce_choices` field type) that also accept values
   not in the list. Payment method and email settings pages link back to their list in the

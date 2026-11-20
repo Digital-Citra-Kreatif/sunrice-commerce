@@ -96,3 +96,17 @@ test('summarizes a choices field by its options\' labels', () => {
     const field = { handle: 'countries', type: 'commerce_choices', config: { options: [{ value: 'ID', label: 'Indonesia (ID)' }] } };
     assert.deepEqual(summaryValues([field], { countries: ['ID', 'XX'] }), ['Indonesia (ID), XX']);
 });
+
+const { toUnit, fromUnit } = await load('units.ts');
+
+test('shows grams and millimetres in the store\'s units and stores what is typed back whole', () => {
+    assert.equal(toUnit(250, 'kg'), '0.25');
+    assert.equal(toUnit(1500, 'g'), '1500');
+    assert.equal(toUnit(125, 'cm'), '12.5');
+    assert.equal(toUnit(null, 'kg'), '');
+    assert.equal(fromUnit('1,5', 'kg'), 1500);
+    assert.equal(fromUnit('0.0004', 'kg'), 0);
+    assert.equal(fromUnit('12.5', 'cm'), 125);
+    assert.equal(fromUnit('', 'cm'), null);
+    assert.equal(fromUnit('abc', 'm'), null);
+});

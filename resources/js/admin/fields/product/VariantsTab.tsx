@@ -4,7 +4,8 @@ import { FieldRenderer } from '../../components/FieldRenderer';
 import { formatMoney } from '../../lib/money';
 import { generateVariants, newId, variantTitle, type ProductOption } from '../../lib/variants';
 import { StatusBadge } from '../../components/StatusBadge';
-import { Grid, Money, NativeSelect, NumberInput, Row, Section, TextInput, Toggle } from './controls';
+import { Grid, Money, NativeSelect, NumberInput, Row, Section, TextInput, Toggle, UnitInput } from './controls';
+import { weightUnit } from '../../lib/units';
 import { SkuInput } from './SkuInput';
 import { emptyVariant, type TabProps, type Variant } from './types';
 
@@ -85,7 +86,7 @@ function VariantDetails({ variant, index, updateVariant, tab }: { variant: Varia
             <Grid cols={4}>
                 <Row label="Cost" htmlFor={`${p}-cost`}><Money id={`${p}-cost`} value={variant.cost} onChange={(cost) => updateVariant(index, { cost })} /></Row>
                 <Row label="Barcode" htmlFor={`${p}-barcode`}><TextInput id={`${p}-barcode`} value={variant.barcode} onChange={(barcode) => updateVariant(index, { barcode })} /></Row>
-                <Row label="Weight (g)" htmlFor={`${p}-weight`}><NumberInput id={`${p}-weight`} value={variant.weight} onChange={(weight) => updateVariant(index, { weight })} placeholder="Product's" /></Row>
+                <Row label={`Weight (${weightUnit()})`} htmlFor={`${p}-weight`}><UnitInput id={`${p}-weight`} unit={weightUnit()} value={variant.weight} onChange={(weight) => updateVariant(index, { weight })} placeholder="Product's" /></Row>
                 <Row label="Min / max / step" htmlFor={`${p}-min`}>
                     <div className="cm:grid cm:grid-cols-3 cm:gap-1">
                         <NumberInput id={`${p}-min`} min={1} value={variant.min_qty} onChange={(v) => updateVariant(index, { min_qty: v ?? 1 })} />
