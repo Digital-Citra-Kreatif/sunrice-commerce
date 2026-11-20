@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Tax rates: one rate can apply to several countries, and in Indonesia to several provinces and
+  cities, chosen from searchable lists. It is saved as one row per place, and the form shows those
+  rows as one rate again. The earlier `region` input still works.
+
 - Payment method settings: countries, provinces, shipping method types and customer roles are now
   searchable multi-select dropdowns (new `commerce_choices` field type) that also accept values
   not in the list. Payment method and email settings pages link back to their list in the

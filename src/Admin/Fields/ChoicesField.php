@@ -16,13 +16,13 @@ use Sunrice\Commerce\Shipping\ShippingTypes;
  * Several values chosen from a searchable list, where a value the list
  * doesn't have can be added as typed: a list of strings.
  * config: options ([{value, label}] or strings), source (countries |
- * provinces | shipping_types | roles: options filled when the form is
+ * provinces | id_regions (provinces, then cities and regencies) | shipping_types | roles: options filled when the form is
  * drawn), creatable (default true), uppercase (values stored in capitals).
  * A comma-separated string is read as its parts.
  */
 class ChoicesField extends FieldType
 {
-    public const SOURCES = ['countries', 'provinces', 'shipping_types', 'roles'];
+    public const SOURCES = ['countries', 'provinces', 'id_regions', 'shipping_types', 'roles'];
 
     public function type(): string
     {
@@ -79,6 +79,13 @@ class ChoicesField extends FieldType
             'countries' => array_map(fn (array $o) => ['value' => $o['value'], 'label' => "{$o['label']} ({$o['value']})"], Countries::options()),
             'provinces' => Region::query()->active()->where('level', Region::LEVELS['province'])->orderBy('name')->get(['code', 'name'])
                 ->map(fn (Region $r) => ['value' => $r->code, 'label' => "{$r->name} ({$r->code})"])->values()->all(),
+            'id_regions' => (function (): array {
+                $regions = Region::query()->active()->whereIn('level', [Region::LEVELS['province'], Region::LEVELS['city']])->orderBy('level')->orderBy('name')->get(['code', 'name', 'level', 'parent_code']);
+                $provinces = $regions->where('level', Region::LEVELS['province'])->pluck('name', 'code');
+
+                return $regions->map(fn (Region $r) => ['value' => $r->code, 'label' => $r->level === Region::LEVELS['province']
+                    ? "{$r->name} (province)" : "{$r->name}, ".($provinces[$r->parent_code] ?? $r->parent_code)])->values()->all();
+            })(),
             'shipping_types' => collect(app(ShippingTypes::class)->options())
                 ->map(fn (string $label, string $key) => ['value' => $key, 'label' => "{$label} ({$key})"])->values()->all(),
             'roles' => Role::query()->orderBy('name')->pluck('name')->map(fn ($name) => ['value' => (string) $name, 'label' => (string) $name])->all(),
