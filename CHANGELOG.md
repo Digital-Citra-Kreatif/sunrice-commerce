@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Settings → Emails: the customer and staff lists fold away (remembered per browser), say how many
+  of their emails are sent while folded, and can be expanded or collapsed together.
+
 - Payment method settings: countries, provinces, shipping method types and customer roles are now
   searchable multi-select dropdowns (new `commerce_choices` field type) that also accept values
   not in the list. Payment method and email settings pages link back to their list in the
