@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\Permission\Models\Role;
 use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Features\Features;
@@ -46,12 +45,18 @@ class EmailsSettingsController extends Controller
         $this->guard();
         $email = $this->email($emails, $key);
         $values = $settings->for($key);
-        foreach (['addresses', 'copies'] as $list) {
-            if (is_array($values[$list] ?? null)) {
-                $values[$list] = implode(', ', $values[$list]);
+        // The texts show their default until changed (saving a default unchanged keeps it the default).
+        foreach ($this->parts($email) as $part) {
+            foreach (Locales::all() as $locale) {
+                $stored = $values[$part][$locale] ?? null;
+                $values[$part][$locale] = is_string($stored) && trim($stored) !== '' ? $stored : $settings->defaultText($key, $part, $locale);
             }
         }
         $values['enabled'] = $settings->enabled($key);
+        if ($email->audience === 'staff') {
+            // Who gets it now: unset roles mean the shop managers.
+            $values['roles'] = $settings->roles($key);
+        }
         $values['attachments'] ??= $email->defaultAttachments;
 
         return Inertia::render('Commerce/Settings/Section', [
@@ -62,16 +67,24 @@ class EmailsSettingsController extends Controller
         ]);
     }
 
-    public function update(Request $request, string $key, Emails $emails, StoreSettings $store): RedirectResponse
+    public function update(Request $request, string $key, Emails $emails, StoreSettings $store, EmailSettings $settings): RedirectResponse
     {
         $this->guard();
         $email = $this->email($emails, $key);
         $values = SchemaForm::make($this->fields($email))->validate((array) $request->input('values', []));
+        foreach ($this->parts($email) as $part) {
+            foreach ((array) ($values[$part] ?? []) as $locale => $text) {
+                // The default as it is stays the default, so it follows changes to the default texts.
+                if (is_string($text) && trim($text) === trim($settings->defaultText($key, $part, (string) $locale))) {
+                    $values[$part][$locale] = null;
+                }
+            }
+        }
         foreach (['addresses', 'copies'] as $list) {
             if (! array_key_exists($list, $values)) {
                 continue;
             }
-            $values[$list] = array_values(array_filter(array_map('trim', preg_split('/[\s,;]+/', (string) $values[$list]) ?: [])));
+            $values[$list] = array_values(array_unique(array_filter(array_map(fn ($a) => mb_strtolower(trim((string) $a)), $this->addressList($values[$list])))));
             foreach ($values[$list] as $address) {
                 if (! filter_var($address, FILTER_VALIDATE_EMAIL)) {
                     throw ValidationException::withMessages(["values.{$list}" => "\"{$address}\" isn't an email address."]);
@@ -161,23 +174,66 @@ class EmailsSettingsController extends Controller
         return $email;
     }
 
+    /** @return list<string> the texts the email's settings can change */
+    protected function parts(EmailDefinition $email): array
+    {
+        return $this->usesStoreEmail($email->key) ? ['subject', 'heading', 'intro'] : ['subject'];
+    }
+
+    /** @return list<string> addresses, from a list or a string ("a@x.id, b@x.id") */
+    protected function addressList(mixed $value): array
+    {
+        $parts = [];
+        foreach (is_array($value) ? $value : [$value] as $item) {
+            $parts = [...$parts, ...(preg_split('/[\s,;]+/', (string) $item) ?: [])];
+        }
+
+        return $parts;
+    }
+
+    /**
+     * The placeholders an email's texts can use, to insert with a click.
+     *
+     * @return list<array{value: string, label: string}>
+     */
+    public static function placeholders(EmailDefinition $email): array
+    {
+        $all = ['number' => 'Order number', 'name' => 'Customer name', 'store' => 'Store name', 'product' => 'Product', 'balance' => 'Balance due', 'due_date' => 'Balance due date'];
+        $names = match (true) {
+            in_array($email->key, ['account_welcome', 'verify_email', 'login_code', 'password_reset'], true) => ['store'],
+            in_array($email->key, ['back_in_stock', 'staff_low_stock', 'staff_out_of_stock'], true) => ['product', 'name', 'store'],
+            in_array($email->key, ['balance_reminder', 'staff_balance_overdue'], true) => ['number', 'name', 'store', 'balance', 'due_date'],
+            default => ['number', 'name', 'store'],
+        };
+
+        return array_map(fn (string $n) => ['value' => ':'.$n, 'label' => $all[$n]], $names);
+    }
+
     /** @return array<int, array<string, mixed>> */
     protected function fields(EmailDefinition $email): array
     {
-        $perLanguage = fn (string $handle, string $label, string $type = 'text'): array => SchemaForm::perLanguage($handle, $label, $type, $type === 'text' ? 200 : 2000,
-            ['instructions' => 'Empty: the default text. Placeholders: :number, :store, :name.']);
+        $tokens = self::placeholders($email);
+        $perLanguage = function (string $handle, string $label, string $type = 'text') use ($tokens): array {
+            $group = SchemaForm::perLanguage($handle, $label, $type, $type === 'text' ? 200 : 2000,
+                ['instructions' => 'Shows the default text until you change it; clear it to go back to the default.']);
+            $group['config']['fields'] = array_map(fn (array $f) => [...$f, 'config' => [...(array) ($f['config'] ?? []), 'tokens' => $tokens]], $group['config']['fields']);
+
+            return $group;
+        };
         $fields = [];
         if (! $email->locked) {
             $fields[] = ['handle' => 'enabled', 'type' => 'toggle', 'label' => 'Send this email'];
         }
         if ($email->audience === 'staff') {
-            $fields[] = ['handle' => 'addresses', 'type' => 'text', 'label' => 'Send to', 'translatable' => false, 'instructions' => 'Email addresses, comma separated. Empty: the store email.'];
-            $fields[] = ['handle' => 'roles', 'type' => 'select', 'label' => 'And to users with the roles', 'config' => ['multiple' => true,
-                'options' => Role::query()->orderBy('name')->pluck('name')->map(fn ($n) => ['value' => $n, 'label' => $n])->all()]];
+            $fields[] = ['handle' => 'addresses', 'type' => 'commerce_choices', 'label' => 'Send to', 'translatable' => false,
+                'config' => ['placeholder' => 'The store email', 'input_placeholder' => 'Type an address…'], 'instructions' => 'Type an address and press Enter. Empty: the store email.'];
+            $fields[] = ['handle' => 'roles', 'type' => 'commerce_choices', 'label' => 'And to users with the roles', 'translatable' => false,
+                'config' => ['source' => 'roles', 'creatable' => false, 'placeholder' => 'No roles']];
         }
         if ($email->audience !== 'staff' && ! $email->locked) {
-            $fields[] = ['handle' => 'copies', 'type' => 'text', 'label' => 'Also send a copy to', 'translatable' => false,
-                'instructions' => 'Email addresses, comma separated, sent a hidden copy (BCC) of each one. Empty: only the customer.'];
+            $fields[] = ['handle' => 'copies', 'type' => 'commerce_choices', 'label' => 'Also send a copy to', 'translatable' => false,
+                'config' => ['placeholder' => 'Only the customer', 'input_placeholder' => 'Type an address…'],
+                'instructions' => 'Each address gets a hidden copy (BCC). Type an address and press Enter.'];
         }
         $fields[] = $perLanguage('subject', 'Subject');
         if ($this->usesStoreEmail($email->key)) {
@@ -185,7 +241,7 @@ class EmailsSettingsController extends Controller
             $fields[] = $perLanguage('intro', 'Text', 'textarea');
         }
         if ($email->attachments !== []) {
-            $labels = ['invoice' => 'Invoice (PDF)', 'quotation' => 'Quotation (PDF)', 'packing_slip' => 'Packing slip (PDF)', 'downloads' => 'Download files (when small enough)'];
+            $labels = ['invoice' => 'Invoice (PDF)', 'invoice_to_pay' => 'Invoice (PDF), only when paying by transfer, QRIS or another manual method', 'quotation' => 'Quotation (PDF)', 'packing_slip' => 'Packing slip (PDF)', 'downloads' => 'Download files (when small enough)'];
             $fields[] = ['handle' => 'attachments', 'type' => 'select', 'label' => 'Attachments', 'config' => ['multiple' => true,
                 'options' => array_map(fn ($a) => ['value' => $a, 'label' => $labels[$a] ?? $a], $email->attachments)]];
         }

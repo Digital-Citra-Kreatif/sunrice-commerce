@@ -17,6 +17,9 @@ use Sunrice\Commerce\Digital\Models\DownloadGrant;
 use Sunrice\Commerce\Documents\Documents;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Orders\Models\Order;
+use Sunrice\Commerce\Payments\Methods\CashOnDelivery;
+use Sunrice\Commerce\Payments\Methods\ManualMethod;
+use Sunrice\Commerce\Payments\PaymentManager;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\MoneyFormatter;
 use Throwable;
@@ -147,6 +150,8 @@ class StoreEmail extends Notification implements ShouldQueue
             return $mail;
         }
         $documents = app(Features::class)->active('documents');
+        // The invoice to pay is the invoice, while the customer still has to transfer (it lists the accounts).
+        $kinds = array_values(array_unique(array_filter(array_map(fn (string $kind) => $kind !== 'invoice_to_pay' ? $kind : ($this->awaitsManualPayment() ? 'invoice' : null), $kinds))));
         foreach ($kinds as $kind) {
             try {
                 if ($documents && in_array($kind, ['invoice', 'packing_slip', 'quotation'], true)) {
@@ -164,6 +169,17 @@ class StoreEmail extends Notification implements ShouldQueue
         }
 
         return $mail;
+    }
+
+    /** Unpaid, to be paid by transfer, QRIS or another manual method (not cash on delivery). */
+    protected function awaitsManualPayment(): bool
+    {
+        if ($this->order === null || ! in_array($this->order->payment_status, ['unpaid', 'awaiting_confirmation'], true) || $this->order->payment_method === null) {
+            return false;
+        }
+        $method = app(PaymentManager::class)->get($this->order->payment_method);
+
+        return $method instanceof ManualMethod && ! $method instanceof CashOnDelivery;
     }
 
     /**

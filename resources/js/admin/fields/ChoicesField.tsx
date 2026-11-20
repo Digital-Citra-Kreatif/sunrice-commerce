@@ -49,7 +49,7 @@ export default function ChoicesField({ field, value, onChange, errors, id, descr
             <Popover open={open} onOpenChange={(next: boolean) => { setOpen(next); if (!next) setQuery(''); }}>
                 {/* The box: chips (each with its own remove button) and the trigger filling the rest; the list opens under the whole box. */}
                 <PopoverAnchor asChild>
-                    <div className={cn('cm:flex cm:min-h-9 cm:w-full cm:flex-wrap cm:items-center cm:gap-1.5 cm:rounded-md cm:border cm:border-input cm:bg-transparent cm:px-2 cm:py-1.5 cm:text-sm cm:shadow-xs',
+                    <div className={cn('cm:flex cm:min-h-10 cm:w-full cm:flex-wrap cm:items-center cm:gap-1.5 cm:rounded-md cm:border cm:border-input/80 cm:bg-card cm:px-2 cm:py-1.5 cm:text-sm cm:shadow-xs',
                         'cm:focus-within:ring-2 cm:focus-within:ring-ring', errors?.[''] && 'cm:border-destructive')}>
                         {chosen.map((v) => (
                             <span key={v} className="cm:inline-flex cm:items-center cm:gap-1 cm:rounded cm:bg-muted cm:py-0.5 cm:pr-1 cm:pl-2 cm:text-xs cm:font-medium">
@@ -71,9 +71,9 @@ export default function ChoicesField({ field, value, onChange, errors, id, descr
                 </PopoverAnchor>
                 <PopoverContent className="cm:w-(--radix-popover-trigger-width) cm:min-w-64 cm:p-0" align="start">
                     <Command>
-                        <CommandInput placeholder={creatable ? 'Search or add…' : 'Search…'} value={query} onValueChange={setQuery} />
+                        <CommandInput placeholder={typeof config.input_placeholder === 'string' ? config.input_placeholder : creatable ? 'Search or add…' : 'Search…'} value={query} onValueChange={setQuery} />
                         <CommandList>
-                            <CommandEmpty>{creatable && typed !== '' ? 'Not in the list.' : 'Nothing found.'}</CommandEmpty>
+                            <CommandEmpty>{creatable && options.length === 0 ? 'Type to add.' : creatable && typed !== '' ? 'Not in the list.' : 'Nothing found.'}</CommandEmpty>
                             {creatable && !known && !chosen.includes(typed) && (
                                 <CommandItem value={`__add ${typed}`} keywords={[query]} onSelect={add}>
                                     <span className="cm:truncate">Add “{typed}”</span>

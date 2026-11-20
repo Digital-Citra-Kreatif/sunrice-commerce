@@ -8,6 +8,7 @@ import DateTimeRangeField from '../fields/DateTimeRangeField';
 import MoneyField from '../fields/MoneyField';
 import RegionField from '../fields/RegionField';
 import TargetsField from '../fields/TargetsField';
+import { TokenText, type Token } from '../fields/TokenText';
 
 type AnyComponent = React.ComponentType<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 const ui = Ui as unknown as Record<string, AnyComponent>;
@@ -117,6 +118,11 @@ function Input({ field, value, onChange, id, path, errors, describedBy, label }:
     const Own = COMMERCE_INPUTS[field.type];
     if (Own) {
         return <Own field={field} value={value} onChange={onChange} errors={errorsUnder(errors, path)} id={id} describedBy={describedBy} />;
+    }
+
+    if (Array.isArray(config.tokens) && config.tokens.length > 0 && (field.type === 'text' || field.type === 'textarea')) {
+        return <TokenText id={id} value={typeof value === 'string' ? value : ''} onChange={onChange} tokens={config.tokens as Token[]} multiline={field.type === 'textarea'}
+            invalid={invalid} describedBy={describedBy} maxLength={typeof config.max === 'number' ? config.max : undefined} />;
     }
 
     switch (field.type) {
