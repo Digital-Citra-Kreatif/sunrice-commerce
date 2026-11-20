@@ -1,6 +1,6 @@
 {{--
     My Account → Points. $balance: int, $history: LoyaltyTransaction[],
-    $expiring: the next lot to expire, or null; $percent: what orders earn.
+    $expiring: the next lot to expire, or null; $percent: what orders earn; $max: the most one order earns (0: no limit).
 --}}
 @extends(\Sunrice\Commerce\Storefront\Layout::view('account.layout'))
 @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
@@ -16,7 +16,8 @@
         @if ($percent > 0 || $expiring)
             <div class="commerce-points__notes">
                 @if ($percent > 0)
-                    <p>{{ __('commerce::account.points.how', ['percent' => rtrim(rtrim(number_format($percent, 2, ',', '.'), '0'), ',')]) }}</p>
+                    <p>{{ __('commerce::account.points.how', ['percent' => rtrim(rtrim(number_format($percent, 2, ',', '.'), '0'), ',')]) }}
+                        @if (($max ?? 0) > 0) {{ __('commerce::account.points.max', ['max' => number_format($max, 0, ',', '.')]) }} @endif</p>
                 @endif
                 @if ($expiring)
                     <p class="commerce-points__expiry">{{ __('commerce::account.points.expiring', ['points' => number_format($expiring->remaining, 0, ',', '.'), 'date' => $expiring->expires_at?->isoFormat('D MMMM YYYY')]) }}</p>

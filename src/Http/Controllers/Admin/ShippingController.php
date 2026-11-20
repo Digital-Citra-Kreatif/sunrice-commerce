@@ -67,8 +67,56 @@ class ShippingController extends Controller
             ])->values()->all(),
             'types' => array_map(fn ($key, $label) => ['key' => $key, 'label' => $label], array_keys($labels), $labels),
             'couriers' => array_map(fn ($key, $c) => ['key' => $key, ...$c], array_keys($couriers->all()), $couriers->all()),
+            'couriersUrl' => 'commerce/settings/shipping/couriers',
             'moveUrl' => route('sunrice.admin.commerce.settings.shipping.move', [], false),
         ]);
+    }
+
+    /** Settings → Shipping → Couriers: the presets offered when adding a shipment. */
+    public function editCouriers(Request $request, Couriers $couriers): Response
+    {
+        $this->guard();
+        $rows = array_map(fn ($key, $c) => ['key' => $key, 'name' => $c['name'], 'tracking_url' => $c['tracking_url'], 'active' => $c['active']],
+            array_keys($couriers->all()), $couriers->all());
+
+        return Inertia::render('Commerce/Settings/Section', [
+            'section' => ['key' => 'shipping', 'label' => 'Courier'],
+            'parent' => ['label' => 'Shipping', 'href' => 'commerce/settings/shipping'],
+            'sections' => SettingsController::menu($request->user()),
+            'form' => SchemaForm::make($this->courierFields(), ['couriers' => $rows])
+                ->action(route('sunrice.admin.commerce.settings.shipping.couriers.update', [], false), 'put'),
+        ]);
+    }
+
+    public function updateCouriers(Request $request, Couriers $couriers): RedirectResponse
+    {
+        $this->guard();
+        $trackingUrl = function (string $attribute, mixed $value, \Closure $fail): void {
+            if (is_string($value) && trim($value) !== '' && (! preg_match('#^https?://#i', trim($value)) || ! str_contains($value, '{tracking}'))) {
+                $fail('Use a web address with {tracking} where the tracking number goes.');
+            }
+        };
+        $values = SchemaForm::make($this->courierFields())->validate((array) $request->input('values', []), ['couriers.*.tracking_url' => [$trackingUrl]]);
+        $couriers->save(array_values((array) ($values['couriers'] ?? [])));
+        app(ActivityRecorder::class)->record('updated', 'Courier presets', [], 'store_setting');
+
+        return redirect()->route('sunrice.admin.commerce.settings.shipping')->with('success', 'Courier presets saved.');
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    protected function courierFields(): array
+    {
+        return [
+            ['handle' => 'couriers', 'type' => 'repeater', 'label' => 'Couriers', 'config' => ['max' => 100, 'fields' => [
+                ['handle' => 'name', 'type' => 'text', 'label' => 'Name', 'required' => true, 'translatable' => false, 'width' => 33, 'config' => ['max' => 80]],
+                ['handle' => 'tracking_url', 'type' => 'text', 'label' => 'Tracking link', 'translatable' => false, 'width' => 66,
+                    'config' => ['max' => 500, 'placeholder' => 'https://example.com/track?awb={tracking}'],
+                    'instructions' => '{tracking} is replaced with the tracking number. Empty: no tracking link.'],
+                ['handle' => 'key', 'type' => 'text', 'label' => 'Code', 'translatable' => false, 'width' => 33, 'config' => ['max' => 40],
+                    'instructions' => 'Saved on shipments. Empty: made from the name. Keep it once the courier is used.'],
+                ['handle' => 'active', 'type' => 'toggle', 'label' => 'Offered for new shipments', 'width' => 66, 'config' => ['default' => true]],
+            ]]],
+        ];
     }
 
     public function createZone(): Response

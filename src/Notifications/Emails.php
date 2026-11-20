@@ -13,14 +13,14 @@ class Emails
     public function __construct()
     {
         foreach ([
-            new EmailDefinition('order_received', 'Order received', feature: 'orders', attachments: ['invoice'], description: 'When an order is placed: the summary and how to pay.'),
-            new EmailDefinition('payment_link', 'Payment link', feature: 'payments', description: 'Sent by staff for manual orders and edits: the link to pay.'),
+            new EmailDefinition('order_received', 'Order received', feature: 'orders', attachments: ['invoice_to_pay', 'invoice'], defaultAttachments: ['invoice_to_pay'], description: 'When an order is placed: the summary and how to pay.'),
+            new EmailDefinition('payment_link', 'Payment link', feature: 'payments', attachments: ['invoice'], defaultAttachments: ['invoice'], description: 'Sent by staff for manual orders and edits: the link to pay.'),
             new EmailDefinition('payment_confirmation_received', 'Payment confirmation received', feature: 'manual_payments', description: 'The customer\'s "I have paid" was received.'),
             new EmailDefinition('payment_rejected', 'Payment confirmation rejected', feature: 'manual_payments', description: 'With the reason and a link to confirm again.'),
             new EmailDefinition('payment_failed', 'Payment failed', feature: 'payments', description: 'The payment didn\'t go through: a link to try again or pay another way.'),
             new EmailDefinition('payment_received', 'Payment received', feature: 'orders', attachments: ['invoice'], defaultAttachments: ['invoice']),
             new EmailDefinition('order_shipped', 'Order shipped', feature: 'shipping', description: 'With the courier and tracking link.'),
-            new EmailDefinition('order_completed', 'Order completed', feature: 'orders'),
+            new EmailDefinition('order_completed', 'Order completed', feature: 'orders', attachments: ['invoice']),
             new EmailDefinition('order_cancelled', 'Order cancelled', feature: 'orders'),
             new EmailDefinition('order_refunded', 'Order refunded', feature: 'orders'),
             new EmailDefinition('order_updated', 'Order changed', feature: 'orders', description: 'When staff edit an unpaid order and choose to tell the customer.'),

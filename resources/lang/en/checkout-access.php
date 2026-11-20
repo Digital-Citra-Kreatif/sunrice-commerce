@@ -5,6 +5,9 @@ declare(strict_types=1);
 return [
     'title' => 'Continue to checkout',
     'intro' => 'Enter your email to get a one-time code. If you’re new to the store, we’ll create your account after verification.',
+    'guest_intro' => 'Enter your email and we’ll send a one-time code to confirm it. You don’t need an account.',
+    'guest_password' => 'Have an account? Sign in with your password',
+    'use_another' => 'Use another email',
     'password_intro' => 'Sign in with the password for your store account.',
     'use_password' => 'Sign in with password',
     'use_code' => 'Sign in with an email code',
