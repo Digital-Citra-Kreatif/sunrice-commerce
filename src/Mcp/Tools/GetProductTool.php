@@ -45,7 +45,7 @@ class GetProductTool extends ProductTool
             'url' => ($url = $main?->isLive() ? $main->url() : null) !== null ? url($url) : null,
             'product' => ($main->draft_data ?? [])[(string) config('commerce.catalog.field', 'product')] ?? null,
             'variants' => $variants->map(fn (Variant $v) => [
-                'variant_id' => $v->id, 'uid' => $v->uid, 'sku' => $v->sku, 'title' => $v->title, 'price' => OrderData::money($v->price),
+                'variant_id' => $v->id, 'uid' => $v->uid, 'sku' => $v->sku, 'title' => $v->title, 'price' => $v->price === null ? null : OrderData::money($v->price),
                 'stock' => $v->track_stock ? $v->stock_quantity : null, 'stock_status' => $v->stock_status, 'active' => $v->active,
             ])->all(),
             'editing' => self::EDITING,

@@ -114,6 +114,7 @@ return [
         'tax' => 'Tax',
         'tax_included' => 'Includes :amount tax',
         'fee' => 'Fees',
+        'on_request_note' => "Some prices are on request. Send the cart as a quote request and we'll reply with prices before you pay.",
         'total' => 'Total',
         'estimated_total' => 'Estimated total',
         'items' => '{1} :count item|[2,*] :count items',
@@ -216,6 +217,7 @@ return [
         'inactive_variant' => 'This option is no longer available.',
         'purchase_mode' => ":Product can't be bought online right now.",
         'this_product' => 'this product',
+        'price_on_request' => ':Product has no price yet: ask us for a quote.',
         'price_hidden' => 'Sign in to buy this product.',
         'feature_off' => 'The cart is closed.',
         'out_of_stock' => ':product is out of stock.',
@@ -295,5 +297,8 @@ return [
         'not_found_title' => 'Page not found',
         'not_found_text' => 'The page you are looking for may have moved or no longer exists.',
         'back_home' => 'Back to the home page',
+    ],
+    'quote' => [
+        'to_be_quoted' => 'To be quoted',
     ],
 ];

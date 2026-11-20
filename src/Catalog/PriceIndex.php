@@ -37,6 +37,10 @@ class PriceIndex
         $regular = [];
         $onSale = false;
         foreach ($variants as $variant) {
+            // Price on request: no price to list, filter or sort by.
+            if (! $product->isBundle() && ! $variant->hasPrice()) {
+                continue;
+            }
             $variant->setRelation('product', $product);
             $price = $this->basePrice($product, $variant);
             foreach ($this->adjusters as $adjuster) {
@@ -74,6 +78,6 @@ class PriceIndex
     /** The variant's own price; a bundle's price follows its pricing mode. */
     protected function basePrice(Product $product, Variant $variant): int
     {
-        return $product->isBundle() ? app(Bundles::class)->price($product, $variant) : $variant->price;
+        return $product->isBundle() ? app(Bundles::class)->price($product, $variant) : (int) $variant->price;
     }
 }

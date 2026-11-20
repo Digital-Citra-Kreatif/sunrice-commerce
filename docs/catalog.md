@@ -474,7 +474,34 @@ Settings → Store → Catalog → **Who sees prices** (`catalog.price_visibilit
 When prices are hidden from a visitor, nothing reveals them: listings, the product page, the tier
 table, flash sale data, structured data, price sorting and filtering, the compare page and the JSON
 endpoints all leave them out. Add to cart is replaced by "Sign in to see prices" (`signed_in` and
-`roles`, for guests) or by the call to action, and the cart refuses the product.
+`roles`, for guests) or by the call to action, and the cart refuses the product, unless the
+visitor's checkout can end in a quote request (see [Price on request](#price-on-request)).
+
+### Price on request
+
+A variant may have **no price**: leave **Price** empty in the product editor ("On request"; stored
+as `price` `null`, `Variant::hasPrice()`). A product whose variants all have none shows "Price on
+request". Unpriced variants are left out of price sorting, filtering, the feeds and the price range.
+In the CSV export the price cell is empty. A product with a price of 0 is free, not on request.
+
+A cart line is **on request** (`CalcLine::$onRequest`, `CalculationState::onRequest()`) when its
+variant has no price or prices are hidden from the customer. Such a product can only go into the
+cart when the customer's checkout can become a quote request
+(`CheckoutMode::quoteAvailable()`): Quotation mode, or **Customers can also request a quote** in
+Online store mode ([checkout.md](checkout.md#quote-requests)). Otherwise the cart refuses it
+("Mug has no price yet: ask us for a quote." or "Sign in to buy this product.").
+
+With a line on request:
+
+- The cart, mini cart, drawer, checkout summary and their JSON show "Price on request" for that line
+  and no totals (amounts are sent as 0). Nothing reveals the price.
+- Checkout is a quote request, whichever button sends it, with no payment step. Placing it as an
+  order is refused.
+- The quote request keeps the line marked (`meta.on_request`). Until staff price it, the quote page
+  and the "quote request received" email show "To be quoted" instead of prices and totals
+  (`Order::awaitsPrices()`).
+- In the quote editor a line whose product has no price starts empty ("Set a price"), and the quote
+  can't be sent until it has one. Lines that only had hidden prices start from the catalog price.
 
 `Catalog\PriceVisibility` answers it in code: `visible()` for the current visitor,
 `visibleTo($user)` for anyone.

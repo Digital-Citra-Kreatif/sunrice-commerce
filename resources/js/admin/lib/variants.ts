@@ -6,7 +6,8 @@ export interface VariantValue {
     id: string;
     options: Record<string, string>;
     sku: string | null;
-    price: number;
+    /** null: price on request. */
+    price: number | null;
     active: boolean;
     [key: string]: unknown;
 }

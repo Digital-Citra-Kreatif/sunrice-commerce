@@ -94,6 +94,10 @@ class CheckoutValidator
 
             return;
         }
+        // A price on request can't be ordered and paid: only sent as a quote request.
+        if ($state->onRequest() && $this->mode->completion() !== 'quote') {
+            $v->errors()->add('cart', __('commerce::checkout.errors.on_request'));
+        }
         if (commerce_customer() === null && ! app(VerifiedAccountCheckout::class)->guestAllowed()) {
             $v->errors()->add('email', __('commerce::checkout.errors.sign_in'));
         }

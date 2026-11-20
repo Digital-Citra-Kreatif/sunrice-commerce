@@ -9,6 +9,9 @@ import { weightUnit } from '../../lib/units';
 import { SkuInput } from './SkuInput';
 import { emptyVariant, type TabProps, type Variant } from './types';
 
+/** The prices set (variants without one are on request). */
+const priced = (variants: Variant[]): number[] => variants.flatMap((v) => (v.price === null ? [] : [v.price]));
+
 function OptionEditor({ option, onChange, onRemove, config, path }: { option: ProductOption; onChange: (o: ProductOption) => void; onRemove: () => void; config: TabProps['config']; path: string }) {
     const { Button, Input, Badge } = ui;
     const [draft, setDraft] = React.useState('');
@@ -166,7 +169,7 @@ export function VariantsTab(tab: TabProps) {
                                             <TableRow className={variant.active ? '' : 'cm:opacity-60'}>
                                                 <TableCell className="cm:font-medium cm:whitespace-nowrap">{variantTitle(value.options, variant, termTitles)}</TableCell>
                                                 <TableCell className="cm:min-w-36"><SkuInput value={variant.sku} entryId={entryId} onChange={(sku) => updateVariant(i, { sku })} /></TableCell>
-                                                <TableCell className="cm:min-w-32"><Money value={variant.price} nullable={false} onChange={(price) => updateVariant(i, { price: price ?? 0 })} /></TableCell>
+                                                <TableCell className="cm:min-w-32"><Money value={variant.price} placeholder="On request" onChange={(price) => updateVariant(i, { price })} /></TableCell>
                                                 <TableCell className="cm:min-w-32"><Money value={variant.compare_at_price} onChange={(compare_at_price) => updateVariant(i, { compare_at_price })} /></TableCell>
                                                 {config.features.inventory && (
                                                     <TableCell className="cm:whitespace-nowrap cm:text-sm">
@@ -190,9 +193,10 @@ export function VariantsTab(tab: TabProps) {
                         </Table>
                     </div>
                 )}
-                {value.variants.length > 0 && (
+                {priced(value.variants).length > 0 && (
                     <p className="cm:text-xs cm:text-muted-foreground">
-                        Prices from {formatMoney(Math.min(...value.variants.map((v) => v.price)))} to {formatMoney(Math.max(...value.variants.map((v) => v.price)))}.
+                        Prices from {formatMoney(Math.min(...priced(value.variants)))} to {formatMoney(Math.max(...priced(value.variants)))}.
+                        {priced(value.variants).length < value.variants.length && ' Variants without a price are on request.'}
                     </p>
                 )}
             </Section>

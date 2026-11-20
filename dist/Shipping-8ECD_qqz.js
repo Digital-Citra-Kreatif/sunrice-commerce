@@ -1,4 +1,4 @@
-import { i as m, j as t, q as A, b as e, c as E, a as s, E as M, S as f } from "./main-CFlXDyeG.js";
+import { i as m, j as t, q as A, b as e, c as E, a as s, E as M, S as f } from "./main-Bl32mM8r.js";
 function $({ sections: v, zones: n, types: x, couriers: N, couriersUrl: y, moveUrl: b }) {
   const { Card: o, CardContent: h, CardHeader: u, CardTitle: p, Button: r, Select: k, SelectContent: w, SelectItem: C, SelectTrigger: S, SelectValue: j } = E, { Link: a } = m, l = (i, d, c) => m.router.post(s(b), { kind: i, id: d, direction: c }, { preserveScroll: !0 });
   return /* @__PURE__ */ t(

@@ -149,6 +149,9 @@ class CartView implements JsonSerializable
     {
         $money = app(MoneyFormatter::class);
         $format = fn (int $amount) => ['amount' => $amount, 'formatted' => $money->format($amount)];
+        // A price on request isn't shown, nor sent: 0 with the words instead.
+        $onRequest = ['amount' => 0, 'formatted' => __('commerce::storefront.cta.price_on_request')];
+        $hideTotals = $this->state->onRequest();
 
         return [
             'count' => $this->count(),
@@ -163,16 +166,18 @@ class CartView implements JsonSerializable
                 'min_qty' => $row['line']->variant->minOrderQuantity(),
                 'max_qty' => $row['line']->variant->maxOrderQuantity(),
                 'qty_step' => $row['line']->variant->qty_step,
-                'unit_price' => $format($row['line']->unitPrice),
-                'regular_unit_price' => $row['line']->regularUnitPrice > $row['line']->unitPrice ? $format($row['line']->regularUnitPrice) : null,
-                'price_source' => $row['line']->priceSource,
-                'subtotal' => $format($row['line']->subtotal),
-                'discount' => $format($row['line']->discount()),
-                'total' => $format($row['line']->net()),
+                'on_request' => $row['line']->onRequest,
+                'unit_price' => $row['line']->onRequest ? $onRequest : $format($row['line']->unitPrice),
+                'regular_unit_price' => ! $row['line']->onRequest && $row['line']->regularUnitPrice > $row['line']->unitPrice ? $format($row['line']->regularUnitPrice) : null,
+                'price_source' => $row['line']->onRequest ? ['type' => 'on_request'] : $row['line']->priceSource,
+                'subtotal' => $row['line']->onRequest ? $onRequest : $format($row['line']->subtotal),
+                'discount' => $row['line']->onRequest ? $onRequest : $format($row['line']->discount()),
+                'total' => $row['line']->onRequest ? $onRequest : $format($row['line']->net()),
             ], $lines === null ? $this->lines : array_slice($this->lines, 0, max(0, $lines))),
             'codes' => $this->state->appliedCodes,
-            'adjustments' => array_map(fn ($a) => ['type' => $a->type, 'label' => $a->label, 'amount' => $format($a->amount), 'code' => $a->source['code'] ?? null], array_values($this->state->adjustments)),
-            'totals' => array_map($format, $this->state->totals),
+            'on_request' => $hideTotals,
+            'adjustments' => $hideTotals ? [] : array_map(fn ($a) => ['type' => $a->type, 'label' => $a->label, 'amount' => $format($a->amount), 'code' => $a->source['code'] ?? null], array_values($this->state->adjustments)),
+            'totals' => array_map(fn (int $amount) => $hideTotals ? $onRequest : $format($amount), $this->state->totals),
             'notices' => $this->state->notices,
         ];
     }

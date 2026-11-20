@@ -56,8 +56,8 @@ export function TextInput({ id, value, onChange, placeholder, onBlur }: { id?: s
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value === '' ? null : e.target.value)} />;
 }
 
-export function Money({ id, value, onChange, nullable = true }: { id?: string; value: number | null; onChange: (v: number | null) => void; nullable?: boolean }) {
-    return <MoneyInput id={id} value={value} allowNull={nullable} onChange={onChange} />;
+export function Money({ id, value, onChange, nullable = true, placeholder }: { id?: string; value: number | null; onChange: (v: number | null) => void; nullable?: boolean; placeholder?: string }) {
+    return <MoneyInput id={id} value={value} allowNull={nullable} onChange={onChange} placeholder={placeholder} />;
 }
 
 export function Toggle({ id, label, checked, onChange, hint, disabled = false }: { id: string; label: string; checked: boolean; onChange: (v: boolean) => void; hint?: string; disabled?: boolean }) {

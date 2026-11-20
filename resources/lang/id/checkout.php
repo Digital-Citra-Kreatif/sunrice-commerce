@@ -89,6 +89,7 @@ return [
     ],
     'retry_payment_status' => 'Periksa status pembayaran lagi',
     'errors' => [
+        'on_request' => 'Beberapa produk di keranjang belum ada harganya untuk Anda. Kirim keranjang sebagai permintaan penawaran.',
         'payment_status' => 'Status pembayaran belum dapat dipastikan. Coba periksa kembali sebelum mengubah checkout Anda.',
         'empty' => 'Keranjang Anda kosong.',
         'sign_in' => 'Silakan masuk untuk checkout.',

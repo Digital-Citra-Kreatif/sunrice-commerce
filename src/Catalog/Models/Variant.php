@@ -23,7 +23,7 @@ use Sunrice\Commerce\Database\Factories\VariantFactory;
  * @property string|null $sku
  * @property string|null $barcode
  * @property string $title
- * @property int $price
+ * @property int|null $price null: no price ("price on request", priced by staff in a quote)
  * @property int|null $compare_at_price
  * @property int|null $cost
  * @property int|null $weight grams
@@ -125,10 +125,16 @@ class Variant extends Model
         return $this->limitsToOneDigitalUnit() ? 1 : $this->max_qty;
     }
 
+    /** Whether it has a price; without one it is "price on request": only a quote can price it. */
+    public function hasPrice(): bool
+    {
+        return $this->price !== null;
+    }
+
     /** On sale by its own compare-at price. */
     public function onSale(): bool
     {
-        return $this->compare_at_price !== null && $this->compare_at_price > $this->price;
+        return $this->compare_at_price !== null && $this->price !== null && $this->compare_at_price > $this->price;
     }
 
     /** The status the stock quantity implies (untracked variants keep their manual status). */

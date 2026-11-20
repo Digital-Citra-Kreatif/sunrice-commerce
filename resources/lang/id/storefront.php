@@ -114,6 +114,7 @@ return [
         'tax' => 'Pajak',
         'tax_included' => 'Termasuk pajak :amount',
         'fee' => 'Biaya',
+        'on_request_note' => 'Beberapa harga tersedia atas permintaan. Kirim keranjang sebagai permintaan penawaran, kami balas dengan harga sebelum Anda membayar.',
         'total' => 'Total',
         'estimated_total' => 'Estimasi total',
         'items' => '{1} :count barang|[2,*] :count barang',
@@ -216,6 +217,7 @@ return [
         'inactive_variant' => 'Pilihan ini sudah tidak tersedia.',
         'purchase_mode' => ':Product tidak bisa dibeli online saat ini.',
         'this_product' => 'produk ini',
+        'price_on_request' => ':Product belum ada harganya: minta penawaran kepada kami.',
         'price_hidden' => 'Masuk untuk membeli produk ini.',
         'feature_off' => 'Keranjang sedang ditutup.',
         'out_of_stock' => 'Stok :product habis.',
@@ -295,5 +297,8 @@ return [
         'not_found_title' => 'Halaman tidak ditemukan',
         'not_found_text' => 'Halaman yang Anda cari mungkin sudah dipindahkan atau tidak ada lagi.',
         'back_home' => 'Kembali ke beranda',
+    ],
+    'quote' => [
+        'to_be_quoted' => 'Menunggu penawaran',
     ],
 ];

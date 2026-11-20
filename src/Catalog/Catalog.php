@@ -7,6 +7,7 @@ namespace Sunrice\Commerce\Catalog;
 use Sunrice\Cms\Models\Collection;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Catalog\Models\Variant;
+use Sunrice\Commerce\Checkout\CheckoutMode;
 use Sunrice\Commerce\Contracts\Inventory;
 use Sunrice\Commerce\Contracts\SaleLimits;
 use Sunrice\Commerce\Features\Features;
@@ -26,6 +27,7 @@ class Catalog
         protected PriceVisibility $prices,
         protected Inventory $inventory,
         protected SaleLimits $saleLimits,
+        protected CheckoutMode $checkoutMode,
     ) {}
 
     public function check(Variant $variant, int $qty, mixed $customer = null): Availability
@@ -101,8 +103,10 @@ class Catalog
         if ($mode !== 'cart') {
             return new Availability('purchase_mode');
         }
-        if (! $this->prices->visibleTo($customer)) {
-            return new Availability('price_hidden');
+        // Price on request (no price, or prices hidden from this customer): only for a cart that can become a quote request.
+        $noPrice = ! $product->isBundle() && ! $variant->hasPrice();
+        if (($noPrice || ! $this->prices->visibleTo($customer)) && ! $this->checkoutMode->quoteAvailable($customer)) {
+            return new Availability($noPrice ? 'price_on_request' : 'price_hidden');
         }
         $min = $variant->minOrderQuantity();
         $max = $variant->maxOrderQuantity();

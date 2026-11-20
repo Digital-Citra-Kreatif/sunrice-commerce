@@ -43,7 +43,9 @@ export function GeneralTab({ value, update, updateVariant, config, purchaseDefau
             {value.type !== 'variable' && single && (
                 <Section title="Pricing and SKU">
                     <Grid cols={4}>
-                        <Row label="Price" htmlFor={`${path}-price`}><Money id={`${path}-price`} value={single.price} nullable={false} onChange={(price) => updateVariant(0, { price: price ?? 0 })} /></Row>
+                        <Row label="Price" htmlFor={`${path}-price`} hint="Empty: price on request. Customers ask for a quote and you price it.">
+                            <Money id={`${path}-price`} value={single.price} placeholder="On request" onChange={(price) => updateVariant(0, { price })} />
+                        </Row>
                         <Row label="Compare-at price" htmlFor={`${path}-compare`} hint="Shown struck through when higher."><Money id={`${path}-compare`} value={single.compare_at_price} onChange={(compare_at_price) => updateVariant(0, { compare_at_price })} /></Row>
                         <Row label="Cost" htmlFor={`${path}-cost`} hint="For profit reports; never shown."><Money id={`${path}-cost`} value={single.cost} onChange={(cost) => updateVariant(0, { cost })} /></Row>
                         <Row label="SKU" htmlFor={`${path}-sku`}><SkuInput id={`${path}-sku`} value={single.sku} entryId={entryId} onChange={(sku) => updateVariant(0, { sku })} /></Row>

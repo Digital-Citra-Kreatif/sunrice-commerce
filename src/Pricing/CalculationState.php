@@ -95,6 +95,18 @@ final class CalculationState
         return $this->lines === [];
     }
 
+    /** Some line's price is on request: the cart can only become a quote request, and shows no totals. */
+    public function onRequest(): bool
+    {
+        foreach ($this->lines as $line) {
+            if ($line->onRequest) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * A fingerprint of what the customer will pay: each line's variant,
      * quantity and unit price, the adjustments, shipping, taxes, total and

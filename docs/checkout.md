@@ -325,6 +325,9 @@ payment fees and loyalty points, and doesn't need a shipping rate. `CheckoutMode
 says whether the current customer sees the button, and `quotesPossible()` whether quote requests
 can come from checkout at all (it also shows **My Account → Quotes**).
 
+A cart with a line on request (a product without a price, or prices hidden from the customer) is
+always sent as a quote request: see [Price on request](catalog.md#price-on-request).
+
 A quote request:
 
 - it gets a quote number (`Q-{Y}{m}-{seq:4}` by default) and no order number;

@@ -22,7 +22,7 @@ class CheckoutMode
     public function __construct(protected StoreSettings $settings, protected Features $features) {}
 
     /** Whether this customer may send the cart as a quote request instead of ordering (Online store mode). */
-    public function quoteOffered(): bool
+    public function quoteOffered(mixed $customer = false): bool
     {
         if ($this->mode() !== 'shop' || ! $this->features->active('orders')) {
             return false;
@@ -30,9 +30,19 @@ class CheckoutMode
 
         return match ((string) $this->settings->get('checkout.quote_requests', 'off')) {
             'everyone' => true,
-            'roles' => $this->customerHasRole((array) $this->settings->get('checkout.quote_request_roles', [])),
+            'roles' => $this->customerHasRole($customer === false ? commerce_customer() : $customer, (array) $this->settings->get('checkout.quote_request_roles', [])),
             default => false,
         };
+    }
+
+    /**
+     * Whether this customer's checkout can end in a quote request (Quotation mode, or
+     * offered alongside orders): then products without a price, or whose prices they
+     * can't see, may go into the cart ("price on request").
+     */
+    public function quoteAvailable(mixed $customer = false): bool
+    {
+        return ($this->mode() === 'quote' && $this->features->active('orders')) || $this->quoteOffered($customer);
     }
 
     /** Quote requests can come from checkout at all (Quotation mode, or offered alongside orders). */
@@ -53,12 +63,11 @@ class CheckoutMode
     }
 
     /** @param  array<int, mixed>  $roles */
-    protected function customerHasRole(array $roles): bool
+    protected function customerHasRole(mixed $user, array $roles): bool
     {
-        $user = commerce_customer();
         $roles = array_values(array_filter(array_map('strval', $roles)));
 
-        return $user !== null && $roles !== [] && method_exists($user, 'hasAnyRole') && $user->hasAnyRole($roles);
+        return is_object($user) && $roles !== [] && method_exists($user, 'hasAnyRole') && $user->hasAnyRole($roles);
     }
 
     public function mode(): string

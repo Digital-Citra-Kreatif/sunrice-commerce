@@ -173,7 +173,7 @@ final class ProductValue
                 $out[$key] = self::int($v[$key]);
             }
         }
-        $out['price'] ??= 0;
+        // An empty price is no price ("price on request"); a variant given without one keeps the default 0.
         foreach (['min_qty', 'qty_step'] as $key) {
             $out[$key] = max(1, self::int($v[$key] ?? null) ?? 1);
         }
