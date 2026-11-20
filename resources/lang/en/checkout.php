@@ -83,6 +83,10 @@ return [
         'quote' => 'Request a quote',
         'whatsapp' => 'Order via WhatsApp',
     ],
+    'quote_instead' => [
+        'hint' => 'Need a quotation first? Send this cart as a quote request: we reply with prices, and you pay only once you accept.',
+        'button' => 'Request a quote instead',
+    ],
     'retry_payment_status' => 'Check payment status again',
     'errors' => [
         'payment_status' => 'We couldn’t confirm your payment status. Try again to check before editing your checkout.',

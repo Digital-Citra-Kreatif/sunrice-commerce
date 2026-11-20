@@ -154,7 +154,9 @@ class CheckoutController
         }
         $update->handle($cart, $data->toArray());
 
-        if ($request->input('action') !== 'place') {
+        // "Request a quote" (Online store mode, when offered): the same cart as a quote request.
+        $quote = $request->input('action') === 'request_quote' && $this->mode()->requestQuote();
+        if ($request->input('action') !== 'place' && ! $quote) {
             $section = $request->input('action') === 'update_points' ? '#checkout-points' : '#shipping';
 
             return redirect(StorefrontRoutes::url('commerce.checkout').$section);
@@ -166,8 +168,12 @@ class CheckoutController
         }
         $guestCheckout = commerce_customer() === null;
         try {
-            $placed = $place->handle($cart, $data, (string) $request->input('totals_hash'), $request->only('password'),
-                ['ip_address' => $request->ip(), 'user_agent' => $request->userAgent()]);
+            // A quote has no payment: no method, fee or points, and staff set the prices, so the totals seen aren't binding.
+            $placed = $quote
+                ? $place->handle($cart, $data->merge(['payment_method' => null, 'use_points' => false]), null, $request->only('password'),
+                    ['ip_address' => $request->ip(), 'user_agent' => $request->userAgent()])
+                : $place->handle($cart, $data, (string) $request->input('totals_hash'), $request->only('password'),
+                    ['ip_address' => $request->ip(), 'user_agent' => $request->userAgent()]);
         } catch (CheckoutChanged $e) {
             return redirect(StorefrontRoutes::url('commerce.checkout'))->with('commerce.changes', $e->changes)->with('commerce.error', $e->getMessage());
         } catch (CheckoutRefused $e) {
@@ -386,6 +392,7 @@ class CheckoutController
             'accountRequired' => $user === null && $validator->createsAccount($data->merge(['create_account' => true])) && $this->settings()->get('checkout.create_account') === 'always',
             'extraFields' => app(CheckoutFields::class)->for($data, $state),
             'submitLabel' => __('commerce::checkout.submit.'.$this->mode()->completion()),
+            'quoteOffered' => $this->mode()->quoteOffered(),
         ];
     }
 }

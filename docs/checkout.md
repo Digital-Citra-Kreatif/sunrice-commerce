@@ -112,6 +112,7 @@ Settings → Store → Checkout (section `checkout`, permission `commerce.settin
 | Setting | Key | Default | Effect |
 | --- | --- | --- | --- |
 | Who can check out | `access` | `guest` | `guest`, `guest_verified`, `account` or `verified_account`; see below. |
+| Customers can also request a quote | `quote_requests` | `off` | Online store mode: `everyone` or `roles` (`quote_request_roles`) get **Request a quote instead**. See [Quote requests](#quote-requests). |
 | Accounts at checkout | `create_account` | `offer` | For `guest` and `guest_verified`: `never`, `offer` (a checkbox) or `always` (guests must set a password). |
 | Require a phone number | `require_phone` | on | Contact phone and address phone are required. |
 | Ask for a company name and tax number | `company_fields` | off | Adds `fields.company` and `fields.tax_id`. |
@@ -315,7 +316,16 @@ checkout page, forgets the cart cookie on success, and remembers the order key i
 
 ## Quote requests
 
-In Quotation mode the customer sends the cart as a quote request:
+In Quotation mode every checkout sends the cart as a quote request. In Online store mode the store
+can offer both: **Customers can also request a quote** (Settings → Checkout,
+`checkout.quote_requests`: `off`, `everyone`, or `roles` with `checkout.quote_request_roles`)
+adds a **Request a quote instead** button below **Place order**. The customer picks one; the same
+cart becomes an order with payment, or a quote request. A quote request ignores the payment method,
+payment fees and loyalty points, and doesn't need a shipping rate. `CheckoutMode::quoteOffered()`
+says whether the current customer sees the button, and `quotesPossible()` whether quote requests
+can come from checkout at all (it also shows **My Account → Quotes**).
+
+A quote request:
 
 - it gets a quote number (`Q-{Y}{m}-{seq:4}` by default) and no order number;
 - nothing is reserved and no payment is created;

@@ -241,6 +241,12 @@ final class BuiltinSections
                 'config' => ['options' => self::options([
                     'never' => "Don't offer", 'offer' => 'Offer to create one', 'always' => 'Always create one',
                 ])]],
+            ['handle' => 'quote_requests', 'type' => 'select', 'label' => 'Customers can also request a quote',
+                'instructions' => 'In Online store mode: checkout shows "Request a quote" beside Place order, sending the cart as a quote request you price and send. In Quotation mode every checkout is one.',
+                'config' => ['default' => 'off', 'options' => self::options(['off' => 'No', 'everyone' => 'Everyone', 'roles' => 'Customers with certain roles'])]],
+            ['handle' => 'quote_request_roles', 'type' => 'commerce_choices', 'label' => 'Roles that can request a quote', 'translatable' => false,
+                'condition' => ['field' => 'quote_requests', 'operator' => 'equals', 'value' => 'roles'],
+                'config' => ['source' => 'roles', 'creatable' => false, 'placeholder' => 'Choose roles']],
             ['handle' => 'require_phone', 'type' => 'toggle', 'label' => 'Require a phone number'],
             ['handle' => 'company_fields', 'type' => 'toggle', 'label' => 'Ask for a company name and tax number'],
             ['handle' => 'address_line2', 'type' => 'toggle', 'label' => 'Second address line'],

@@ -673,7 +673,8 @@
                 event.preventDefault();
                 return;
             }
-            if (submit && !event.defaultPrevented && (!event.submitter || event.submitter === submit)) {
+            // Place order or Request a quote: one submission at a time.
+            if (submit && !event.defaultPrevented && (!event.submitter || event.submitter === submit || event.submitter.hasAttribute('data-commerce-quote-submit'))) {
                 submitting = true;
                 showStatus('');
             }

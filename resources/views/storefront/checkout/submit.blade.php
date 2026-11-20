@@ -1,4 +1,4 @@
-{{-- $data, $guest, $termsUrl, $termsContent, $captcha, $submitLabel. Runs inside the checkout form. --}}
+{{-- $data, $guest, $termsUrl, $termsContent, $captcha, $submitLabel, $quoteOffered ("Request a quote" beside it). Runs inside the checkout form. --}}
 @php($L = \Sunrice\Commerce\Storefront\Layout::class)
 <div class="commerce-checkout__place">
     @if (commerce_feature('accounts') && $guest)
@@ -22,4 +22,10 @@
     <button type="submit" name="action" value="update" class="commerce-link commerce-checkout__update" data-commerce-update>{{ __('commerce::checkout.refresh.update') }}</button>
     <button type="submit" name="action" value="place" class="commerce-button commerce-button--accent commerce-button--block commerce-checkout__submit"
         data-processing-label="{{ __('commerce::checkout.refresh.submitting') }}"><span data-commerce-place-label>{{ $submitLabel }}</span></button>
+    @if ($quoteOffered ?? false)
+        <p class="commerce-checkout__quote">
+            <span class="commerce-muted">{{ __('commerce::checkout.quote_instead.hint') }}</span>
+            <button type="submit" name="action" value="request_quote" class="commerce-button commerce-button--block commerce-checkout__quote-submit" data-commerce-quote-submit>{{ __('commerce::checkout.quote_instead.button') }}</button>
+        </p>
+    @endif
 </div>

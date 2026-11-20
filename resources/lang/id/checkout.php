@@ -83,6 +83,10 @@ return [
         'quote' => 'Minta penawaran',
         'whatsapp' => 'Pesan lewat WhatsApp',
     ],
+    'quote_instead' => [
+        'hint' => 'Perlu penawaran harga dulu? Kirim keranjang ini sebagai permintaan penawaran: kami balas dengan harga, dan Anda membayar setelah menyetujuinya.',
+        'button' => 'Minta penawaran saja',
+    ],
     'retry_payment_status' => 'Periksa status pembayaran lagi',
     'errors' => [
         'payment_status' => 'Status pembayaran belum dapat dipastikan. Coba periksa kembali sebelum mengubah checkout Anda.',
