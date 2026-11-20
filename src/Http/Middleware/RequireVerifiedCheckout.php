@@ -16,11 +16,15 @@ class RequireVerifiedCheckout
 
     public function handle(Request $request, Closure $next, string $scope = 'checkout'): Response
     {
-        $required = $this->checkout->required();
+        $required = $this->checkout->codeRequired();
         if ($scope === 'access') {
             abort_unless($required, 404);
+            // "Use another email": a guest starts over (a signed-in customer keeps their account's).
+            if ($request->boolean('change') && commerce_customer() === null) {
+                $request->session()->forget(VerifiedAccountCheckout::SESSION_EMAIL);
+            }
 
-            return $this->checkout->user() === null
+            return $this->checkout->verifiedEmail() === null
                 ? $next($request)
                 : redirect(StorefrontRoutes::url('commerce.checkout'));
         }
@@ -29,8 +33,8 @@ class RequireVerifiedCheckout
             return $next($request);
         }
 
-        $user = $this->checkout->user();
-        if ($user === null) {
+        $email = $this->checkout->verifiedEmail();
+        if ($email === null) {
             $url = StorefrontRoutes::url('commerce.checkout-access');
 
             return $request->expectsJson()
@@ -39,7 +43,8 @@ class RequireVerifiedCheckout
         }
 
         if (! $request->isMethodSafe()) {
-            $request->merge(['email' => $user->getAttribute('email'), 'create_account' => false]);
+            // The confirmed email is the order's; a verified account needs no new one.
+            $request->merge($this->checkout->required() ? ['email' => $email, 'create_account' => false] : ['email' => $email]);
         }
 
         return $next($request);

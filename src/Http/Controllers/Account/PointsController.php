@@ -24,6 +24,7 @@ class PointsController
             'history' => $history,
             'expiring' => $expiring,
             'percent' => (float) $settings->get('loyalty.earn_percent', 0),
+            'max' => (int) $settings->get('loyalty.max_points', 0),
         ]);
     }
 }

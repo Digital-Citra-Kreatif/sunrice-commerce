@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Sunrice\Commerce\Shipping\Couriers;
 use Sunrice\Commerce\Shipping\Models\ShippingMethod;
 use Sunrice\Commerce\Shipping\Models\ShippingZone;
 
@@ -59,4 +60,34 @@ it('identifies fully and partly shadowed zones without treating the fallback as 
     $this->post('/admin/commerce/settings/shipping/move', ['kind' => 'zone', 'id' => $java->id, 'direction' => 'up']);
     $this->get('/admin/commerce/settings/shipping')->assertOk()->assertInertia(fn ($page) => $page
         ->where('zones.1.name', 'Java')->where('zones.1.overlap', null));
+});
+
+it('manages courier presets in the admin, keeping old shipments named and linked', function () {
+    actingAsUserWith(['commerce.settings.shipping']);
+    $couriers = app(Couriers::class);
+
+    $this->get('/admin/commerce/settings/shipping/couriers')->assertOk()->assertInertia(fn ($page) => $page->component('Commerce/Settings/Section')
+        ->where('parent.href', 'commerce/settings/shipping')
+        ->where('form.values.couriers.0', ['key' => 'jne', 'name' => 'JNE', 'tracking_url' => 'https://www.jne.co.id/tracking-package?awb={tracking}', 'active' => true]));
+
+    $this->put('/admin/commerce/settings/shipping/couriers', ['values' => ['couriers' => [
+        ['key' => 'rpx', 'name' => 'RPX', 'tracking_url' => 'not a link', 'active' => true],
+    ]]])->assertSessionHasErrors('values.couriers.0.tracking_url');
+
+    $this->put('/admin/commerce/settings/shipping/couriers', ['values' => ['couriers' => [
+        ['key' => 'jne', 'name' => 'JNE Express', 'tracking_url' => 'https://jne.example/{tracking}', 'active' => false],
+        ['key' => '', 'name' => 'Paxel Same Day', 'tracking_url' => 'https://paxel.example/t/{tracking}', 'active' => true],
+        ['key' => 'gosend', 'name' => 'GoSend', 'tracking_url' => '', 'active' => true],
+    ]]])->assertRedirect('/admin/commerce/settings/shipping');
+
+    expect(array_keys($couriers->all()))->toBe(['jne', 'paxel_same_day', 'gosend'])
+        ->and(array_keys($couriers->offered()))->toBe(['paxel_same_day', 'gosend'])
+        // Switched off: still names and links its shipments.
+        ->and($couriers->trackingUrl('jne', 'A1'))->toBe('https://jne.example/A1')
+        ->and($couriers->get('jne')['name'])->toBe('JNE Express')
+        ->and($couriers->get('jnt'))->toBeNull();
+
+    // A courier a package adds later joins the list; removed ones stay away.
+    $couriers->register('giftex', 'GiftEx', 'https://giftex.example/{tracking}');
+    expect(array_keys($couriers->all()))->toBe(['jne', 'paxel_same_day', 'gosend', 'giftex']);
 });

@@ -9,6 +9,9 @@
         <input type="email" name="email" value="{{ $verifiedCheckoutEmail ?? old('email', $data->email()) }}" @readonly(isset($verifiedCheckoutEmail)) required autocomplete="email">
         @include($L::view('partials.field-error'), ['name' => 'email'])
     </label>
+    @if ($guest && isset($verifiedCheckoutEmail))
+        <p class="commerce-checkout__signin"><a href="{{ commerce_url('commerce.checkout-access', ['change' => 1]) }}">{{ __('commerce::checkout-access.use_another') }}</a></p>
+    @endif
     @unless ($needsAddress)
         @include($L::view('partials.checkout-contact-fields'))
     @endunless

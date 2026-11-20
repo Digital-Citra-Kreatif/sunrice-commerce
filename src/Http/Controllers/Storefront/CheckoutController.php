@@ -105,7 +105,7 @@ class CheckoutController
         if ($cart === null || $cart->items()->doesntExist()) {
             return redirect(StorefrontRoutes::url('commerce.cart'))->with('commerce.error', __('commerce::checkout.errors.empty'));
         }
-        if (commerce_customer() === null && ! $this->settings()->get('checkout.guest_checkout', true) && commerce_feature('accounts')) {
+        if (commerce_customer() === null && ! app(VerifiedAccountCheckout::class)->guestAllowed() && commerce_feature('accounts')) {
             $request->session()->put('url.intended', StorefrontRoutes::url('commerce.checkout'));
 
             return redirect(StorefrontRoutes::url('commerce.account.login'))->with('commerce.error', __('commerce::checkout.errors.sign_in'));
@@ -305,7 +305,10 @@ class CheckoutController
         $data = CheckoutData::fromCart($cart);
         $user = commerce_customer();
         if ($user === null) {
-            return $data;
+            // A guest who confirmed their email with a code checks out with that email.
+            $confirmed = app(VerifiedAccountCheckout::class)->verifiedEmail();
+
+            return $confirmed !== null ? $data->merge(['email' => $confirmed]) : $data;
         }
         $customer = Customer::forUser($user);
         $defaults = $data->email() === null ? ['email' => $customer->email, 'name' => $customer->name, 'phone' => $customer->phone] : [];
@@ -317,8 +320,8 @@ class CheckoutController
             }
         }
         $policy = app(VerifiedAccountCheckout::class);
-        if ($policy->required()) {
-            $defaults['email'] = $policy->user()?->getAttribute('email');
+        if ($policy->codeRequired()) {
+            $defaults['email'] = $policy->verifiedEmail();
         }
 
         return $data->merge(array_filter($defaults));
@@ -377,7 +380,7 @@ class CheckoutController
             'savedAddresses' => $customer?->addresses()->orderByDesc('default_shipping')->orderBy('id')->get() ?? collect(),
             'loyaltyPoints' => commerce_feature('loyalty') ? (int) ($customer->loyalty_points ?? 0) : 0,
             'guest' => $user === null,
-            'verifiedCheckoutEmail' => app(VerifiedAccountCheckout::class)->required() ? $data->email() : null,
+            'verifiedCheckoutEmail' => app(VerifiedAccountCheckout::class)->codeRequired() ? $data->email() : null,
             'offerAccount' => $user === null && commerce_feature('accounts') && $this->settings()->get('accounts.registration', true)
                 && $this->settings()->get('checkout.create_account', 'offer') !== 'never',
             'accountRequired' => $user === null && $validator->createsAccount($data->merge(['create_account' => true])) && $this->settings()->get('checkout.create_account') === 'always',

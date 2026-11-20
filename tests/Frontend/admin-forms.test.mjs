@@ -110,3 +110,15 @@ test('shows grams and millimetres in the store\'s units and stores what is typed
     assert.equal(fromUnit('', 'cm'), null);
     assert.equal(fromUnit('abc', 'm'), null);
 });
+
+const tokenText = readFileSync(new URL('../../resources/js/admin/fields/TokenText.tsx', import.meta.url), 'utf8');
+const { insertToken } = await import(`data:text/javascript,${encodeURIComponent(transformSync(tokenText.replace(/^import .*$/gm, ''), { loader: 'tsx', format: 'esm' }).code)}`);
+
+test('puts a placeholder where the caret is, apart from the words around it', () => {
+    assert.deepEqual(insertToken('Order received', ':number', 5, 5), { text: 'Order :number received', caret: 13 });
+    assert.deepEqual(insertToken('Thanks', ':name', 6, 6), { text: 'Thanks :name', caret: 12 });
+    assert.deepEqual(insertToken('Hi , welcome', ':name', 3, 3), { text: 'Hi :name, welcome', caret: 8 });
+    assert.deepEqual(insertToken('', ':store', 0, 0), { text: ':store', caret: 6 });
+    // A selection is replaced.
+    assert.deepEqual(insertToken('Order NUM is in', ':number', 6, 9), { text: 'Order :number is in', caret: 13 });
+});

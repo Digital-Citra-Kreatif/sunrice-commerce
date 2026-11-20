@@ -278,3 +278,20 @@ it('works out a fractional rate exactly', function () {
 
     expect($this->customer->fresh()->loyalty_points)->toBe(290);
 });
+
+it('earns at most the maximum points per order, and says so on the points page', function () {
+    app(StoreSettings::class)->saveSection('loyalty', ['earn_percent' => 5, 'max_points' => 3000]);
+    $order = makeOrder(['customer_id' => $this->customer->id, 'user_id' => $this->user->id, 'subtotal' => 100000, 'total' => 100000]);
+    $order->items()->create(['name' => 'Mug', 'quantity' => 2, 'unit_price' => 50000, 'subtotal' => 100000, 'total' => 100000]);
+    // 5% of 100000 is 5000, capped at 3000.
+    expect(app(Loyalty::class)->earnable($order))->toBe(3000);
+
+    app(StoreSettings::class)->saveSection('loyalty', ['earn_percent' => 5, 'max_points' => 10000]);
+    expect(app(Loyalty::class)->earnable($order))->toBe(5000);
+
+    app(StoreSettings::class)->saveSection('loyalty', ['earn_percent' => 5, 'max_points' => null]);
+    expect(app(Loyalty::class)->earnable($order))->toBe(5000);
+
+    app(StoreSettings::class)->saveSection('loyalty', ['earn_percent' => 5, 'max_points' => 3000]);
+    $this->get('/account/points')->assertOk()->assertSee('3.000');
+});

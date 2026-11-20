@@ -309,6 +309,8 @@ Rp1 in rupiah).
   points. Shipping, fees and taxes don't earn, and neither does the part paid with points.
 - **Only for** / **Except**: products, variants, categories or brands that earn (empty: all).
 - **Minimum order**: products after discounts; smaller orders earn nothing.
+- **Maximum points per order**: the most one order earns (`loyalty.max_points`); empty: no limit.
+  A refund takes back its share of the points the order actually earned, after the cap.
 - **Points expire after (days)**: from when points are earned or given back; 0 (the default): never.
 
 A customer with an account earns when the order is **completed** (`OrderCompleted`), once, on
@@ -381,10 +383,15 @@ Each product picks a **tax class** (`tax_class` in product data; empty is `stand
 | Name | For example PPN. Invoices show tax per rate name. |
 | Tax class | |
 | Rate (%) | For example 11 |
-| Where | A country, optionally a province or city; empty for everywhere |
+| Countries | Several can be chosen; empty for everywhere |
+| Provinces and cities in Indonesia | With Indonesia among the countries: several provinces, cities or regencies; empty for the whole country |
 | Compound | Charged on top of the other taxes |
 | Also on shipping | Taxes the shipping cost too |
 | Priority | Order of the rates |
+
+A rate is stored as one row per place (`commerce_tax_rates`, one `country` and `region_code`
+each), so the calculation is unchanged. The form shows rows that are alike but for where they
+apply as one rate. Everywhere, whole countries and Indonesian regions stay separate rates.
 
 How tax is worked out:
 
