@@ -29,6 +29,10 @@ it('shows sales figures against the previous period, a chart and top products', 
 
     $this->get('/admin/commerce?period=7d')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
         ->where('period.key', '7d')
+        ->where('period.from', '2026-03-04')
+        ->where('period.to', '2026-03-10')
+        ->where('period.compareFrom', '2026-02-25')
+        ->where('period.compareTo', '2026-03-03')
         ->missing('kpis')
         ->loadDeferredProps('figures', fn (AssertableInertia $page) => $page
             ->where('kpis.0.key', 'total_sales')
@@ -48,8 +52,13 @@ it('shows sales figures against the previous period, a chart and top products', 
             ->has('recentOrders', 4)
             ->where('todo', fn ($todo) => collect($todo)->firstWhere('key', 'to_ship')['count'] === 3)));
 
+    paidOrder($product, 50000, '2026-03-09 09:00:00');
+    app(StatsRecorder::class)->recompute('2026-03-09');
     $this->get('/admin/commerce?period=today')->assertInertia(fn (AssertableInertia $page) => $page
-        ->loadDeferredProps('figures', fn (AssertableInertia $page) => $page->where('kpis.0.raw', 100000)->where('kpis.0.previous', 0)->where('kpis.0.change', null)->has('sales', 7)));
+        ->where('period.from', '2026-03-10')->where('period.compareFrom', '2026-03-09')
+        ->loadDeferredProps('figures', fn (AssertableInertia $page) => $page
+            ->where('kpis.0.raw', 100000)->where('kpis.0.previous', 50000)->where('kpis.0.change', 100)
+            ->has('sales', 1)->where('sales.0.date', '2026-03-10')->where('sales.0.total', 100000)->where('sales.0.previous', 50000)));
 });
 
 it('hides recent orders and to-dos the user may not see', function () {

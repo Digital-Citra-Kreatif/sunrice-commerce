@@ -31,6 +31,18 @@ export function formatMoney(amount: number, format: MoneyFormat = current): stri
     return negative ? `-${text}` : text;
 }
 
+const compactNumber = new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 2 });
+
+export function formatCompactMoney(amount: number, format: MoneyFormat = current): string {
+    const whole = Math.abs(amount) / 10 ** format.decimals;
+    if (whole < 1000) {
+        return formatMoney(amount, format);
+    }
+    const number = compactNumber.format(whole);
+    const gap = format.space ? ' ' : '';
+    return (amount < 0 ? '-' : '') + (format.position === 'left' ? `${format.symbol}${gap}${number}` : `${number}${gap}${format.symbol}`);
+}
+
 /** "Rp150.000" / "150.000" / "150000" → 150000 (minor units); null when it isn't a number. */
 export function parseMoney(text: string, format: MoneyFormat = current): number | null {
     let clean = text.replace(format.symbol, '').replace(/\s/g, '');

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Redesigned the store dashboard with clearer period comparisons, highlighted total sales,
+  and tables for top products and recent orders. Today compares directly with yesterday.
+
 - Added optional media library logos to each payment method’s checkout and pay-page rows.
 
 - Added support for cancellable hosted checkout sessions. Shoppers can return to their saved

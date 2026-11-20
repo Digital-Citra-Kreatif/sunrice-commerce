@@ -43,7 +43,11 @@ class DashboardController extends Controller
                 'message' => $outcome['result']->message,
                 'fix' => $outcome['result']->fix,
             ], array_keys($results = $health->run()), $results),
-            'period' => ['key' => $key, 'options' => array_map(fn (string $p) => ['value' => $p, 'label' => Period::PRESETS[$p]], self::PERIODS)],
+            'period' => [
+                'key' => $key, 'from' => $period->from, 'to' => $period->to,
+                'compareFrom' => $period->compareFrom, 'compareTo' => $period->compareTo,
+                'options' => array_map(fn (string $p) => ['value' => $p, 'label' => Period::PRESETS[$p]], self::PERIODS),
+            ],
             'analytics' => $analytics,
             'canReports' => $analytics && $user->can('commerce.reports.view'),
             // Figures and lists are computed after the page shows.
@@ -59,11 +63,9 @@ class DashboardController extends Controller
     /** @return array<int, array{date: string, total: int, orders: int, previous: int|null}> */
     protected function sales(Stats $stats, Period $period): array
     {
-        // Today is one point: show the last 7 days around it instead.
-        $chart = $period->preset === 'today' ? Period::preset('7d') : $period;
-        $now = array_values($stats->series($chart, ['total_sales', 'orders']));
-        $before = ($previous = $chart->previous()) !== null ? array_values($stats->series($previous, ['total_sales'])) : [];
-        $dates = $chart->buckets();
+        $now = array_values($stats->series($period, ['total_sales', 'orders']));
+        $before = ($previous = $period->previous()) !== null ? array_values($stats->series($previous, ['total_sales'])) : [];
+        $dates = $period->buckets();
 
         return array_map(fn (int $i) => [
             'date' => $dates[$i], 'total' => $now[$i]['total_sales'], 'orders' => $now[$i]['orders'], 'previous' => $before[$i]['total_sales'] ?? null,
