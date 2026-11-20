@@ -9,10 +9,12 @@ use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
 use Sunrice\Commerce\Checkout\CheckoutData;
 use Sunrice\Commerce\Checkout\CheckoutRefused;
 use Sunrice\Commerce\Checkout\Notifications\CheckoutCodeNotification;
+use Sunrice\Commerce\Checkout\VerifiedAccountCheckout;
 use Sunrice\Commerce\Customers\Actions\LinkGuestOrders;
 use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Customers\Notifications\CustomerLoginCode;
+use Sunrice\Commerce\Customers\Notifications\VerifyCustomerEmail;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Workbench\App\Models\User;
@@ -148,4 +150,63 @@ it('replaces the code when the email changes and expires codes after ten minutes
     $this->from('/checkout/access/code')->post('/checkout/access/verify', ['code' => $newCode])->assertSessionHasErrors('code');
     $this->assertDatabaseMissing('users', ['email' => $oldEmail]);
     $this->assertDatabaseMissing('users', ['email' => $newEmail]);
+});
+
+it('lets guests check out after confirming their email with a code, without making an account', function () {
+    Notification::fake();
+    app(StoreSettings::class)->saveSection('checkout', ['access' => 'guest_verified']);
+    $cart = cartWith([[checkoutStore(), 1]]);
+    $email = 'guest-shopper@example.test';
+
+    $this->get('/checkout')->assertRedirect('/checkout/access');
+    $this->get('/checkout/access')->assertOk()->assertSee(__('commerce::checkout-access.guest_intro'), false);
+    $code = requestVerifiedCheckoutCode($email);
+    $this->post('/checkout/access/verify', ['code' => $code])->assertRedirect('/checkout');
+
+    // Confirmed, not signed in, no account.
+    $this->assertGuest(CurrentCustomer::guard());
+    $this->assertDatabaseMissing('users', ['email' => $email]);
+    $this->get('/checkout/access')->assertRedirect('/checkout');
+    $this->get('/checkout')->assertOk()->assertSee('value="'.$email.'" readonly', false)->assertSee('change=1', false);
+
+    $input = checkoutInput(['email' => $email]);
+    $this->post('/checkout', [...$input, 'totals_hash' => seenHash($cart, $input), 'email' => 'wrong@example.test', 'action' => 'place'])
+        ->assertRedirectContains('/order/');
+    $order = Order::query()->sole();
+    expect($order->email)->toBe($email)->and($order->user_id)->toBeNull()->and($order->wasPlacedAsGuest())->toBeTrue();
+    $this->assertDatabaseMissing('users', ['email' => $email]);
+
+    // "Use another email" starts over.
+    $this->get('/checkout/access?change=1')->assertOk();
+    $this->get('/checkout')->assertRedirect('/checkout/access');
+});
+
+it('makes an already verified account when a code-confirmed guest asks for one', function () {
+    Notification::fake();
+    app(StoreSettings::class)->saveSection('checkout', ['access' => 'guest_verified', 'create_account' => 'offer']);
+    $cart = cartWith([[checkoutStore(), 1]]);
+    $email = 'joins@example.test';
+    $this->post('/checkout/access/verify', ['code' => requestVerifiedCheckoutCode($email)])->assertRedirect('/checkout');
+
+    $input = checkoutInput(['email' => $email, 'create_account' => '1', 'password' => 'secret-pass-1']);
+    $this->post('/checkout', [...$input, 'totals_hash' => seenHash($cart, $input), 'action' => 'place'])->assertRedirectContains('/order/');
+    $user = User::query()->where('email', $email)->sole();
+    expect($user->email_verified_at)->not->toBeNull()
+        ->and(Order::query()->sole()->user_id)->toBe($user->id);
+    Notification::assertNotSentTo($user, VerifyCustomerEmail::class);
+});
+
+it('reads who can check out from the older settings until it is saved', function () {
+    $access = app(VerifiedAccountCheckout::class);
+    expect($access->mode())->toBe('guest');
+    app(StoreSettings::class)->saveSection('checkout', ['guest_checkout' => false]);
+    expect($access->mode())->toBe('account');
+    app(StoreSettings::class)->saveSection('checkout', ['require_verified_account' => true]);
+    expect($access->mode())->toBe('verified_account');
+    // The settings page starts from it.
+    actingAsUserWith(['commerce.settings.checkout']);
+    $this->get('/admin/commerce/settings/checkout')->assertInertia(fn ($p) => $p->where('form.values.access', 'verified_account'));
+
+    app(StoreSettings::class)->saveSection('checkout', ['access' => 'guest']);
+    expect($access->mode())->toBe('guest')->and($access->codeRequired())->toBeFalse();
 });

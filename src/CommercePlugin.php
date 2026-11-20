@@ -77,6 +77,7 @@ final class CommercePlugin extends BasePlugin
         // The store's money format, for the admin's money inputs and figures.
         $panel->share('commerce', fn (): array => [
             'currency' => (array) app(StoreSettings::class)->get('general.currency', []),
+            'units' => ['weight' => (string) app(StoreSettings::class)->get('general.weight_unit', 'kg'), 'dimension' => (string) app(StoreSettings::class)->get('general.dimension_unit', 'cm')],
         ]);
         $panel->share('cmsEditor', fn (): array => EditorPresentation::forRequest(request()));
         $panel->tools(...StoreTools::ALL);

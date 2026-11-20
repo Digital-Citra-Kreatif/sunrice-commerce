@@ -8,9 +8,11 @@ use Closure;
 use Sunrice\Commerce\Pricing\CalculationState;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Support\Address;
+use Sunrice\Commerce\Support\Coordinates;
 
 /**
  * Where a cart ships from: the store address (Settings → Store → General),
+ * or the shipping origin set apart from it,
  * unless an extension's resolver (Commerce::shippingOriginUsing()) names
  * another for this cart, such as the branch that has the goods. The first
  * resolver that answers wins.
@@ -47,11 +49,28 @@ final class ShippingOrigins
         return $this->custom($state) ?? self::store();
     }
 
-    /** The store address, the origin when nothing else says. */
+    /**
+     * Where the store ships from when nothing else says: the store address, or the
+     * shipping origin set apart from it (Settings → General → Ship from the store address off).
+     */
     public static function store(): Address
     {
-        $address = (array) app(StoreSettings::class)->get('general.address', []);
+        $settings = app(StoreSettings::class);
+        $origin = (array) $settings->get('general.origin', []);
+        $separate = $settings->get('general.ship_from_store', true) === false && filled($origin['line1'] ?? null);
 
-        return Address::fromArray([...$address, ...(array) ($address['region'] ?? [])]);
+        return self::address($separate ? $origin : (array) $settings->get('general.address', []));
+    }
+
+    /** The store address as saved (invoices and documents), with its map point. */
+    public static function storeAddress(): Address
+    {
+        return self::address((array) app(StoreSettings::class)->get('general.address', []));
+    }
+
+    /** @param  array<string, mixed>  $address  a settings address: line1, line2, region {…}, postal_code, coordinates */
+    protected static function address(array $address): Address
+    {
+        return Address::fromArray([...$address, ...(array) ($address['region'] ?? []), ...(Coordinates::parse($address['coordinates'] ?? null) ?? [])]);
     }
 }

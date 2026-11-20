@@ -159,11 +159,16 @@ Each section is a page under Settings → Store with its own permission
 
 | Section | Keys |
 | --- | --- |
-| `general` (General) | `name`, `logo`, `brand_color`, `email`, `phone`, `tax_id`, `address` (`line1`, `line2`, `region`, `postal_code`), `selling_mode` (`shop`, `quote`, `whatsapp`, `catalog`), `pause_orders`, `pause_message`, `whatsapp` (`numbers`, `rotation`, `product_message`, `order_message`), `currency` (`code`, `symbol`, `position`, `space`, `thousands`, `decimal`, `decimals`), `weight_unit`, `dimension_unit` |
+| `general` (General) | `name`, `logo`, `brand_color`, `email`, `phone`, `tax_id`, `address` (`line1`, `line2`, `region`, `postal_code`, `coordinates`), `ship_from_store`, `origin` (the same, with `name` and `phone`), `selling_mode` (`shop`, `quote`, `whatsapp`, `catalog`), `pause_orders`, `pause_message`, `whatsapp` (`numbers`, `rotation`, `product_message`, `order_message`), `currency` (`code`, `symbol`, `position`, `space`, `thousands`, `decimal`, `decimals`), `weight_unit`, `dimension_unit` |
+
+Weights are always stored in grams and sizes in millimetres. `weight_unit` (`g`, `kg`) and
+`dimension_unit` (`mm`, `cm`, `m`) only set how they are shown and typed: in the product editor
+and on the storefront compare table (`Support\Units`). Changing them converts nothing. The product
+CSV's `weight` column stays in grams.
 | `features` (Features) | One switch per module — see [features.md](features.md) |
 | `catalog` (Catalog) | `price_visibility`, `price_visibility_roles`, `call_to_action`, `show_stock`, `low_stock_threshold`, `hide_out_of_stock`, `new_badge_days`, `price_range`, `attribute_taxonomies`, `compare_max`, `compare_fields` |
 | `digital` (Digital products; catalog permission) | `delivery`, `grant_on`, `download_limit`, `expiry_days` |
-| `checkout` (Checkout) | `require_verified_account`, `guest_checkout`, `create_account`, `require_phone`, `company_fields`, `address_line2`, `require_postal_code`, `village_level`, `order_notes`, `dropshipper`, `minimum_order`, `terms_page`, `free_shipping_combines`, `customer_cancel`, `order_number_format`, `order_number_reset`, `quote_number_format`, `quote_number_reset`, `quote_valid_days`, `auto_complete_shipped`, `auto_complete_digital` |
+| `checkout` (Checkout) | `access`, `create_account`, `require_phone`, `company_fields`, `address_line2`, `require_postal_code`, `village_level`, `order_notes`, `dropshipper`, `minimum_order`, `terms_page`, `free_shipping_combines`, `customer_cancel`, `order_number_format`, `order_number_reset`, `quote_number_format`, `quote_number_reset`, `quote_valid_days`, `auto_complete_shipped`, `auto_complete_digital` |
 | `payments` (Payments page) | `methods.<key>` (each method's settings, `active`, `title`…), `order` — see [payments.md](payments.md) |
 | `shipping` (Shipping page) | Zones and methods are database records — see [shipping.md](shipping.md) |
 | `taxes` (Taxes) | `prices_include_tax`, `display_prices`, `based_on`, `classes`; rates on their own page |

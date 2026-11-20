@@ -11,11 +11,12 @@ interface Props {
     sections: MenuItem[];
     zones: ZoneRow[];
     types: Array<{ key: string; label: string }>;
-    couriers: Array<{ key: string; name: string; tracking_url: string | null }>;
+    couriers: Array<{ key: string; name: string; tracking_url: string | null; active: boolean }>;
+    couriersUrl: string;
     moveUrl: string;
 }
 
-export default function Shipping({ sections, zones, types, couriers, moveUrl }: Props) {
+export default function Shipping({ sections, zones, types, couriers, couriersUrl, moveUrl }: Props) {
     const { Card, CardContent, CardHeader, CardTitle, Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } = ui;
     const { Link } = inertia;
     const move = (kind: 'zone' | 'method', id: number, direction: 'up' | 'down') =>
@@ -85,13 +86,17 @@ export default function Shipping({ sections, zones, types, couriers, moveUrl }: 
                 </Card>
             ))}
             <Card>
-                <CardHeader><CardTitle>Courier presets</CardTitle></CardHeader>
+                <CardHeader className="cm:flex cm:flex-row cm:items-center cm:justify-between cm:gap-3">
+                    <CardTitle>Courier presets</CardTitle>
+                    <Button asChild variant="outline" size="sm"><Link href={adminUrl(couriersUrl)}>Edit couriers</Link></Button>
+                </CardHeader>
                 <CardContent>
-                    <p className="cm:mb-3 cm:text-sm cm:text-muted-foreground">Offered when adding a shipment; the tracking link is filled in from the tracking number. Add more in config/commerce.php or with Commerce::registerCourier().</p>
+                    <p className="cm:mb-3 cm:text-sm cm:text-muted-foreground">Offered when adding a shipment; the tracking link is filled in from the tracking number.</p>
                     <ul className="cm:grid cm:gap-1 cm:text-sm cm:sm:grid-cols-2">
                         {couriers.map((c) => (
                             <li key={c.key} className="cm:flex cm:items-center cm:gap-2">
-                                <span className="cm:font-medium">{c.name}</span>
+                                <span className={c.active ? 'cm:font-medium' : 'cm:font-medium cm:text-muted-foreground cm:line-through'}>{c.name}</span>
+                                {!c.active && <span className="cm:text-xs cm:text-muted-foreground">(off)</span>}
                                 {!c.tracking_url && <span className="cm:text-xs cm:text-muted-foreground">(no tracking link)</span>}
                             </li>
                         ))}

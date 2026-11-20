@@ -20,7 +20,11 @@ carrier's live rates from an extension). Shipments record what was sent and how 
 ## Setting up
 
 1. Switch on the Shipping module (`shipping`, Settings → Store → Features).
-2. Set the store address in Settings → Store → General: it is the shipping origin.
+2. Set the store address in Settings → Store → General: it is the shipping origin. If orders
+   ship from somewhere else (a warehouse), switch off **Ship from the store address** and fill in
+   **Shipping origin** (`general.origin`). Invoices keep the store address. Either address takes
+   optional **Map coordinates** ("-6.2297, 106.8166", as Google Maps copies them), which become the
+   address's `latitude` and `longitude` for couriers that price by distance.
 3. Import regions if you ship within Indonesia (`php artisan commerce:regions:import`, see
    [regions.md](regions.md)).
 4. In Settings → Store → Shipping (`commerce.settings.shipping`) add zones, then methods to each
@@ -162,6 +166,22 @@ Commerce::registerCourier('rpx', 'RPX', 'https://www.rpx.co.id/track/{tracking}'
 ```
 
 A shipment with a free-text courier name has no tracking link.
+
+### Managing couriers in the admin
+
+**Settings → Store → Shipping → Edit couriers** lists every preset. There you can rename one,
+change or clear its tracking link, switch it off, remove it, reorder the list and add your own.
+Each courier has a **Code**, the key stored on its shipments, made from the name when left empty.
+The saved list is stored under `couriers.list` in the store settings, and the presets from code
+(the config and `registerCourier()`) are only the starting list:
+
+- A preset from code that you remove stays removed (`couriers.removed`).
+- A preset a package adds later joins the end of the list.
+- A courier you switch off isn't offered for new shipments. Its existing shipments keep their
+  name and tracking link, and the order page still offers it when you edit those shipments.
+
+`Couriers::all()` returns every preset with `active`; `Couriers::offered()` returns only the ones
+switched on.
 
 ## Shipments and tracking
 

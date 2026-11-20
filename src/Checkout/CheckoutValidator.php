@@ -94,7 +94,7 @@ class CheckoutValidator
 
             return;
         }
-        if (commerce_customer() === null && ! $this->settings->get('checkout.guest_checkout', true)) {
+        if (commerce_customer() === null && ! app(VerifiedAccountCheckout::class)->guestAllowed()) {
             $v->errors()->add('email', __('commerce::checkout.errors.sign_in'));
         }
         $minimum = (int) $this->settings->get('checkout.minimum_order', 0);

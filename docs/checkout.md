@@ -111,9 +111,8 @@ Settings → Store → Checkout (section `checkout`, permission `commerce.settin
 
 | Setting | Key | Default | Effect |
 | --- | --- | --- | --- |
-| Require a verified account at checkout | `require_verified_account` | off | Verify email before checkout. This takes priority over the two settings below. |
-| Allow checkout without an account | `guest_checkout` | on | Off: guests are sent to sign in. |
-| Accounts at checkout | `create_account` | `offer` | `never`, `offer` (a checkbox) or `always` (guests must set a password). |
+| Who can check out | `access` | `guest` | `guest`, `guest_verified`, `account` or `verified_account`; see below. |
+| Accounts at checkout | `create_account` | `offer` | For `guest` and `guest_verified`: `never`, `offer` (a checkbox) or `always` (guests must set a password). |
 | Require a phone number | `require_phone` | on | Contact phone and address phone are required. |
 | Ask for a company name and tax number | `company_fields` | off | Adds `fields.company` and `fields.tax_id`. |
 | Second address line | `address_line2` | on | Shows `line2`. |
@@ -124,9 +123,28 @@ Settings → Store → Checkout (section `checkout`, permission `commerce.settin
 | Minimum order | `minimum_order` | `0` | See below. |
 | Terms page | `terms_page` | none | An entry; customers must tick that they accept it. |
 
+### Who can check out
+
+| `access` | Shoppers who aren't signed in |
+| --- | --- |
+| `guest` | Check out as guests. |
+| `guest_verified` | Confirm their email with an emailed code first, then check out as guests. No account is made unless they ask for one (or `create_account` is `always`). An account made this way is verified at once, with no verification link. |
+| `account` | Are sent to sign in. |
+| `verified_account` | Confirm their email with a code, which signs in to the account for that email or creates one, so every buyer gets an account. Needs the **Accounts** feature; without it, the store behaves as `guest_verified`. |
+
+Stores saved before `access` existed keep their behaviour: `require_verified_account` on reads as
+`verified_account`, `guest_checkout` off as `account`, and anything else as `guest`. Once
+**Who can check out** is saved, those two keys are no longer read.
+`VerifiedAccountCheckout::mode()` returns the current choice.
+
+With `guest_verified`, the confirmed email is kept for the browser session. Checkout shows it
+read-only with a **Use another email** link that starts over, and the order is placed with it.
+Signed-in customers with a verified email skip the code. The password sign-in link on the code
+page shows only with the **Accounts** feature on.
+
 ### Verified-account checkout
 
-Enable **Require a verified account at checkout** with the **Accounts** feature on.
+Choose **Only verified accounts** (`verified_account`) with the **Accounts** feature on.
 Shoppers can fill a cart before they sign in. At checkout, the default prompt sends an
 eight-digit code to their email. The code lasts 10 minutes and is tied to the browser
 session. Shoppers can correct the email or request a new code, which replaces the old one.
@@ -156,7 +174,7 @@ validity and auto-complete. They are described in [orders.md](orders.md).
 
 ## Guests and accounts
 
-- With `guest_checkout` off, a guest who opens checkout is sent to the sign-in page (when the
+- With `access` set to `account`, a guest who opens checkout is sent to the sign-in page (when the
   Accounts module is on) and comes back afterwards. Placing as a guest is refused with "Please sign
   in to check out."
 - A guest who asks for an account (or `create_account` is `always`) enters a password (8
