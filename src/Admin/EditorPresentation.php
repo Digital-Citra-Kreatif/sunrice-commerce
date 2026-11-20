@@ -82,7 +82,7 @@ final class EditorPresentation
         $items = [];
         foreach ($fields as $field) {
             $key = $field['handle'];
-            $store = $key === 'purchase_mode' ? $settings->get('catalog.default_purchase_mode', 'default') : $settings->get("catalog.{$key}");
+            $store = $key === 'purchase_mode' ? ($settings->get('catalog.default_purchase_mode') ?: 'cart') : $settings->get("catalog.{$key}");
             $resolved = $resolver->resolve($key, null, null, $store, [$term->id]);
             $value = match ($key) {
                 'purchase_mode' => ProductDefaults::MODES[(string) $resolved['value']] ?? null,

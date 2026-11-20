@@ -130,13 +130,14 @@ final class BuiltinSections
         ]];
 
         return [
+            // "Add to cart" until changed (apps whose published config predates the default too); empty also means it.
+            ['handle' => 'default_purchase_mode', 'type' => 'select', 'label' => 'Default storefront button',
+                'instructions' => 'Category rules can override the store. Brand rules take priority over category rules. A product can override both.',
+                'config' => ['default' => 'cart', 'options' => self::options(ProductDefaults::MODES)]],
             ['handle' => 'price_visibility', 'type' => 'select', 'label' => 'Who sees prices', 'config' => ['options' => self::options([
                 'everyone' => 'Everyone', 'signed_in' => 'Signed-in customers', 'roles' => 'Customers with certain roles', 'nobody' => 'Nobody (prices on request)',
             ])]],
             ['handle' => 'price_visibility_roles', 'type' => 'select', 'label' => 'Roles that see prices', 'config' => ['options' => $roles, 'multiple' => true]],
-            ['handle' => 'default_purchase_mode', 'section' => 'Product button defaults', 'type' => 'select', 'label' => 'Default storefront button',
-                'instructions' => 'Category rules can override the store. Brand rules take priority over category rules. A product can override both.',
-                'config' => ['options' => self::options(ProductDefaults::MODES)]],
             ...array_map(fn (array $field) => [...$field, 'section' => 'Store product content'], ProductContentFields::defaults()),
             self::scopedDefaults('category', 'Category'),
             self::scopedDefaults('brand', 'Brand'),

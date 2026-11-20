@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Settings → Catalog: **Default storefront button** moved to the top card and defaults to **Add to
+  cart** (`catalog.default_purchase_mode` = `cart`, the same behaviour as the earlier `default`).
+
 - Payment method settings: countries, provinces, shipping method types and customer roles are now
   searchable multi-select dropdowns (new `commerce_choices` field type) that also accept values
   not in the list. Payment method and email settings pages link back to their list in the

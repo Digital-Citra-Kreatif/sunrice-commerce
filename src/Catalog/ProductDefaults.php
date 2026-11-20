@@ -86,7 +86,7 @@ final class ProductDefaults
     public function purchaseMode(?int $entryId, string $mode = 'default', array $links = [], ?array $termIds = null): array
     {
         $resolved = $this->resolve('purchase_mode', $entryId, $mode === 'default' ? null : $mode,
-            $this->settings->get('catalog.default_purchase_mode', 'default'), $termIds);
+            $this->settings->get('catalog.default_purchase_mode') ?: 'cart', $termIds);
 
         return [
             'type' => PurchaseModes::resolve((string) $this->settings->get('general.selling_mode', 'shop'),
