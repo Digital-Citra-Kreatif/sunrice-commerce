@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Courier presets can be managed in Settings → Shipping → Edit couriers: rename, change tracking
+  links, switch off, remove, reorder and add couriers. The presets in config and from
+  `Commerce::registerCourier()` are the starting list. `Couriers::all()` now includes `active`;
+  `Couriers::offered()` lists the ones switched on.
+
 - Email settings: the subject, heading and text show their default wording (an unchanged default
   isn't stored, so it keeps following translations), placeholders are chips that insert at the
   cursor, and copy, staff address and role recipients are chosen as chips. The order received email

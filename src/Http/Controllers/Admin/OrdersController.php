@@ -439,7 +439,9 @@ class OrdersController extends Controller
                     'permission' => $order->isQuote() ? $user->can('commerce.quotes.respond') && $to !== OrderStatus::QUOTED && $to !== OrderStatus::EXPIRED
                         : ($to === OrderStatus::CANCELLED ? $user->can('commerce.orders.cancel') : $user->can('commerce.orders.edit'))])
                 ->values()->all(),
-            'couriers' => collect($couriers->all())->map(fn ($c, $key) => ['key' => $key, 'name' => $c['name']])->values()->all(),
+            // The offered presets, and any switched off since this order's shipments used them (to edit those).
+            'couriers' => collect($couriers->all())->filter(fn ($c, $key) => $c['active'] || $order->shipments->contains('courier', $key))
+                ->map(fn ($c, $key) => ['key' => $key, 'name' => $c['name']])->values()->all(),
             'panels' => app(OrderPanels::class)->for($order, $user),
             'can' => [
                 'edit' => $user->can('commerce.orders.edit'),
