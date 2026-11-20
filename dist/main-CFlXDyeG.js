@@ -1,21 +1,21 @@
-const de = { symbol: "Rp", position: "left", space: !1, thousands: ".", decimal: ",", decimals: 0 };
-let Q = de;
-function Me(e) {
-  Q = { ...de, ...e ?? {} };
+const ue = { symbol: "Rp", position: "left", space: !1, thousands: ".", decimal: ",", decimals: 0 };
+let X = ue;
+function _e(e) {
+  X = { ...ue, ...e ?? {} };
 }
-function Z(e, t = Q) {
+function J(e, t = X) {
   const n = e < 0, r = Math.abs(Math.round(e)), o = 10 ** t.decimals, i = Math.floor(r / o).toString().replace(/\B(?=(\d{3})+(?!\d))/g, t.thousands), a = t.decimals > 0 ? t.decimal + String(r % o).padStart(t.decimals, "0") : "", l = i + a, m = t.space ? " " : "", f = t.position === "left" ? `${t.symbol}${m}${l}` : `${l}${m}${t.symbol}`;
   return n ? `-${f}` : f;
 }
-const Pe = new Intl.NumberFormat(void 0, { notation: "compact", maximumFractionDigits: 2 });
-function Vc(e, t = Q) {
+const Ie = new Intl.NumberFormat(void 0, { notation: "compact", maximumFractionDigits: 2 });
+function Bc(e, t = X) {
   const n = Math.abs(e) / 10 ** t.decimals;
   if (n < 1e3)
-    return Z(e, t);
-  const r = Pe.format(n), o = t.space ? " " : "";
+    return J(e, t);
+  const r = Ie.format(n), o = t.space ? " " : "";
   return (e < 0 ? "-" : "") + (t.position === "left" ? `${t.symbol}${o}${r}` : `${r}${o}${t.symbol}`);
 }
-function ue(e, t = Q) {
+function pe(e, t = X) {
   let n = e.replace(t.symbol, "").replace(/\s/g, "");
   const r = n.startsWith("-");
   n = n.replace(/^-/, "").split(t.thousands).join("");
@@ -30,7 +30,7 @@ const H = {
   dashboardWidgets: {},
   settingsSections: {},
   productTabs: {}
-}, G = {
+}, Q = {
   version: 1,
   registerOrderPanel: (e, t) => {
     H.orderPanels[e] = t;
@@ -48,83 +48,83 @@ const H = {
   dashboardWidgets: () => H.dashboardWidgets,
   settingsSections: () => H.settingsSections,
   productTabs: () => H.productTabs,
-  formatMoney: Z,
-  parseMoney: ue,
+  formatMoney: J,
+  parseMoney: pe,
   components: {}
 };
-function _e() {
-  window.SunriceCommerce = G;
+function De() {
+  window.SunriceCommerce = Q;
   const e = window.SunriceCommerceQueue ?? [];
   (() => {
     for (; e.length > 0; ) {
       const n = e.shift();
       try {
-        n?.(G);
+        n?.(Q);
       } catch (r) {
         console.error("SunriceCommerceQueue call failed", r);
       }
     }
-  })(), e.push = ((...n) => (n.forEach((r) => r(G)), e.length)), window.SunriceCommerceQueue = e;
+  })(), e.push = ((...n) => (n.forEach((r) => r(Q)), e.length)), window.SunriceCommerceQueue = e;
 }
 const y = globalThis.Sunrice?.modules?.react;
 if (!y)
   throw new Error("[commerce] This script needs the Sunrice admin panel (window.Sunrice.modules is missing).");
-const Ie = y.Activity, De = y.Children, Ae = y.Component, Fe = y.Fragment, Re = y.Profiler, je = y.PureComponent, Oe = y.StrictMode, He = y.Suspense, Ve = y.ViewTransition, ze = y.act, Be = y.addTransitionType, Ue = y.cache, We = y.cacheSignal, qe = y.captureOwnerStack, Ke = y.cloneElement, Ge = y.createContext, Qe = y.createElement, Xe = y.createRef, Ye = y.forwardRef, Ze = y.isValidElement, Je = y.lazy, et = y.memo, tt = y.startTransition, nt = y.unstable_useCacheRefresh, ct = y.use, rt = y.useActionState, st = y.useCallback, ot = y.useContext, at = y.useDebugValue, it = y.useDeferredValue, lt = y.useEffect, mt = y.useEffectEvent, dt = y.useId, ut = y.useImperativeHandle, pt = y.useInsertionEffect, gt = y.useLayoutEffect, ht = y.useMemo, ft = y.useOptimistic, bt = y.useReducer, Y = y.useRef, J = y.useState, yt = y.useSyncExternalStore, vt = y.useTransition, xt = y.version, St = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const Ae = y.Activity, Fe = y.Children, Re = y.Component, je = y.Fragment, Oe = y.Profiler, He = y.PureComponent, Ve = y.StrictMode, Ue = y.Suspense, ze = y.ViewTransition, Be = y.act, We = y.addTransitionType, qe = y.cache, Ke = y.cacheSignal, Ge = y.captureOwnerStack, Qe = y.cloneElement, Xe = y.createContext, Ye = y.createElement, Ze = y.createRef, Je = y.forwardRef, et = y.isValidElement, tt = y.lazy, nt = y.memo, ct = y.startTransition, rt = y.unstable_useCacheRefresh, st = y.use, ot = y.useActionState, at = y.useCallback, it = y.useContext, lt = y.useDebugValue, mt = y.useDeferredValue, dt = y.useEffect, ut = y.useEffectEvent, pt = y.useId, gt = y.useImperativeHandle, ht = y.useInsertionEffect, ft = y.useLayoutEffect, bt = y.useMemo, yt = y.useOptimistic, vt = y.useReducer, Z = y.useRef, ee = y.useState, xt = y.useSyncExternalStore, St = y.useTransition, Ct = y.version, wt = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  Activity: Ie,
-  Children: De,
-  Component: Ae,
-  Fragment: Fe,
-  Profiler: Re,
-  PureComponent: je,
-  StrictMode: Oe,
-  Suspense: He,
-  ViewTransition: Ve,
-  act: ze,
-  addTransitionType: Be,
-  cache: Ue,
-  cacheSignal: We,
-  captureOwnerStack: qe,
-  cloneElement: Ke,
-  createContext: Ge,
-  createElement: Qe,
-  createRef: Xe,
+  Activity: Ae,
+  Children: Fe,
+  Component: Re,
+  Fragment: je,
+  Profiler: Oe,
+  PureComponent: He,
+  StrictMode: Ve,
+  Suspense: Ue,
+  ViewTransition: ze,
+  act: Be,
+  addTransitionType: We,
+  cache: qe,
+  cacheSignal: Ke,
+  captureOwnerStack: Ge,
+  cloneElement: Qe,
+  createContext: Xe,
+  createElement: Ye,
+  createRef: Ze,
   default: y,
-  forwardRef: Ye,
-  isValidElement: Ze,
-  lazy: Je,
-  memo: et,
-  startTransition: tt,
-  unstable_useCacheRefresh: nt,
-  use: ct,
-  useActionState: rt,
-  useCallback: st,
-  useContext: ot,
-  useDebugValue: at,
-  useDeferredValue: it,
-  useEffect: lt,
-  useEffectEvent: mt,
-  useId: dt,
-  useImperativeHandle: ut,
-  useInsertionEffect: pt,
-  useLayoutEffect: gt,
-  useMemo: ht,
-  useOptimistic: ft,
-  useReducer: bt,
-  useRef: Y,
-  useState: J,
-  useSyncExternalStore: yt,
-  useTransition: vt,
-  version: xt
+  forwardRef: Je,
+  isValidElement: et,
+  lazy: tt,
+  memo: nt,
+  startTransition: ct,
+  unstable_useCacheRefresh: rt,
+  use: st,
+  useActionState: ot,
+  useCallback: at,
+  useContext: it,
+  useDebugValue: lt,
+  useDeferredValue: mt,
+  useEffect: dt,
+  useEffectEvent: ut,
+  useId: pt,
+  useImperativeHandle: gt,
+  useInsertionEffect: ht,
+  useLayoutEffect: ft,
+  useMemo: bt,
+  useOptimistic: yt,
+  useReducer: vt,
+  useRef: Z,
+  useState: ee,
+  useSyncExternalStore: xt,
+  useTransition: St,
+  version: Ct
 }, Symbol.toStringTag, { value: "Module" })), _ = globalThis.Sunrice?.modules?.["@inertiajs/react"];
 if (!_)
   throw new Error("[commerce] This script needs the Sunrice admin panel (window.Sunrice.modules is missing).");
 _.App;
 _.Deferred;
 _.Form;
-const Ct = _.Head;
+const Nt = _.Head;
 _.InfiniteScroll;
-const wt = _.Link;
+const kt = _.Link;
 _.WhenMounted;
 _.WhenVisible;
 _.config;
@@ -132,118 +132,118 @@ _.createInertiaApp;
 _.http;
 _.progress;
 _.resetLayoutProps;
-const Nt = _.router;
+const Tt = _.router;
 _.setLayoutProps;
-const kt = _.useForm;
+const $t = _.useForm;
 _.useFormContext;
 _.useHttp;
-const Tt = _.usePage;
+const Et = _.usePage;
 _.usePoll;
 _.usePrefetch;
 _.useRemember;
 const s = globalThis.Sunrice?.modules?.["@imajiner/admin-sdk/ui"];
 if (!s)
   throw new Error("[commerce] This script needs the Sunrice admin panel (window.Sunrice.modules is missing).");
-const $t = s.Badge, Et = s.Button, Lt = s.Card, Mt = s.CardContent, Pt = s.CardDescription, _t = s.CardFooter, It = s.CardHeader, Dt = s.cardSummary, At = s.CardTitle, Ft = s.Checkbox, Rt = s.CodeEditor, jt = s.CollapsibleCard, Ot = s.CollapsibleCardGroup, Ht = s.Command, Vt = s.CommandEmpty, zt = s.CommandGroup, Bt = s.CommandInput, Ut = s.CommandItem, Wt = s.CommandList, qt = s.CommandSeparator, Kt = s.DatePicker, Gt = s.DeveloperHelp, Qt = s.Dialog, Xt = s.DialogContent, Yt = s.DialogDescription, Zt = s.DialogFooter, Jt = s.DialogHeader, en = s.DialogTitle, tn = s.DialogTrigger, nn = s.DropdownMenu, cn = s.DropdownMenuCheckboxItem, rn = s.DropdownMenuContent, sn = s.DropdownMenuItem, on = s.DropdownMenuLabel, an = s.DropdownMenuSeparator, ln = s.DropdownMenuTrigger, mn = s.FormSections, dn = s.Input, un = s.KeptEditsNotice, pn = s.Label, gn = s.LanguageTabs, hn = s.LinkAttributes, fn = s.LinkSourcePicker, bn = s.MediaPickerInput, yn = s.moveItem, vn = s.PageHeader, xn = s.Popover, Sn = s.PopoverAnchor, Cn = s.PopoverContent, wn = s.PopoverTrigger, Nn = s.registerCommandSource, kn = s.RichTextEditor, Tn = s.Select, $n = s.SelectContent, En = s.SelectItem, Ln = s.SelectTrigger, Mn = s.SelectValue, Pn = s.Separator, _n = s.SettingsLayout, In = s.SettingsNav, Dn = s.Skeleton, An = s.SortableHandle, Fn = s.SortableList, Rn = s.Switch, jn = s.Table, On = s.TableBody, Hn = s.TableCell, Vn = s.TableHead, zn = s.TableHeader, Bn = s.TableRow, Un = s.Tabs, Wn = s.TabsContent, qn = s.TabsList, Kn = s.TabsTrigger, Gn = s.Textarea, Qn = s.Tooltip, Xn = s.TooltipContent, Yn = s.TooltipTrigger, Zn = s.toast, Jn = s.TrashBanner, ec = s.TrashHint, tc = s.TrashTitle, pe = s.useBreadcrumbs, nc = s.useEditLock, cc = s.useTablePreferences, rc = s.useUnsavedChanges, sc = s.ViewingNotice, ge = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const Lt = s.Badge, Mt = s.Button, Pt = s.Card, _t = s.CardContent, It = s.CardDescription, Dt = s.CardFooter, At = s.CardHeader, Ft = s.cardSummary, Rt = s.CardTitle, jt = s.Checkbox, Ot = s.CodeEditor, Ht = s.CollapsibleCard, Vt = s.CollapsibleCardGroup, Ut = s.Command, zt = s.CommandEmpty, Bt = s.CommandGroup, Wt = s.CommandInput, qt = s.CommandItem, Kt = s.CommandList, Gt = s.CommandSeparator, Qt = s.DatePicker, Xt = s.DeveloperHelp, Yt = s.Dialog, Zt = s.DialogContent, Jt = s.DialogDescription, en = s.DialogFooter, tn = s.DialogHeader, nn = s.DialogTitle, cn = s.DialogTrigger, rn = s.DropdownMenu, sn = s.DropdownMenuCheckboxItem, on = s.DropdownMenuContent, an = s.DropdownMenuItem, ln = s.DropdownMenuLabel, mn = s.DropdownMenuSeparator, dn = s.DropdownMenuTrigger, un = s.FormSections, pn = s.Input, gn = s.KeptEditsNotice, hn = s.Label, fn = s.LanguageTabs, bn = s.LinkAttributes, yn = s.LinkSourcePicker, vn = s.MediaPickerInput, xn = s.moveItem, Sn = s.PageHeader, Cn = s.Popover, wn = s.PopoverAnchor, Nn = s.PopoverContent, kn = s.PopoverTrigger, Tn = s.registerCommandSource, $n = s.RichTextEditor, En = s.Select, Ln = s.SelectContent, Mn = s.SelectItem, Pn = s.SelectTrigger, _n = s.SelectValue, In = s.Separator, Dn = s.SettingsLayout, An = s.SettingsNav, Fn = s.Skeleton, Rn = s.SortableHandle, jn = s.SortableList, On = s.Switch, Hn = s.Table, Vn = s.TableBody, Un = s.TableCell, zn = s.TableHead, Bn = s.TableHeader, Wn = s.TableRow, qn = s.Tabs, Kn = s.TabsContent, Gn = s.TabsList, Qn = s.TabsTrigger, Xn = s.Textarea, Yn = s.Tooltip, Zn = s.TooltipContent, Jn = s.TooltipTrigger, ec = s.toast, tc = s.TrashBanner, nc = s.TrashHint, cc = s.TrashTitle, ge = s.useBreadcrumbs, rc = s.useEditLock, sc = s.useTablePreferences, oc = s.useUnsavedChanges, ac = s.ViewingNotice, he = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  Badge: $t,
-  Button: Et,
-  Card: Lt,
-  CardContent: Mt,
-  CardDescription: Pt,
-  CardFooter: _t,
-  CardHeader: It,
-  CardTitle: At,
-  Checkbox: Ft,
-  CodeEditor: Rt,
-  CollapsibleCard: jt,
-  CollapsibleCardGroup: Ot,
-  Command: Ht,
-  CommandEmpty: Vt,
-  CommandGroup: zt,
-  CommandInput: Bt,
-  CommandItem: Ut,
-  CommandList: Wt,
-  CommandSeparator: qt,
-  DatePicker: Kt,
-  DeveloperHelp: Gt,
-  Dialog: Qt,
-  DialogContent: Xt,
-  DialogDescription: Yt,
-  DialogFooter: Zt,
-  DialogHeader: Jt,
-  DialogTitle: en,
-  DialogTrigger: tn,
-  DropdownMenu: nn,
-  DropdownMenuCheckboxItem: cn,
-  DropdownMenuContent: rn,
-  DropdownMenuItem: sn,
-  DropdownMenuLabel: on,
-  DropdownMenuSeparator: an,
-  DropdownMenuTrigger: ln,
-  FormSections: mn,
-  Input: dn,
-  KeptEditsNotice: un,
-  Label: pn,
-  LanguageTabs: gn,
-  LinkAttributes: hn,
-  LinkSourcePicker: fn,
-  MediaPickerInput: bn,
-  PageHeader: vn,
-  Popover: xn,
-  PopoverAnchor: Sn,
-  PopoverContent: Cn,
-  PopoverTrigger: wn,
-  RichTextEditor: kn,
-  Select: Tn,
-  SelectContent: $n,
-  SelectItem: En,
-  SelectTrigger: Ln,
-  SelectValue: Mn,
-  Separator: Pn,
-  SettingsLayout: _n,
-  SettingsNav: In,
-  Skeleton: Dn,
-  SortableHandle: An,
-  SortableList: Fn,
-  Switch: Rn,
-  Table: jn,
-  TableBody: On,
-  TableCell: Hn,
-  TableHead: Vn,
-  TableHeader: zn,
-  TableRow: Bn,
-  Tabs: Un,
-  TabsContent: Wn,
-  TabsList: qn,
-  TabsTrigger: Kn,
-  Textarea: Gn,
-  Tooltip: Qn,
-  TooltipContent: Xn,
-  TooltipTrigger: Yn,
-  TrashBanner: Jn,
-  TrashHint: ec,
-  TrashTitle: tc,
-  ViewingNotice: sc,
-  cardSummary: Dt,
-  moveItem: yn,
-  registerCommandSource: Nn,
-  toast: Zn,
-  useBreadcrumbs: pe,
-  useEditLock: nc,
-  useTablePreferences: cc,
-  useUnsavedChanges: rc
-}, Symbol.toStringTag, { value: "Module" })), ce = 3, he = () => window.Sunrice, P = St, A = ge, W = {
-  router: Nt,
-  Link: wt,
-  Head: Ct,
-  usePage: Tt,
-  useForm: kt
-}, zc = A.toast, oc = pe;
+  Badge: Lt,
+  Button: Mt,
+  Card: Pt,
+  CardContent: _t,
+  CardDescription: It,
+  CardFooter: Dt,
+  CardHeader: At,
+  CardTitle: Rt,
+  Checkbox: jt,
+  CodeEditor: Ot,
+  CollapsibleCard: Ht,
+  CollapsibleCardGroup: Vt,
+  Command: Ut,
+  CommandEmpty: zt,
+  CommandGroup: Bt,
+  CommandInput: Wt,
+  CommandItem: qt,
+  CommandList: Kt,
+  CommandSeparator: Gt,
+  DatePicker: Qt,
+  DeveloperHelp: Xt,
+  Dialog: Yt,
+  DialogContent: Zt,
+  DialogDescription: Jt,
+  DialogFooter: en,
+  DialogHeader: tn,
+  DialogTitle: nn,
+  DialogTrigger: cn,
+  DropdownMenu: rn,
+  DropdownMenuCheckboxItem: sn,
+  DropdownMenuContent: on,
+  DropdownMenuItem: an,
+  DropdownMenuLabel: ln,
+  DropdownMenuSeparator: mn,
+  DropdownMenuTrigger: dn,
+  FormSections: un,
+  Input: pn,
+  KeptEditsNotice: gn,
+  Label: hn,
+  LanguageTabs: fn,
+  LinkAttributes: bn,
+  LinkSourcePicker: yn,
+  MediaPickerInput: vn,
+  PageHeader: Sn,
+  Popover: Cn,
+  PopoverAnchor: wn,
+  PopoverContent: Nn,
+  PopoverTrigger: kn,
+  RichTextEditor: $n,
+  Select: En,
+  SelectContent: Ln,
+  SelectItem: Mn,
+  SelectTrigger: Pn,
+  SelectValue: _n,
+  Separator: In,
+  SettingsLayout: Dn,
+  SettingsNav: An,
+  Skeleton: Fn,
+  SortableHandle: Rn,
+  SortableList: jn,
+  Switch: On,
+  Table: Hn,
+  TableBody: Vn,
+  TableCell: Un,
+  TableHead: zn,
+  TableHeader: Bn,
+  TableRow: Wn,
+  Tabs: qn,
+  TabsContent: Kn,
+  TabsList: Gn,
+  TabsTrigger: Qn,
+  Textarea: Xn,
+  Tooltip: Yn,
+  TooltipContent: Zn,
+  TooltipTrigger: Jn,
+  TrashBanner: tc,
+  TrashHint: nc,
+  TrashTitle: cc,
+  ViewingNotice: ac,
+  cardSummary: Ft,
+  moveItem: xn,
+  registerCommandSource: Tn,
+  toast: ec,
+  useBreadcrumbs: ge,
+  useEditLock: rc,
+  useTablePreferences: sc,
+  useUnsavedChanges: oc
+}, Symbol.toStringTag, { value: "Module" })), re = 3, fe = () => window.Sunrice, P = wt, A = he, q = {
+  router: Tt,
+  Link: kt,
+  Head: Nt,
+  usePage: Et,
+  useForm: $t
+}, Wc = A.toast, ic = ge;
 function B(e = "") {
-  return e.startsWith("/") ? e : he().adminUrl(e);
+  return e.startsWith("/") ? e : fe().adminUrl(e);
 }
-async function ee(e, t = {}) {
+async function te(e, t = {}) {
   const n = document.querySelector('meta[name="csrf-token"]')?.content, r = await fetch(e, {
     credentials: "same-origin",
     ...t,
@@ -253,103 +253,103 @@ async function ee(e, t = {}) {
     throw new Error(`${r.status} ${r.statusText}`);
   return await r.json();
 }
-function ac(e) {
-  const t = he();
-  if (t.version !== ce)
-    throw new Error(`[commerce] This bundle was built for admin runtime ${ce}, but the panel runs ${t.version}. Update sunrice/commerce.`);
+function lc(e) {
+  const t = fe();
+  if (t.version !== re)
+    throw new Error(`[commerce] This bundle was built for admin runtime ${re}, but the panel runs ${t.version}. Update sunrice/commerce.`);
   for (const [n, r] of Object.entries(e))
     t.registerPageLoader(n, r);
 }
-const ic = {
-  "Commerce/Confirmations/Index": () => import("./Index-DfHOQ3gz.js"),
-  "Commerce/Customers/Show": () => import("./Show-Dt-LpiGT.js"),
-  "Commerce/Dashboard": () => import("./Dashboard-By9Unqk_.js"),
-  "Commerce/Inventory/Index": () => import("./Index-DNyvo9dg.js"),
-  "Commerce/Loyalty/Show": () => import("./Show-C3r2hfkX.js"),
-  "Commerce/Marketing/Editor": () => import("./Editor-Bpea0GsI.js"),
-  "Commerce/Marketing/Report": () => import("./Report-DAtQr68o.js"),
-  "Commerce/Orders/Editor": () => import("./Editor-BiY1VasT.js"),
-  "Commerce/Orders/Show": () => import("./Show-D9f3wwnX.js"),
-  "Commerce/Products/Index": () => import("./Index-D1LdaTe5.js"),
-  "Commerce/Products/Import": () => import("./Import-DkH6nNGD.js"),
-  "Commerce/Reports/Show": () => import("./Show-BO1a-RGA.js"),
-  "Commerce/Settings/Section": () => import("./Section-IYasq41K.js"),
-  "Commerce/Settings/Emails": () => import("./Emails-DnF3mvoe.js"),
-  "Commerce/Settings/Features": () => import("./Features-DnrGc-05.js"),
-  "Commerce/Settings/Payments": () => import("./Payments-CBEWZA4B.js"),
-  "Commerce/Settings/Shipping": () => import("./Shipping-Dh8YciVV.js"),
-  "Commerce/Shared/SchemaForm": () => import("./SchemaForm-DDNI15Yx.js"),
-  "Commerce/Shared/ResourceIndex": () => import("./ResourceIndex-BXhR1ciM.js")
+const mc = {
+  "Commerce/Confirmations/Index": () => import("./Index-BML3Xwjt.js"),
+  "Commerce/Customers/Show": () => import("./Show-C-dJKjFk.js"),
+  "Commerce/Dashboard": () => import("./Dashboard-y3jos0th.js"),
+  "Commerce/Inventory/Index": () => import("./Index-C6QXgB8n.js"),
+  "Commerce/Loyalty/Show": () => import("./Show-ClHfd97n.js"),
+  "Commerce/Marketing/Editor": () => import("./Editor-BRiiluEU.js"),
+  "Commerce/Marketing/Report": () => import("./Report-CT8zfefO.js"),
+  "Commerce/Orders/Editor": () => import("./Editor-pYyVpXcw.js"),
+  "Commerce/Orders/Show": () => import("./Show-CMZB1Jtm.js"),
+  "Commerce/Products/Index": () => import("./Index-BIe_DySt.js"),
+  "Commerce/Products/Import": () => import("./Import-D14Zr9Jv.js"),
+  "Commerce/Reports/Show": () => import("./Show-BoBeoPxb.js"),
+  "Commerce/Settings/Section": () => import("./Section-BtOWHpDB.js"),
+  "Commerce/Settings/Emails": () => import("./Emails-BpMhRkES.js"),
+  "Commerce/Settings/Features": () => import("./Features-6MQ66PWU.js"),
+  "Commerce/Settings/Payments": () => import("./Payments-CBGCawS2.js"),
+  "Commerce/Settings/Shipping": () => import("./Shipping-BNxyZdUR.js"),
+  "Commerce/Shared/SchemaForm": () => import("./SchemaForm-Ci_FvRY2.js"),
+  "Commerce/Shared/ResourceIndex": () => import("./ResourceIndex-CDdNAbPu.js")
 };
-function lc() {
-  ac(ic);
+function dc() {
+  lc(mc);
 }
-const q = globalThis.Sunrice?.modules?.["react/jsx-runtime"];
-if (!q)
+const K = globalThis.Sunrice?.modules?.["react/jsx-runtime"];
+if (!K)
   throw new Error("[commerce] This script needs the Sunrice admin panel (window.Sunrice.modules is missing).");
-const mc = q.Fragment, c = q.jsx, u = q.jsxs;
-q.jsx;
-const re = (e) => e === !0 ? "true" : e === !1 ? "false" : e == null || typeof e == "object" ? "" : String(e);
-function fe(e, t) {
+const uc = K.Fragment, c = K.jsx, u = K.jsxs;
+K.jsx;
+const se = (e) => e === !0 ? "true" : e === !1 ? "false" : e == null || typeof e == "object" ? "" : String(e);
+function be(e, t) {
   const n = e.condition;
   if (!n) return !0;
   const r = "rules" in n ? n.rules : [n];
   if (r.length === 0) return !0;
   const o = r.map((i) => {
-    const a = t?.[i.field], l = a != null && a !== "" && a !== !1 && !(Array.isArray(a) && a.length === 0), m = (Array.isArray(a) ? a : [a]).map(re).includes(re(i.value));
+    const a = t?.[i.field], l = a != null && a !== "" && a !== !1 && !(Array.isArray(a) && a.length === 0), m = (Array.isArray(a) ? a : [a]).map(se).includes(se(i.value));
     return i.operator === "equals" ? m : i.operator === "not_equals" ? !m : i.operator === "filled" ? l : !l;
   });
   return "rules" in n && n.match === "any" ? o.includes(!0) : !o.includes(!1);
 }
-function te(e) {
+function ne(e) {
   const t = e.config?.options;
   return Array.isArray(t) ? t.map((n) => typeof n == "object" && n !== null ? { value: String(n.value), label: String(n.label ?? n.value) } : { value: String(n), label: String(n) }) : [];
 }
-function dc(e, t) {
+function pc(e, t) {
   const n = {};
   for (const [r, o] of Object.entries(e))
     r === t ? n[""] = o : r.startsWith(`${t}.`) && (n[r.slice(t.length + 1)] = o);
   return n;
 }
-function uc(e) {
+function gc(e) {
   if (e.trim() === "") return null;
   const t = Number(e);
   return Number.isFinite(t) ? t : null;
 }
-const z = "__none", be = "__empty", ye = (e) => e === "" ? be : e;
-function pc(e, t) {
-  return e == null || e === "" && !t.some((n) => n.value === "") ? z : ye(String(e));
+const U = "__none", ye = "__empty", ve = (e) => e === "" ? ye : e;
+function hc(e, t) {
+  return e == null || e === "" && !t.some((n) => n.value === "") ? U : ve(String(e));
 }
-function gc(e, t) {
-  return e === z ? null : e === be ? "" : t ? Number(e) : e;
+function fc(e, t) {
+  return e === U ? null : e === ye ? "" : t ? Number(e) : e;
 }
-const hc = /* @__PURE__ */ new Set(["toggle", "password", "secret", "commerce_region", "commerce_targets", "entries", "terms", "media", "asset"]);
-function ne(e, t) {
-  return !t || typeof t != "object" || Array.isArray(t) ? [] : e.filter((n) => fe(n, t) && !hc.has(n.type) && !n.config?.secret).flatMap((n) => {
+const bc = /* @__PURE__ */ new Set(["toggle", "password", "secret", "commerce_region", "commerce_targets", "entries", "terms", "media", "asset"]);
+function ce(e, t) {
+  return !t || typeof t != "object" || Array.isArray(t) ? [] : e.filter((n) => be(n, t) && !bc.has(n.type) && !n.config?.secret).flatMap((n) => {
     const r = t[n.handle];
-    if (n.type === "group") return ne(n.fields ?? [], r);
+    if (n.type === "group") return ce(n.fields ?? [], r);
     if (n.type === "select" || n.type === "commerce_choices") {
-      const o = te(n), i = (a) => o.find((l) => l.value === String(a))?.label ?? a;
+      const o = ne(n), i = (a) => o.find((l) => l.value === String(a))?.label ?? a;
       return [Array.isArray(r) ? r.map(i).join(", ") : r == null ? r : i(r)];
     }
     return [r];
   });
 }
-function ve(e) {
+function xe(e) {
   var t, n, r = "";
   if (typeof e == "string" || typeof e == "number") r += e;
   else if (typeof e == "object") if (Array.isArray(e)) {
     var o = e.length;
-    for (t = 0; t < o; t++) e[t] && (n = ve(e[t])) && (r && (r += " "), r += n);
+    for (t = 0; t < o; t++) e[t] && (n = xe(e[t])) && (r && (r += " "), r += n);
   } else for (n in e) e[n] && (r && (r += " "), r += n);
   return r;
 }
-function fc() {
-  for (var e, t, n = 0, r = "", o = arguments.length; n < o; n++) (e = arguments[n]) && (t = ve(e)) && (r && (r += " "), r += t);
+function yc() {
+  for (var e, t, n = 0, r = "", o = arguments.length; n < o; n++) (e = arguments[n]) && (t = xe(e)) && (r && (r += " "), r += t);
   return r;
 }
 function O(...e) {
-  return fc(e);
+  return yc(e);
 }
 function j({ className: e, children: t }) {
   return /* @__PURE__ */ c(
@@ -368,22 +368,22 @@ function j({ className: e, children: t }) {
     }
   );
 }
-const Bc = (e) => /* @__PURE__ */ u(j, { ...e, children: [
+const qc = (e) => /* @__PURE__ */ u(j, { ...e, children: [
   /* @__PURE__ */ c("circle", { cx: "11", cy: "11", r: "8" }),
   /* @__PURE__ */ c("path", { d: "m21 21-4.3-4.3" })
-] }), Uc = (e) => /* @__PURE__ */ u(j, { ...e, children: [
+] }), Kc = (e) => /* @__PURE__ */ u(j, { ...e, children: [
   /* @__PURE__ */ c("rect", { width: "18", height: "18", x: "3", y: "3", rx: "2" }),
   /* @__PURE__ */ c("path", { d: "M9 3v18M15 3v18" })
-] }), Wc = (e) => /* @__PURE__ */ c(j, { ...e, children: /* @__PURE__ */ c("path", { d: "M22 3H2l8 9.46V19l4 2v-8.54L22 3z" }) }), qc = (e) => /* @__PURE__ */ c(j, { ...e, children: /* @__PURE__ */ c("path", { d: "m5 12 7-7 7 7M12 19V5" }) }), Kc = (e) => /* @__PURE__ */ c(j, { ...e, children: /* @__PURE__ */ c("path", { d: "M12 5v14M19 12l-7 7-7-7" }) }), Gc = (e) => /* @__PURE__ */ c(j, { ...e, children: /* @__PURE__ */ c("path", { d: "m21 16-4 4-4-4M17 20V4M3 8l4-4 4 4M7 4v16" }) }), Qc = (e) => /* @__PURE__ */ c(j, { ...e, children: /* @__PURE__ */ c("path", { d: "m15 18-6-6 6-6" }) }), Xc = (e) => /* @__PURE__ */ c(j, { ...e, children: /* @__PURE__ */ c("path", { d: "m9 18 6-6-6-6" }) }), bc = (e) => /* @__PURE__ */ c(j, { ...e, children: /* @__PURE__ */ c("path", { d: "M18 6 6 18M6 6l12 12" }) }), Yc = (e) => /* @__PURE__ */ c(j, { ...e, children: /* @__PURE__ */ c("path", { d: "m14 6 4 4M4 20l4-.8L20 7l-4-4L4 15z" }) });
-function yc(e, t) {
+] }), Gc = (e) => /* @__PURE__ */ c(j, { ...e, children: /* @__PURE__ */ c("path", { d: "M22 3H2l8 9.46V19l4 2v-8.54L22 3z" }) }), Qc = (e) => /* @__PURE__ */ c(j, { ...e, children: /* @__PURE__ */ c("path", { d: "m5 12 7-7 7 7M12 19V5" }) }), Xc = (e) => /* @__PURE__ */ c(j, { ...e, children: /* @__PURE__ */ c("path", { d: "M12 5v14M19 12l-7 7-7-7" }) }), Yc = (e) => /* @__PURE__ */ c(j, { ...e, children: /* @__PURE__ */ c("path", { d: "m21 16-4 4-4-4M17 20V4M3 8l4-4 4 4M7 4v16" }) }), Zc = (e) => /* @__PURE__ */ c(j, { ...e, children: /* @__PURE__ */ c("path", { d: "m15 18-6-6 6-6" }) }), Jc = (e) => /* @__PURE__ */ c(j, { ...e, children: /* @__PURE__ */ c("path", { d: "m9 18 6-6-6-6" }) }), vc = (e) => /* @__PURE__ */ c(j, { ...e, children: /* @__PURE__ */ c("path", { d: "M18 6 6 18M6 6l12 12" }) }), er = (e) => /* @__PURE__ */ c(j, { ...e, children: /* @__PURE__ */ c("path", { d: "m14 6 4 4M4 20l4-.8L20 7l-4-4L4 15z" }) });
+function xc(e, t) {
   const n = e.trim();
   return t ? n.toUpperCase() : n;
 }
-function vc(e) {
+function Sc(e) {
   return (Array.isArray(e) ? e : typeof e == "string" ? e.split(",") : []).map((n) => String(n).trim()).filter((n) => n !== "");
 }
-function xe({ field: e, value: t, onChange: n, errors: r, id: o, describedBy: i }) {
-  const { Button: a, Popover: l, PopoverAnchor: m, PopoverContent: f, PopoverTrigger: N, Command: T, CommandEmpty: k, CommandInput: b, CommandItem: h, CommandList: $ } = A, x = e.config ?? {}, d = te(e), g = x.creatable !== !1, S = x.uppercase === !0, p = vc(t), [C, M] = P.useState(!1), [w, E] = P.useState(""), F = (v) => d.find((R) => R.value === v)?.label ?? v, L = yc(w, S), D = L === "" || d.some((v) => v.value.toLowerCase() === L.toLowerCase() || v.label.toLowerCase() === L.toLowerCase()), V = (v) => n(p.includes(v) ? p.filter((R) => R !== v) : [...p, v]), I = () => {
+function Se({ field: e, value: t, onChange: n, errors: r, id: o, describedBy: i }) {
+  const { Button: a, Popover: l, PopoverAnchor: m, PopoverContent: f, PopoverTrigger: N, Command: T, CommandEmpty: k, CommandInput: b, CommandItem: h, CommandList: $ } = A, x = e.config ?? {}, d = ne(e), g = x.creatable !== !1, S = x.uppercase === !0, p = Sc(t), [C, M] = P.useState(!1), [w, E] = P.useState(""), F = (v) => d.find((R) => R.value === v)?.label ?? v, L = xc(w, S), D = L === "" || d.some((v) => v.value.toLowerCase() === L.toLowerCase() || v.label.toLowerCase() === L.toLowerCase()), V = (v) => n(p.includes(v) ? p.filter((R) => R !== v) : [...p, v]), I = () => {
     L !== "" && !p.includes(L) && n([...p, L]), E("");
   };
   return /* @__PURE__ */ u("div", { className: "cm:grid cm:gap-2", children: [
@@ -404,7 +404,7 @@ function xe({ field: e, value: t, onChange: n, errors: r, id: o, describedBy: i 
               "aria-label": `Remove ${F(v)}`,
               className: "cm:rounded cm:p-0.5 cm:hover:bg-background cm:focus-visible:outline-none cm:focus-visible:ring-2 cm:focus-visible:ring-ring",
               onClick: () => V(v),
-              children: /* @__PURE__ */ c(bc, { className: "cm:size-3" })
+              children: /* @__PURE__ */ c(vc, { className: "cm:size-3" })
             }
           )
         ] }, v)),
@@ -446,17 +446,17 @@ function xe({ field: e, value: t, onChange: n, errors: r, id: o, describedBy: i 
     p.length > 1 && /* @__PURE__ */ c("div", { children: /* @__PURE__ */ c(a, { type: "button", variant: "ghost", size: "sm", className: "cm:h-7 cm:px-2 cm:text-xs", onClick: () => n([]), children: "Clear all" }) })
   ] });
 }
-function se(e) {
+function oe(e) {
   if (!e) return "";
   const t = new Date(e);
   if (Number.isNaN(t.getTime())) return "";
   const n = (r) => String(r).padStart(2, "0");
   return `${t.getFullYear()}-${n(t.getMonth() + 1)}-${n(t.getDate())}T${n(t.getHours())}:${n(t.getMinutes())}`;
 }
-function oe(e) {
+function ae(e) {
   return e ? new Date(e).toISOString() : null;
 }
-function Se({ value: e, onChange: t, id: n }) {
+function Ce({ value: e, onChange: t, id: n }) {
   const { Input: r, Label: o } = A, i = { start: e?.start ?? null, end: e?.end ?? null };
   return /* @__PURE__ */ u("div", { className: "cm:grid cm:gap-3 cm:sm:grid-cols-2", children: [
     /* @__PURE__ */ u("div", { className: "cm:grid cm:gap-1", children: [
@@ -466,8 +466,8 @@ function Se({ value: e, onChange: t, id: n }) {
         {
           id: `${n}-start`,
           type: "datetime-local",
-          value: se(i.start),
-          onChange: (a) => t({ ...i, start: oe(a.target.value) })
+          value: oe(i.start),
+          onChange: (a) => t({ ...i, start: ae(a.target.value) })
         }
       )
     ] }),
@@ -478,19 +478,19 @@ function Se({ value: e, onChange: t, id: n }) {
         {
           id: `${n}-end`,
           type: "datetime-local",
-          value: se(i.end),
-          onChange: (a) => t({ ...i, end: oe(a.target.value) })
+          value: oe(i.end),
+          onChange: (a) => t({ ...i, end: ae(a.target.value) })
         }
       )
     ] })
   ] });
 }
-function xc({ field: e, id: t, value: n, errors: r, onChange: o }) {
+function Cc({ field: e, id: t, value: n, errors: r, onChange: o }) {
   const { Button: i, MediaPickerInput: a, SortableList: l, SortableHandle: m } = A, f = Array.isArray(n) ? n : [], [N, T] = P.useState({}), [k, b] = P.useState(!1), h = f.filter((d) => !N[d]).join(","), $ = typeof e.config?.max == "number" ? e.config.max : null;
   P.useEffect(() => {
     if (!h) return;
     const d = new AbortController(), g = new URLSearchParams();
-    return h.split(",").forEach((S) => g.append("ids[]", S)), ee(`${B("media/picker")}?${g}`, { signal: d.signal }).then(({ items: S }) => {
+    return h.split(",").forEach((S) => g.append("ids[]", S)), te(`${B("media/picker")}?${g}`, { signal: d.signal }).then(({ items: S }) => {
       d.signal.aborted || (T((p) => ({ ...p, ...Object.fromEntries(S.map((C) => [C.id, C])) })), b(!1));
     }).catch(() => {
       d.signal.aborted || b(!0);
@@ -530,7 +530,7 @@ function xc({ field: e, id: t, value: n, errors: r, onChange: o }) {
     k && /* @__PURE__ */ c("p", { role: "status", className: "cm:text-sm cm:text-muted-foreground", children: "Image previews could not be loaded." })
   ] });
 }
-function Ce({
+function we({
   value: e,
   onChange: t,
   id: n,
@@ -538,7 +538,7 @@ function Ce({
   allowNull: o = !0,
   invalid: i
 }) {
-  const { Input: a } = A, l = (k) => k == null ? "" : Z(k).replace(/^[^\d-]+|[^\d]+$/g, ""), [m, f] = P.useState(l(e)), [N, T] = P.useState(!1);
+  const { Input: a } = A, l = (k) => k == null ? "" : J(k).replace(/^[^\d-]+|[^\d]+$/g, ""), [m, f] = P.useState(l(e)), [N, T] = P.useState(!1);
   return P.useEffect(() => {
     N || f(l(e));
   }, [e, N]), /* @__PURE__ */ c(
@@ -552,7 +552,7 @@ function Ce({
       onFocus: () => T(!0),
       onChange: (k) => {
         f(k.target.value);
-        const b = k.target.value.trim() === "" ? o ? null : 0 : ue(k.target.value);
+        const b = k.target.value.trim() === "" ? o ? null : 0 : pe(k.target.value);
         (b !== null || k.target.value.trim() === "") && t(b);
       },
       onBlur: () => {
@@ -561,13 +561,31 @@ function Ce({
     }
   );
 }
-function we() {
-  const { props: e } = W.usePage(), t = e.commerce ?? {};
-  return Me(t.currency), t;
+const Ne = { g: 1, kg: 1e3, mm: 1, cm: 10, m: 1e3 };
+let z = { weight: "g", dimension: "mm" };
+function wc(e) {
+  z = {
+    weight: e?.weight === "kg" ? "kg" : e?.weight === "g" ? "g" : z.weight,
+    dimension: e?.dimension === "cm" || e?.dimension === "m" || e?.dimension === "mm" ? e.dimension : z.dimension
+  };
 }
-function Ne({ field: e, value: t, onChange: n, errors: r, id: o }) {
-  return we(), /* @__PURE__ */ c(
-    Ce,
+const tr = () => z.weight, nr = () => z.dimension;
+function cr(e, t) {
+  return e === null ? "" : String(Number((e / Ne[t]).toFixed(6)));
+}
+function rr(e, t) {
+  const n = e.trim().replace(",", ".");
+  if (n === "") return null;
+  const r = Number(n);
+  return Number.isFinite(r) ? Math.max(0, Math.round(r * Ne[t])) : null;
+}
+function ke() {
+  const { props: e } = q.usePage(), t = e.commerce ?? {};
+  return _e(t.currency), wc(t.units), t;
+}
+function Te({ field: e, value: t, onChange: n, errors: r, id: o }) {
+  return ke(), /* @__PURE__ */ c(
+    we,
     {
       id: o,
       value: t,
@@ -577,27 +595,27 @@ function Ne({ field: e, value: t, onChange: n, errors: r, id: o }) {
     }
   );
 }
-const ae = [
+const ie = [
   { key: "province_code", label: "Province" },
   { key: "city_code", label: "City / regency" },
   { key: "district_code", label: "District" },
   { key: "village_code", label: "Village" }
-], Sc = { province: 1, city: 2, district: 3, village: 4 }, K = /* @__PURE__ */ new Map();
-function Cc(e, t) {
+], Nc = { province: 1, city: 2, district: 3, village: 4 }, G = /* @__PURE__ */ new Map();
+function kc(e, t) {
   const n = t ? `${e}?parent=${encodeURIComponent(t)}` : e;
-  return K.has(n) || K.set(n, ee(n).then((r) => r.data).catch(() => (K.delete(n), []))), K.get(n);
+  return G.has(n) || G.set(n, te(n).then((r) => r.data).catch(() => (G.delete(n), []))), G.get(n);
 }
-function ke({ field: e, value: t, onChange: n, id: r }) {
-  const { Label: o, Select: i, SelectTrigger: a, SelectValue: l, SelectContent: m, SelectItem: f } = A, N = e.config ?? {}, T = String(N.api ?? ""), k = Sc[N.depth ?? "district"] ?? 3, b = N.country_options ?? [], h = { country: "ID", province_code: null, city_code: null, district_code: null, village_code: null, ...t ?? {} }, $ = ae.slice(0, k), [x, d] = P.useState({}), g = [null, h.province_code, h.city_code, h.district_code];
+function $e({ field: e, value: t, onChange: n, id: r }) {
+  const { Label: o, Select: i, SelectTrigger: a, SelectValue: l, SelectContent: m, SelectItem: f } = A, N = e.config ?? {}, T = String(N.api ?? ""), k = Nc[N.depth ?? "district"] ?? 3, b = N.country_options ?? [], h = { country: "ID", province_code: null, city_code: null, district_code: null, village_code: null, ...t ?? {} }, $ = ie.slice(0, k), [x, d] = P.useState({}), g = [null, h.province_code, h.city_code, h.district_code];
   P.useEffect(() => {
     h.country !== "ID" || !T || $.forEach((p, C) => {
       const M = g[C];
-      C > 0 && !M || Cc(T, M).then((w) => d((E) => ({ ...E, [p.key]: w })));
+      C > 0 && !M || kc(T, M).then((w) => d((E) => ({ ...E, [p.key]: w })));
     });
   }, [T, h.country, h.province_code, h.city_code, h.district_code]);
   const S = (p, C) => {
     const M = { ...h };
-    M[$[p].key] = C || null, ae.slice(p + 1).forEach((w) => {
+    M[$[p].key] = C || null, ie.slice(p + 1).forEach((w) => {
       M[w.key] = null;
     }), n(M);
   };
@@ -621,13 +639,13 @@ function ke({ field: e, value: t, onChange: n, id: r }) {
       /* @__PURE__ */ u(
         i,
         {
-          value: h[p.key] ?? z,
+          value: h[p.key] ?? U,
           disabled: C > 0 && !g[C],
-          onValueChange: (M) => S(C, M === z ? "" : M),
+          onValueChange: (M) => S(C, M === U ? "" : M),
           children: [
             /* @__PURE__ */ c(a, { id: `${r}-${p.key}`, className: "cm:w-full", children: /* @__PURE__ */ c(l, { placeholder: "Choose…" }) }),
             /* @__PURE__ */ u(m, { children: [
-              /* @__PURE__ */ c(f, { value: z, children: "Choose…" }),
+              /* @__PURE__ */ c(f, { value: U, children: "Choose…" }),
               (x[p.key] ?? []).map((M) => /* @__PURE__ */ c(f, { value: M.code, children: M.name }, M.code))
             ] })
           ]
@@ -636,13 +654,13 @@ function ke({ field: e, value: t, onChange: n, id: r }) {
     ] }, p.key))
   ] });
 }
-function Te({ field: e, value: t, onChange: n, id: r }) {
+function Ee({ field: e, value: t, onChange: n, id: r }) {
   const { Input: o, Badge: i } = A, a = e.config ?? {}, l = a.single === !0, m = Array.isArray(a.types) && a.types.length === 1 && a.types[0] === "product", f = Array.isArray(t) ? t : [], [N, T] = P.useState(""), [k, b] = P.useState([]), [h, $] = P.useState(!1);
   P.useEffect(() => {
     if (!h) return;
     const g = new URLSearchParams({ q: N });
     (a.types ?? []).forEach((p) => g.append("types[]", p)), (a.taxonomies ?? []).forEach((p) => g.append("taxonomies[]", p));
-    const S = setTimeout(() => ee(`${a.api}?${g}`).then((p) => b(p.data)).catch(() => b([])), 200);
+    const S = setTimeout(() => te(`${a.api}?${g}`).then((p) => b(p.data)).catch(() => b([])), 200);
     return () => clearTimeout(S);
   }, [N, h]);
   const x = (g) => f.some((S) => S.type === g.type && S.id === g.id), d = { product: "Product", variant: "Variant", term: "Category/brand" };
@@ -688,31 +706,31 @@ function Te({ field: e, value: t, onChange: n, id: r }) {
     ] })
   ] });
 }
-const wc = P.lazy(() => import("./ProductEditor-DQreSJnp.js")), Nc = (e) => P.createElement(P.Suspense, { fallback: null }, P.createElement(wc, e)), kc = {
-  commerce_money: Ne,
-  commerce_datetime_range: Se,
-  commerce_region: ke,
-  commerce_targets: Te,
-  commerce_product: Nc,
-  commerce_gallery: xc,
-  commerce_choices: xe
+const Tc = P.lazy(() => import("./ProductEditor-Bc4_jsKD.js")), $c = (e) => P.createElement(P.Suspense, { fallback: null }, P.createElement(Tc, e)), Ec = {
+  commerce_money: Te,
+  commerce_datetime_range: Ce,
+  commerce_region: $e,
+  commerce_targets: Ee,
+  commerce_product: $c,
+  commerce_gallery: Cc,
+  commerce_choices: Se
 };
-function Tc() {
-  (window.SunriceCmsQueue ??= []).push((e) => Object.entries(kc).forEach(([t, n]) => e.registerFieldInput(t, n)));
+function Lc() {
+  (window.SunriceCmsQueue ??= []).push((e) => Object.entries(Ec).forEach(([t, n]) => e.registerFieldInput(t, n)));
 }
-const $c = P.lazy(() => import("./ChartImpl-DnuN1Kne.js"));
-function Ec(e) {
+const Mc = P.lazy(() => import("./ChartImpl-DeKq-KJc.js"));
+function Pc(e) {
   const t = /* @__PURE__ */ c("div", { className: "cm:animate-pulse cm:rounded-md cm:bg-muted", style: { height: e.height ?? 260 } });
-  return /* @__PURE__ */ c(P.Suspense, { fallback: t, children: /* @__PURE__ */ c($c, { ...e }) });
+  return /* @__PURE__ */ c(P.Suspense, { fallback: t, children: /* @__PURE__ */ c(Mc, { ...e }) });
 }
-function Lc({ title: e, description: t, action: n }) {
+function _c({ title: e, description: t, action: n }) {
   return /* @__PURE__ */ u("div", { className: "cm:flex cm:flex-col cm:items-center cm:gap-2 cm:rounded-lg cm:border cm:border-dashed cm:px-6 cm:py-10 cm:text-center", children: [
     /* @__PURE__ */ c("p", { className: "cm:font-medium", children: e }),
     t && /* @__PURE__ */ c("p", { className: "cm:max-w-md cm:text-sm cm:text-muted-foreground", children: t }),
     n && /* @__PURE__ */ c("div", { className: "cm:mt-2", children: n })
   ] });
 }
-function Zc({ className: e }) {
+function sr({ className: e }) {
   const { Card: t, CardContent: n } = A;
   return /* @__PURE__ */ c(t, { "aria-hidden": "true", className: e, children: /* @__PURE__ */ u(n, { className: "cm:grid cm:gap-1 cm:pt-6", children: [
     /* @__PURE__ */ c("span", { className: "cm:my-0.5 cm:h-4 cm:w-24 cm:animate-pulse cm:rounded cm:bg-muted" }),
@@ -720,8 +738,8 @@ function Zc({ className: e }) {
     /* @__PURE__ */ c("span", { className: "cm:h-4" })
   ] }) });
 }
-function Mc({ kpi: e, className: t }) {
-  const { Card: n, CardContent: r } = A, { Link: o } = W, i = e.change ?? null, a = /* @__PURE__ */ u(r, { className: "cm:grid cm:gap-1 cm:pt-6", children: [
+function Ic({ kpi: e, className: t }) {
+  const { Card: n, CardContent: r } = A, { Link: o } = q, i = e.change ?? null, a = /* @__PURE__ */ u(r, { className: "cm:grid cm:gap-1 cm:pt-6", children: [
     /* @__PURE__ */ c("span", { className: "cm:text-sm cm:text-muted-foreground", children: e.label }),
     /* @__PURE__ */ c("span", { className: "cm:text-2xl cm:font-semibold cm:tabular-nums", children: e.value }),
     i !== null && /* @__PURE__ */ u(
@@ -745,20 +763,20 @@ function Mc({ kpi: e, className: t }) {
   ] });
   return /* @__PURE__ */ c(n, { className: t, children: e.href ? /* @__PURE__ */ c(o, { href: B(e.href), className: "cm:block", children: a }) : a });
 }
-function $e({ title: e, description: t, actions: n, primary: r, menu: o, back: i, children: a }) {
-  const { Head: l } = W, { PageHeader: m } = A;
-  return /* @__PURE__ */ u(mc, { children: [
+function Le({ title: e, description: t, actions: n, primary: r, menu: o, back: i, children: a }) {
+  const { Head: l } = q, { PageHeader: m } = A;
+  return /* @__PURE__ */ u(uc, { children: [
     /* @__PURE__ */ c(l, { title: e }),
     /* @__PURE__ */ c(m, { title: e, description: t, actions: n, primary: r, menu: o?.length ? o : void 0, back: i, children: a })
   ] });
 }
-function Pc(e, t, n, r) {
+function Dc(e, t, n, r) {
   const o = e.slice(0, n), i = e.slice(r), a = o !== "" && !/\s$/.test(o) ? " " : "", l = i !== "" && !/^[\s.,!?;:)]/.test(i) ? " " : "", m = `${a}${t}${l}`;
   return { text: o + m + i, caret: o.length + m.length };
 }
-function _c({ id: e, value: t, onChange: n, tokens: r, multiline: o, invalid: i, describedBy: a, maxLength: l }) {
+function Ac({ id: e, value: t, onChange: n, tokens: r, multiline: o, invalid: i, describedBy: a, maxLength: l }) {
   const { Input: m, Textarea: f } = A, N = P.useRef(null), T = (b) => {
-    const h = N.current, $ = h?.selectionStart ?? t.length, x = h?.selectionEnd ?? t.length, d = Pc(t, b, $, x);
+    const h = N.current, $ = h?.selectionStart ?? t.length, x = h?.selectionEnd ?? t.length, d = Dc(t, b, $, x);
     n(d.text), requestAnimationFrame(() => {
       h?.focus(), h?.setSelectionRange(d.caret, d.caret);
     });
@@ -804,14 +822,14 @@ function _c({ id: e, value: t, onChange: n, tokens: r, multiline: o, invalid: i,
     ] })
   ] });
 }
-const U = ge, Ic = {
+const W = he, Fc = {
   // eslint-disable-line @typescript-eslint/no-explicit-any
-  commerce_money: Ne,
-  commerce_datetime_range: Se,
-  commerce_region: ke,
-  commerce_targets: Te,
-  commerce_choices: xe
-}, ie = {
+  commerce_money: Te,
+  commerce_datetime_range: Ce,
+  commerce_region: $e,
+  commerce_targets: Ee,
+  commerce_choices: Se
+}, le = {
   25: "cm:md:col-span-3",
   33: "cm:md:col-span-4",
   50: "cm:md:col-span-6",
@@ -819,15 +837,15 @@ const U = ge, Ic = {
   75: "cm:md:col-span-9",
   100: "cm:md:col-span-12"
 };
-function X({ fields: e, values: t, onChange: n, errors: r = {}, pathPrefix: o = "values", section: i }) {
+function Y({ fields: e, values: t, onChange: n, errors: r = {}, pathPrefix: o = "values", section: i }) {
   const a = e, l = r;
-  return /* @__PURE__ */ c("div", { className: "cm:grid cm:grid-cols-1 cm:gap-x-5 cm:gap-y-6 cm:md:grid-cols-12", children: a.filter((m) => fe(m, t ?? {})).map((m) => /* @__PURE__ */ c("div", { className: O(
+  return /* @__PURE__ */ c("div", { className: "cm:grid cm:grid-cols-1 cm:gap-x-5 cm:gap-y-6 cm:md:grid-cols-12", children: a.filter((m) => be(m, t ?? {})).map((m) => /* @__PURE__ */ c("div", { className: O(
     "cm:min-w-0",
-    ie[m.width ?? 100] ?? ie[100],
+    le[m.width ?? 100] ?? le[100],
     // A switch beside an input sits level with the input, not its label.
     m.type === "toggle" && (m.width ?? 100) < 100 && "cm:md:self-end cm:md:pb-2.5"
   ), children: /* @__PURE__ */ c(
-    Dc,
+    Rc,
     {
       field: m,
       value: t?.[m.handle],
@@ -838,8 +856,8 @@ function X({ fields: e, values: t, onChange: n, errors: r = {}, pathPrefix: o = 
     }
   ) }, m.handle)) });
 }
-function Dc({ field: e, value: t, onChange: n, path: r, errors: o, hideLabel: i = !1 }) {
-  const { Label: a } = U, l = r.replace(/[^A-Za-z0-9_-]+/g, "-"), m = o[r], f = e.instructions ? `${l}-help` : void 0, N = [f, m ? `${l}-error` : void 0].filter(Boolean).join(" ") || void 0, T = e.label ?? e.handle, k = e.type === "toggle";
+function Rc({ field: e, value: t, onChange: n, path: r, errors: o, hideLabel: i = !1 }) {
+  const { Label: a } = W, l = r.replace(/[^A-Za-z0-9_-]+/g, "-"), m = o[r], f = e.instructions ? `${l}-help` : void 0, N = [f, m ? `${l}-error` : void 0].filter(Boolean).join(" ") || void 0, T = e.label ?? e.handle, k = e.type === "toggle";
   return e.type === "group" || e.type === "commerce_region" ? /* @__PURE__ */ u("div", { role: "group", "aria-labelledby": i ? void 0 : `${l}-label`, "aria-label": i ? T : void 0, className: "cm:grid cm:gap-4", "data-field": e.handle, children: [
     !i && /* @__PURE__ */ u("div", { className: "cm:grid cm:gap-1", children: [
       /* @__PURE__ */ u("div", { className: "cm:flex cm:items-center cm:gap-3", children: [
@@ -848,7 +866,7 @@ function Dc({ field: e, value: t, onChange: n, path: r, errors: o, hideLabel: i 
       ] }),
       f && /* @__PURE__ */ c("p", { id: f, className: "cm:text-sm cm:text-muted-foreground", children: e.instructions })
     ] }),
-    /* @__PURE__ */ c(le, { field: e, value: t, onChange: n, id: l, path: r, errors: o, describedBy: N, label: T }),
+    /* @__PURE__ */ c(me, { field: e, value: t, onChange: n, id: l, path: r, errors: o, describedBy: N, label: T }),
     i && f && /* @__PURE__ */ c("p", { id: f, className: "cm:text-sm cm:text-muted-foreground", children: e.instructions }),
     m && /* @__PURE__ */ c("p", { id: `${l}-error`, className: "cm:text-sm cm:text-destructive", children: m })
   ] }) : /* @__PURE__ */ u("div", { className: "cm:grid cm:gap-1.5", "data-field": e.handle, children: [
@@ -856,18 +874,18 @@ function Dc({ field: e, value: t, onChange: n, path: r, errors: o, hideLabel: i 
       T,
       e.required && /* @__PURE__ */ c("span", { className: "cm:text-destructive", children: " *" })
     ] }),
-    /* @__PURE__ */ c(le, { field: e, value: t, onChange: n, id: l, path: r, errors: o, describedBy: N, label: T }),
+    /* @__PURE__ */ c(me, { field: e, value: t, onChange: n, id: l, path: r, errors: o, describedBy: N, label: T }),
     f && /* @__PURE__ */ c("p", { id: f, className: "cm:text-sm cm:text-muted-foreground", children: e.instructions }),
     m && /* @__PURE__ */ c("p", { id: `${l}-error`, className: "cm:text-sm cm:text-destructive", children: m })
   ] });
 }
-function le({ field: e, value: t, onChange: n, id: r, path: o, errors: i, describedBy: a, label: l }) {
-  const { Input: m, Textarea: f, Switch: N, Label: T, MediaPickerInput: k, RichTextEditor: b, Checkbox: h, Select: $, SelectTrigger: x, SelectValue: d, SelectContent: g, SelectItem: S } = U, p = i[o] !== void 0, C = e.config ?? {}, M = Ic[e.type];
+function me({ field: e, value: t, onChange: n, id: r, path: o, errors: i, describedBy: a, label: l }) {
+  const { Input: m, Textarea: f, Switch: N, Label: T, MediaPickerInput: k, RichTextEditor: b, Checkbox: h, Select: $, SelectTrigger: x, SelectValue: d, SelectContent: g, SelectItem: S } = W, p = i[o] !== void 0, C = e.config ?? {}, M = Fc[e.type];
   if (M)
-    return /* @__PURE__ */ c(M, { field: e, value: t, onChange: n, errors: dc(i, o), id: r, describedBy: a });
+    return /* @__PURE__ */ c(M, { field: e, value: t, onChange: n, errors: pc(i, o), id: r, describedBy: a });
   if (Array.isArray(C.tokens) && C.tokens.length > 0 && (e.type === "text" || e.type === "textarea"))
     return /* @__PURE__ */ c(
-      _c,
+      Ac,
       {
         id: r,
         value: typeof t == "string" ? t : "",
@@ -905,7 +923,7 @@ function le({ field: e, value: t, onChange: n, id: r, path: o, errors: i, descri
           min: C.min,
           max: C.max,
           step: C.step ?? "any",
-          onChange: (w) => n(uc(w.target.value))
+          onChange: (w) => n(gc(w.target.value))
         }
       );
     case "date":
@@ -928,10 +946,10 @@ function le({ field: e, value: t, onChange: n, id: r, path: o, errors: i, descri
     case "select":
     case "entries":
     case "terms": {
-      const w = te(e), E = e.type !== "select";
+      const w = ne(e), E = e.type !== "select";
       if (C.multiple === !0) {
         const D = (Array.isArray(t) ? t : []).map(String), V = (I, v) => {
-          const R = v ? [...D, I] : D.filter((Le) => Le !== I);
+          const R = v ? [...D, I] : D.filter((Pe) => Pe !== I);
           n(E ? R.map(Number) : R);
         };
         return /* @__PURE__ */ c("div", { role: "group", "aria-labelledby": `${r}-label`, "aria-describedby": a, className: "cm:grid cm:gap-2 cm:sm:grid-cols-2", children: w.map((I) => /* @__PURE__ */ u("label", { className: "cm:flex cm:items-center cm:gap-2 cm:text-sm", children: [
@@ -939,12 +957,12 @@ function le({ field: e, value: t, onChange: n, id: r, path: o, errors: i, descri
           I.label
         ] }, I.value)) });
       }
-      const F = Array.isArray(t) ? t[0] : t, L = pc(F, w);
-      return /* @__PURE__ */ u($, { value: L, onValueChange: (D) => n(gc(D, E)), children: [
+      const F = Array.isArray(t) ? t[0] : t, L = hc(F, w);
+      return /* @__PURE__ */ u($, { value: L, onValueChange: (D) => n(fc(D, E)), children: [
         /* @__PURE__ */ c(x, { id: r, className: "cm:w-full", "aria-invalid": p, "aria-describedby": a, children: /* @__PURE__ */ c(d, { placeholder: "—" }) }),
         /* @__PURE__ */ u(g, { children: [
-          (!e.required || L === z) && /* @__PURE__ */ c(S, { value: z, children: "—" }),
-          w.map((D) => /* @__PURE__ */ c(S, { value: ye(D.value), children: D.label }, D.value))
+          (!e.required || L === U) && /* @__PURE__ */ c(S, { value: U, children: "—" }),
+          w.map((D) => /* @__PURE__ */ c(S, { value: ve(D.value), children: D.label }, D.value))
         ] })
       ] });
     }
@@ -974,9 +992,9 @@ function le({ field: e, value: t, onChange: n, id: r, path: o, errors: i, descri
         }
       );
     case "group":
-      return C.per_language === !0 ? /* @__PURE__ */ c(Fc, { field: e, value: t, onChange: n, path: o, errors: i }) : /* @__PURE__ */ c(X, { fields: e.fields ?? [], values: t ?? {}, errors: i, pathPrefix: o, onChange: (w) => n(w) });
+      return C.per_language === !0 ? /* @__PURE__ */ c(Oc, { field: e, value: t, onChange: n, path: o, errors: i }) : /* @__PURE__ */ c(Y, { fields: e.fields ?? [], values: t ?? {}, errors: i, pathPrefix: o, onChange: (w) => n(w) });
     case "repeater":
-      return /* @__PURE__ */ c(Ac, { field: e, value: t, onChange: n, path: o, errors: i, label: l });
+      return /* @__PURE__ */ c(jc, { field: e, value: t, onChange: n, path: o, errors: i, label: l });
     default:
       return /* @__PURE__ */ c(
         m,
@@ -992,16 +1010,16 @@ function le({ field: e, value: t, onChange: n, id: r, path: o, errors: i, descri
       );
   }
 }
-function Ac({ field: e, value: t, onChange: n, path: r, errors: o, label: i }) {
-  const { Button: a } = U, l = Array.isArray(t) ? t : [], m = Y([]), f = Y(0);
+function jc({ field: e, value: t, onChange: n, path: r, errors: o, label: i }) {
+  const { Button: a } = W, l = Array.isArray(t) ? t : [], m = Z([]), f = Z(0);
   for (; m.current.length < l.length; ) m.current.push(f.current++);
   m.current.length = l.length;
-  const [N, T] = J(() => /* @__PURE__ */ new Set()), k = (x, d) => {
+  const [N, T] = ee(() => /* @__PURE__ */ new Set()), k = (x, d) => {
     m.current = d, n(x);
   }, b = () => Object.fromEntries((e.fields ?? []).map((x) => [x.handle, x.type === "toggle" ? !1 : null])), h = typeof e.config?.max == "number" ? e.config.max : null, $ = (x, d) => x.map((g, S) => S === d - 1 ? x[d] : S === d ? x[d - 1] : g);
   return /* @__PURE__ */ u("div", { className: "cm:grid cm:gap-2", children: [
     l.map((x, d) => {
-      const g = m.current[d], S = `${r}.${d}`, p = Object.keys(o).some((I) => I === S || I.startsWith(`${S}.`)), C = e.config?.summary_targets, M = typeof C == "string" ? x[C] : null, w = Array.isArray(M) ? M.flatMap((I) => typeof I?.label == "string" && I.label ? [I.label] : []) : [], F = (w.length > 1 ? `${w[0]} +${w.length - 1}` : w[0]) ?? U.cardSummary(ne(e.fields ?? [], x)), L = p || N.has(g) || F === "", D = () => T((I) => {
+      const g = m.current[d], S = `${r}.${d}`, p = Object.keys(o).some((I) => I === S || I.startsWith(`${S}.`)), C = e.config?.summary_targets, M = typeof C == "string" ? x[C] : null, w = Array.isArray(M) ? M.flatMap((I) => typeof I?.label == "string" && I.label ? [I.label] : []) : [], F = (w.length > 1 ? `${w[0]} +${w.length - 1}` : w[0]) ?? W.cardSummary(ce(e.fields ?? [], x)), L = p || N.has(g) || F === "", D = () => T((I) => {
         const v = new Set(I);
         return L ? v.delete(g) : v.add(g), v;
       }), V = `${S.replace(/[^A-Za-z0-9_-]+/g, "-")}-row`;
@@ -1051,7 +1069,7 @@ function Ac({ field: e, value: t, onChange: n, path: r, errors: o, label: i }) {
           )
         ] }),
         /* @__PURE__ */ c("div", { id: V, hidden: !L, className: "cm:border-t cm:p-4", children: /* @__PURE__ */ c(
-          X,
+          Y,
           {
             fields: e.fields ?? [],
             values: x,
@@ -1081,8 +1099,8 @@ function Ac({ field: e, value: t, onChange: n, path: r, errors: o, label: i }) {
     ) })
   ] });
 }
-function Fc({ field: e, value: t, onChange: n, path: r, errors: o }) {
-  const { LanguageTabs: i } = U, a = t ?? {}, l = e.fields ?? [], m = String(e.config?.main ?? l[0]?.handle ?? ""), f = (b) => Object.keys(o).some((h) => h === `${r}.${b}` || h.startsWith(`${r}.${b}.`)), [N, T] = J(() => l.find((b) => f(b.handle))?.handle ?? m), k = (b) => a[b] === null || a[b] === void 0 || a[b] === "";
+function Oc({ field: e, value: t, onChange: n, path: r, errors: o }) {
+  const { LanguageTabs: i } = W, a = t ?? {}, l = e.fields ?? [], m = String(e.config?.main ?? l[0]?.handle ?? ""), f = (b) => Object.keys(o).some((h) => h === `${r}.${b}` || h.startsWith(`${r}.${b}.`)), [N, T] = ee(() => l.find((b) => f(b.handle))?.handle ?? m), k = (b) => a[b] === null || a[b] === void 0 || a[b] === "";
   return /* @__PURE__ */ c(
     i,
     {
@@ -1099,7 +1117,7 @@ function Fc({ field: e, value: t, onChange: n, path: r, errors: o }) {
       children: (b) => (
         // The tab names the language, so its field doesn't.
         /* @__PURE__ */ c(
-          X,
+          Y,
           {
             fields: l.filter((h) => h.handle === b),
             values: a,
@@ -1113,15 +1131,15 @@ function Fc({ field: e, value: t, onChange: n, path: r, errors: o }) {
     }
   );
 }
-function Rc({ form: e, id: t, storageKey: n, footer: r, onProcessing: o }) {
-  const { Button: i, Card: a, CardContent: l, CollapsibleCard: m, CollapsibleCardGroup: f, useUnsavedChanges: N } = A, T = A.cardSummary, { data: k, setData: b, errors: h, processing: $, isDirty: x, ...d } = W.useForm({ values: e.values }), g = P.useRef(!1), S = () => {
+function Hc({ form: e, id: t, storageKey: n, footer: r, onProcessing: o }) {
+  const { Button: i, Card: a, CardContent: l, CollapsibleCard: m, CollapsibleCardGroup: f, useUnsavedChanges: N } = A, T = A.cardSummary, { data: k, setData: b, errors: h, processing: $, isDirty: x, ...d } = q.useForm({ values: e.values }), g = P.useRef(!1), S = () => {
     g.current || (g.current = !0, d[e.method](e.action, { preserveScroll: !0, onFinish: () => {
       g.current = !1;
     } }));
   };
   P.useEffect(() => o?.($), [$, o]), N(x, S);
   const p = e.fields, C = e.sections?.length ? e.sections : [{ title: null, description: null, fields: p.map((E) => E.handle) }], M = Object.keys(h), w = (E, F = null) => /* @__PURE__ */ c(
-    X,
+    Y,
     {
       fields: p.filter((L) => E.includes(L.handle)),
       values: k.values,
@@ -1140,7 +1158,7 @@ function Rc({ form: e, id: t, storageKey: n, footer: r, onProcessing: o }) {
       {
         title: E.title,
         description: E.description ?? void 0,
-        summary: T(ne(p.filter((L) => E.fields.includes(L.handle)), k.values)) || void 0,
+        summary: T(ce(p.filter((L) => E.fields.includes(L.handle)), k.values)) || void 0,
         storageKey: n ? `${n}:${E.title}` : void 0,
         hasErrors: E.fields.some((L) => M.some((D) => D === `values.${L}` || D.startsWith(`values.${L}.`))),
         children: w(E.fields, E.title)
@@ -1153,8 +1171,8 @@ function Rc({ form: e, id: t, storageKey: n, footer: r, onProcessing: o }) {
     ] })
   ] });
 }
-function Ee({ items: e, current: t, label: n = "Sections" }) {
-  const { Link: r } = W;
+function Me({ items: e, current: t, label: n = "Sections" }) {
+  const { Link: r } = q;
   return /* @__PURE__ */ c("nav", { "aria-label": n, className: "cm:grid cm:gap-1 cm:max-lg:grid-cols-[repeat(auto-fit,minmax(min(100%,10rem),1fr))]", children: e.map((o) => /* @__PURE__ */ c(
     r,
     {
@@ -1169,18 +1187,18 @@ function Ee({ items: e, current: t, label: n = "Sections" }) {
     o.key
   )) });
 }
-function jc({ sections: e, current: t, title: n, description: r, primary: o, parent: i, children: a }) {
-  we();
+function Vc({ sections: e, current: t, title: n, description: r, primary: o, parent: i, children: a }) {
+  ke();
   const l = i ? { label: i.label, href: B(i.href) } : void 0;
-  return oc([{ label: "Shop" }, { label: "Store settings", href: B("commerce/settings") }, ...l ? [l] : [], { label: n }]), /* @__PURE__ */ u("div", { className: "cm:grid cm:gap-6 cm:lg:grid-cols-[12rem_minmax(0,1fr)] cm:lg:items-start", children: [
-    /* @__PURE__ */ c(Ee, { items: e, current: t, label: "Store settings" }),
+  return ic([{ label: "Shop" }, { label: "Store settings", href: B("commerce/settings") }, ...l ? [l] : [], { label: n }]), /* @__PURE__ */ u("div", { className: "cm:grid cm:gap-6 cm:lg:grid-cols-[12rem_minmax(0,1fr)] cm:lg:items-start", children: [
+    /* @__PURE__ */ c(Me, { items: e, current: t, label: "Store settings" }),
     /* @__PURE__ */ u("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6", children: [
-      /* @__PURE__ */ c($e, { title: n, description: r, primary: o, back: l }),
+      /* @__PURE__ */ c(Le, { title: n, description: r, primary: o, back: l }),
       a
     ] })
   ] });
 }
-const me = {
+const de = {
   ok: "cm:bg-emerald-500/10 cm:text-emerald-700 cm:dark:text-emerald-400",
   success: "cm:bg-emerald-500/10 cm:text-emerald-700 cm:dark:text-emerald-400",
   warning: "cm:bg-amber-500/10 cm:text-amber-700 cm:dark:text-amber-400",
@@ -1188,74 +1206,78 @@ const me = {
   info: "cm:bg-sky-500/10 cm:text-sky-700 cm:dark:text-sky-400",
   neutral: "cm:bg-muted cm:text-muted-foreground"
 };
-function Oc({ tone: e = "neutral", children: t }) {
-  return /* @__PURE__ */ c("span", { className: O("cm:inline-flex cm:items-center cm:rounded-full cm:px-2 cm:py-0.5 cm:text-xs cm:font-medium", me[e] ?? me.neutral), children: t });
+function Uc({ tone: e = "neutral", children: t }) {
+  return /* @__PURE__ */ c("span", { className: O("cm:inline-flex cm:items-center cm:rounded-full cm:px-2 cm:py-0.5 cm:text-xs cm:font-medium", de[e] ?? de.neutral), children: t });
 }
-function Hc() {
-  Object.assign(G.components, { Chart: Ec, EmptyState: Lc, KpiCard: Mc, MoneyInput: Ce, PageHeader: $e, SchemaFormView: Rc, SectionNav: Ee, SettingsLayout: jc, StatusBadge: Oc });
+function zc() {
+  Object.assign(Q.components, { Chart: Pc, EmptyState: _c, KpiCard: Ic, MoneyInput: we, PageHeader: Le, SchemaFormView: Hc, SectionNav: Me, SettingsLayout: Vc, StatusBadge: Uc });
 }
-_e();
-Hc();
-Tc();
-lc();
+De();
+zc();
+Lc();
+dc();
 export {
-  ut as $,
-  qc as A,
-  Qc as B,
-  Ec as C,
-  Xc as D,
-  Lc as E,
-  mc as F,
-  cc as G,
-  Ze as H,
-  Ye as I,
-  fc as J,
-  Zc as K,
-  Qe as L,
-  Ce as M,
-  ot as N,
-  Ge as O,
-  $e as P,
-  Ke as Q,
+  bt as $,
+  Qc as A,
+  Zc as B,
+  Pc as C,
+  Jc as D,
+  _c as E,
+  uc as F,
+  sc as G,
+  cr as H,
+  rr as I,
+  tr as J,
+  sr as K,
+  nr as L,
+  we as M,
+  et as N,
+  Je as O,
+  Le as P,
+  yc as Q,
   P as R,
-  Oc as S,
-  Te as T,
-  ge as U,
-  St as V,
-  ht as W,
-  bc as X,
-  Y,
-  st as Z,
-  lt as _,
+  Uc as S,
+  Ee as T,
+  he as U,
+  Ye as V,
+  it as W,
+  vc as X,
+  Xe as Y,
+  Qe as Z,
+  wt as _,
   B as a,
-  gt as a0,
-  et as a1,
-  De as a2,
-  Ae as a3,
-  je as a4,
+  Z as a0,
+  at as a1,
+  dt as a2,
+  gt as a3,
+  ft as a4,
+  nt as a5,
+  Fe as a6,
+  Re as a7,
+  He as a8,
   c as b,
   A as c,
-  we as d,
-  G as e,
-  Mc as f,
-  Z as g,
-  Vc as h,
-  W as i,
+  ke as d,
+  Q as e,
+  Ic as f,
+  J as g,
+  Bc as h,
+  q as i,
   u as j,
-  Yc as k,
-  ee as l,
-  Rc as m,
-  X as n,
-  ke as o,
+  er as k,
+  te as l,
+  Hc as m,
+  Y as n,
+  $e as o,
   O as p,
-  jc as q,
-  J as r,
-  Bc as s,
-  zc as t,
-  oc as u,
-  Wc as v,
-  Uc as w,
-  Kc as x,
-  Gc as y,
-  Fe as z
+  Vc as q,
+  ee as r,
+  qc as s,
+  Wc as t,
+  ic as u,
+  Gc as v,
+  Kc as w,
+  Xc as x,
+  Yc as y,
+  je as z
 };

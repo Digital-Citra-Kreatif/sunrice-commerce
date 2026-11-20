@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fix: the weight and dimension unit settings now apply. The product editor shows and takes
+  weights and sizes in them (stored values stay grams and millimetres, so changing a unit converts
+  nothing), and the storefront compare table shows weights in the weight unit.
+
 - Tax rates: one rate can apply to several countries, and in Indonesia to several provinces and
   cities, chosen from searchable lists. It is saved as one row per place, and the form shows those
   rows as one rate again. The earlier `region` input still works.

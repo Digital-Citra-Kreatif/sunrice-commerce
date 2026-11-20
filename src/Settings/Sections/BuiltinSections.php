@@ -115,8 +115,10 @@ final class BuiltinSections
                 ['handle' => 'decimal', 'width' => 33, 'type' => 'select', 'label' => 'Decimal separator', 'config' => ['options' => self::options([',' => 'Comma', '.' => 'Dot'])]],
                 ['handle' => 'decimals', 'width' => 33, 'type' => 'number', 'label' => 'Decimals', 'required' => true, 'config' => ['min' => 0, 'max' => 3], 'validation' => ['integer']],
             ]]],
-            ['handle' => 'weight_unit', 'section' => 'Currency and units', 'width' => 50, 'type' => 'select', 'label' => 'Weight unit', 'config' => ['options' => self::options(['kg' => 'Kilograms', 'g' => 'Grams'])]],
-            ['handle' => 'dimension_unit', 'section' => 'Currency and units', 'width' => 50, 'type' => 'select', 'label' => 'Dimension unit', 'config' => ['options' => self::options(['cm' => 'Centimeters', 'm' => 'Meters', 'mm' => 'Millimeters'])]],
+            ['handle' => 'weight_unit', 'section' => 'Currency and units', 'width' => 50, 'type' => 'select', 'label' => 'Weight unit',
+                'instructions' => 'How weights are shown and typed. Saved weights are kept and show in the new unit; nothing needs converting.', 'config' => ['options' => self::options(['kg' => 'Kilograms', 'g' => 'Grams'])]],
+            ['handle' => 'dimension_unit', 'section' => 'Currency and units', 'width' => 50, 'type' => 'select', 'label' => 'Dimension unit',
+                'instructions' => 'How sizes are shown and typed. Saved sizes are kept and show in the new unit.', 'config' => ['options' => self::options(['cm' => 'Centimeters', 'm' => 'Meters', 'mm' => 'Millimeters'])]],
         ];
     }
 
