@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Checkout: **Who can check out** (`checkout.access`) replaces the verified-account, guest and
+  account switches with one choice: `guest`, `guest_verified` (new), `account` or
+  `verified_account`. With `guest_verified`, shoppers confirm their email with an emailed code and
+  check out as guests, with no account made unless they ask for one. **Accounts at checkout**
+  shows only for the guest choices. Existing stores keep their behaviour until the setting is
+  saved.
+
 - Loyalty: **Maximum points per order** (`loyalty.max_points`) caps what one order earns. The
   points page tells customers the cap.
 
