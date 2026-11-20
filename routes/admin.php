@@ -163,6 +163,8 @@ Route::prefix('commerce')->name('commerce.')->withoutMiddleware(SubstituteBindin
         Route::delete('settings/payments/{method}', [Admin\PaymentsSettingsController::class, 'destroyInstance'])->name('settings.payments.destroy');
         Route::get('settings/shipping', [Admin\ShippingController::class, 'index'])->name('settings.shipping');
         Route::post('settings/shipping/move', [Admin\ShippingController::class, 'move'])->name('settings.shipping.move');
+        Route::get('settings/shipping/couriers', [Admin\ShippingController::class, 'editCouriers'])->name('settings.shipping.couriers');
+        Route::put('settings/shipping/couriers', [Admin\ShippingController::class, 'updateCouriers'])->name('settings.shipping.couriers.update');
         Route::get('settings/shipping/zones/create', [Admin\ShippingController::class, 'createZone'])->name('settings.shipping.zones.create');
         Route::post('settings/shipping/zones', [Admin\ShippingController::class, 'storeZone'])->name('settings.shipping.zones.store');
         Route::get('settings/shipping/zones/{zone}/edit', [Admin\ShippingController::class, 'editZone'])->name('settings.shipping.zones.edit');

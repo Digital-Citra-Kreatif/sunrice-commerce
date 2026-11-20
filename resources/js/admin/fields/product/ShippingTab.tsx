@@ -1,4 +1,5 @@
-import { Grid, NumberInput, Row, Section } from './controls';
+import { Grid, Row, Section, UnitInput } from './controls';
+import { dimensionUnit, weightUnit } from '../../lib/units';
 import type { TabProps, Variant } from './types';
 
 /** Weight and dimensions (all variants at once for variable products; each can differ in its details). */
@@ -12,10 +13,10 @@ export function ShippingTab({ value, update, updateVariant, path }: TabProps) {
     return (
         <Section title="Package" description={value.type === 'variable' ? 'Applies to every variant; a variant can have its own weight under More.' : 'Used for shipping rates.'}>
             <Grid cols={4}>
-                <Row label="Weight (grams)" htmlFor={`${path}-weight`}><NumberInput id={`${path}-weight`} value={first.weight} onChange={(weight) => set({ weight })} /></Row>
-                <Row label="Length (mm)" htmlFor={`${path}-length`}><NumberInput id={`${path}-length`} value={first.length} onChange={(length) => set({ length })} /></Row>
-                <Row label="Width (mm)" htmlFor={`${path}-width`}><NumberInput id={`${path}-width`} value={first.width} onChange={(width) => set({ width })} /></Row>
-                <Row label="Height (mm)" htmlFor={`${path}-height`}><NumberInput id={`${path}-height`} value={first.height} onChange={(height) => set({ height })} /></Row>
+                <Row label={`Weight (${weightUnit()})`} htmlFor={`${path}-weight`}><UnitInput id={`${path}-weight`} unit={weightUnit()} value={first.weight} onChange={(weight) => set({ weight })} /></Row>
+                <Row label={`Length (${dimensionUnit()})`} htmlFor={`${path}-length`}><UnitInput id={`${path}-length`} unit={dimensionUnit()} value={first.length} onChange={(length) => set({ length })} /></Row>
+                <Row label={`Width (${dimensionUnit()})`} htmlFor={`${path}-width`}><UnitInput id={`${path}-width`} unit={dimensionUnit()} value={first.width} onChange={(width) => set({ width })} /></Row>
+                <Row label={`Height (${dimensionUnit()})`} htmlFor={`${path}-height`}><UnitInput id={`${path}-height`} unit={dimensionUnit()} value={first.height} onChange={(height) => set({ height })} /></Row>
             </Grid>
         </Section>
     );

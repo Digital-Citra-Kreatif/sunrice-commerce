@@ -95,7 +95,8 @@ class Loyalty implements CalculationStage, ReservesDiscounts
 
     /**
      * What an order earns: `loyalty.earn_percent` of its eligible lines after discounts, less the share
-     * paid with points, for an order of at least `loyalty.min_subtotal` by a customer with an account.
+     * paid with points, for an order of at least `loyalty.min_subtotal` by a customer with an account,
+     * at most `loyalty.max_points` (when set).
      */
     public function earnable(Order $order): int
     {
@@ -133,7 +134,10 @@ class Loyalty implements CalculationStage, ReservesDiscounts
             $base = intdiv($base * $order->total, max(1, $order->total + $paidWithPoints));
         }
 
-        return intdiv($base * $basisPoints, 10000);
+        $points = intdiv($base * $basisPoints, 10000);
+        $max = (int) $this->settings->get('loyalty.max_points', 0);
+
+        return $max > 0 ? min($points, $max) : $points;
     }
 
     /** Credits what a completed order earns, once (the order locked, so two completions can't both credit it). */

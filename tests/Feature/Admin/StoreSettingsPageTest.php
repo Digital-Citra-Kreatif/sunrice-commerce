@@ -103,3 +103,12 @@ it('lets staff choose any site page as the terms page, but no product', function
     $this->put('/admin/commerce/settings/checkout', ['values' => [...$section, 'terms_page' => $terms->entry_id]])->assertSessionHasNoErrors();
     expect(app(StoreSettings::class)->get('checkout.terms_page'))->toBe($terms->entry_id);
 });
+
+it('puts the default storefront button first in Catalog, as Add to cart until changed', function () {
+    actingAsUserWith(['commerce.settings.catalog']);
+    $this->get('/admin/commerce/settings/catalog')->assertInertia(fn ($page) => $page
+        ->where('form.fields.0.handle', 'default_purchase_mode')
+        ->where('form.values.default_purchase_mode', 'cart')
+        ->where('form.sections.0.title', null)
+        ->where('form.sections.0.fields', fn ($fields) => collect($fields)->first() === 'default_purchase_mode'));
+});

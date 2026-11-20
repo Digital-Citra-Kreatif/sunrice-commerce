@@ -13,10 +13,12 @@ use Sunrice\Cms\Models\Term;
 use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Catalog\ProductContentFields;
 use Sunrice\Commerce\Catalog\ProductDefaults;
+use Sunrice\Commerce\Checkout\VerifiedAccountCheckout;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Settings\SettingsRegistry;
 use Sunrice\Commerce\Settings\SettingsSection;
 use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Commerce\Support\Coordinates;
 use Sunrice\Commerce\Support\NumberFormat;
 
 /**
@@ -78,12 +80,17 @@ final class BuiltinSections
                 'instructions' => 'Order notifications go here; customers reply to it.'],
             ['handle' => 'phone', 'section' => 'Store', 'width' => 50, 'type' => 'text', 'label' => 'Phone', 'translatable' => false, 'config' => ['max' => 40]],
             ['handle' => 'tax_id', 'section' => 'Store', 'width' => 50, 'type' => 'text', 'label' => 'Tax number (NPWP)', 'translatable' => false, 'config' => ['max' => 40]],
-            ['handle' => 'address', 'section' => 'Address', 'type' => 'group', 'label' => 'Store address', 'instructions' => 'Printed on invoices; shipping origin.', 'config' => ['fields' => [
-                ['handle' => 'line1', 'type' => 'text', 'label' => 'Street address', 'translatable' => false, 'config' => ['max' => 190]],
-                ['handle' => 'line2', 'type' => 'text', 'label' => 'Building, floor (optional)', 'translatable' => false, 'config' => ['max' => 190]],
-                ['handle' => 'region', 'type' => 'commerce_region', 'label' => 'Region', 'config' => ['depth' => 'district']],
-                ['handle' => 'postal_code', 'width' => 50, 'type' => 'text', 'label' => 'Postal code', 'translatable' => false, 'config' => ['max' => 12]],
-            ]]],
+            ['handle' => 'address', 'section' => 'Address', 'type' => 'group', 'label' => 'Store address', 'instructions' => 'Printed on invoices and documents.', 'config' => ['fields' => self::addressFields()]],
+            // On unless switched off (also for apps whose published config predates it).
+            ['handle' => 'ship_from_store', 'section' => 'Address', 'type' => 'toggle', 'label' => 'Ship from the store address',
+                'instructions' => 'Off: orders ship from another address (a warehouse), set below.', 'config' => ['default' => true]],
+            ['handle' => 'origin', 'section' => 'Address', 'type' => 'group', 'label' => 'Shipping origin', 'instructions' => 'Where couriers pick up and shipping rates are worked out from.',
+                'condition' => ['field' => 'ship_from_store', 'operator' => 'equals', 'value' => false],
+                'config' => ['fields' => [
+                    ['handle' => 'name', 'width' => 50, 'type' => 'text', 'label' => 'Contact name (optional)', 'translatable' => false, 'config' => ['max' => 120]],
+                    ['handle' => 'phone', 'width' => 50, 'type' => 'text', 'label' => 'Contact phone (optional)', 'translatable' => false, 'config' => ['max' => 40]],
+                    ...self::addressFields(),
+                ]]],
             ['handle' => 'selling_mode', 'section' => 'Selling', 'type' => 'select', 'label' => 'Selling mode', 'required' => true, 'config' => ['options' => self::options([
                 'shop' => 'Online store: customers check out and pay',
                 'quote' => 'Quotation: customers request a quote, you send prices',
@@ -114,8 +121,10 @@ final class BuiltinSections
                 ['handle' => 'decimal', 'width' => 33, 'type' => 'select', 'label' => 'Decimal separator', 'config' => ['options' => self::options([',' => 'Comma', '.' => 'Dot'])]],
                 ['handle' => 'decimals', 'width' => 33, 'type' => 'number', 'label' => 'Decimals', 'required' => true, 'config' => ['min' => 0, 'max' => 3], 'validation' => ['integer']],
             ]]],
-            ['handle' => 'weight_unit', 'section' => 'Currency and units', 'width' => 50, 'type' => 'select', 'label' => 'Weight unit', 'config' => ['options' => self::options(['kg' => 'Kilograms', 'g' => 'Grams'])]],
-            ['handle' => 'dimension_unit', 'section' => 'Currency and units', 'width' => 50, 'type' => 'select', 'label' => 'Dimension unit', 'config' => ['options' => self::options(['cm' => 'Centimeters', 'm' => 'Meters', 'mm' => 'Millimeters'])]],
+            ['handle' => 'weight_unit', 'section' => 'Currency and units', 'width' => 50, 'type' => 'select', 'label' => 'Weight unit',
+                'instructions' => 'How weights are shown and typed. Saved weights are kept and show in the new unit; nothing needs converting.', 'config' => ['options' => self::options(['kg' => 'Kilograms', 'g' => 'Grams'])]],
+            ['handle' => 'dimension_unit', 'section' => 'Currency and units', 'width' => 50, 'type' => 'select', 'label' => 'Dimension unit',
+                'instructions' => 'How sizes are shown and typed. Saved sizes are kept and show in the new unit.', 'config' => ['options' => self::options(['cm' => 'Centimeters', 'm' => 'Meters', 'mm' => 'Millimeters'])]],
         ];
     }
 
@@ -130,13 +139,14 @@ final class BuiltinSections
         ]];
 
         return [
+            // "Add to cart" until changed (apps whose published config predates the default too); empty also means it.
+            ['handle' => 'default_purchase_mode', 'type' => 'select', 'label' => 'Default storefront button',
+                'instructions' => 'Category rules can override the store. Brand rules take priority over category rules. A product can override both.',
+                'config' => ['default' => 'cart', 'options' => self::options(ProductDefaults::MODES)]],
             ['handle' => 'price_visibility', 'type' => 'select', 'label' => 'Who sees prices', 'config' => ['options' => self::options([
                 'everyone' => 'Everyone', 'signed_in' => 'Signed-in customers', 'roles' => 'Customers with certain roles', 'nobody' => 'Nobody (prices on request)',
             ])]],
             ['handle' => 'price_visibility_roles', 'type' => 'select', 'label' => 'Roles that see prices', 'config' => ['options' => $roles, 'multiple' => true]],
-            ['handle' => 'default_purchase_mode', 'section' => 'Product button defaults', 'type' => 'select', 'label' => 'Default storefront button',
-                'instructions' => 'Category rules can override the store. Brand rules take priority over category rules. A product can override both.',
-                'config' => ['options' => self::options(ProductDefaults::MODES)]],
             ...array_map(fn (array $field) => [...$field, 'section' => 'Store product content'], ProductContentFields::defaults()),
             self::scopedDefaults('category', 'Category'),
             self::scopedDefaults('brand', 'Brand'),
@@ -194,18 +204,43 @@ final class BuiltinSections
         ];
     }
 
+    /**
+     * An address's fields: street, region, postal code and an optional map point.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected static function addressFields(): array
+    {
+        return [
+            ['handle' => 'line1', 'type' => 'text', 'label' => 'Street address', 'translatable' => false, 'config' => ['max' => 190]],
+            ['handle' => 'line2', 'type' => 'text', 'label' => 'Building, floor (optional)', 'translatable' => false, 'config' => ['max' => 190]],
+            ['handle' => 'region', 'type' => 'commerce_region', 'label' => 'Region', 'config' => ['depth' => 'district']],
+            ['handle' => 'postal_code', 'width' => 50, 'type' => 'text', 'label' => 'Postal code', 'translatable' => false, 'config' => ['max' => 12]],
+            ['handle' => 'coordinates', 'width' => 50, 'type' => 'text', 'label' => 'Map coordinates (optional)', 'translatable' => false,
+                'instructions' => 'Latitude, longitude, e.g. -6.2297, 106.8166. In Google Maps, right-click the spot and click the numbers to copy them.',
+                'config' => ['max' => 60, 'placeholder' => '-6.2297, 106.8166'], 'validation' => ['nullable', 'regex:'.Coordinates::PATTERN]],
+        ];
+    }
+
     /** @return array<int, array<string, mixed>> */
     protected static function checkout(): array
     {
         $resets = self::options(['never' => 'Never', 'yearly' => 'Every year', 'monthly' => 'Every month', 'daily' => 'Every day']);
 
         return [
-            ['handle' => 'require_verified_account', 'type' => 'toggle', 'label' => 'Require a verified account at checkout',
-                'instructions' => 'Requires the Accounts feature. Shoppers use an email code or their existing password. This takes priority over the guest and account settings below.'],
-            ['handle' => 'guest_checkout', 'type' => 'toggle', 'label' => 'Allow checkout without an account'],
-            ['handle' => 'create_account', 'type' => 'select', 'label' => 'Accounts at checkout', 'config' => ['options' => self::options([
-                'never' => "Don't offer", 'offer' => 'Offer to create one', 'always' => 'Always create one',
-            ])]],
+            ['handle' => 'access', 'type' => 'select', 'label' => 'Who can check out',
+                'instructions' => 'A confirmed email needs a working mail setup: shoppers get an eight-digit code by email.',
+                'config' => ['default' => app(VerifiedAccountCheckout::class)->mode(), 'options' => self::options([
+                    'guest' => 'Anyone, as a guest or signed in',
+                    'guest_verified' => 'Anyone, after confirming their email with a code (no account needed)',
+                    'account' => 'Only customers who sign in to an account',
+                    'verified_account' => 'Only verified accounts: the code signs in or creates an account for every buyer',
+                ])]],
+            ['handle' => 'create_account', 'type' => 'select', 'label' => 'Accounts at checkout', 'instructions' => 'For shoppers who aren\'t signed in.',
+                'condition' => ['match' => 'any', 'rules' => [['field' => 'access', 'operator' => 'equals', 'value' => 'guest'], ['field' => 'access', 'operator' => 'equals', 'value' => 'guest_verified']]],
+                'config' => ['options' => self::options([
+                    'never' => "Don't offer", 'offer' => 'Offer to create one', 'always' => 'Always create one',
+                ])]],
             ['handle' => 'require_phone', 'type' => 'toggle', 'label' => 'Require a phone number'],
             ['handle' => 'company_fields', 'type' => 'toggle', 'label' => 'Ask for a company name and tax number'],
             ['handle' => 'address_line2', 'type' => 'toggle', 'label' => 'Second address line'],
@@ -255,6 +290,7 @@ final class BuiltinSections
             ['handle' => 'include', 'type' => 'commerce_targets', 'label' => 'Only for', 'instructions' => 'Products, variants, categories or brands that earn points. Empty: every product.'],
             ['handle' => 'exclude', 'type' => 'commerce_targets', 'label' => 'Except'],
             ['handle' => 'min_subtotal', 'type' => 'commerce_money', 'label' => 'Minimum order', 'instructions' => 'Products after discounts. Empty: any order.'],
+            ['handle' => 'max_points', 'type' => 'commerce_money', 'label' => 'Maximum points per order', 'instructions' => 'The most one order earns (1 point is worth 1 of your currency). Empty: no limit.'],
             ['handle' => 'expiry_days', 'type' => 'number', 'label' => 'Points expire after (days)', 'instructions' => 'From when they are earned or given back. 0: never.',
                 'config' => ['min' => 0, 'max' => 3650], 'validation' => ['integer', 'min:0', 'max:3650']],
         ];

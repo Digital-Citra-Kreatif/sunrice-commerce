@@ -301,6 +301,8 @@ return [
             'logo' => null,
             'brand_color' => null,
             'address' => [],
+            'ship_from_store' => true,
+            'origin' => [],
             'tax_id' => null,
             'selling_mode' => 'shop',
             'pause_orders' => false,
@@ -327,7 +329,7 @@ return [
         'catalog' => [
             'price_visibility' => 'everyone',
             'price_visibility_roles' => [],
-            'default_purchase_mode' => 'default',
+            'default_purchase_mode' => 'cart',
             'specifications' => [],
             'faq' => [],
             'size_guide_visibility' => 'hide',

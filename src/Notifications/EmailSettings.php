@@ -55,6 +55,16 @@ class EmailSettings
         return $text === $lang ? '' : (string) $text;
     }
 
+    /** The default text of a part in a language, its placeholders (:number, …) as they are. */
+    public function defaultText(string $key, string $part, string $locale): string
+    {
+        $email = $this->emails->get($key);
+        $lang = ($email?->langPrefix() ?? 'commerce::emails.'.$key).'.'.$part;
+        $text = __($lang, [], $locale);
+
+        return is_string($text) && $text !== $lang ? $text : '';
+    }
+
     /** @return array<int, string> */
     public function attachments(string $key): array
     {
@@ -65,7 +75,7 @@ class EmailSettings
             return [];
         }
 
-        return array_values(array_intersect((array) ($stored ?? $email->defaultAttachments), $email->attachments));
+        return array_values(array_unique(array_intersect((array) ($stored ?? $email->defaultAttachments), $email->attachments)));
     }
 
     /** @return array<int, string> staff addresses: configured ones, or the store email */
