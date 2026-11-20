@@ -1,4 +1,4 @@
-import { i as F, d as A, e as B, j as c, b as e, P as E, F as H, c as M, a as l, S as L, K as P, f as U, E as S, C as V, g as W, h as Y } from "./main-D6k1d5P4.js";
+import { i as F, d as A, e as B, j as c, b as e, P as E, F as H, c as M, a as l, S as L, K as P, f as U, E as S, C as V, g as W, h as Y } from "./main-txcRj4Ln.js";
 const $ = { pending: "warning", on_hold: "warning", processing: "info", completed: "ok", cancelled: "error", refunded: "neutral", failed: "error" }, k = (m) => /* @__PURE__ */ new Date(`${m}T00:00:00`), I = (m) => k(m).toLocaleDateString(void 0, { day: "numeric", month: "short" }), X = new Intl.DateTimeFormat(void 0, { day: "numeric", month: "short", year: "numeric" }), R = (m, d) => X.formatRange(k(m), k(d));
 function G({ mode: m, setup: d, health: f, period: r, analytics: u, canReports: K, kpis: g, sales: v, topProducts: N, todo: x, widgets: y, recentOrders: s }) {
   const { Card: t, CardContent: n, CardHeader: o, CardTitle: i, CardDescription: T, Button: w } = M, { Link: h } = F;

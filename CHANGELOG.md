@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Settings → Emails: the customer and staff lists fold away (remembered per browser), say how many
+  of their emails are sent while folded, and can be expanded or collapsed together.
+
 - Checkout: **Who can check out** (`checkout.access`) replaces the verified-account, guest and
   account switches with one choice: `guest`, `guest_verified` (new), `account` or
   `verified_account`. With `guest_verified`, shoppers confirm their email with an emailed code and
