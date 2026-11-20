@@ -311,3 +311,44 @@ it('links staff emails to the order in the admin', function () {
         ->and((new StoreEmail('staff_payment_confirmation', $order))->data()['action']['url'] ?? null)->toBe(url("/admin/commerce/orders/{$order->id}"))
         ->and((new StoreEmail('staff_payment_confirmation'))->data()['action']['url'] ?? null)->toBe(url('/admin/commerce/confirmations'));
 });
+
+it('attaches the invoice to the order received email only while a transfer or other manual payment is awaited', function () {
+    $order = placeOrderFor($this->mug);
+    $attached = fn (Order $o): array => array_column((new StoreEmail('order_received', $o->fresh(), lang: 'id'))->toMail(null)->rawAttachments, 'name');
+
+    $order->forceFill(['payment_method' => 'bank_transfer', 'payment_status' => 'unpaid'])->save();
+    expect($attached($order))->toHaveCount(1)->and($attached($order)[0])->toEndWith('-invoice.pdf');
+    $order->forceFill(['payment_method' => 'cod'])->save();
+    expect($attached($order))->toBe([]);
+    $order->forceFill(['payment_method' => 'test_transfer'])->save();
+    expect($attached($order))->toBe([]);
+    $order->forceFill(['payment_method' => 'bank_transfer', 'payment_status' => 'paid'])->save();
+    expect($attached($order))->toBe([]);
+
+    // Both ticked: one invoice.
+    app(StoreSettings::class)->saveSection('emails', ['order_received' => ['attachments' => ['invoice', 'invoice_to_pay']]]);
+    $order->forceFill(['payment_status' => 'unpaid'])->save();
+    expect($attached($order))->toHaveCount(1);
+});
+
+it('shows the default texts with placeholders to insert, and keeps an unchanged default the default', function () {
+    actingAsUserWith(['commerce.settings.emails']);
+    $this->get('/admin/commerce/settings/emails/order_received')->assertInertia(fn ($p) => $p
+        ->where('form.values.subject.id', __('commerce::emails.order_received.subject', [], 'id'))
+        ->where('form.values.intro.en', 'We received your order :number.')
+        ->where('form.values.attachments', ['invoice_to_pay'])
+        ->where('form.fields', function ($fields) {
+            $subject = collect($fields)->firstWhere('handle', 'subject');
+
+            return collect($subject['fields'][0]['config']['tokens'])->pluck('value')->all() === [':number', ':name', ':store']
+                && collect($fields)->firstWhere('handle', 'copies')['type'] === 'commerce_choices';
+        }));
+
+    $this->put('/admin/commerce/settings/emails/order_received', ['values' => ['enabled' => true, 'copies' => ['Owner@example.com'],
+        'subject' => ['id' => __('commerce::emails.order_received.subject', [], 'id'), 'en' => 'Order :number is in']]])->assertRedirect();
+    expect(app(EmailSettings::class)->for('order_received')['subject'])->toBe(['id' => null, 'en' => 'Order :number is in'])
+        ->and(app(EmailSettings::class)->copies('order_received'))->toBe(['owner@example.com']);
+
+    // A staff email shows who gets it now: the shop managers until roles are set.
+    $this->get('/admin/commerce/settings/emails/staff_new_order')->assertInertia(fn ($p) => $p->where('form.values.roles', [CommerceRolesSeeder::SHOP_MANAGER]));
+});
