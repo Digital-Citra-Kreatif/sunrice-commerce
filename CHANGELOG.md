@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Courier presets can be managed in Settings → Shipping → Edit couriers: rename, change tracking
+  links, switch off, remove, reorder and add couriers. The presets in config and from
+  `Commerce::registerCourier()` are the starting list. `Couriers::all()` now includes `active`;
+  `Couriers::offered()` lists the ones switched on.
+
 - Payment method settings: countries, provinces, shipping method types and customer roles are now
   searchable multi-select dropdowns (new `commerce_choices` field type) that also accept values
   not in the list. Payment method and email settings pages link back to their list in the

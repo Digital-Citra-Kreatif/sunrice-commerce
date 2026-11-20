@@ -1,5 +1,5 @@
-import { i as m, d as f, u as p, a, j as n, b as r, P as g, c as x, S as c } from "./main-qm0WOjIH.js";
-import { D as b } from "./DataTable-BobDjl6b.js";
+import { i as m, d as f, u as p, a, j as n, b as r, P as g, c as x, S as c } from "./main-CS7XwpQj.js";
+import { D as b } from "./DataTable-O8Ciw4Wk.js";
 const C = { published: "ok", draft: "neutral", scheduled: "info", trashed: "error" };
 function P(t) {
   const { Button: l, DropdownMenu: s, DropdownMenuTrigger: i, DropdownMenuContent: o, DropdownMenuItem: u } = x, { Link: d } = m;
