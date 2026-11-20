@@ -122,6 +122,8 @@ A valid code signs in the existing account or creates a verified account. This c
 path can create an account even when the separate registration page is disabled. Returning
 shoppers can use their existing password. A shopper who signs in to an unverified account
 still needs to verify their email. Both paths preserve the cart and return to checkout.
+My Account also offers sign-in codes when the user model supports the package's
+[emailed-code sign-in](accounts.md#emailed-code), including for shoppers who have never set a password.
 
 The order uses the verified account's identity and email. **Track order** still provides
 single-order access for older guest orders. While this mode is enabled, signing in or

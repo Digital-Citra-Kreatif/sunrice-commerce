@@ -12,6 +12,7 @@ use Sunrice\Commerce\Checkout\Notifications\CheckoutCodeNotification;
 use Sunrice\Commerce\Customers\Actions\LinkGuestOrders;
 use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
+use Sunrice\Commerce\Customers\Notifications\CustomerLoginCode;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Workbench\App\Models\User;
@@ -93,6 +94,11 @@ it('creates an account only after proof, preserves the cart and places the order
         ->and($order->user_id)->toBe($user->id)
         ->and($order->wasPlacedAsGuest())->toBeFalse()
         ->and($user->refresh()->name)->toBe('Rina');
+
+    $this->post('/account/logout')->assertRedirect();
+    $this->get('/account/login')->assertOk()->assertSee('/account/login/code');
+    $this->post('/account/login/code', ['email' => $email])->assertRedirect('/account/code');
+    Notification::assertSentTo($user, CustomerLoginCode::class);
 });
 
 it('signs in to the existing account without linking older guest orders', function () {

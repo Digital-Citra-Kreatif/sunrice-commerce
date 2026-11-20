@@ -109,6 +109,8 @@ never). See [checkout.md](checkout.md).
 | Sign in with Google | `laravel/socialite` keys | `google_login` (off by default) |
 
 Messages never say whether an email has an account.
+Stores with [verified-account checkout](checkout.md#verified-account-checkout) enabled also
+offer codes here when the user model supports them.
 
 ### Password
 
