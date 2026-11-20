@@ -255,6 +255,7 @@ final class BuiltinSections
             ['handle' => 'include', 'type' => 'commerce_targets', 'label' => 'Only for', 'instructions' => 'Products, variants, categories or brands that earn points. Empty: every product.'],
             ['handle' => 'exclude', 'type' => 'commerce_targets', 'label' => 'Except'],
             ['handle' => 'min_subtotal', 'type' => 'commerce_money', 'label' => 'Minimum order', 'instructions' => 'Products after discounts. Empty: any order.'],
+            ['handle' => 'max_points', 'type' => 'commerce_money', 'label' => 'Maximum points per order', 'instructions' => 'The most one order earns (1 point is worth 1 of your currency). Empty: no limit.'],
             ['handle' => 'expiry_days', 'type' => 'number', 'label' => 'Points expire after (days)', 'instructions' => 'From when they are earned or given back. 0: never.',
                 'config' => ['min' => 0, 'max' => 3650], 'validation' => ['integer', 'min:0', 'max:3650']],
         ];

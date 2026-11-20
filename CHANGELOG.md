@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Loyalty: **Maximum points per order** (`loyalty.max_points`) caps what one order earns. The
+  points page tells customers the cap.
+
 - Payment method settings: countries, provinces, shipping method types and customer roles are now
   searchable multi-select dropdowns (new `commerce_choices` field type) that also accept values
   not in the list. Payment method and email settings pages link back to their list in the
