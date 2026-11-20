@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Store address: optional **Map coordinates** (pasted as "latitude, longitude"), and a separate
+  **Shipping origin** when **Ship from the store address** is off. Invoices keep the store address;
+  `ShippingOrigins::store()` returns the origin and `ShippingOrigins::storeAddress()` the store
+  address.
+
 - Payment method settings: countries, provinces, shipping method types and customer roles are now
   searchable multi-select dropdowns (new `commerce_choices` field type) that also accept values
   not in the list. Payment method and email settings pages link back to their list in the

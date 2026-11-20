@@ -301,6 +301,8 @@ return [
             'logo' => null,
             'brand_color' => null,
             'address' => [],
+            'ship_from_store' => true,
+            'origin' => [],
             'tax_id' => null,
             'selling_mode' => 'shop',
             'pause_orders' => false,
