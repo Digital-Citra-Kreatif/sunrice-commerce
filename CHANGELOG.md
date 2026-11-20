@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Loyalty: **Maximum points per order** (`loyalty.max_points`) caps what one order earns. The
+  points page tells customers the cap.
+
 - Courier presets can be managed in Settings → Shipping → Edit couriers: rename, change tracking
   links, switch off, remove, reorder and add couriers. The presets in config and from
   `Commerce::registerCourier()` are the starting list. `Couriers::all()` now includes `active`;

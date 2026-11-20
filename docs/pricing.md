@@ -309,6 +309,8 @@ Rp1 in rupiah).
   points. Shipping, fees and taxes don't earn, and neither does the part paid with points.
 - **Only for** / **Except**: products, variants, categories or brands that earn (empty: all).
 - **Minimum order**: products after discounts; smaller orders earn nothing.
+- **Maximum points per order**: the most one order earns (`loyalty.max_points`); empty: no limit.
+  A refund takes back its share of the points the order actually earned, after the cap.
 - **Points expire after (days)**: from when points are earned or given back; 0 (the default): never.
 
 A customer with an account earns when the order is **completed** (`OrderCompleted`), once, on
