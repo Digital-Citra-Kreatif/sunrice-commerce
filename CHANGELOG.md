@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Store address: optional **Map coordinates** (pasted as "latitude, longitude"), and a separate
+  **Shipping origin** when **Ship from the store address** is off. Invoices keep the store address;
+  `ShippingOrigins::store()` returns the origin and `ShippingOrigins::storeAddress()` the store
+  address.
+
 - Fix: the weight and dimension unit settings now apply. The product editor shows and takes
   weights and sizes in them (stored values stay grams and millimetres, so changing a unit converts
   nothing), and the storefront compare table shows weights in the weight unit.

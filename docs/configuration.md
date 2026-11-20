@@ -159,7 +159,7 @@ Each section is a page under Settings → Store with its own permission
 
 | Section | Keys |
 | --- | --- |
-| `general` (General) | `name`, `logo`, `brand_color`, `email`, `phone`, `tax_id`, `address` (`line1`, `line2`, `region`, `postal_code`), `selling_mode` (`shop`, `quote`, `whatsapp`, `catalog`), `pause_orders`, `pause_message`, `whatsapp` (`numbers`, `rotation`, `product_message`, `order_message`), `currency` (`code`, `symbol`, `position`, `space`, `thousands`, `decimal`, `decimals`), `weight_unit`, `dimension_unit` |
+| `general` (General) | `name`, `logo`, `brand_color`, `email`, `phone`, `tax_id`, `address` (`line1`, `line2`, `region`, `postal_code`, `coordinates`), `ship_from_store`, `origin` (the same, with `name` and `phone`), `selling_mode` (`shop`, `quote`, `whatsapp`, `catalog`), `pause_orders`, `pause_message`, `whatsapp` (`numbers`, `rotation`, `product_message`, `order_message`), `currency` (`code`, `symbol`, `position`, `space`, `thousands`, `decimal`, `decimals`), `weight_unit`, `dimension_unit` |
 
 Weights are always stored in grams and sizes in millimetres. `weight_unit` (`g`, `kg`) and
 `dimension_unit` (`mm`, `cm`, `m`) only set how they are shown and typed: in the product editor

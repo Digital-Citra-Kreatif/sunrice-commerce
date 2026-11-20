@@ -18,6 +18,7 @@ use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Settings\SettingsRegistry;
 use Sunrice\Commerce\Settings\SettingsSection;
 use Sunrice\Commerce\Settings\StoreSettings;
+use Sunrice\Commerce\Support\Coordinates;
 use Sunrice\Commerce\Support\NumberFormat;
 
 /**
@@ -79,12 +80,17 @@ final class BuiltinSections
                 'instructions' => 'Order notifications go here; customers reply to it.'],
             ['handle' => 'phone', 'section' => 'Store', 'width' => 50, 'type' => 'text', 'label' => 'Phone', 'translatable' => false, 'config' => ['max' => 40]],
             ['handle' => 'tax_id', 'section' => 'Store', 'width' => 50, 'type' => 'text', 'label' => 'Tax number (NPWP)', 'translatable' => false, 'config' => ['max' => 40]],
-            ['handle' => 'address', 'section' => 'Address', 'type' => 'group', 'label' => 'Store address', 'instructions' => 'Printed on invoices; shipping origin.', 'config' => ['fields' => [
-                ['handle' => 'line1', 'type' => 'text', 'label' => 'Street address', 'translatable' => false, 'config' => ['max' => 190]],
-                ['handle' => 'line2', 'type' => 'text', 'label' => 'Building, floor (optional)', 'translatable' => false, 'config' => ['max' => 190]],
-                ['handle' => 'region', 'type' => 'commerce_region', 'label' => 'Region', 'config' => ['depth' => 'district']],
-                ['handle' => 'postal_code', 'width' => 50, 'type' => 'text', 'label' => 'Postal code', 'translatable' => false, 'config' => ['max' => 12]],
-            ]]],
+            ['handle' => 'address', 'section' => 'Address', 'type' => 'group', 'label' => 'Store address', 'instructions' => 'Printed on invoices and documents.', 'config' => ['fields' => self::addressFields()]],
+            // On unless switched off (also for apps whose published config predates it).
+            ['handle' => 'ship_from_store', 'section' => 'Address', 'type' => 'toggle', 'label' => 'Ship from the store address',
+                'instructions' => 'Off: orders ship from another address (a warehouse), set below.', 'config' => ['default' => true]],
+            ['handle' => 'origin', 'section' => 'Address', 'type' => 'group', 'label' => 'Shipping origin', 'instructions' => 'Where couriers pick up and shipping rates are worked out from.',
+                'condition' => ['field' => 'ship_from_store', 'operator' => 'equals', 'value' => false],
+                'config' => ['fields' => [
+                    ['handle' => 'name', 'width' => 50, 'type' => 'text', 'label' => 'Contact name (optional)', 'translatable' => false, 'config' => ['max' => 120]],
+                    ['handle' => 'phone', 'width' => 50, 'type' => 'text', 'label' => 'Contact phone (optional)', 'translatable' => false, 'config' => ['max' => 40]],
+                    ...self::addressFields(),
+                ]]],
             ['handle' => 'selling_mode', 'section' => 'Selling', 'type' => 'select', 'label' => 'Selling mode', 'required' => true, 'config' => ['options' => self::options([
                 'shop' => 'Online store: customers check out and pay',
                 'quote' => 'Quotation: customers request a quote, you send prices',
@@ -194,6 +200,24 @@ final class BuiltinSections
                     'config' => ['options' => self::options(array_diff_key(ProductDefaults::MODES, ['default' => true]))]],
                 ...ProductContentFields::defaults(scoped: true),
             ]],
+        ];
+    }
+
+    /**
+     * An address's fields: street, region, postal code and an optional map point.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected static function addressFields(): array
+    {
+        return [
+            ['handle' => 'line1', 'type' => 'text', 'label' => 'Street address', 'translatable' => false, 'config' => ['max' => 190]],
+            ['handle' => 'line2', 'type' => 'text', 'label' => 'Building, floor (optional)', 'translatable' => false, 'config' => ['max' => 190]],
+            ['handle' => 'region', 'type' => 'commerce_region', 'label' => 'Region', 'config' => ['depth' => 'district']],
+            ['handle' => 'postal_code', 'width' => 50, 'type' => 'text', 'label' => 'Postal code', 'translatable' => false, 'config' => ['max' => 12]],
+            ['handle' => 'coordinates', 'width' => 50, 'type' => 'text', 'label' => 'Map coordinates (optional)', 'translatable' => false,
+                'instructions' => 'Latitude, longitude, e.g. -6.2297, 106.8166. In Google Maps, right-click the spot and click the numbers to copy them.',
+                'config' => ['max' => 60, 'placeholder' => '-6.2297, 106.8166'], 'validation' => ['nullable', 'regex:'.Coordinates::PATTERN]],
         ];
     }
 

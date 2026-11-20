@@ -20,7 +20,11 @@ carrier's live rates from an extension). Shipments record what was sent and how 
 ## Setting up
 
 1. Switch on the Shipping module (`shipping`, Settings → Store → Features).
-2. Set the store address in Settings → Store → General: it is the shipping origin.
+2. Set the store address in Settings → Store → General: it is the shipping origin. If orders
+   ship from somewhere else (a warehouse), switch off **Ship from the store address** and fill in
+   **Shipping origin** (`general.origin`). Invoices keep the store address. Either address takes
+   optional **Map coordinates** ("-6.2297, 106.8166", as Google Maps copies them), which become the
+   address's `latitude` and `longitude` for couriers that price by distance.
 3. Import regions if you ship within Indonesia (`php artisan commerce:regions:import`, see
    [regions.md](regions.md)).
 4. In Settings → Store → Shipping (`commerce.settings.shipping`) add zones, then methods to each
