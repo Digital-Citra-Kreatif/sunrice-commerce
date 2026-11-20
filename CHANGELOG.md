@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Fix: the header cart count counted lines that can't be bought now (for example after the store's
+  button changed from Add to cart), so it showed items while the cart page was empty. It now counts
+  what the cart shows; those lines stay saved for when they can be bought again. The cart notice
+  names the product (":Product can't be bought online right now.").
+
 - Settings → Catalog: **Default storefront button** moved to the top card and defaults to **Add to
   cart** (`catalog.default_purchase_mode` = `cart`, the same behaviour as the earlier `default`).
 
