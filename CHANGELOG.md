@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Fix: the header cart count counted lines that can't be bought now (for example after the store's
+  button changed from Add to cart), so it showed items while the cart page was empty. It now counts
+  what the cart shows; those lines stay saved for when they can be bought again. The cart notice
+  names the product (":Product can't be bought online right now.").
+
 - Payment method settings: countries, provinces, shipping method types and customer roles are now
   searchable multi-select dropdowns (new `commerce_choices` field type) that also accept values
   not in the list. Payment method and email settings pages link back to their list in the

@@ -32,6 +32,9 @@ final class Availability
         }
         $key = $this->reason === 'out_of_stock' && ($this->details['available'] ?? 0) > 0 ? 'not_enough_stock' : $this->reason;
 
+        // Without a name (a quantity change): "this product".
+        $product = $product !== '' ? $product : __('commerce::storefront.availability.this_product');
+
         return __('commerce::storefront.availability.'.$key, ['product' => $product, 'count' => $this->details['available'] ?? 0]);
     }
 }

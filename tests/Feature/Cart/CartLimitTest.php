@@ -13,7 +13,9 @@ use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
+use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\Layout;
+use Sunrice\Commerce\View\Components\MiniCart;
 use Workbench\App\Models\User;
 
 beforeEach(function () {
@@ -101,4 +103,26 @@ it('lists the first lines in the drawer and the checkout summary, the rest behin
     $summary = view(Layout::view('partials.checkout-summary'), ['cart' => $view, 'state' => $view->state])->render();
     expect($summary)->toContain('<details class="commerce-summary__more"><summary>dan 3 lainnya</summary>')
         ->and(substr_count($summary, 'commerce-summary__qty'))->toBe(5);
+});
+
+it('counts in the header only what can be bought, and keeps the rest for when it can again', function () {
+    $cart = cartWith([[$this->variants[0], 2], [$this->variants[1], 1]]);
+    // The header's count for this shopper (their cart cookie on the request).
+    $count = function () use ($cart): int {
+        app()->forgetScopedInstances();
+        request()->cookies->set((string) config('commerce.cart.cookie', 'commerce_cart'), $cart->token);
+
+        return (new MiniCart)->count;
+    };
+    expect($count())->toBe(3);
+
+    // The store's button is no longer Add to cart: nothing to buy, nothing counted, the lines kept.
+    app(StoreSettings::class)->saveSection('catalog', ['default_purchase_mode' => 'inquiry']);
+    expect($count())->toBe(0)
+        ->and($cart->items()->count())->toBe(2)
+        ->and(collect(CartView::for($cart->fresh())->state->notices)->pluck('message')->all())
+        ->toContain(__('commerce::storefront.availability.purchase_mode', ['product' => 'Mug']));
+
+    app(StoreSettings::class)->saveSection('catalog', ['default_purchase_mode' => 'cart']);
+    expect($count())->toBe(3);
 });

@@ -7,6 +7,7 @@ namespace Sunrice\Commerce\View\Components;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 use Sunrice\Commerce\Cart\CartManager;
+use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Storefront\Layout;
 
 /**
@@ -20,7 +21,9 @@ class MiniCart extends Component
     public function __construct()
     {
         $cart = commerce_feature('cart') ? app(CartManager::class)->current() : null;
-        $this->count = $cart === null ? 0 : (int) $cart->items()->sum('quantity');
+        // What the cart page and drawer show: lines that can't be bought now (out of stock, a product
+        // whose button is no longer Add to cart…) stay saved but don't count. An empty cart skips pricing.
+        $this->count = $cart === null || $cart->items()->doesntExist() ? 0 : CartView::for($cart)->count();
     }
 
     public function shouldRender(): bool
