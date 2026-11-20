@@ -20,6 +20,7 @@ use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
+use Sunrice\Commerce\Checkout\Actions\ResolveCheckoutSession;
 use Sunrice\Commerce\Checkout\CheckoutChanged;
 use Sunrice\Commerce\Checkout\CheckoutData;
 use Sunrice\Commerce\Checkout\CheckoutFields;
@@ -32,6 +33,7 @@ use Sunrice\Commerce\Checkout\VerifiedAccountCheckout;
 use Sunrice\Commerce\Customers\Actions\SaveAddress;
 use Sunrice\Commerce\Customers\Models\Address;
 use Sunrice\Commerce\Customers\Models\Customer;
+use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\OrderAccess;
 use Sunrice\Commerce\Payments\Contracts\PaymentMethod;
 use Sunrice\Commerce\Payments\PaymentContext;
@@ -73,6 +75,33 @@ class CheckoutController
     public function show(Request $request): View|RedirectResponse
     {
         $cart = $this->carts()->current();
+        $sessions = app(ResolveCheckoutSession::class);
+        $key = $request->session()->get(ResolveCheckoutSession::SESSION_KEY);
+        $previous = is_string($key) ? Order::withTrashed()->where('order_key', $key)->first() : null;
+        if ($previous !== null && ! app(OrderAccess::class)->allows($request, $previous)) {
+            $previous = null;
+        }
+        $draft = $previous ?? ($cart !== null ? $sessions->draft($cart) : null);
+        if ($draft !== null && $draft->user_id !== null && ! app(OrderAccess::class)->allows($request, $draft)) {
+            return redirect(StorefrontRoutes::url('commerce.account.login'));
+        }
+        if ($draft !== null) {
+            try {
+                $placed = $draft->type === ResolveCheckoutSession::TYPE ? $sessions->handle($draft) : $draft;
+            } catch (CheckoutRefused) {
+                return view(Layout::view('checkout-payment-check'), ['seoTitle' => __('commerce::checkout.title')]);
+            }
+            $request->session()->forget(ResolveCheckoutSession::SESSION_KEY);
+            if ($placed !== null) {
+                if ($cart === null || $cart->id === (int) $placed->meta('checkout_cart_id')) {
+                    $this->carts()->forget();
+                }
+
+                return redirect($placed->url());
+            }
+        } elseif ($key !== null) {
+            $request->session()->forget(ResolveCheckoutSession::SESSION_KEY);
+        }
         if ($cart === null || $cart->items()->doesntExist()) {
             return redirect(StorefrontRoutes::url('commerce.cart'))->with('commerce.error', __('commerce::checkout.errors.empty'));
         }
@@ -110,6 +139,9 @@ class CheckoutController
         if ($cart === null) {
             return redirect(StorefrontRoutes::url('commerce.cart'));
         }
+        if ($this->checkoutSessionOutstanding($request, $cart)) {
+            return redirect(StorefrontRoutes::url('commerce.checkout'));
+        }
         $data = $this->postedData($request, $cart, fullForm: true);
         if ($request->input('action') === 'use_saved_address') {
             $user = commerce_customer();
@@ -144,9 +176,13 @@ class CheckoutController
             return redirect(StorefrontRoutes::url('commerce.checkout'))->withErrors($e->errors())
                 ->withInput($request->except(['password', $captcha->field()]));
         }
-        $this->carts()->forget();
         if ($guestCheckout) {
             app(OrderAccess::class)->grantGuest($request, $placed->order);
+        }
+        if ($placed->order->type === ResolveCheckoutSession::TYPE) {
+            $request->session()->put(ResolveCheckoutSession::SESSION_KEY, $placed->order->order_key);
+        } else {
+            $this->carts()->forget();
         }
 
         return redirect($placed->response->url)->with('commerce.success', $placed->response->message);
@@ -157,6 +193,9 @@ class CheckoutController
     {
         $cart = $this->carts()->current();
         abort_if($cart === null, 404);
+        if ($this->checkoutSessionOutstanding($request, $cart)) {
+            return response()->json(['message' => __('commerce::checkout.errors.payment_status')], 409);
+        }
         $data = $this->postedData($request, $cart);
         $address = null;
         if ($request->input('action') === 'apply_address' && $request->boolean('save_address')) {
@@ -183,6 +222,10 @@ class CheckoutController
                 : redirect(StorefrontRoutes::url('commerce.cart'));
         }
 
+        if ($this->checkoutSessionOutstanding($request, $cart)) {
+            return $request->expectsJson() ? response()->json(['message' => __('commerce::checkout.errors.payment_status')], 409)
+                : redirect(StorefrontRoutes::url('commerce.checkout'));
+        }
         $data = $this->postedData($request, $cart, fullForm: true);
         $update->handle($cart, $data->toArray());
         $removing = $request->has('remove_voucher');
@@ -208,6 +251,12 @@ class CheckoutController
 
         return $request->expectsJson() ? $this->checkoutResponse($cart, $data, $feedback)
             : redirect(StorefrontRoutes::url('commerce.checkout').'#checkout-vouchers')->with($feedback);
+    }
+
+    private function checkoutSessionOutstanding(Request $request, Cart $cart): bool
+    {
+        return $request->session()->has(ResolveCheckoutSession::SESSION_KEY)
+            || app(ResolveCheckoutSession::class)->draft($cart) !== null;
     }
 
     /** @param  array<string, string>  $voucherFeedback */

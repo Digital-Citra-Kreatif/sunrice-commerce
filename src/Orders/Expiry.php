@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Orders;
 
+use Sunrice\Commerce\Checkout\Actions\ResolveCheckoutSession;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Actions\RecordPaymentResult;
+use Sunrice\Commerce\Payments\Contracts\StartsCheckoutSession;
 use Sunrice\Commerce\Payments\Contracts\SupportsStatusCheck;
 use Sunrice\Commerce\Payments\Models\Payment;
 use Sunrice\Commerce\Payments\PaymentManager;
@@ -28,7 +30,7 @@ class Expiry
     public function payments(): int
     {
         $count = 0;
-        Payment::query()->whereIn('status', ['pending', 'failed'])->whereNotNull('expires_at')->where('expires_at', '<=', now())
+        Payment::query()->whereHas('order', fn ($order) => $order->withTrashed()->where('type', '!=', ResolveCheckoutSession::TYPE))->whereIn('status', ['pending', 'failed'])->whereNotNull('expires_at')->where('expires_at', '<=', now())
             ->orderBy('id')->limit(200)->get()
             ->each(function (Payment $payment) use (&$count): void {
                 // One payment that can't expire mustn't hold up the others (it'd come first again every minute).
@@ -46,6 +48,17 @@ class Expiry
     protected function expire(Payment $payment): bool
     {
         $method = app(PaymentManager::class)->get($payment->method);
+        if ($method instanceof StartsCheckoutSession && ($payment->meta['checkout_session'] ?? false)) {
+            $status = $method->checkoutStatus($payment);
+            if ($status === null || in_array($status->status, ['pending', 'awaiting_confirmation'], true)) {
+                return false;
+            }
+            if ($status->status === 'paid') {
+                app(RecordPaymentResult::class)->handle($payment, $status, Actor::gateway($payment->method));
+
+                return false;
+            }
+        }
         if ($method instanceof SupportsStatusCheck && ! ($payment->meta['checked_before_expiry'] ?? false)) {
             $payment->forceFill(['meta' => [...(array) $payment->meta, 'checked_before_expiry' => true]])->save();
             try {

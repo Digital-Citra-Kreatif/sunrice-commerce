@@ -226,6 +226,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         }
         Event::listen(Orders\Events\OrderPaid::class, Orders\Listeners\RecordSalesCount::class);
         Event::listen(Orders\Events\OrderRefunded::class, Orders\Listeners\RecordSalesCount::class);
+        $this->app->make(Commerce::class)->onTick('checkout session expiry', fn () => $this->app->make(Checkout\Actions\ResolveCheckoutSession::class)->expire());
         $this->app->make(Commerce::class)->onTick('order expiry', fn () => (new Orders\Expiry)());
         $this->app->make(Commerce::class)->onTick('release retries', fn () => (new Orders\ReleaseRetries)());
         $this->app->make(Commerce::class)->onTick('confirmation reminders', fn () => commerce_feature('manual_payments') ? (new Payments\ConfirmationReminders)() : 0);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Admin\Setup;
 
 use Illuminate\Support\Facades\DB;
+use Sunrice\Commerce\Checkout\Actions\ResolveCheckoutSession;
 use Sunrice\Commerce\Features\Features;
 use Sunrice\Commerce\Payments\PaymentManager;
 use Sunrice\Commerce\Payments\PaymentMethodBase;
@@ -62,7 +63,7 @@ class SetupChecklist
             fn () => filled($settings()->get('checkout.terms_page')),
             feature: 'checkout', position: 60, description: 'Customers agree to it at checkout. Sample legal pages were added to Pages.'));
         $checklist->register(new SetupStep('test_order', 'Place a test order', '/',
-            fn () => DB::table('commerce_orders')->where('channel', 'storefront')->exists(),
+            fn () => DB::table('commerce_orders')->where('channel', 'storefront')->where('type', '!=', ResolveCheckoutSession::TYPE)->exists(),
             feature: 'checkout', position: 70, description: 'Go through checkout once as a customer would.'));
     }
 }

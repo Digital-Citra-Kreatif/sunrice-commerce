@@ -83,7 +83,9 @@ return [
         'quote' => 'Minta penawaran',
         'whatsapp' => 'Pesan lewat WhatsApp',
     ],
+    'retry_payment_status' => 'Periksa status pembayaran lagi',
     'errors' => [
+        'payment_status' => 'Status pembayaran belum dapat dipastikan. Coba periksa kembali sebelum mengubah checkout Anda.',
         'empty' => 'Keranjang Anda kosong.',
         'sign_in' => 'Silakan masuk untuk checkout.',
         'minimum' => 'Minimal pesanan :amount.',

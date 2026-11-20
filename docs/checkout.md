@@ -19,6 +19,19 @@ when the customer places the order; nothing the browser sends is trusted for pri
 - [Rate limits and spam protection](#rate-limits-and-spam-protection)
 - [Extra fields and custom completions](#extra-fields-and-custom-completions)
 
+## Returning from hosted payment
+
+For a gateway that supports checkout sessions, the store saves the checkout and temporarily reserves its
+stock and discounts before opening the payment page. The cart stays active. The store assigns an
+order number and sends its usual order notifications when the gateway confirms that payment has started.
+
+If the shopper goes back before starting payment, the store cancels the old payment session and
+reopens checkout with the same cart, addresses, shipping choice, vouchers, and payment method.
+Checkout recalculates availability and totals as usual before submission. If the gateway has already
+issued a payment code, started card verification, or received payment, the shopper goes to the order
+page with the original totals. If the gateway is temporarily unavailable, the store offers a retry
+while it confirms the outcome.
+
 ## Selling modes and how checkout ends
 
 Settings → Store → General → **Selling mode** (`general.selling_mode`) decides what the checkout
