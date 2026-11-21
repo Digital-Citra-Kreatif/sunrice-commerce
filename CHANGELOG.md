@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Tests: `phpunit.xml` raises PHP's memory limit to 1G, so `composer test` runs the whole suite
+  without `-d memory_limit`, and `pest --parallel` is reliable: the template publishing tests write
+  into an app folder of their own (`TestCase::isolateAppFolder()`).
+
 - Vouchers: **Only with payment methods** and **Only with shipping methods** are searchable
   multi-selects instead of comma-separated text (comma-separated input is still read).
   `commerce_choices` gains the `payment_methods` source.

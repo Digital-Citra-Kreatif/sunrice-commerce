@@ -15,6 +15,7 @@
 - Do not implement anything listed under "Out of scope for v1" in `SPEC.md`.
 - Update `docs/` and `CHANGELOG.md` when adding developer-facing API.
 - Do not commit `vendor/`, `node_modules/`, or `.env`. Do commit compiled admin assets in `dist/`.
+- Tests run in parallel workers that share testbench's app folder: a test that writes into `resources/` or `public/` (publishing templates…) isolates itself with `TestCase::isolateAppFolder()` in `beforeAll` and `removeIsolatedAppFolder()` in `afterAll`.
 
 ## Conventions
 
@@ -27,7 +28,7 @@
 ## Commands
 
 ```bash
-composer test      # Pest
+composer test      # Pest (vendor/bin/pest --parallel runs it across processes)
 composer lint      # Pint (test mode)
 composer format    # Pint (fix)
 composer analyse   # Larastan
