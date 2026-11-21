@@ -298,6 +298,14 @@ return [
         'not_found_text' => 'The page you are looking for may have moved or no longer exists.',
         'back_home' => 'Back to the home page',
     ],
+    'gift_card' => [
+        'title' => 'Send it to someone (optional)',
+        'intro' => 'We\'ll email the code to them once your order is paid. You get a copy too.',
+        'name' => 'Recipient\'s name',
+        'email' => 'Recipient\'s email',
+        'message' => 'Message',
+        'for' => 'For :who',
+    ],
     'quote' => [
         'to_be_quoted' => 'To be quoted',
     ],

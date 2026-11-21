@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Loyalty\Models\GiftCard;
+use Sunrice\Commerce\Notifications\Notifier;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\Models\OrderItem;
 use Sunrice\Commerce\Settings\StoreSettings;
@@ -77,13 +78,38 @@ class GiftCards
                     continue;
                 }
                 $value = max((int) $item->regular_unit_price, (int) $item->unit_price);
+                $recipient = (array) ($item->meta['line']['gift_card'] ?? []);
                 for ($i = 0; $i < $item->quantity; $i++) {
-                    $new[] = $this->make($value, $locked, $item);
+                    $card = $this->make($value, $locked, $item);
+                    if (is_string($recipient['email'] ?? null)) {
+                        $card->forceFill(['recipient_name' => $recipient['name'] ?? null, 'recipient_email' => $recipient['email'], 'message' => $recipient['message'] ?? null])->save();
+                    }
+                    $new[] = $card;
                 }
             }
 
             return $new;
         });
+    }
+
+    /**
+     * Email a gift card to its recipient ("gift_card_received": the code, the buyer's name and message).
+     * False when it has no recipient, or isn't redeemable any more.
+     */
+    public function send(GiftCard $card): bool
+    {
+        if ($card->recipient_email === null || ! $card->redeemable()) {
+            return false;
+        }
+        $order = $card->order;
+        $sent = app(Notifier::class)->sendTo('gift_card_received', $card->recipient_email, (string) ($order->locale ?? ''), null, [
+            'gift_card' => $card, 'from' => $order?->customer_name ?: $order?->email,
+        ]);
+        if ($sent > 0) {
+            $card->forceFill(['sent_at' => now()])->save();
+        }
+
+        return $sent > 0;
     }
 
     /** The order was cancelled or refunded: its gift cards not redeemed yet stop working. */

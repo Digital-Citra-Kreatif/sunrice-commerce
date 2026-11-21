@@ -283,6 +283,8 @@ class CommerceServiceProvider extends PackageServiceProvider
         Event::listen(Orders\Events\OrderCompleted::class, Loyalty\Listeners\EarnPoints::class);
         Event::listen(Orders\Events\OrderRefunded::class, Loyalty\Listeners\RevokePoints::class);
         Event::listen(Orders\Events\OrderPaid::class, Loyalty\Listeners\IssueGiftCards::class);
+        // A gift card line says who it is for, and the message, wherever the line shows.
+        $this->app->make(Cart\LineDetails::class)->register(fn (array $meta): array => Loyalty\GiftCardRecipient::describe($meta));
         Event::listen([Orders\Events\OrderCancelled::class, Orders\Events\OrderRefunded::class], Loyalty\Listeners\DisableGiftCards::class);
         Event::listen(Payments\Events\PaymentRecorded::class, Loyalty\Listeners\RevokePoints::class);
         Event::listen(array_keys(Webhooks\Listeners\SendWebhooks::MAP), Webhooks\Listeners\SendWebhooks::class);

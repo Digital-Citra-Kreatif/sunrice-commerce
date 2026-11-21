@@ -368,6 +368,14 @@ reward purchases keeps **Points earned (%)** at 0 and uses points only as a wall
   customer gets the **Gift card codes** email (`gift_card_issued`) with a link to My Account →
   Points. Buying a gift card earns no points. An order refunded in full (or cancelled) disables its
   codes not redeemed yet.
+- **Sending it to someone.** A gift card's product form has optional **Recipient's name**, **email**
+  and **Message** (up to 300 characters; `gift_card[name|email|message]`). They become the cart
+  line's meta `gift_card` (`Loyalty\GiftCardRecipient`), so cards for two people are two lines, and
+  the line shows "For Ana (ana@example.com)" and the message in the cart, at checkout, on the order
+  and in emails. When the order is paid, each of its codes is also emailed to the recipient (**Gift
+  card for a recipient**, `gift_card_received`: the code, the buyer's name and the message); the
+  buyer's email lists every code and who it went to. Staff can email a code to its recipient again
+  from its page while it isn't redeemed (`GiftCards::send()`).
 - **Making codes.** Staff with `commerce.gift-cards.manage` see every code in Shop → Promotions →
   Gift cards (who redeemed it, from which order), make up to 100 at a time (value, redeem-by date,
   note) and disable or re-enable a code not redeemed yet.

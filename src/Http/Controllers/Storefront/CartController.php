@@ -21,6 +21,7 @@ use Sunrice\Commerce\Cart\VariantFromOptions;
 use Sunrice\Commerce\Catalog\LiveEntries;
 use Sunrice\Commerce\Checkout\Actions\ResolveCheckoutSession;
 use Sunrice\Commerce\Loyalty\Actions\UsePoints;
+use Sunrice\Commerce\Loyalty\GiftCardRecipient;
 use Sunrice\Commerce\Storefront\Layout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 
@@ -49,7 +50,7 @@ class CartController
             return back()->with('commerce.error', __('commerce::storefront.product.unavailable'));
         }
         try {
-            $item = $add->handle($variant, (int) ($data['quantity'] ?? 1));
+            $item = $add->handle($variant, (int) ($data['quantity'] ?? 1), GiftCardRecipient::meta($request, $variant));
         } catch (CartException $e) {
             return back()->with('commerce.error', $e->getMessage());
         }

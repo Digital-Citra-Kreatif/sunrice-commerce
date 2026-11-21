@@ -23,6 +23,10 @@ use Sunrice\Commerce\Orders\Models\Order;
  * @property int|null $redeemed_by customer
  * @property Carbon|null $redeemed_at
  * @property string|null $note
+ * @property string|null $recipient_name
+ * @property string|null $recipient_email emailed the code when the order is paid
+ * @property string|null $message the buyer's, for the recipient
+ * @property Carbon|null $sent_at
  * @property int|null $user_id staff who made it
  * @property Carbon|null $created_at
  * @property-read Order|null $order
@@ -40,7 +44,7 @@ class GiftCard extends Model
 
     protected $guarded = [];
 
-    protected $casts = ['value' => 'integer', 'expires_at' => 'datetime', 'redeemed_at' => 'datetime'];
+    protected $casts = ['value' => 'integer', 'expires_at' => 'datetime', 'redeemed_at' => 'datetime', 'sent_at' => 'datetime'];
 
     /** @return BelongsTo<Order, $this> */
     public function order(): BelongsTo

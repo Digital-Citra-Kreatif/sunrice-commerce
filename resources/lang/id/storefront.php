@@ -298,6 +298,14 @@ return [
         'not_found_text' => 'Halaman yang Anda cari mungkin sudah dipindahkan atau tidak ada lagi.',
         'back_home' => 'Kembali ke beranda',
     ],
+    'gift_card' => [
+        'title' => 'Kirim ke seseorang (opsional)',
+        'intro' => 'Kami kirim kodenya ke email mereka setelah pesanan dibayar. Anda juga mendapat salinannya.',
+        'name' => 'Nama penerima',
+        'email' => 'Email penerima',
+        'message' => 'Pesan',
+        'for' => 'Untuk :who',
+    ],
     'quote' => [
         'to_be_quoted' => 'Menunggu penawaran',
     ],

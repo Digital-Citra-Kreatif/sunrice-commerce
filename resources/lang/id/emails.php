@@ -95,12 +95,21 @@ return [
         'action' => 'Pesan sekarang',
     ],
     'gift_card_issued' => [
+        'sent_to' => 'Dikirim ke :who.',
         'subject' => 'Kartu hadiah Anda untuk :number',
         'heading' => 'Kartu hadiah Anda sudah siap',
         'intro' => 'Berikut kode kartu hadiah yang Anda beli. Berikan kepada seseorang, atau pakai sendiri.',
         'action' => 'Tukarkan di Akun Saya',
         'redeem_by' => 'tukarkan sebelum :date',
         'how' => 'Cara memakainya: masuk (atau buat akun), buka Akun Saya → Poin, lalu masukkan kodenya. Nilainya menjadi poin, dan 1 poin bernilai 1 rupiah saat checkout.',
+    ],
+    'gift_card_received' => [
+        'subject' => 'Kartu hadiah untuk Anda dari :store',
+        'heading' => 'Anda mendapat kartu hadiah',
+        'intro' => '',
+        'action' => 'Tukarkan di Akun Saya',
+        'from' => ':from mengirimi Anda kartu hadiah senilai :value.',
+        'code' => 'Kode Anda',
     ],
     'downloads_ready' => [
         'subject' => 'Unduhan pesanan :number',

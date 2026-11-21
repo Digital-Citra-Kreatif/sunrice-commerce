@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Gift cards can go straight to someone: the product form takes an optional recipient name, email
+  and message (line meta `gift_card`), and once paid each code is emailed to them
+  (`gift_card_received`), with a copy to the buyer. Staff can resend it. Migration
+  `add_recipients_to_commerce_gift_cards`.
+
 - Requires Sunrice 0.8 (`sunrice/admin` and `sunrice/cms` `^0.8`). Upgrade with
   `composer require sunrice/commerce sunrice/admin:^0.8 sunrice/cms:^0.8 -W`.
 

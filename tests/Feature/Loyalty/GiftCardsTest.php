@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Notification;
+use Spatie\Honeypot\ProtectAgainstSpam;
 use Sunrice\Cms\Models\Entry;
+use Sunrice\Commerce\Cart\Models\CartItem;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
+use Sunrice\Commerce\Loyalty\GiftCardRecipient;
 use Sunrice\Commerce\Loyalty\GiftCards;
 use Sunrice\Commerce\Loyalty\Loyalty;
 use Sunrice\Commerce\Loyalty\Models\GiftCard;
@@ -136,4 +139,48 @@ it('keeps gift cards from staff without the permission', function () {
     actingAsUserWith(['commerce.orders.view']);
     $this->get('/admin/commerce/gift-cards')->assertForbidden();
     $this->post('/admin/commerce/gift-cards', ['values' => ['value' => 1000, 'quantity' => 1]])->assertForbidden();
+});
+
+it('sends a gift card straight to the person it is for, with the buyer\'s message', function () {
+    Notification::fake();
+    $this->withoutMiddleware(ProtectAgainstSpam::class);
+    $this->get('/products/mug')->assertOk()->assertSee('name="gift_card[email]"', false);
+
+    // On the product form: who it is for. Another recipient is another line; a bad email is refused.
+    $this->post('/cart/items', ['variant' => $this->card->id, 'gift_card' => ['name' => 'Ana', 'email' => 'ANA@example.com', 'message' => 'Happy birthday!']])->assertSessionHasNoErrors();
+    $this->post('/cart/items', ['variant' => $this->card->id, 'gift_card' => ['email' => 'budi@example.com']])->assertSessionHasNoErrors();
+    $this->post('/cart/items', ['variant' => $this->card->id, 'gift_card' => ['email' => 'not-an-email']])->assertSessionHasErrors('gift_card.email');
+    $lines = CartItem::query()->orderBy('id')->get();
+    expect($lines)->toHaveCount(2)
+        ->and($lines[0]->meta)->toBe(['gift_card' => ['name' => 'Ana', 'email' => 'ana@example.com', 'message' => 'Happy birthday!']])
+        ->and(GiftCardRecipient::describe($lines[0]->meta))->toBe([__('commerce::storefront.gift_card.for', ['who' => 'Ana (ana@example.com)']), '“Happy birthday!”']);
+
+    // Bought and paid: Ana gets her code with the message; the buyer gets every code, and who each went to.
+    $cart = cartWith([[$this->card, 1]]);
+    $cart->items()->update(['meta' => json_encode($lines[0]->meta), 'line_key' => CartItem::lineKey($lines[0]->meta)]);
+    $input = checkoutInput(['shipping_rate' => null, 'name' => 'Rina']);
+    $this->post('/checkout', [...$input, 'action' => 'place', 'totals_hash' => seenHash($cart->fresh(), $input)])->assertRedirect();
+    $order = Order::query()->latest('id')->firstOrFail();
+    expect($order->items->sole()->details())->toContain(__('commerce::storefront.gift_card.for', ['who' => 'Ana (ana@example.com)']));
+    app(MarkOrderPaid::class)->handle($order, Actor::system());
+
+    $card = GiftCard::query()->sole();
+    expect([$card->recipient_name, $card->recipient_email, $card->message])->toBe(['Ana', 'ana@example.com', 'Happy birthday!'])
+        ->and($card->sent_at)->not->toBeNull();
+    Notification::assertSentOnDemand(StoreEmail::class, function (StoreEmail $n, array $channels, $notifiable) use ($card) {
+        if ($n->key !== 'gift_card_received') {
+            return false;
+        }
+        expect($notifiable->routes['mail'])->toBe('ana@example.com')
+            ->and((string) $n->toMail(null)->render())->toContain($card->formatted())->toContain('Happy birthday!')->toContain('Rina');
+
+        return true;
+    });
+    Notification::assertSentOnDemand(StoreEmail::class, fn (StoreEmail $n, array $channels, $notifiable) => $n->key === 'gift_card_issued'
+        && $notifiable->routes['mail'] === 'rina@example.com' && str_contains((string) $n->toMail(null)->render(), 'ana@example.com'));
+
+    // Staff can send it again, while it isn't redeemed.
+    actingAsUserWith(['commerce.gift-cards.manage']);
+    $this->get("/admin/commerce/gift-cards/{$card->id}")->assertInertia(fn ($p) => $p->where('form.fields', fn ($f) => collect($f)->contains('handle', 'resend')));
+    $this->put("/admin/commerce/gift-cards/{$card->id}", ['values' => ['resend' => true]])->assertSessionHas('success', 'Gift card saved and emailed to ana@example.com.');
 });

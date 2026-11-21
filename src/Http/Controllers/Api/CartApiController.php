@@ -16,6 +16,7 @@ use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\VariantFromOptions;
 use Sunrice\Commerce\Catalog\LiveEntries;
+use Sunrice\Commerce\Loyalty\GiftCardRecipient;
 
 /**
  * {api}/cart — the cart as JSON for themes (mini cart, AJAX add to cart):
@@ -43,9 +44,9 @@ class CartApiController
         $data = $request->validate(['variant' => ['required_without:options', 'nullable', 'integer'], 'product' => ['nullable', 'integer'], 'options' => ['nullable', 'array'],
             'quantity' => ['nullable', 'integer', 'min:1', 'max:100000']]);
 
-        return $this->attempt(function () use ($add, $data) {
+        return $this->attempt(function () use ($add, $data, $request) {
             $variant = VariantFromOptions::fromRequest($data) ?? throw new CartException(__('commerce::storefront.product.unavailable'));
-            $item = $add->handle($variant, (int) ($data['quantity'] ?? 1));
+            $item = $add->handle($variant, (int) ($data['quantity'] ?? 1), GiftCardRecipient::meta($request, $variant));
 
             return __('commerce::storefront.cart.added', ['product' => (string) ((($e = $item->variant->product->entry()) !== null ? LiveEntries::translation($e)?->title : null) ?? '')]);
         });
