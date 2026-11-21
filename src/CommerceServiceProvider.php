@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Sunrice\Admin\Panel;
 use Sunrice\Cms\Content;
 use Sunrice\Cms\Events\ContentChanged;
 use Sunrice\Cms\Events\EntryDeleted;
@@ -181,14 +182,18 @@ class CommerceServiceProvider extends PackageServiceProvider
     /**
      * The storefront's own session guard (customers), on the same user
      * provider as the admin, so signing in to the shop never opens the admin.
+     * The admin's guard is the panel's (`$panel->guard()`), known once the
+     * app's panel provider has set the panel up.
      */
     protected function registerCustomerGuard(): void
     {
-        $guard = (string) config('commerce.auth.guard', 'commerce');
-        if (config("auth.guards.{$guard}") === null) {
-            $adminGuard = (string) config('sunrice-admin.guard', 'web');
-            config(["auth.guards.{$guard}" => ['driver' => 'session', 'provider' => config("auth.guards.{$adminGuard}.provider", 'users')]]);
-        }
+        $this->app->afterResolving(Panel::class, function (Panel $panel): void {
+            $guard = (string) config('commerce.auth.guard', 'commerce');
+            if (config("auth.guards.{$guard}") === null) {
+                $provider = config('auth.guards.'.$panel->getGuard().'.provider', 'users');
+                config(["auth.guards.{$guard}" => ['driver' => 'session', 'provider' => $provider]]);
+            }
+        });
     }
 
     /** Customer accounts: sign-in merges, My Account pages, the Users list scope. */
