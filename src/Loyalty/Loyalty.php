@@ -113,6 +113,10 @@ class Loyalty implements CalculationStage, ReservesDiscounts
         $base = 0;
         $products = 0;
         foreach ($items as $item) {
+            // A gift card turns into points itself: buying one earns none.
+            if ($item->variant?->product->gift_card ?? false) {
+                continue;
+            }
             // Products after their own discounts, without tax: included tax sits inside the line's total.
             $net = max(0, (int) $item->total - ($order->prices_include_tax ? (int) $item->tax_total : 0));
             $products += $net;

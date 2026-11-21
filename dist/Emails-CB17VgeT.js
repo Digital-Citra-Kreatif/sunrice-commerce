@@ -1,4 +1,4 @@
-import { i as f, b as t, q as b, c as v, j as r, a as c, F as k, S as x } from "./main-Bl32mM8r.js";
+import { i as f, b as t, q as b, c as v, j as r, a as c, F as k, S as x } from "./main-rv3J9GZi.js";
 function C({ sections: m, emails: i }) {
   const { CollapsibleCard: d, CollapsibleCardGroup: o, Switch: h, Button: n } = v, { Link: u, router: l } = f, p = [["To customers", i.filter((a) => a.audience === "customer")], ["To staff", i.filter((a) => a.audience === "staff")]];
   return /* @__PURE__ */ t(b, { sections: m, current: "emails", title: "Emails", description: "What the store sends, and to whom. Open an email to change its texts, recipients and attachments.", children: /* @__PURE__ */ t(o, { className: "cm:gap-6", children: p.map(([a, s]) => s.length > 0 && // Folds away, remembered per browser; folded, it says how many are sent.

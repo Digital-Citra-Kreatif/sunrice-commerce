@@ -34,6 +34,7 @@ final class ShopNavigation
         ['vouchers', 'Vouchers', 'commerce/vouchers', 'commerce.vouchers.manage', 'vouchers'],
         ['flash-sales', 'Flash sales', 'commerce/flash-sales', 'commerce.flash-sales.manage', 'flash_sales'],
         ['pricing-rules', 'Pricing rules', 'commerce/pricing-rules', 'commerce.pricing-rules.manage', 'pricing_rules'],
+        ['gift-cards', 'Gift cards', 'commerce/gift-cards', 'commerce.gift-cards.manage', 'loyalty'],
     ];
 
     /**

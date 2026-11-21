@@ -277,6 +277,8 @@ class CommerceServiceProvider extends PackageServiceProvider
         Event::listen(Orders\Events\OrderCompleted::class, Digital\Listeners\GrantDownloads::class);
         Event::listen(Orders\Events\OrderCompleted::class, Loyalty\Listeners\EarnPoints::class);
         Event::listen(Orders\Events\OrderRefunded::class, Loyalty\Listeners\RevokePoints::class);
+        Event::listen(Orders\Events\OrderPaid::class, Loyalty\Listeners\IssueGiftCards::class);
+        Event::listen([Orders\Events\OrderCancelled::class, Orders\Events\OrderRefunded::class], Loyalty\Listeners\DisableGiftCards::class);
         Event::listen(Payments\Events\PaymentRecorded::class, Loyalty\Listeners\RevokePoints::class);
         Event::listen(array_keys(Webhooks\Listeners\SendWebhooks::MAP), Webhooks\Listeners\SendWebhooks::class);
         RateLimiter::for('commerce-feeds', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
@@ -286,6 +288,8 @@ class CommerceServiceProvider extends PackageServiceProvider
         RateLimiter::for('commerce-downloads', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
         RateLimiter::for('commerce-webhooks', fn (Request $request) => Limit::perMinute(300)->by($request->ip()));
         RateLimiter::for('commerce-checkout', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));
+        // Guessing gift card codes: 10 tries an hour per account (and per IP).
+        RateLimiter::for('commerce-gift-card', fn (Request $request) => [Limit::perHour(10)->by('gift-card:'.($request->user(config('commerce.auth.guard', 'commerce'))?->getAuthIdentifier() ?? $request->ip())), Limit::perHour(30)->by('gift-card-ip:'.$request->ip())]);
         RateLimiter::for('commerce-checkout-code', fn (Request $request) => Limit::perMinutes(10, 10)->by($request->ip()));
         Settings\Actions\SaveStoreSettings::guardUsing(function (string $section, array $values, Settings\StoreSettings $settings): array {
             $code = $values['currency']['code'] ?? null;

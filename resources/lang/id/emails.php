@@ -94,6 +94,14 @@ return [
         'intro' => 'Anda meminta kami mengabari saat produk ini bisa dipesan lagi. Sekarang sudah bisa, selama stok masih ada.',
         'action' => 'Pesan sekarang',
     ],
+    'gift_card_issued' => [
+        'subject' => 'Kartu hadiah Anda untuk :number',
+        'heading' => 'Kartu hadiah Anda sudah siap',
+        'intro' => 'Berikut kode kartu hadiah yang Anda beli. Berikan kepada seseorang, atau pakai sendiri.',
+        'action' => 'Tukarkan di Akun Saya',
+        'redeem_by' => 'tukarkan sebelum :date',
+        'how' => 'Cara memakainya: masuk (atau buat akun), buka Akun Saya → Poin, lalu masukkan kodenya. Nilainya menjadi poin, dan 1 poin bernilai 1 rupiah saat checkout.',
+    ],
     'downloads_ready' => [
         'subject' => 'Unduhan pesanan :number',
         'heading' => 'Unduhan Anda sudah siap',

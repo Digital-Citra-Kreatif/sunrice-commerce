@@ -46,6 +46,7 @@ Route::middleware(['commerce.feature:accounts', 'commerce.noindex'])->prefix(Sto
         Route::post('orders/{order}/cancel', [Account\OrdersController::class, 'cancel'])->whereNumber('order')->middleware('commerce.feature:orders')->name('commerce.account.order.cancel'.$suffix);
         Route::get('downloads', [Account\OrdersController::class, 'downloads'])->name('commerce.account.downloads'.$suffix);
         Route::get('points', [Account\PointsController::class, 'index'])->middleware('commerce.feature:loyalty')->name('commerce.account.points'.$suffix);
+        Route::post('points/gift-card', [Account\PointsController::class, 'redeem'])->middleware(['commerce.feature:loyalty', 'throttle:commerce-gift-card'])->name('commerce.account.points.redeem'.$suffix);
         Route::post('delete', [Account\AccountController::class, 'requestDeletion'])->name('commerce.account.delete'.$suffix);
     });
 });

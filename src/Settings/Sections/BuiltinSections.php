@@ -299,6 +299,10 @@ final class BuiltinSections
             ['handle' => 'max_points', 'type' => 'commerce_money', 'label' => 'Maximum points per order', 'instructions' => 'The most one order earns (1 point is worth 1 of your currency). Empty: no limit.'],
             ['handle' => 'expiry_days', 'type' => 'number', 'label' => 'Points expire after (days)', 'instructions' => 'From when they are earned or given back. 0: never.',
                 'config' => ['min' => 0, 'max' => 3650], 'validation' => ['integer', 'min:0', 'max:3650']],
+            ['handle' => 'gift_card_valid_days', 'section' => 'Gift cards', 'type' => 'number', 'label' => 'Gift card codes can be redeemed for (days)',
+                'instructions' => 'From when a code is made. 0: any time.', 'config' => ['min' => 0, 'max' => 3650], 'validation' => ['integer', 'min:0', 'max:3650']],
+            ['handle' => 'gift_card_points_expiry_days', 'section' => 'Gift cards', 'type' => 'number', 'label' => 'Points from a gift card expire after (days)',
+                'instructions' => 'From when the code is redeemed; separate from the points customers earn. 0: never.', 'config' => ['min' => 0, 'max' => 3650], 'validation' => ['integer', 'min:0', 'max:3650']],
         ];
     }
 

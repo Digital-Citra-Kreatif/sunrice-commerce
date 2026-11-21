@@ -200,6 +200,17 @@ return [
         'date' => 'Tanggal',
         'what' => 'Keterangan',
         'points' => 'Poin',
-        'kinds' => ['earn' => 'Didapat', 'redeem' => 'Dipakai', 'release' => 'Pesanan dibatalkan: dikembalikan', 'refund' => 'Dikembalikan (refund)', 'revoke' => 'Ditarik (refund)', 'adjust' => 'Diubah oleh toko', 'expire' => 'Kedaluwarsa'],
+        'gift_card' => [
+            'title' => 'Tukarkan kartu hadiah',
+            'intro' => 'Masukkan kodenya: nilainya menjadi poin (1 poin bernilai 1 rupiah saat checkout).',
+            'code' => 'Kode kartu hadiah',
+            'submit' => 'Tukarkan',
+            'redeemed' => 'Kartu hadiah ditukar: :points poin (:value) ditambahkan.',
+            'unknown' => 'Kode tidak dikenal. Periksa lalu coba lagi.',
+            'used' => 'Kartu hadiah itu sudah ditukarkan.',
+            'disabled' => 'Kartu hadiah itu sudah tidak berlaku.',
+            'expired' => 'Kartu hadiah itu sudah kedaluwarsa.',
+        ],
+        'kinds' => ['gift_card' => 'Kartu hadiah', 'earn' => 'Didapat', 'redeem' => 'Dipakai', 'release' => 'Pesanan dibatalkan: dikembalikan', 'refund' => 'Dikembalikan (refund)', 'revoke' => 'Ditarik (refund)', 'adjust' => 'Diubah oleh toko', 'expire' => 'Kedaluwarsa'],
     ],
 ];

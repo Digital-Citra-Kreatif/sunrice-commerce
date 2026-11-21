@@ -47,6 +47,7 @@ use Sunrice\Commerce\Customers\Actions\SaveAddress;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Database\Seeders\Starter\Artwork;
 use Sunrice\Commerce\Database\Seeders\Starter\Catalog;
+use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Orders\Actions\CreateShipment;
 use Sunrice\Commerce\Orders\Actions\MarkOrderPaid;
 use Sunrice\Commerce\Orders\Actor;
@@ -208,6 +209,10 @@ class StarterStoreSeeder extends Seeder
                 'name' => 'KAIN', 'email' => 'halo@example.com', 'phone' => '0812 0000 2026', 'logo' => $logo, 'brand_color' => '#d7001d',
                 'address' => ['line1' => 'Jl. Senopati No. 26', 'region' => ['country' => 'ID', ...$this->place('31', '31.74', '31.74.01')], 'postal_code' => '12190'],
             ]);
+        }
+        // The digital gift card redeems for loyalty points: Loyalty on (earning stays 0%), unless the store chose already.
+        if (! array_key_exists('loyalty', (array) $settings->get('features', []))) {
+            app(ToggleFeature::class)->handle('loyalty', true);
         }
         $save->handle('catalog', [...$settings->section('catalog'), 'attribute_taxonomies' => ['colors', 'sizes'], 'show_stock' => 'low',
             'compare_fields' => ['brand', 'categories', 'attributes', 'stock', 'excerpt']]);
@@ -403,11 +408,11 @@ class StarterStoreSeeder extends Seeder
                 'specifications' => [['label' => $this->t('Format', 'Format'), 'value' => 'PDF, 12 MB'], ['label' => $this->t('Halaman', 'Pages'), 'value' => '40']],
             ], [$gifts = config('commerce.catalog.category_taxonomy', 'product_categories').'/gifts'], now()->subDays(35));
         $amounts = [100000, 250000, 500000];
-        $card = $this->productEntry($this->t('Kartu Hadiah Digital', 'Digital Gift Card'), ['type' => 'variable', 'requires_shipping' => false,
+        $card = $this->productEntry($this->t('Kartu Hadiah Digital', 'Digital Gift Card'), ['type' => 'variable', 'requires_shipping' => false, 'gift_card' => true,
             'options' => [['id' => 'amount', 'name' => $this->t('Nilai', 'Amount'), 'values' => array_map(fn (int $a) => ['id' => (string) $a, 'label' => 'Rp'.number_format($a, 0, ',', '.')], $amounts)]],
             'variants' => array_map(fn (int $a) => ['id' => "gift-{$a}", 'sku' => self::SKU_PREFIX.'G'.($a / 1000), 'price' => $a, 'options' => ['amount' => (string) $a]], $amounts)], [
                 'excerpt' => $this->t('Dikirim lewat email, langsung siap diberikan.', 'Sent by email, ready to give straight away.'),
-                'description' => '<p>'.$this->t('Kartu hadiah tanpa pengiriman: kami kirim kodenya ke email penerima.', 'A gift card with no shipping: we email the code to the recipient.').'</p>',
+                'description' => '<p>'.$this->t('Kartu hadiah tanpa pengiriman: setelah dibayar, kami kirim kodenya ke email Anda. Penerimanya menukarkan kode di Akun Saya → Poin, dan nilainya menjadi poin untuk berbelanja.', 'A gift card with no shipping: once paid, we email you its code. Whoever gets it redeems the code in My Account → Points, and its value becomes points to shop with.').'</p>',
                 'gallery' => [$this->asset('product-G01', Artwork::product('card', '#cdb79a'), 'Gift card')],
             ], [$gifts], now()->subDays(35));
 

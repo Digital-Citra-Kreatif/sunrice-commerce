@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Gift cards as loyalty points: a product can be a **Gift card**. Paying for it issues a code per
+  unit (emailed, `gift_card_issued`) that a customer redeems once in My Account → Points for points
+  worth its value. Staff see, make and disable codes in Shop → Promotions → Gift cards
+  (`commerce.gift-cards.manage`). Settings → Loyalty → Gift cards sets how long codes can be
+  redeemed and how long their points last, apart from earned points. Migration
+  `create_commerce_gift_cards_table`. The starter store's digital gift card now works this way.
+
 - Vouchers: **Only with payment methods** and **Only with shipping methods** are searchable
   multi-selects instead of comma-separated text (comma-separated input is still read).
   `commerce_choices` gains the `payment_methods` source.

@@ -97,6 +97,7 @@ class ProductProjector
             'external_links' => $value['external_links'],
             'requires_shipping' => $value['requires_shipping'],
             'downloadable' => $value['downloadable'],
+            'gift_card' => $value['gift_card'],
             'featured' => $value['featured'],
             'tax_class' => $value['tax_class'],
             'bundle_pricing' => $value['bundle']['pricing'] ?? null,
@@ -243,7 +244,7 @@ class ProductProjector
         $value = ProductValue::withIds(ProductValue::normalize($raw));
         $product = new Product([
             'type' => $value['type'], 'purchase_mode' => $value['purchase_mode'], 'external_links' => $value['external_links'],
-            'requires_shipping' => $value['requires_shipping'], 'downloadable' => $value['downloadable'], 'featured' => $value['featured'],
+            'requires_shipping' => $value['requires_shipping'], 'downloadable' => $value['downloadable'], 'gift_card' => $value['gift_card'], 'featured' => $value['featured'],
             'tax_class' => $value['tax_class'], 'bundle_pricing' => $value['bundle']['pricing'] ?? null, 'bundle_value' => $value['bundle']['value'] ?? null,
             'sync_status' => 'ok',
         ]);

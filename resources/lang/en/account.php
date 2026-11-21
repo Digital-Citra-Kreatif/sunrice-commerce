@@ -200,6 +200,17 @@ return [
         'date' => 'Date',
         'what' => 'What',
         'points' => 'Points',
-        'kinds' => ['earn' => 'Earned', 'redeem' => 'Spent', 'release' => 'Order cancelled: given back', 'refund' => 'Refunded', 'revoke' => 'Taken back (refund)', 'adjust' => 'Changed by the store', 'expire' => 'Expired'],
+        'gift_card' => [
+            'title' => 'Redeem a gift card',
+            'intro' => 'Enter the code: its value becomes points (1 point is worth 1 of our currency at checkout).',
+            'code' => 'Gift card code',
+            'submit' => 'Redeem',
+            'redeemed' => 'Gift card redeemed: :points points (:value) added.',
+            'unknown' => 'We don\'t know that code. Check it and try again.',
+            'used' => 'That gift card has already been redeemed.',
+            'disabled' => 'That gift card no longer works.',
+            'expired' => 'That gift card has expired.',
+        ],
+        'kinds' => ['gift_card' => 'Gift card', 'earn' => 'Earned', 'redeem' => 'Spent', 'release' => 'Order cancelled: given back', 'refund' => 'Refunded', 'revoke' => 'Taken back (refund)', 'adjust' => 'Changed by the store', 'expire' => 'Expired'],
     ],
 ];
