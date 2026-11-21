@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 0.4.0 (2026-11-21)
+
+**Upgrading from 0.3**: needs Sunrice 0.8. Run
+`composer require sunrice/commerce:^0.4 sunrice/admin:^0.8 sunrice/cms:^0.8 -W`, then
+`php artisan migrate` (gift cards, gift card recipients, variants without a price),
+`php artisan commerce:publish-assets`, `php artisan sunrice:sync-permissions` and
+`php artisan commerce:seed-roles` (the new `commerce.gift-cards.manage` permission). If you published
+storefront templates, compare them with the package's: the cart line, checkout contact and submit,
+buy button, order items, payment methods, points, totals and compare table templates changed, and
+`checkout-access` and `checkout-payment-check` are new (see
+[Upgrading](docs/upgrading.md#published-templates)). Update `sunrice/commerce-biteship` to 0.3 at
+the same time.
+
 - Gift cards can go straight to someone: the product form takes an optional recipient name, email
   and message (line meta `gift_card`), and once paid each code is emailed to them
   (`gift_card_received`), with a copy to the buyer. Staff can resend it. Migration
