@@ -10,7 +10,13 @@ use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\Templates;
+use Sunrice\Commerce\Tests\TestCase;
 use Workbench\App\Models\User;
+
+// These tests publish templates into resources/ and public/: in a folder of their own, so tests in
+// other parallel workers never see (or lose mid-render) them.
+beforeAll(fn () => TestCase::isolateAppFolder());
+afterAll(fn () => TestCase::removeIsolatedAppFolder());
 
 it('ships templates that compile to valid PHP', function () {
     $dir = __DIR__.'/../../../resources/views/storefront';
