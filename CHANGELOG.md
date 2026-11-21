@@ -7,6 +7,14 @@
   (`gift_card_received`), with a copy to the buyer. Staff can resend it. Migration
   `add_recipients_to_commerce_gift_cards`.
 
+- Requires Sunrice 0.8 (`sunrice/admin` and `sunrice/cms` `^0.8`). Upgrade with
+  `composer require sunrice/commerce sunrice/admin:^0.8 sunrice/cms:^0.8 -W`.
+
+- Fix: the storefront's `commerce` guard took its user provider from `sunrice-admin.guard`, a config
+  key that doesn't exist, so it always used the `web` guard's provider. It now uses the provider of
+  the panel's guard (`$panel->guard()`), so a panel on a guard of its own shares its users with the
+  shop.
+
 - Gift cards as loyalty points: a product can be a **Gift card**. Paying for it issues a code per
   unit (emailed, `gift_card_issued`) that a customer redeems once in My Account → Points for points
   worth its value. Staff see, make and disable codes in Shop → Promotions → Gift cards
