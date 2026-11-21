@@ -42,6 +42,7 @@ table) is on and the email is switched on.
 | `back_in_stock` | Back in stock | `stock_alerts` | A sold-out variant someone asked about can be ordered again |
 | `downloads_ready` | Downloads ready | `digital` | Digital access is granted: links or files |
 | `gift_card_issued` | Gift card codes | `loyalty` | A gift card product is paid: its codes, to redeem for points |
+| `gift_card_received` | Gift card for a recipient | `loyalty` | To the person a gift card was bought for: the code, from whom, the message |
 | `quote_received` | Quote request received | `orders` | A quote request is placed (Quotation mode, or **Request a quote instead** at an Online store checkout) |
 | `quote_ready` | Quote ready | `orders` | Staff send the priced quote, with the accept link |
 | `account_welcome` | Welcome | `accounts` | An account's email is verified (by the link, the first emailed code or Google sign-up), or right after registering when verification is off |

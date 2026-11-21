@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Gift cards can go straight to someone: the product form takes an optional recipient name, email
+  and message (line meta `gift_card`), and once paid each code is emailed to them
+  (`gift_card_received`), with a copy to the buyer. Staff can resend it. Migration
+  `add_recipients_to_commerce_gift_cards`.
+
 - Gift cards as loyalty points: a product can be a **Gift card**. Paying for it issues a code per
   unit (emailed, `gift_card_issued`) that a customer redeems once in My Account → Points for points
   worth its value. Staff see, make and disable codes in Shop → Promotions → Gift cards

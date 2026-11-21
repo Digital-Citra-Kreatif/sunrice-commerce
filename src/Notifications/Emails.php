@@ -29,6 +29,7 @@ class Emails
             new EmailDefinition('back_in_stock', 'Back in stock', feature: 'stock_alerts', description: 'To customers who asked to be told when a sold-out product is back.'),
             new EmailDefinition('downloads_ready', 'Downloads ready', feature: 'digital', attachments: ['downloads'], defaultAttachments: ['downloads']),
             new EmailDefinition('gift_card_issued', 'Gift card codes', feature: 'loyalty', description: 'When a gift card is paid for: its codes, to redeem for points in My Account.'),
+            new EmailDefinition('gift_card_received', 'Gift card for a recipient', feature: 'loyalty', description: 'To the person a gift card was bought for: the code, who sent it and their message.'),
             new EmailDefinition('balance_reminder', 'Balance reminder', feature: 'payments', description: 'Before the balance of an order paid with a deposit is due (Settings → Checkout).'),
             new EmailDefinition('quote_received', 'Quote request received', feature: 'orders'),
             new EmailDefinition('quote_ready', 'Quote ready', feature: 'orders', attachments: ['quotation'], defaultAttachments: ['quotation']),

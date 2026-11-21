@@ -36,6 +36,20 @@
             @if ($product->isVariable())
                 @include(\Sunrice\Commerce\Storefront\Layout::view('partials.variant-picker'))
             @endif
+            @if ($product->product->gift_card && commerce_feature('loyalty'))
+                {{-- A gift card can go straight to someone: their email gets the code once the order is paid. --}}
+                <fieldset class="commerce-gift-card">
+                    <legend>{{ __('commerce::storefront.gift_card.title') }}</legend>
+                    <p class="commerce-muted">{{ __('commerce::storefront.gift_card.intro') }}</p>
+                    <label class="commerce-field"><span>{{ __('commerce::storefront.gift_card.name') }}</span>
+                        <input type="text" name="gift_card[name]" value="{{ old('gift_card.name') }}" maxlength="120" autocomplete="off"></label>
+                    <label class="commerce-field"><span>{{ __('commerce::storefront.gift_card.email') }}</span>
+                        <input type="email" name="gift_card[email]" value="{{ old('gift_card.email') }}" maxlength="190" autocomplete="off">
+                        @include(\Sunrice\Commerce\Storefront\Layout::view('partials.field-error'), ['name' => 'gift_card.email'])</label>
+                    <label class="commerce-field"><span>{{ __('commerce::storefront.gift_card.message') }}</span>
+                        <textarea name="gift_card[message]" rows="3" maxlength="{{ \Sunrice\Commerce\Loyalty\GiftCardRecipient::MESSAGE_MAX }}">{{ old('gift_card.message') }}</textarea></label>
+                </fieldset>
+            @endif
             @include(\Sunrice\Commerce\Storefront\Layout::view('product.buy-controls'))
             @if (Route::has('commerce.cart'))
                 @include(\Sunrice\Commerce\Storefront\Layout::view('partials.add-recovery'))

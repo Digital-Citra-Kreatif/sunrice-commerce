@@ -109,19 +109,21 @@ class GiftCardsController extends Controller
             'description' => implode(' · ', array_filter([
                 $money->format($giftCard->value),
                 $giftCard->order !== null ? 'Bought with order '.$giftCard->order->displayNumber() : null,
+                $giftCard->recipient_email !== null ? 'For '.($giftCard->recipient_name ? "{$giftCard->recipient_name} ({$giftCard->recipient_email})" : $giftCard->recipient_email)
+                    .($giftCard->sent_at !== null ? ', emailed '.$giftCard->sent_at->isoFormat('D MMM YYYY HH:mm') : ', not emailed yet') : null,
                 $giftCard->redeemed_at !== null ? 'Redeemed '.$giftCard->redeemed_at->isoFormat('D MMM YYYY').($giftCard->redeemer ? ' by '.($giftCard->redeemer->email ?? $giftCard->redeemer->name) : '') : null,
                 $giftCard->expires_at !== null ? 'Redeem by '.$giftCard->expires_at->isoFormat('D MMM YYYY') : null,
             ])),
-            'form' => SchemaForm::make($this->editFields($switchable), ['note' => $giftCard->note, 'disabled' => $giftCard->status === GiftCard::DISABLED])
+            'form' => SchemaForm::make($this->editFields($switchable, $giftCard->recipient_email !== null && $giftCard->redeemable()), ['note' => $giftCard->note, 'disabled' => $giftCard->status === GiftCard::DISABLED])
                 ->action(route('sunrice.admin.commerce.gift-cards.update', $giftCard, false), 'put'),
             'breadcrumbs' => [['label' => 'Shop', 'href' => 'commerce'], ['label' => 'Gift cards', 'href' => 'commerce/gift-cards']],
         ]);
     }
 
-    public function update(Request $request, GiftCard $giftCard): RedirectResponse
+    public function update(Request $request, GiftCard $giftCard, GiftCards $cards): RedirectResponse
     {
         $this->guard();
-        $values = SchemaForm::make($this->editFields(true))->validate((array) $request->input('values', []));
+        $values = SchemaForm::make($this->editFields(true, true))->validate((array) $request->input('values', []));
         $changes = ['note' => $values['note'] ?? null];
         // A redeemed card stays redeemed: its points are the customer's.
         if ($giftCard->status !== GiftCard::REDEEMED) {
@@ -129,8 +131,10 @@ class GiftCardsController extends Controller
         }
         $giftCard->forceFill($changes)->save();
         app(ActivityRecorder::class)->record('updated', 'Gift card: '.$giftCard->formatted(), [], 'gift_card');
+        $resent = ($values['resend'] ?? false) && $cards->send($giftCard->fresh() ?? $giftCard);
 
-        return redirect()->route('sunrice.admin.commerce.gift-cards.show', $giftCard)->with('success', 'Gift card saved.');
+        return redirect()->route('sunrice.admin.commerce.gift-cards.show', $giftCard)
+            ->with('success', $resent ? 'Gift card saved and emailed to '.$giftCard->recipient_email.'.' : 'Gift card saved.');
     }
 
     protected function guard(): void
@@ -152,10 +156,11 @@ class GiftCardsController extends Controller
     }
 
     /** @return array<int, array<string, mixed>> */
-    protected function editFields(bool $switchable): array
+    protected function editFields(bool $switchable, bool $resendable): array
     {
         return [
             ...($switchable ? [['handle' => 'disabled', 'type' => 'toggle', 'label' => 'Disabled', 'instructions' => 'A disabled code can\'t be redeemed.']] : []),
+            ...($resendable ? [['handle' => 'resend', 'type' => 'toggle', 'label' => 'Email it to the recipient again', 'instructions' => 'When you save: the code, the buyer\'s name and message.']] : []),
             ['handle' => 'note', 'type' => 'text', 'label' => 'Note', 'translatable' => false, 'config' => ['max' => 500]],
         ];
     }

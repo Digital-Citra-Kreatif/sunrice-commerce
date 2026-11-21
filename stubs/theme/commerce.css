@@ -1061,3 +1061,5 @@ html.commerce-site { scroll-padding-bottom: var(--commerce-buy-bar-space, 0px); 
 .commerce-stock-alert { margin: 12px 0; padding: 12px; display: grid; gap: 8px; background: var(--commerce-surface, #f4f4f4); }
 .commerce-stock-alert[hidden] { display: none; }
 .commerce-stock-alert__title { margin: 0; font-weight: 600; font-size: 14px; }
+.commerce-gift-card { border: 1px solid var(--commerce-line); padding: 12px 16px 4px; margin: 0 0 16px; display: grid; gap: 8px; }
+.commerce-gift-card legend { font-weight: 600; padding: 0 4px; }
