@@ -1259,7 +1259,8 @@ Deliberately not used:
 - Multiple currencies; multiple stores or warehouses; marketplaces (multi-vendor); point of sale.
 - Payment gateway and courier API integrations (separate packages); shipping labels.
 - Product Q&A.
-- Subscriptions, memberships and gift cards; loyalty tiers and referral rewards.
+- Subscriptions and memberships; gift cards beyond codes redeemed for loyalty points (no guest
+  redemption, partial balances on the card itself or physical cards); loyalty tiers and referral rewards.
 - Price-drop alerts.
 - Configurable bundles (customer-picked components), product add-ons and personalization fields,
   installments (more than a deposit and a balance). Deposits themselves are in: an extension asks

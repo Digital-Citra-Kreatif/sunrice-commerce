@@ -25,6 +25,16 @@
             </div>
         @endif
     </div>
+    <form method="POST" action="{{ commerce_url('commerce.account.points.redeem') }}" class="commerce-form commerce-points__redeem">
+        @csrf
+        <h2>{{ __('commerce::account.points.gift_card.title') }}</h2>
+        <p class="commerce-muted">{{ __('commerce::account.points.gift_card.intro') }}</p>
+        <label class="commerce-field"><span>{{ __('commerce::account.points.gift_card.code') }}</span>
+            <input type="text" name="code" value="{{ old('code') }}" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCD-EFGH-JKLM" required maxlength="40">
+            @include(\Sunrice\Commerce\Storefront\Layout::view('partials.field-error'), ['name' => 'code'])
+        </label>
+        <button type="submit" class="commerce-button">{{ __('commerce::account.points.gift_card.submit') }}</button>
+    </form>
     <h2>{{ __('commerce::account.points.history') }}</h2>
     @if ($history->isEmpty())
         <p>{{ __('commerce::account.points.none') }}</p>

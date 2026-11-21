@@ -50,6 +50,11 @@ Route::prefix('commerce')->name('commerce.')->withoutMiddleware(SubstituteBindin
         Route::put('flash-sales/{sale}', [Admin\FlashSalesController::class, 'update'])->name('flash-sales.update');
         Route::delete('flash-sales/{sale}', [Admin\FlashSalesController::class, 'destroy'])->name('flash-sales.destroy');
 
+        Route::get('gift-cards', [Admin\GiftCardsController::class, 'index'])->name('gift-cards');
+        Route::get('gift-cards/create', [Admin\GiftCardsController::class, 'create'])->name('gift-cards.create');
+        Route::post('gift-cards', [Admin\GiftCardsController::class, 'store'])->name('gift-cards.store');
+        Route::get('gift-cards/{giftCard}', [Admin\GiftCardsController::class, 'show'])->whereNumber('giftCard')->name('gift-cards.show');
+        Route::put('gift-cards/{giftCard}', [Admin\GiftCardsController::class, 'update'])->whereNumber('giftCard')->name('gift-cards.update');
         Route::get('vouchers', [Admin\VouchersController::class, 'index'])->name('vouchers');
         Route::get('vouchers/create', [Admin\VouchersController::class, 'create'])->name('vouchers.create');
         Route::post('vouchers', [Admin\VouchersController::class, 'store'])->name('vouchers.store');

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Gift cards as loyalty points: a product can be a **Gift card**. Paying for it issues a code per
+  unit (emailed, `gift_card_issued`) that a customer redeems once in My Account → Points for points
+  worth its value. Staff see, make and disable codes in Shop → Promotions → Gift cards
+  (`commerce.gift-cards.manage`). Settings → Loyalty → Gift cards sets how long codes can be
+  redeemed and how long their points last, apart from earned points. Migration
+  `create_commerce_gift_cards_table`. The starter store's digital gift card now works this way.
+
 - Tests: `phpunit.xml` raises PHP's memory limit to 1G, so `composer test` runs the whole suite
   without `-d memory_limit`, and `pest --parallel` is reliable: the template publishing tests write
   into an app folder of their own (`TestCase::isolateAppFolder()`).

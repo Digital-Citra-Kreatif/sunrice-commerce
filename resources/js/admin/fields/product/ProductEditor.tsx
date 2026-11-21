@@ -19,7 +19,7 @@ function withDefaults(value: Partial<ProductValue> | null | undefined): ProductV
 
     return {
         type: v.type ?? 'simple', purchase_mode: v.purchase_mode ?? 'default', external_links: v.external_links ?? [],
-        requires_shipping: !v.downloadable && (v.requires_shipping ?? true), downloadable: v.downloadable ?? false, featured: v.featured ?? false,
+        requires_shipping: !v.downloadable && !v.gift_card && (v.requires_shipping ?? true), downloadable: v.downloadable ?? false, gift_card: v.gift_card ?? false, featured: v.featured ?? false,
         tax_class: v.tax_class ?? null, options: v.options ?? [], variants, bundle: v.bundle ?? null,
         downloads: v.downloads ?? [], delivery: v.delivery ?? null, tiers: v.tiers ?? [],
     };

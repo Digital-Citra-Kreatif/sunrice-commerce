@@ -66,7 +66,8 @@ pages, search results and the 404 page ([templates.md](templates.md#the-starter-
 
 - about 50 products in women, men and kids categories (two levels), with colour and size
   variants, placeholder artwork (SVG garments in each colour), sale and bulk prices, low and
-  sold-out stock, three bundles, a downloadable lookbook and a digital gift card;
+  sold-out stock, three bundles, a downloadable lookbook and a digital gift card (redeemed for
+  loyalty points: the starter store switches Loyalty on, with earning at 0%);
 - brands, tags, and `colors` and `sizes` attribute taxonomies (colours have a `swatch` hex field);
 - a running flash sale, the vouchers `HALOKAIN` (10% on a first order), `HEMAT50` (Rp50.000 off
   from Rp400.000) and `ONGKIRGRATIS` (free shipping), and a pricing rule (10% off three kids'

@@ -21,13 +21,16 @@ class Wallet
 {
     public function __construct(protected StoreSettings $settings) {}
 
-    /** Adds points as a lot; earned and given-back points expire after `loyalty.expiry_days` (0: never). */
-    public function credit(Customer|int $customer, int $points, string $kind, ?Order $order = null, ?string $note = null, ?int $userId = null, ?CarbonInterface $expiresAt = null): void
+    /**
+     * Adds points as a lot; they expire at $expiresAt, else (unless $noExpiry) after
+     * `loyalty.expiry_days` (0: never), as earned and given-back points do.
+     */
+    public function credit(Customer|int $customer, int $points, string $kind, ?Order $order = null, ?string $note = null, ?int $userId = null, ?CarbonInterface $expiresAt = null, bool $noExpiry = false): void
     {
         if ($points <= 0) {
             return;
         }
-        $days = (int) $this->settings->get('loyalty.expiry_days', 0);
+        $days = $noExpiry ? 0 : (int) $this->settings->get('loyalty.expiry_days', 0);
         DB::transaction(function () use ($customer, $points, $kind, $order, $note, $userId, $expiresAt, $days): void {
             $id = $this->lock($customer);
             DB::table('commerce_customers')->where('id', $id)->increment('loyalty_points', $points);

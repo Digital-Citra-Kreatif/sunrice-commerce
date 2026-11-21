@@ -94,6 +94,14 @@ return [
         'intro' => 'You asked us to tell you when it could be ordered again. It can, while stock lasts.',
         'action' => 'Order now',
     ],
+    'gift_card_issued' => [
+        'subject' => 'Your gift card for :number',
+        'heading' => 'Your gift card is ready',
+        'intro' => 'Here is the code for the gift card you bought. Give it to someone, or use it yourself.',
+        'action' => 'Redeem in My Account',
+        'redeem_by' => 'redeem by :date',
+        'how' => 'To use it: sign in (or create an account), open My Account → Points and enter the code. Its value becomes points, and 1 point is worth 1 of our currency at checkout.',
+    ],
     'downloads_ready' => [
         'subject' => 'Your downloads for :number',
         'heading' => 'Your downloads are ready',

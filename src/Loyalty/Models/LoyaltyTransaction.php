@@ -18,7 +18,7 @@ use Sunrice\Commerce\Orders\Models\Order;
  * @property int $id
  * @property int $customer_id
  * @property int|null $order_id
- * @property string $kind earn | redeem | release | refund | revoke | adjust | expire
+ * @property string $kind earn | redeem | release | refund | revoke | adjust | expire | gift_card
  * @property int $points positive for credits, negative for debits
  * @property int $remaining
  * @property Carbon|null $expires_at

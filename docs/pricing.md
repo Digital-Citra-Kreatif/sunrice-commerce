@@ -354,6 +354,33 @@ wallets in `commerce:prune` ("loyalty points"). Every change goes through `Loyal
 
 How rates are quoted is in [shipping.md](shipping.md).
 
+### Gift cards
+
+A gift card is a code a customer with an account redeems once, in **My Account → Points**, for
+loyalty points worth its value (1 point is 1 unit of the store's currency). After that the points
+work like any others: they pay at checkout after tax, go back when an order is cancelled or refunded,
+and show in the points history as "Gift card". The Loyalty module must be on; a store that doesn't
+reward purchases keeps **Points earned (%)** at 0 and uses points only as a wallet.
+
+- **Selling gift cards.** Switch on **Gift card** on a product (Fulfillment, in the product editor,
+  with Loyalty on; `gift_card` in the product data). It isn't shipped. When an order with it is
+  **paid** (`OrderPaid`), each unit becomes a code worth the line's price before discounts, and the
+  customer gets the **Gift card codes** email (`gift_card_issued`) with a link to My Account →
+  Points. Buying a gift card earns no points. An order refunded in full (or cancelled) disables its
+  codes not redeemed yet.
+- **Making codes.** Staff with `commerce.gift-cards.manage` see every code in Shop → Promotions →
+  Gift cards (who redeemed it, from which order), make up to 100 at a time (value, redeem-by date,
+  note) and disable or re-enable a code not redeemed yet.
+- **Settings** (Settings → Loyalty → Gift cards): **Gift card codes can be redeemed for (days)**
+  (`loyalty.gift_card_valid_days`, from when a code is made; 0, the default: any time) and **Points
+  from a gift card expire after (days)** (`loyalty.gift_card_points_expiry_days`, from redeeming; 0,
+  the default: never). Gift card points don't follow **Points expire after (days)**.
+- Codes are 12 characters without look-alikes (no 0/O or 1/I/L), shown as `ABCD-EFGH-JKLM`; typed
+  codes may use any case, spaces or dashes. Redeeming allows 10 tries an hour per account.
+- In code: `Loyalty\GiftCards` (`make()`, `issueFor(Order)`, `redeem(Customer, $code)`,
+  `disableFor(Order)`) and `Loyalty\Models\GiftCard`. Balance top-ups made this way are
+  `LoyaltyTransaction` rows of kind `gift_card`.
+
 ## Taxes
 
 Taxes need the **Taxes** (`taxes`) module, which is **off** by default. While it is off, tax is zero.

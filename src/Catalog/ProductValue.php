@@ -38,6 +38,7 @@ final class ProductValue
             'external_links' => [],
             'requires_shipping' => true,
             'downloadable' => false,
+            'gift_card' => false,
             'featured' => false,
             'tax_class' => null,
             'options' => [],
@@ -73,12 +74,13 @@ final class ProductValue
 
         $out['type'] = in_array($value['type'] ?? null, Product::TYPES, true) ? $value['type'] : 'simple';
         $out['purchase_mode'] = is_string($value['purchase_mode'] ?? null) ? $value['purchase_mode'] : 'default';
-        foreach (['requires_shipping', 'downloadable', 'featured'] as $flag) {
+        foreach (['requires_shipping', 'downloadable', 'gift_card', 'featured'] as $flag) {
             if (array_key_exists($flag, $value)) {
                 $out[$flag] = self::bool($value[$flag]);
             }
         }
-        if ($out['downloadable']) {
+        // Downloads and gift cards (a code by email) aren't shipped.
+        if ($out['downloadable'] || $out['gift_card']) {
             $out['requires_shipping'] = false;
         }
         $out['tax_class'] = self::str($value['tax_class'] ?? null);

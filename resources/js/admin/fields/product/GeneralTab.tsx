@@ -83,8 +83,12 @@ export function GeneralTab({ value, update, updateVariant, config, purchaseDefau
                     {(config.features.digital || value.downloadable) && (
                         <Toggle id={`${path}-downloadable`} label="Downloadable" checked={value.downloadable} onChange={(downloadable) => update({ downloadable })} hint="Deliver files or links after payment." />
                     )}
-                    <Toggle id={`${path}-shipping`} label="Needs shipping" checked={value.requires_shipping} disabled={value.downloadable}
-                        onChange={(requires_shipping) => update({ requires_shipping })} hint={value.downloadable ? 'Downloads are delivered digitally.' : 'Turn off for services or other items without delivery.'} />
+                    {(config.features.loyalty || value.gift_card) && (
+                        <Toggle id={`${path}-gift-card`} label="Gift card" checked={value.gift_card} onChange={(gift_card) => update({ gift_card })}
+                            hint="Paying for it emails a code per unit, worth its price. Customers redeem it for loyalty points in My Account." />
+                    )}
+                    <Toggle id={`${path}-shipping`} label="Needs shipping" checked={value.requires_shipping} disabled={value.downloadable || value.gift_card}
+                        onChange={(requires_shipping) => update({ requires_shipping })} hint={value.downloadable ? 'Downloads are delivered digitally.' : value.gift_card ? 'Gift cards are sent by email.' : 'Turn off for services or other items without delivery.'} />
                 </Grid>
             </Section>
 

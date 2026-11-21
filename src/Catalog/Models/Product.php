@@ -23,6 +23,7 @@ use Sunrice\Commerce\Database\Factories\ProductFactory;
  * @property array<int, array<string, mixed>>|null $external_links
  * @property bool $requires_shipping
  * @property bool $downloadable
+ * @property bool $gift_card paying for it issues a gift card per unit, worth its price (redeemed for loyalty points)
  * @property bool $featured
  * @property string|null $tax_class
  * @property string|null $bundle_pricing
@@ -61,6 +62,7 @@ class Product extends Model
         'delivery' => 'array',
         'requires_shipping' => 'boolean',
         'downloadable' => 'boolean',
+        'gift_card' => 'boolean',
         'featured' => 'boolean',
         'on_sale' => 'boolean',
         'in_stock' => 'boolean',

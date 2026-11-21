@@ -32,6 +32,8 @@ export interface ProductValue {
     external_links: ExternalLink[];
     requires_shipping: boolean;
     downloadable: boolean;
+    /** Paying for it issues a gift card per unit, worth its price (Loyalty). */
+    gift_card: boolean;
     featured: boolean;
     tax_class: string | null;
     options: ProductOption[];

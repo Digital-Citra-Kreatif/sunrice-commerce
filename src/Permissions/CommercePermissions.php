@@ -51,6 +51,7 @@ final class CommercePermissions
             'commerce.vouchers.manage' => ['Manage vouchers and automatic discounts', 'Store: Promotions'],
             'commerce.flash-sales.manage' => ['Manage flash sales', 'Store: Promotions'],
             'commerce.pricing-rules.manage' => ['Manage pricing rules', 'Store: Promotions'],
+            'commerce.gift-cards.manage' => ['See, make and disable gift card codes', 'Store: Promotions'],
 
             'commerce.reports.view' => ['View reports', 'Store: Reports'],
             'commerce.reports.export' => ['Export reports', 'Store: Reports'],
