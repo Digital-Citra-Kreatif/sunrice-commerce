@@ -27,7 +27,14 @@ it('creates and edits vouchers with conditions and targets', function () {
         ->and($voucher->customers->first()->customer_id)->not->toBeNull();
 
     $this->get('/admin/commerce/vouchers')->assertOk()->assertSee('GAJIAN25');
-    $this->get("/admin/commerce/vouchers/{$voucher->id}/edit")->assertOk();
+    // Chosen from lists: shown as lists, saved from lists.
+    $this->get("/admin/commerce/vouchers/{$voucher->id}/edit")->assertOk()->assertInertia(fn ($p) => $p
+        ->where('form.values.payment_methods', ['bank_transfer', 'qris'])
+        ->where('form.fields', fn ($fields) => collect($fields)->firstWhere('handle', 'shipping_methods')['type'] === 'commerce_choices'
+            && collect(collect($fields)->firstWhere('handle', 'shipping_methods')['config']['options'])->contains('value', 'pickup')));
+    $this->put("/admin/commerce/vouchers/{$voucher->id}", ['values' => ['name' => 'Gajian', 'code' => 'GAJIAN25', 'active' => true, 'type' => 'percent', 'percent' => 25,
+        'audience' => 'everyone', 'shipping_methods' => ['flat', 'pickup'], 'payment_methods' => []]])->assertSessionHasNoErrors();
+    expect($voucher->fresh()->shipping_methods)->toBe(['flat', 'pickup'])->and($voucher->fresh()->payment_methods)->toBeNull();
     $this->put("/admin/commerce/vouchers/{$voucher->id}", ['values' => ['name' => 'B2G1', 'code' => 'GAJIAN25', 'active' => true, 'type' => 'buy_x_get_y',
         'bxgy' => ['buy_qty' => 2, 'get_qty' => 1, 'get_type' => 'free'], 'audience' => 'everyone']])->assertSessionHasNoErrors();
     expect($voucher->fresh()->bxgy)->toEqual(['buy_qty' => 2, 'get_qty' => 1, 'get_type' => 'free', 'get_value' => 0]);

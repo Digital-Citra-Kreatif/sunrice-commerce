@@ -68,8 +68,10 @@ class SaveVoucher
             ])]],
             ['handle' => 'roles', 'section' => 'Customers', 'condition' => ['field' => 'audience', 'operator' => 'equals', 'value' => 'roles'], 'type' => 'select', 'label' => 'Roles', 'config' => ['options' => $roles, 'multiple' => true]],
             ['handle' => 'emails', 'section' => 'Customers', 'condition' => ['field' => 'audience', 'operator' => 'equals', 'value' => 'customers'], 'type' => 'textarea', 'label' => 'Customer emails', 'instructions' => 'One per line.', 'config' => ['max' => 20000]],
-            ['handle' => 'payment_methods', 'section' => 'Requirements', 'width' => 50, 'type' => 'text', 'label' => 'Only with payment methods', 'translatable' => false, 'instructions' => 'Method keys, comma separated (e.g. bank_transfer). Empty: any.'],
-            ['handle' => 'shipping_methods', 'section' => 'Requirements', 'width' => 50, 'type' => 'text', 'label' => 'Only with shipping methods', 'translatable' => false, 'instructions' => 'Method types, comma separated (e.g. flat, weight, pickup). Empty: any.'],
+            ['handle' => 'payment_methods', 'section' => 'Requirements', 'width' => 50, 'type' => 'commerce_choices', 'label' => 'Only with payment methods', 'translatable' => false,
+                'config' => ['source' => 'payment_methods', 'placeholder' => 'Any payment method'], 'instructions' => 'Empty: any.'],
+            ['handle' => 'shipping_methods', 'section' => 'Requirements', 'width' => 50, 'type' => 'commerce_choices', 'label' => 'Only with shipping methods', 'translatable' => false,
+                'config' => ['source' => 'shipping_types', 'placeholder' => 'Any shipping method'], 'instructions' => 'Empty: any.'],
             ['handle' => 'destinations', 'section' => 'Requirements', 'type' => 'repeater', 'label' => 'Only for shipping to', 'config' => ['max' => 50, 'fields' => [
                 ['handle' => 'region', 'type' => 'commerce_region', 'label' => 'Country / province', 'config' => ['depth' => 'city']],
             ]]],
@@ -101,7 +103,7 @@ class SaveVoucher
             'exclude_sale_items' => $voucher->exclude_sale_items, 'min_subtotal' => $voucher->min_subtotal, 'max_subtotal' => $voucher->max_subtotal,
             'subtotal_basis' => $voucher->subtotal_basis, 'min_quantity' => $voucher->min_quantity, 'audience' => $voucher->audience, 'roles' => $voucher->roles ?? [],
             'emails' => $voucher->exists ? $voucher->customers->pluck('email')->filter()->implode("\n") : '',
-            'payment_methods' => implode(', ', (array) $voucher->payment_methods), 'shipping_methods' => implode(', ', (array) $voucher->shipping_methods),
+            'payment_methods' => array_values((array) $voucher->payment_methods), 'shipping_methods' => array_values((array) $voucher->shipping_methods),
             'destinations' => array_map(fn (array $d) => ['region' => ['country' => $d['country'], 'province_code' => strlen((string) ($d['region_code'] ?? '')) === 2 ? $d['region_code'] : null,
                 'city_code' => strlen((string) ($d['region_code'] ?? '')) === 5 ? $d['region_code'] : null]], (array) $voucher->destinations),
             'usage_limit' => $voucher->usage_limit, 'usage_limit_per_customer' => $voucher->usage_limit_per_customer,
@@ -148,7 +150,8 @@ class SaveVoucher
                     'percent_off' => (int) round((float) ($b['get_percent'] ?? 0) * 100), 'amount_off' => (int) ($b['get_amount'] ?? 0), default => 0
                 }];
         }
-        $list = fn (?string $text) => array_values(array_filter(array_map('trim', explode(',', (string) $text))));
+        // Lists from the multi-selects (a comma-separated string, from older clients, reads as its parts).
+        $list = fn (mixed $value): array => array_values(array_filter(array_map(fn ($v) => trim((string) $v), is_array($value) ? $value : explode(',', (string) $value))));
         $emails = array_values(array_unique(array_filter(array_map(fn ($e) => mb_strtolower(trim($e)), preg_split('/[\s,;]+/', (string) $values['emails']) ?: []),
             fn ($e) => filter_var($e, FILTER_VALIDATE_EMAIL) !== false)));
 

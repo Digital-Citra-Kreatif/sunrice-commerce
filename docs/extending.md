@@ -76,7 +76,8 @@ fields (Sunrice field definitions, plus `commerce_money`, `commerce_region`, `co
 
 `commerce_choices` stores a list of strings picked from a searchable dropdown. `config.options`
 lists them (`[{value, label}]` or strings), or `config.source` fills them when the form is drawn
-(`countries`, `provinces`, `shipping_types`, `roles`). Values not in the list can be added as
+(`countries`, `provinces`, `id_regions` (provinces, then cities and regencies), `shipping_types`,
+`payment_methods`, `roles`). Values not in the list can be added as
 typed unless `creatable` is `false`; `uppercase` stores them in capitals. A comma-separated string
 is read as its parts.
 
