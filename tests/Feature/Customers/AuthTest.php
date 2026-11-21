@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Sunrice\Admin\Panel;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Variant;
@@ -34,6 +35,18 @@ it('signs customers in on the commerce guard without opening the admin', functio
     $this->get('/account/orders')->assertOk();
     $this->get('/admin')->assertRedirect(); // to the admin login
     expect(Customer::query()->where('email', 'ana@example.com')->exists())->toBeTrue();
+});
+
+it('puts the commerce guard on the user provider of the panel\'s guard', function () {
+    expect(config('auth.guards.commerce'))->toBe(['driver' => 'session', 'provider' => config('auth.guards.web.provider')]);
+
+    // A panel on a guard of its own (`$panel->guard('staff')`): customers use that guard's users.
+    config(['auth.guards.commerce' => null, 'auth.guards.staff' => ['driver' => 'session', 'provider' => 'staff_users']]);
+    $this->app->forgetInstance(Panel::class);
+    $this->app->singleton(Panel::class, fn (): Panel => Panel::make()->guard('staff'));
+    app(Panel::class);
+
+    expect(config('auth.guards.commerce'))->toBe(['driver' => 'session', 'provider' => 'staff_users']);
 });
 
 it('validates the configured captcha for password login and reset requests', function () {
