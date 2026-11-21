@@ -8,6 +8,7 @@ use Spatie\Permission\Models\Role;
 use Sunrice\Cms\Fields\Field;
 use Sunrice\Cms\Fields\FieldType;
 use Sunrice\Cms\Fields\Schema;
+use Sunrice\Commerce\Payments\PaymentManager;
 use Sunrice\Commerce\Regions\Countries;
 use Sunrice\Commerce\Regions\Region;
 use Sunrice\Commerce\Shipping\ShippingTypes;
@@ -16,13 +17,13 @@ use Sunrice\Commerce\Shipping\ShippingTypes;
  * Several values chosen from a searchable list, where a value the list
  * doesn't have can be added as typed: a list of strings.
  * config: options ([{value, label}] or strings), source (countries |
- * provinces | id_regions (provinces, then cities and regencies) | shipping_types | roles: options filled when the form is
+ * provinces | id_regions (provinces, then cities and regencies) | shipping_types | payment_methods | roles: options filled when the form is
  * drawn), creatable (default true), uppercase (values stored in capitals).
  * A comma-separated string is read as its parts.
  */
 class ChoicesField extends FieldType
 {
-    public const SOURCES = ['countries', 'provinces', 'id_regions', 'shipping_types', 'roles'];
+    public const SOURCES = ['countries', 'provinces', 'id_regions', 'shipping_types', 'payment_methods', 'roles'];
 
     public function type(): string
     {
@@ -88,6 +89,8 @@ class ChoicesField extends FieldType
             })(),
             'shipping_types' => collect(app(ShippingTypes::class)->options())
                 ->map(fn (string $label, string $key) => ['value' => $key, 'label' => "{$label} ({$key})"])->values()->all(),
+            'payment_methods' => collect(app(PaymentManager::class)->all())
+                ->map(fn ($method, string $key) => ['value' => $key, 'label' => PaymentManager::titleOf($method)." ({$key})"])->values()->all(),
             'roles' => Role::query()->orderBy('name')->pluck('name')->map(fn ($name) => ['value' => (string) $name, 'label' => (string) $name])->all(),
             default => [],
         };

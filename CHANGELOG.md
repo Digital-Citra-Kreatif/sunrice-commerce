@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Vouchers: **Only with payment methods** and **Only with shipping methods** are searchable
+  multi-selects instead of comma-separated text (comma-separated input is still read).
+  `commerce_choices` gains the `payment_methods` source.
+
 - Price on request: a variant's price can be left empty (`price` is now nullable; migration
   `allow_variants_without_a_price`). Customers who can't see prices, or products without one, can go
   into the cart when checkout can become a quote request (Quotation mode or **Customers can also
