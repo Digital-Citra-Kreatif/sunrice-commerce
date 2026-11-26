@@ -206,7 +206,7 @@ function checkoutInput(array $overrides = []): array
     ], $overrides);
 }
 
-/** A cart with these lines, sent as the visitor's cookie on the next requests; the visitor is signed in (as Rina, unless someone already is). */
+/** A visitor's cart with these lines, sent as their cookie on the next requests. Checking out needs an account: checkoutInput() signs in, or call buyer(). */
 function cartWith(array $lines): Cart
 {
     $cart = Cart::query()->create(['token' => Str::random(64), 'status' => 'active', 'currency' => 'IDR', 'last_activity_at' => now()]);
@@ -214,9 +214,6 @@ function cartWith(array $lines): Cart
         $cart->items()->create(['variant_id' => $variant->id, 'quantity' => $qty]);
     }
     test()->withCookie((string) config('commerce.cart.cookie', 'commerce_cart'), $cart->token);
-    if (auth('account')->guest()) {
-        buyer();
-    }
 
     return $cart;
 }

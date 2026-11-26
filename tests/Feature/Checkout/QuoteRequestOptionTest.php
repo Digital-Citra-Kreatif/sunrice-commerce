@@ -9,6 +9,9 @@ use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Workbench\App\Models\User;
 
+// Checkout is for accounts: these tests shop signed in (as Rina, unless a test signs someone else in).
+beforeEach(fn () => buyer());
+
 beforeEach(function () {
     $this->withoutMiddleware(ValidateCsrfToken::class);
     config(['honeypot.enabled' => false]);

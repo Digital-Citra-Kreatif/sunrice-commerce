@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Illuminate\Auth\Events\Login;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Sunrice\Account\Events\SignedIn;
 use Sunrice\Commerce\Cart\Actions\AddToCart;
 use Sunrice\Commerce\Cart\Actions\MergeCarts;
 use Sunrice\Commerce\Cart\CartException;
@@ -11,7 +11,6 @@ use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Cart\CartView;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Catalog\Models\Variant;
-use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Storefront\Layout;
@@ -69,7 +68,7 @@ it('tells the shopper when lines from before signing in did not fit', function (
     $guest = cartWith([[$this->variants[3], 1], [$this->variants[4], 1]]);
     request()->cookies->set('commerce_cart', $guest->token);
 
-    event(new Login(CurrentCustomer::guard(), $user, false));
+    event(new SignedIn($user, 'password'));
 
     expect(session('commerce.error'))->toBe('Your cart holds up to 3 products, so 2 from before you signed in were not added.');
 });

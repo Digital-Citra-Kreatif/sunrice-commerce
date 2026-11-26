@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Sunrice\Commerce\Analytics\Period;
 use Sunrice\Commerce\Analytics\Reports\CustomersReport;
@@ -172,15 +171,6 @@ it('pays a whole order with points and refunds it back onto the wallet', functio
     app(RecordRefund::class)->handle($order, 110000, [], null, false, Actor::system());
     expect($this->customer->fresh()->loyalty_points)->toBe(200000)
         ->and($order->fresh()->status)->toBe(OrderStatus::REFUNDED);
-});
-
-it('does not offer or persist points for a guest', function () {
-    Auth::guard('account')->logout();
-    $cart = cartWith([[$this->mug, 1]]);
-    $this->get('/checkout')->assertOk()->assertDontSee('id="checkout-points"', false);
-    $this->withCredentials()->postJson('/checkout/refresh', checkoutInput(['use_points' => '1']))
-        ->assertOk()->assertJsonPath('totals.points.amount', 0);
-    expect($cart->fresh()->checkout['use_points'])->toBeFalse();
 });
 
 it('spends the points that expire first, and expires what is left in time', function () {

@@ -17,7 +17,7 @@ return [
     'exact_amount' => 'Transfer tepat :amount (angka terakhir membantu kami menemukan pembayaran Anda).',
     'code' => 'Kode unik :code',
     'cod' => 'Bayar tunai ke kurir saat pesanan tiba.',
-    'return_verify' => 'Kami sedang memeriksa pembayaran untuk pesanan :number. Verifikasi pesanan atau masuk untuk melihatnya.',
+    'return_verify' => 'Kami sedang memeriksa pembayaran pesanan :number. Masuk untuk melihatnya.',
     'continue_gateway' => 'Lanjutkan pembayaran',
     'confirm_link' => 'Saya sudah bayar',
     'confirm' => [

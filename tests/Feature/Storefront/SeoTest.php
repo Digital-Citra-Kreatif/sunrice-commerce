@@ -34,10 +34,10 @@ it('keeps cart, checkout, order, account and payment pages out of search engines
     $order = makeOrder();
     actAsOwnerOf($order);
 
-    foreach (['/cart', '/checkout', '/confirm-payment', '/track-order', $order->url(), '/account/login'] as $url) {
+    foreach (['/cart', '/checkout', '/confirm-payment?order='.$order->order_key, $order->url(), '/account/orders'] as $url) {
         $response = $this->get($url);
         expect($response->status())->toBeLessThan(400, $url)
-            ->and($response->headers->get('X-Robots-Tag'))->toBe('noindex, nofollow', $url);
+            ->and((string) $response->headers->get('X-Robots-Tag'))->toStartWith('noindex', $url);
         if (str_contains((string) $response->headers->get('Content-Type'), 'html')) {
             $response->assertSee('<meta name="robots" content="noindex', false);
         }

@@ -7,6 +7,7 @@ namespace Sunrice\Commerce\Http\Controllers\Storefront;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Sunrice\Account\Account;
 use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Checkout\Actions\ResolveCheckoutSession;
 use Sunrice\Commerce\Checkout\CheckoutRefused;
@@ -52,8 +53,8 @@ class PayController
      * The customer is back from a gateway. The payment is checked whoever
      * returns (a HandlesReturn method asks its gateway, not the query string),
      * so a guest whose access lapsed while paying, or who comes back in
-     * another browser (an e-wallet app), signs in first (the route is for
-     * accounts) and comes back to this address.
+     * another browser (an e-wallet app), has the payment checked all the same, then signs in and
+     * lands on the order.
      */
     public function return(Request $request, string $key, OrderAccess $access, PaymentManager $payments, RecordPaymentResult $record): RedirectResponse
     {
@@ -94,6 +95,11 @@ class PayController
             }
 
             return redirect($order->url());
+        }
+        // Not signed in (another browser, an e-wallet app): sign in, then on to the order. Nothing about it is shown until then.
+        if (commerce_customer() === null) {
+            return app(Account::class)->redirectToSignIn($order->url())
+                ->with('account.status', __('commerce::payments.return_verify', ['number' => $order->displayNumber()]));
         }
         // Signed in as someone else: the order isn't theirs to see.
         abort(404);

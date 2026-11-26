@@ -55,12 +55,14 @@ Route::middleware(['commerce.feature:checkout', 'commerce.noindex', 'sunrice.acc
     Route::post('voucher', [Storefront\CheckoutController::class, 'voucher'])->middleware(['commerce.feature:vouchers', 'throttle:commerce-voucher'])->name('commerce.checkout.voucher'.$suffix);
 });
 
+// Back from a payment gateway, perhaps in another browser (an e-wallet app): the payment is checked for anyone,
+// and the order is shown to its account only (a visitor signs in first and lands on it).
+Route::get(StorefrontRoutes::path('order').'/{key}/payment/return', [Storefront\PayController::class, 'return'])->middleware(['commerce.feature:orders', 'commerce.feature:payments', 'commerce.noindex'])->name('commerce.order.payment-return'.$suffix);
 // An order's pages are its account's.
 Route::middleware(['commerce.feature:orders', 'commerce.noindex', 'sunrice.account.auth'])->group(function () use ($suffix): void {
     Route::get(StorefrontRoutes::path('order').'/{key}', [Storefront\OrderController::class, 'show'])->name('commerce.order'.$suffix);
     Route::get(StorefrontRoutes::path('order').'/{key}/pay', [Storefront\PayController::class, 'show'])->middleware('commerce.feature:payments')->name('commerce.order.pay'.$suffix);
     Route::post(StorefrontRoutes::path('order').'/{key}/pay', [Storefront\PayController::class, 'pay'])->middleware(['commerce.feature:payments', 'throttle:commerce-checkout'])->name('commerce.order.pay.submit'.$suffix);
-    Route::get(StorefrontRoutes::path('order').'/{key}/payment/return', [Storefront\PayController::class, 'return'])->middleware('commerce.feature:payments')->name('commerce.order.payment-return'.$suffix);
     Route::get(StorefrontRoutes::path('order').'/{key}/invoice', [Storefront\OrderController::class, 'invoice'])->name('commerce.order.invoice'.$suffix);
     Route::post(StorefrontRoutes::path('order').'/{key}/cancel', [Storefront\OrderController::class, 'cancel'])->middleware('throttle:commerce-cart')->name('commerce.order.cancel'.$suffix);
     Route::get(StorefrontRoutes::path('quote').'/{key}', [Storefront\QuoteController::class, 'show'])->name('commerce.quote'.$suffix);

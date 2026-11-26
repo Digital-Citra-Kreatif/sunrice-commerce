@@ -43,17 +43,6 @@ it('saves and selects an opted-in address immediately without placing an order',
     $this->get('/account/addresses')->assertOk()->assertSee('Jl. Sarijadi No. 2');
 });
 
-it('requires a signed-in customer before saving an address to an account', function () {
-    $this->withoutMiddleware(ValidateCsrfToken::class);
-    cartWith([[checkoutStore(), 1]]);
-
-    $this->withCredentials()->postJson('/checkout/refresh', [
-        'action' => 'apply_address',
-        'save_address' => true,
-        'shipping_address' => checkoutInput()['shipping_address'],
-    ])->assertForbidden();
-});
-
 it('renders the saved address with canonical region codes and saves a sparse replacement', function () {
     $this->withoutMiddleware(ValidateCsrfToken::class);
     $mug = checkoutStore();

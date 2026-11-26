@@ -24,7 +24,6 @@ use Sunrice\Commerce\Payments\PaymentManager;
 use Sunrice\Commerce\Payments\PaymentResult;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Workbench\App\Commerce\FakeGateway;
-use Workbench\App\Models\User;
 
 beforeEach(function () {
     $this->withoutMiddleware(ValidateCsrfToken::class);
@@ -88,30 +87,24 @@ it('completes by webhook, ignoring duplicates, stale results and bad signatures'
         ->and(WebhookCall::query()->orderBy('id')->pluck('status')->all())->toBe(['failed', 'processed', 'ignored', 'ignored']);
 });
 
-it('checks the payment on a return without access, then asks the guest to verify the order', function () {
+it('checks the payment on a return in another browser, then has the buyer sign in and lands on the order', function () {
     $order = placeWithGateway($this->mug);
+    $owner = auth('account')->user();
+    // Back in another browser (an e-wallet app): nobody is signed in there.
+    auth('account')->logout();
     $this->flushSession();
 
-    // Back in another browser (or after the guest's access lapsed): the payment is still checked.
-    $this->get("/order/{$order->order_key}/payment/return?status=failed")
-        ->assertRedirect('/track-order?number='.urlencode($order->number))
-        ->assertSessionHas('commerce.success');
+    $this->get("/order/{$order->order_key}/payment/return?status=failed")->assertRedirect('/account/login')->assertSessionHas('account.status');
+    // The payment was checked all the same; nothing about the order is shown until they sign in.
     expect($order->fresh()->status)->toBe('failed');
-    $this->get('/track-order?number='.urlencode($order->number))->assertOk()->assertSee($order->number);
-    $this->get($order->url())->assertNotFound();
 
+    $this->post('/account/login', ['email' => $owner->email, 'password' => 'secret-pass'])->assertRedirect($order->url());
+    $this->get($order->url())->assertOk()->assertSee($order->number);
+
+    // Someone else's account: not theirs to see.
+    buyer('other@example.com', 'Other');
+    $this->get("/order/{$order->order_key}/payment/return?status=failed")->assertNotFound();
     $this->get('/order/'.str_repeat('x', 40).'/payment/return')->assertNotFound();
-});
-
-it('sends a signed-out account owner returning from a gateway to sign in, then to the order', function () {
-    $owner = User::query()->create(['name' => 'Rina', 'email' => 'rina@example.com', 'password' => 'secret-pass']);
-    $order = placeWithGateway($this->mug);
-    $order->forceFill(['user_id' => $owner->id, 'meta' => [...(array) $order->meta, 'placed_as_guest' => false]])->save();
-    $this->flushSession();
-
-    $this->get("/order/{$order->order_key}/payment/return?status=failed")->assertRedirect('/account/login');
-    expect(session('url.intended'))->toBe($order->url())
-        ->and($order->fresh()->status)->toBe('failed');
 });
 
 it('checks the newest payment on the return after the customer switched method', function () {

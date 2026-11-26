@@ -49,7 +49,6 @@ it('publishes templates that the store then uses, and falls back without them', 
             'cart/line' => ['<tr ', '<tr data-app-cart-row '],
             'checkout/contact' => ['<fieldset ', '<fieldset data-app-contact '],
             'checkout/summary' => ['<aside ', '<aside data-app-summary '],
-            'account/navigation' => ['<nav ', '<nav data-app-navigation '],
             'account/order-table' => ['<table ', '<table data-app-order-table '],
             'payments/instructions' => ['<div ', '<div data-app-payment '],
             'payments/confirm-link' => ['<a ', '<a data-app-confirmation '],
@@ -59,6 +58,7 @@ it('publishes templates that the store then uses, and falls back without them', 
         }
 
         cartWith([[$mug, 1]]);
+        buyer();
         $this->get('/cart')->assertOk()->assertSee('data-app-cart-row', false)->assertSee('data-app-layout', false)
             ->assertSeeInOrder(['commerce-theme/commerce.css', 'test-commerce-skin.css'])->assertSee('commerce-theme/commerce.js');
         $this->get('/checkout')->assertOk()->assertSee('data-app-contact', false)->assertSee('data-app-summary', false);
@@ -71,7 +71,7 @@ it('publishes templates that the store then uses, and falls back without them', 
         $order->payments()->create(['method' => 'instructions_qr', 'amount' => 100000, 'status' => 'pending',
             'instructions' => ['image' => '/proof.png', 'confirmation' => 'optional']]);
         $this->actingAs($user, 'account')->get('/account/orders')->assertOk()
-            ->assertSee('data-app-navigation', false)->assertSee('data-app-order-table', false);
+            ->assertSee('data-app-order-table', false);
         $this->get($order->url())->assertOk()
             ->assertSee('data-app-payment', false)->assertSee('data-app-confirmation', false);
     } finally {

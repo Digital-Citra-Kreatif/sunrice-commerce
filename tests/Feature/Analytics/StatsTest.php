@@ -13,6 +13,9 @@ use Sunrice\Commerce\Orders\Events\OrderPaid;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\Models\Refund;
 
+// Checkout is for accounts: these tests shop signed in (as Rina, unless a test signs someone else in).
+beforeEach(fn () => buyer());
+
 function dayRow(string $date): ?object
 {
     return DB::table('commerce_stats_daily')->where('date', $date)->first();

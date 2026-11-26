@@ -115,9 +115,6 @@ it('validates the confirmation and refuses orders not waiting for one', function
     confirmPayment($this->order, ['sender_name' => '', 'proof' => UploadedFile::fake()->create('x.exe', 10)])->assertSessionHasErrors(['sender_name', 'proof']);
     $this->post('/confirm-payment', ['order' => $this->order->order_key, 'sender_name' => 'Rina', 'amount' => 1, 'transferred_at' => now()->toDateString(), 'account' => 0])
         ->assertSessionHasErrors('proof');  // required by the setting
-
-    $this->post('/confirm-payment/lookup', ['number' => $this->order->number, 'email' => 'rina@example.com'])
-        ->assertRedirect('/confirm-payment?order='.$this->order->order_key);
 });
 
 it('re-encodes images, dropping what they carried', function () {

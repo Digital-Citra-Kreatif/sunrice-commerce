@@ -53,7 +53,8 @@ it('lists, filters, edits and anonymizes customers', function () {
     $registered->refresh();
     expect($registered->anonymized_at)->not->toBeNull()
         ->and($registered->name)->toBeNull()->and($registered->phone)->toBeNull()->and($registered->email)->toStartWith('deleted-')
-        ->and($user->fresh()->email)->toBe($registered->email)
+        // The account's own placeholder (the Accounts plugin's), and the store's for its records.
+        ->and($user->fresh()->email)->toEndWith('@invalid.local')
         ->and(Address::query()->count())->toBe(0);
     $this->post('/account/login', ['email' => 'budi@example.com', 'password' => 'x']);
     $this->assertGuest('account');

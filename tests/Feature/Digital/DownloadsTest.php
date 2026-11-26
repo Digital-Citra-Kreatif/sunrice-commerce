@@ -10,7 +10,6 @@ use Sunrice\Commerce\Catalog\Models\DownloadFile;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
 use Sunrice\Commerce\Checkout\CheckoutData;
-use Sunrice\Commerce\Customers\Actions\LinkGuestOrders;
 use Sunrice\Commerce\Digital\Events\DownloadsGranted;
 use Sunrice\Commerce\Digital\Listeners\GrantDownloads;
 use Sunrice\Commerce\Digital\Models\DownloadGrant;
@@ -102,8 +101,7 @@ it('refuses a link that is not http(s) without counting a download', function ()
 
 it('lists downloads in My Account and lets staff manage grants', function () {
     $order = paidEbookOrder($this->ebook);
-    $user = User::query()->create(['name' => 'Rina', 'email' => 'rina@example.com', 'password' => bcrypt('x'), 'email_verified_at' => now()]);
-    app(LinkGuestOrders::class)->handle($user);
+    $user = User::query()->findOrFail($order->user_id);
     Auth::guard('account')->login($user);
     $downloads = $this->get('/account/downloads')->assertOk()->assertSee('E-book')->assertSee(DownloadGrant::query()->sole()->token);
     $document = HTMLDocument::createFromString($downloads->getContent(), LIBXML_NOERROR);

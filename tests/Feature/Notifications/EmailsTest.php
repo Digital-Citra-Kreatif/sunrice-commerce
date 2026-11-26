@@ -12,8 +12,6 @@ use Sunrice\Commerce\Catalog\Models\DownloadFile;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
 use Sunrice\Commerce\Checkout\CheckoutData;
-use Sunrice\Commerce\Customers\Events\AccountDeletionRequested;
-use Sunrice\Commerce\Customers\Notifications\WelcomeCustomer;
 use Sunrice\Commerce\Database\Seeders\CommerceRolesSeeder;
 use Sunrice\Commerce\Digital\Models\DownloadGrant;
 use Sunrice\Commerce\Documents\Documents;
@@ -88,12 +86,11 @@ it('sends the expected emails through an order\'s life, in order', function () {
         ->and($order->events()->where('type', 'email')->count())->toBe(7);
 });
 
-it('does not send switched-off emails, but always sends security ones', function () {
+it('does not send switched-off emails', function () {
     Notification::fake();
-    app(StoreSettings::class)->saveSection('emails', ['order_received' => ['enabled' => false], 'verify_email' => ['enabled' => false]]);
+    app(StoreSettings::class)->saveSection('emails', ['order_received' => ['enabled' => false]]);
     placeOrderFor($this->mug);
     expect(emailsTo('order_received'))->toBe([])->and(emailsTo('staff_new_order'))->toBe(['toko@example.com']);
-    expect(app(EmailSettings::class)->enabled('verify_email'))->toBeTrue();
 });
 
 it('sends staff emails to the addresses and to users with the roles, once each', function () {
@@ -216,11 +213,10 @@ it('sends the remaining emails from their triggers', function () {
     expect(array_filter($keys(), fn ($k) => str_starts_with($k, 'order_updated')))->toHaveCount(1)
         ->and($keys())->toContain('payment_link → rina@example.com');
 
-    // Stock and account deletion go to staff.
+    // Stock goes to staff (a deletion request is the Accounts plugin's email).
     StockLow::dispatch($this->mug, 6, 2);
     StockOut::dispatch($this->mug, 1, 0);
-    AccountDeletionRequested::dispatch($order->customer);
-    expect($keys())->toContain('staff_low_stock → toko@example.com', 'staff_out_of_stock → toko@example.com', 'staff_deletion_request → toko@example.com');
+    expect($keys())->toContain('staff_low_stock → toko@example.com', 'staff_out_of_stock → toko@example.com');
 
     // Quotes.
     app(StoreSettings::class)->saveSection('general', ['selling_mode' => 'quote']);
@@ -249,7 +245,7 @@ it('emails the customer about a confirmation and its rejection, and staff to ver
         $sent[] = $n->key.' → '.$notifiable->routes['mail'];
         if ($n->key === 'payment_rejected') {
             app()->setLocale('id');
-            expect((string) $n->toMail(null)->render())->toContain('Belum masuk')->toContain('/track-order?number=');
+            expect((string) $n->toMail(null)->render())->toContain('Belum masuk')->toContain('/account/orders/');
         }
 
         return true;
@@ -264,40 +260,27 @@ it('emails a pay-again link when a payment fails', function () {
 
     expect($order->fresh()->status)->toBe('failed')->and(emailsTo('payment_failed'))->toBe(['rina@example.com']);
     Notification::assertSentOnDemand(StoreEmail::class, function (StoreEmail $n, array $channels, AnonymousNotifiable $notifiable) use ($order) {
-        return $n->key === 'payment_failed' && str_contains((string) ($n->toMail($notifiable)->viewData['action']['url'] ?? ''), '/track-order?number='.rawurlencode($order->displayNumber()));
+        return $n->key === 'payment_failed' && str_contains((string) ($n->toMail($notifiable)->viewData['action']['url'] ?? ''), '/account/orders/'.$order->id);
     });
 });
 
-it('sends hidden copies of customer emails, never of codes and reset links', function () {
+it('sends hidden copies of customer emails', function () {
     actingAsUserWith(['commerce.settings.emails']);
     $this->put('/admin/commerce/settings/emails/order_received', ['values' => ['enabled' => true, 'copies' => 'owner@example.com, nope']])
         ->assertSessionHasErrors('values.copies');
     $this->put('/admin/commerce/settings/emails/order_received', ['values' => ['enabled' => true, 'copies' => 'Owner@example.com, admin@example.com']])
         ->assertSessionHasNoErrors();
-    $this->get('/admin/commerce/settings/emails/password_reset')->assertInertia(fn ($page) => $page
-        ->where('form.fields', fn ($fields) => ! collect($fields)->contains('handle', 'copies')));
-
     $mail = (new StoreEmail('order_received', placeOrderFor($this->mug), lang: 'id'))->toMail(null);
     expect(array_column($mail->bcc, 0))->toBe(['owner@example.com', 'admin@example.com']);
-
-    // Stored by hand for a locked email: still nobody else gets the link.
-    $settings = app(StoreSettings::class);
-    $settings->saveSection('emails', [...(array) ($settings->stored()['emails'] ?? []), 'password_reset' => ['copies' => ['owner@example.com']]]);
-    expect(app(EmailSettings::class)->copies('password_reset'))->toBe([]);
 });
 
-it('lets developers replace an email body, the frame, account emails and documents', function () {
+it('lets developers replace an email body, the frame and documents', function () {
     View::getFinder()->prependLocation(__DIR__.'/../../Fixtures/views');
     $order = placeOrderFor($this->mug);
 
     Commerce::emailTemplate('custom.email-body', 'order_shipped');
     $html = (string) (new StoreEmail('order_shipped', $order, lang: 'id'))->toMail(null)->render();
     expect($html)->toContain("Custom body for {$order->number}.");
-
-    Commerce::emailTemplate('custom.welcome', 'account_welcome');
-    $user = User::query()->create(['name' => 'Rina', 'email' => 'rina@example.com', 'password' => 'secret-pass']);
-    $welcome = (string) (new WelcomeCustomer('id'))->toMail($user)->render();
-    expect($welcome)->toContain('Custom welcome, Rina, from Toko Sunrice.');
 
     Commerce::documentTemplate('invoice', 'custom.invoice');
     expect(app(Documents::class)->html(collect([$order]), 'invoice'))->toContain('Custom invoice');

@@ -21,6 +21,9 @@ use Sunrice\Commerce\Payments\Actions\RecordPaymentResult;
 use Sunrice\Commerce\Payments\PaymentResult;
 use Workbench\App\Commerce\TestDeposit;
 
+// Checkout is for accounts: these tests shop signed in (as Rina, unless a test signs someone else in).
+beforeEach(fn () => buyer());
+
 beforeEach(function () {
     $this->mug = checkoutStore(['initial_stock' => 50]);
     TestDeposit::$percent = 30;

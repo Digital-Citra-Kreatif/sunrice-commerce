@@ -36,7 +36,7 @@ final class BuiltinFeatures
 
             new Feature('cart', 'selling', 'Cart and mini cart', 'Customers collect products in a cart.', ['catalog'], $cart),
             new Feature('orders', 'selling', 'Orders', 'Orders, quotes and manual orders in the admin.', ['catalog']),
-            new Feature('checkout', 'selling', 'Checkout', 'Customers check out: an order, a quote request or a WhatsApp order, by selling mode.', ['cart', 'orders'], $cart, ['shop' => ['payments']]),
+            new Feature('checkout', 'selling', 'Checkout', 'Customers check out: an order, a quote request or a WhatsApp order, by selling mode.', ['cart', 'orders', 'accounts'], $cart, ['shop' => ['payments']]),
             new Feature('returns', 'selling', 'Returns', 'Customers ask to return items of completed orders; staff approve and track them.', ['orders'], default: false),
             new Feature('documents', 'selling', 'Invoices and packing slips', 'PDF invoices, packing slips and quotations.', ['orders']),
             new Feature('taxes', 'selling', 'Taxes', 'Tax classes and rates.', ['catalog'], default: false),
@@ -50,7 +50,7 @@ final class BuiltinFeatures
             new Feature('flash_sales', 'promotions', 'Flash sales', 'Time-boxed sale prices with countdowns and quantity caps.', ['catalog']),
             new Feature('vouchers', 'promotions', 'Vouchers', 'Discount codes and automatic discounts.', ['cart'], $cart),
 
-            new Feature('accounts', 'customers', 'Customer accounts', 'Every order belongs to an account. Sign-in, registration and My Account are the Accounts plugin\'s (Settings → Accounts).', ['catalog'], core: true),
+            new Feature('accounts', 'customers', 'Customer accounts', 'Every order belongs to an account, so checkout needs it. Sign-in, registration and My Account are the Accounts plugin\'s (Settings → Accounts).', ['catalog']),
             new Feature('wishlist', 'customers', 'Wishlist', 'Customers save products for later.', ['catalog']),
             new Feature('compare', 'customers', 'Product comparison', 'Compare products side by side.', ['catalog']),
             new Feature('loyalty', 'customers', 'Loyalty points', 'Customers earn points on completed orders and spend them at checkout, like a wallet.', ['accounts', 'checkout'], ['shop'], default: false),
