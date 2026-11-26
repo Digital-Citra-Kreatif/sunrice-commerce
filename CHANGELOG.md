@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **Changed:** a gift card bought with a discount is worth what was paid for it, not its price
+  before discounts. It used to be issued at the higher of the regular and the paid price, so a
+  voucher, pricing rule or sale price on a gift card was a repeatable gain once the code was
+  redeemed for points. Each unit's code is now worth its share of the line's total after
+  discounts; a line discounted to nothing issues no code. Codes already issued keep their value.
+
 ## 0.4.0 (2026-11-21)
 
 **Upgrading from 0.3**: needs Sunrice 0.8. Run
