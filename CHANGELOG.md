@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Privacy: a signed-in customer's cart is no longer reachable by its cookie alone. After signing
+  out, the next visitor on that browser (or another customer signing in there) used to get the cart
+  with the name, phone and address typed at checkout; it now waits for its owner to sign in again.
+  Guest carts are unchanged.
+
 - Security: an account that was registered but never verified loses the password it was registered
   with when its email is first proven another way (a sign-in code, a checkout code, Google). Anyone
   can register someone else's address, so that password wasn't the owner's to trust; the owner sets

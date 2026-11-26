@@ -52,6 +52,11 @@ class CartManager
             return null;
         }
         $cart = Cart::query()->where('token', $token)->where('status', 'active')->first();
+        // The cookie outlives the session: a customer's cart, with the contact details and
+        // address typed at checkout, is theirs alone, and waits for them to sign in again.
+        if ($cart !== null && $cart->customer_id !== null && $cart->customer_id !== $customer?->id) {
+            return null;
+        }
         // A guest cart found after signing in becomes the customer's.
         if ($cart !== null && $customer !== null && $cart->customer_id === null) {
             $cart->forceFill(['customer_id' => $customer->id])->save();

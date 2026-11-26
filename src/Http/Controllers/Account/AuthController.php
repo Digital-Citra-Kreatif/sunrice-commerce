@@ -91,7 +91,7 @@ class AuthController
         return redirect()->intended(StorefrontRoutes::url('commerce.account'));
     }
 
-    /** Signs out of the storefront only: the admin session and the cart stay. */
+    /** Signs out of the storefront only: the admin session stays, and the cart waits for the customer to sign in again. */
     public function logout(Request $request): RedirectResponse
     {
         $this->guard()->logout();
