@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Privacy: a signed-in customer's cart is no longer reachable by its cookie alone. After signing
+  out, the next visitor on that browser (or another customer signing in there) used to get the cart
+  with the name, phone and address typed at checkout; it now waits for its owner to sign in again.
+  Guest carts are unchanged.
+
 ## 0.4.0 (2026-11-21)
 
 **Upgrading from 0.3**: needs Sunrice 0.8. Run

@@ -49,8 +49,10 @@ Customers** instead.
 ## The `commerce` guard
 
 The storefront uses its own session guard, `commerce`, on the same user provider as the admin.
-Signing in to the shop never opens `/cms`, and signing out of the shop leaves the admin session (and
-the cart) alone. Staff can shop too: they sign in on the storefront separately.
+Signing in to the shop never opens `/cms`, and signing out of the shop leaves the admin session
+alone. A signed-in customer's cart is theirs: after signing out it isn't shown to the next visitor
+on that browser (nor to another customer who signs in there), and it is back when they sign in
+again. Staff can shop too: they sign in on the storefront separately.
 
 ```php
 // config/commerce.php
