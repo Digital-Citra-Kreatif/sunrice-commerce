@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- A payment made at the gateway after its payment was cancelled here is no longer ignored. A
+  customer who chose another method on the pay page and then paid on the gateway page they had
+  left open, or who paid after the order was cancelled by them or by staff, had their money taken
+  with nothing recorded. A `cancelled` payment now accepts `paid`: on an open order it counts
+  towards the order (timeline note, other open payments cancelled once paid in full); on a
+  cancelled order it goes the "paid after cancellation" way (`PaymentAfterCancellation`,
+  `staff_paid_after_cancel`). New translation `orders.timeline.paid_on_cancelled_payment`.
+
 ## 0.4.0 (2026-11-21)
 
 **Upgrading from 0.3**: needs Sunrice 0.8. Run
