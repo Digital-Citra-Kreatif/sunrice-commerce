@@ -12,7 +12,7 @@ use Sunrice\Commerce\Mcp\CommerceTool;
 use Sunrice\Commerce\Mcp\OrderData;
 use Sunrice\Commerce\Orders\Actions\CreateManualOrder;
 
-#[Description('Create a manual order (a phone, chat or walk-in sale), like Orders → New in the admin. Lines are variant ids (see commerce_get_product) with quantities; today\'s prices apply unless unit_price is given, which needs the "change unit prices" permission. Optional hand-set shipping {label, cost} and discount {label, amount}. payment_status "paid" records the payment; "unpaid" with send_link emails the customer a payment link.')]
+#[Description('Create a manual order (a phone, chat or walk-in sale), like Orders → New in the admin. Lines are variant ids (see commerce_get_product) with quantities; today\'s prices apply unless unit_price is given, which needs the "change unit prices" permission. Optional hand-set shipping {label, cost} and discount {label, amount}. payment_status "paid" records the payment and needs the "verify payments" permission; "unpaid" with send_link emails the customer a payment link.')]
 class CreateOrderTool extends CommerceTool
 {
     protected string $name = 'commerce_create_order';

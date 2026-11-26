@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\GoogleProvider;
@@ -81,4 +82,21 @@ it('takes the Google keys from GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET through
     expect(config('services.google'))->toMatchArray(['client_id' => 'env-id', 'client_secret' => 'env-secret'])
         ->and(array_key_exists('redirect', config('services.google')))->toBeTrue()
         ->and(GoogleController::configured())->toBeTrue();
+});
+
+it('drops the password an unverified account was registered with', function () {
+    $user = User::query()->create(['name' => 'Ana', 'email' => 'ana@example.com', 'password' => 'attacker-pass']);
+    fakeGoogle('g-9', 'ana@example.com');
+
+    $this->get('/account/login/google/callback')->assertRedirect('/account');
+    expect($user->fresh()->email_verified_at)->not->toBeNull()
+        ->and(Hash::check('attacker-pass', $user->fresh()->password))->toBeFalse();
+});
+
+it('keeps the password of a verified account that signs in with Google', function () {
+    $user = User::query()->create(['name' => 'Ana', 'email' => 'ana@example.com', 'password' => 'my-own-pass', 'email_verified_at' => now()]);
+    fakeGoogle('g-10', 'ana@example.com');
+
+    $this->get('/account/login/google/callback')->assertRedirect('/account');
+    expect(Hash::check('my-own-pass', $user->fresh()->password))->toBeTrue();
 });

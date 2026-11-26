@@ -10,6 +10,23 @@
   cancelled order it goes the "paid after cancellation" way (`PaymentAfterCancellation`,
   `staff_paid_after_cancel`). New translation `orders.timeline.paid_on_cancelled_payment`.
 
+- Security: creating a manual order as already paid (Orders → New, and the `commerce_create_order`
+  AI tool) now needs `commerce.payments.verify`, the permission "Mark as paid" takes. Staff with
+  only `commerce.orders.create` could record a payment that way; they now create the order unpaid.
+  Give `commerce.payments.verify` to roles that take payment at the counter.
+
+- Privacy: a signed-in customer's cart is no longer reachable by its cookie alone. After signing
+  out, the next visitor on that browser (or another customer signing in there) used to get the cart
+  with the name, phone and address typed at checkout; it now waits for its owner to sign in again.
+  Guest carts are unchanged.
+
+- Security: an account that was registered but never verified loses the password it was registered
+  with when its email is first proven another way (a sign-in code, a checkout code, Google). Anyone
+  can register someone else's address, so that password wasn't the owner's to trust; the owner sets
+  a new one from My Account without the current one. Verified accounts and staff are unaffected,
+  and following the verification link keeps the password as before
+  (`Customers\Auth\ConfirmMailbox`).
+
 ## 0.4.0 (2026-11-21)
 
 **Upgrading from 0.3**: needs Sunrice 0.8. Run

@@ -182,6 +182,7 @@ class OrdersController extends Controller
             'order' => null,
             'paymentMethods' => $this->paymentMethodOptions(),
             'canOverride' => $request->user()->can('commerce.orders.override-prices'),
+            'canMarkPaid' => $request->user()->can('commerce.payments.verify'),
             'variantsUrl' => route('sunrice.admin.commerce.api.variants', ['bundles' => 1], false),
             'previewUrl' => route('sunrice.admin.commerce.orders.preview', [], false),
             'submitUrl' => route('sunrice.admin.commerce.orders.store', [], false),

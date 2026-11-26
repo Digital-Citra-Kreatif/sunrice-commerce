@@ -49,8 +49,10 @@ Customers** instead.
 ## The `commerce` guard
 
 The storefront uses its own session guard, `commerce`, on the same user provider as the admin.
-Signing in to the shop never opens `/cms`, and signing out of the shop leaves the admin session (and
-the cart) alone. Staff can shop too: they sign in on the storefront separately.
+Signing in to the shop never opens `/cms`, and signing out of the shop leaves the admin session
+alone. A signed-in customer's cart is theirs: after signing out it isn't shown to the next visitor
+on that browser (nor to another customer who signs in there), and it is back when they sign in
+again. Staff can shop too: they sign in on the storefront separately.
 
 ```php
 // config/commerce.php
@@ -201,6 +203,12 @@ The verification email is sent:
 
 Changing or resetting the password gives the account a new remember token, so "remember me" stops
 working on other devices.
+
+An account whose email was never verified, and is then proven another way (a sign-in code, a
+checkout code or Google), loses the password it was registered with and its remember token: anyone
+can register someone else's address, so that password isn't the owner's to trust. The customer is
+signed in and sets a new password from My Account, without the current one. Verified accounts and
+staff keep theirs.
 
 Following the link marks the email verified, sends the welcome email (the first time), links earlier
 guest orders and signs the customer in. Laravel's `Verified` event is dispatched when the user model

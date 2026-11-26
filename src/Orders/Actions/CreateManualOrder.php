@@ -67,6 +67,11 @@ class CreateManualOrder
             'send_link' => ['boolean'],
         ])->validate();
 
+        // Recording a payment is the same act as "Mark as paid" on an order: it takes the same permission.
+        if ($data['payment_status'] === 'paid' && ! (is_object($staff) && method_exists($staff, 'can') && $staff->can('commerce.payments.verify'))) {
+            throw ValidationException::withMessages(['payment_status' => 'You may not record payments: create the order as unpaid.']);
+        }
+
         $customer = isset($data['customer_id']) ? Customer::query()->findOrFail($data['customer_id'])
             : Customer::query()->firstOrCreate(['email' => mb_strtolower((string) $data['email'])], ['name' => $data['name'] ?? null]);
         $user = $customer->user();
