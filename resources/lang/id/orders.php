@@ -53,6 +53,7 @@ return [
         'edited' => 'Pesanan diubah',
         'addresses' => 'Alamat diperbarui',
         'expired' => 'Batas waktu pembayaran lewat',
+        'paid_on_cancelled_payment' => 'Pembayaran :amount diterima melalui :method, pada pembayaran yang sudah dikesampingkan (metode lain dipilih): dihitung untuk pesanan ini',
         'paid_after_cancel' => 'Pembayaran :amount diterima setelah pesanan dibatalkan: kembalikan dana atau aktifkan kembali pesanan',
         'amount_mismatch' => ':method melaporkan pembayaran :amount, bukan :expected yang harus dibayar: tidak dicatat sebagai lunas. Periksa pembayaran di dashboard gateway',
         'underpaid' => ':method melaporkan pembayaran :amount, kurang dari :expected yang harus dibayar: tidak dicatat sebagai lunas',

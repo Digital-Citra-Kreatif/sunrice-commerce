@@ -273,9 +273,9 @@ It locks the payment and the order and accepts only results that move the paymen
 | `pending` | paid, awaiting confirmation, failed, expired, cancelled |
 | `awaiting_confirmation` | paid, pending, failed, cancelled |
 | `failed` | paid, pending, awaiting confirmation, expired, cancelled |
-| `expired` | paid |
+| `expired`, `cancelled` | paid |
 | `paid`, `partially_refunded` | refunded |
-| `cancelled`, `refunded` | — |
+| `refunded` | — |
 
 Anything else is ignored and `handle()` returns `false`, so webhooks, returns and staff can report
 the same thing twice. Each accepted result writes a timeline line and moves the order:
@@ -289,12 +289,18 @@ After commit it dispatches `PaymentRecorded`, and `PaymentSucceeded` with `Order
 `PaymentFailed` or `PaymentExpired`. `OrderPaid` sends "payment received", grants downloads (with `digital.grant_on`
 `paid`), and updates sales counts and customer stats.
 
-Two results are treated with care:
+Three results are treated with care:
 
 - **Less than due**: a paid result whose amount is below the payment's is not recorded (the payment
   stays open); a timeline note shows both amounts, and staff can mark the order paid.
-- **Paid after cancellation**: a gateway can confirm a payment after its deadline cancelled the order
-  and released its stock, sale quantities and vouchers. The payment is recorded paid, but the order
+- **Paid on a cancelled payment**: cancelling a payment here (the customer chose another method on
+  the pay page) doesn't close the gateway's page, so the customer can still pay there. While the
+  order is open that payment is recorded paid and counts towards the order, with a timeline note;
+  once the order is paid in full, its other open payments are cancelled. The order's total keeps
+  the method chosen last, so a different fee can leave a small balance or surplus for staff to
+  settle. When the order itself was cancelled, the next rule applies.
+- **Paid after cancellation**: a gateway can confirm a payment after the order was cancelled (by its
+  deadline, the customer or staff) and its stock, sale quantities and vouchers were released. The payment is recorded paid, but the order
   stays Cancelled and `OrderPaid` doesn't fire (no downloads, invoice or "payment received"). Instead
   `PaymentAfterCancellation` fires, the timeline says so, and staff get `staff_paid_after_cancel` to
   refund the customer or reinstate the order.

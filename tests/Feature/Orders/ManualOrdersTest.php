@@ -36,10 +36,16 @@ it('creates unpaid and paid manual orders', function () use ($address) {
         ->and($order->events->first()->source)->toBe('admin');
     Event::assertDispatched(PaymentLinkRequested::class);
 
-    $this->post('/admin/commerce/orders', [
+    // Recording a payment takes the permission "Mark as paid" does.
+    $paidInput = [
         'email' => 'budi@example.com', 'lines' => [['variant_id' => $this->tea->id, 'quantity' => 1]], 'shipping_address' => $address,
         'payment_status' => 'paid', 'reference' => 'Cash',
-    ])->assertRedirect();
+    ];
+    $this->post('/admin/commerce/orders', $paidInput)->assertSessionHasErrors('payment_status');
+    expect(Order::query()->count())->toBe(1)->and($this->tea->fresh()->stock_quantity)->toBe(10);
+
+    actingAsUserWith(['commerce.orders.view', 'commerce.orders.create', 'commerce.payments.verify'], 'cashier@example.com');
+    $this->post('/admin/commerce/orders', $paidInput)->assertRedirect();
     $paid = Order::query()->latest('id')->first();
     expect([$paid->status, $paid->payment_status, $paid->paid_total])->toBe(['processing', 'paid', 20000])
         ->and($paid->payments->sole()->reference)->toBe('Cash');

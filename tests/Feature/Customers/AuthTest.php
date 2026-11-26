@@ -175,6 +175,33 @@ it('merges the guest cart at sign-in', function () {
     expect($guest->fresh()->customer_id)->toBe(Customer::query()->where('email', 'ana@example.com')->value('id'));
 });
 
+it('keeps a customer\'s cart to them once they sign out', function () {
+    app(ScaffoldStore::class)->handle();
+    publishProduct(['variants' => [['id' => 'mug', 'sku' => 'MUG', 'price' => 50000]]], title: 'Mug');
+    customerUser();
+    User::query()->create(['name' => 'Budi', 'email' => 'budi@example.com', 'password' => 'secret-pass', 'email_verified_at' => now()]);
+    $this->post('/account/login', ['email' => 'ana@example.com', 'password' => 'secret-pass']);
+    $this->post('/cart/items', ['variant' => Variant::query()->value('id'), 'quantity' => 2]);
+    $cart = Cart::query()->firstOrFail();
+    $cart->forceFill(['checkout' => ['email' => 'ana@example.com', 'name' => 'Ana Private']])->save();
+    $cookie = ['commerce_cart' => $cart->token];
+    $this->post('/account/logout');
+
+    // The cookie is still in the browser: the next visitor doesn't get the cart or what was typed at checkout.
+    $this->withCookies($cookie)->get('/cart')->assertOk()->assertDontSee('Mug');
+    $this->withCookies($cookie)->get('/checkout')->assertDontSee('Ana Private');
+
+    // Nor does another customer who signs in there.
+    $this->withCookies($cookie)->post('/account/login', ['email' => 'budi@example.com', 'password' => 'secret-pass']);
+    $this->withCookies($cookie)->get('/cart')->assertOk()->assertDontSee('Mug');
+    expect($cart->fresh()->customer_id)->toBe(Customer::query()->where('email', 'ana@example.com')->value('id'));
+    $this->post('/account/logout');
+
+    // It waits for its owner.
+    $this->post('/account/login', ['email' => 'ana@example.com', 'password' => 'secret-pass']);
+    $this->get('/cart')->assertOk()->assertSee('Mug');
+});
+
 it('uses the customer roles with can() under the commerce guard', function () {
     Role::findOrCreate('Customer', 'web')->givePermissionTo(Permission::findOrCreate('commerce.demo', 'web'));
     $user = customerUser();

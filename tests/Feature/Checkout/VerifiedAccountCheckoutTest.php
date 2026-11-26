@@ -112,7 +112,9 @@ it('signs in to the existing account without linking older guest orders', functi
 
     $this->post('/checkout/access/verify', ['code' => requestVerifiedCheckoutCode($email)])->assertRedirect('/checkout');
     $this->assertAuthenticatedAs($user, CurrentCustomer::guard());
+    // The account was never verified: the password it was registered with goes.
     expect($user->refresh()->email_verified_at)->not->toBeNull()
+        ->and(Hash::check('password', $user->password))->toBeFalse()
         ->and(app(LinkGuestOrders::class)->handle($user))->toBe(0)
         ->and($order->refresh()->user_id)->toBeNull();
     $this->get('/track-order')->assertOk();
