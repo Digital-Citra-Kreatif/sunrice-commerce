@@ -210,7 +210,9 @@ Staff create an order for a customer, for example from a chat (`commerce.orders.
 - lines: variants and quantities; a unit price per line needs `commerce.orders.override-prices`;
 - addresses, a hand-set shipping label and cost, and a discount;
 - the payment status: `unpaid` (optionally with a payment method and "send the payment link") or
-  `paid` (a manual payment is recorded with a reference).
+  `paid` (a manual payment is recorded with a reference). Creating an order as paid also needs
+  `commerce.payments.verify`, like "Mark as paid" on an order; without it the option isn't offered
+  and the request is refused.
 
 The order gets channel `admin`, an order number, reserved stock (all or nothing, as at checkout),
 a timeline line and an optional internal note. It dispatches `OrderPlaced`. A zero total starts

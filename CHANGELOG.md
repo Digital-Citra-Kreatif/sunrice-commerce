@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Security: creating a manual order as already paid (Orders → New, and the `commerce_create_order`
+  AI tool) now needs `commerce.payments.verify`, the permission "Mark as paid" takes. Staff with
+  only `commerce.orders.create` could record a payment that way; they now create the order unpaid.
+  Give `commerce.payments.verify` to roles that take payment at the counter.
+
 - Privacy: a signed-in customer's cart is no longer reachable by its cookie alone. After signing
   out, the next visitor on that browser (or another customer signing in there) used to get the cart
   with the name, phone and address typed at checkout; it now waits for its owner to sign in again.
