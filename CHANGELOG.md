@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Security: creating a manual order as already paid (Orders → New, and the `commerce_create_order`
+  AI tool) now needs `commerce.payments.verify`, the permission "Mark as paid" takes. Staff with
+  only `commerce.orders.create` could record a payment that way; they now create the order unpaid.
+  Give `commerce.payments.verify` to roles that take payment at the counter.
+
 ## 0.4.0 (2026-11-21)
 
 **Upgrading from 0.3**: needs Sunrice 0.8. Run

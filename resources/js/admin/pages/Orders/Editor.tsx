@@ -11,6 +11,8 @@ interface Props {
     order: { id: number; number: string; customer: string; lines: Line[]; shipping: { label: string; cost: number } | null; discount: { label: string; amount: number } | null; needs_shipping: boolean; valid_until?: string } | null;
     paymentMethods: Array<{ value: string; label: string }>;
     canOverride: boolean;
+    /** Creating an order as paid records a payment: commerce.payments.verify. */
+    canMarkPaid?: boolean;
     variantsUrl: string;
     previewUrl: string;
     submitUrl: string;
@@ -18,7 +20,7 @@ interface Props {
 type Preview = { lines: Array<{ variant_id: number; unit_price_formatted: string; total: string }>; totals: Record<string, string>; needs_shipping: boolean; notices: string[] };
 
 /** Shop → Orders → New order, and editing an unpaid order's lines. */
-export default function OrderEditor({ mode, order, paymentMethods, canOverride, variantsUrl, previewUrl, submitUrl }: Props) {
+export default function OrderEditor({ mode, order, paymentMethods, canOverride, canMarkPaid = false, variantsUrl, previewUrl, submitUrl }: Props) {
     const { Card, CardContent, CardHeader, CardTitle, Button, Input, Label, Checkbox, Textarea } = ui;
     useCommerceShared();
     useBreadcrumbs([{ label: 'Shop', href: adminUrl('commerce') }, { label: 'Orders', href: adminUrl('commerce/orders') },
@@ -171,10 +173,11 @@ export default function OrderEditor({ mode, order, paymentMethods, canOverride, 
                         <Card>
                             <CardHeader><CardTitle>Payment</CardTitle></CardHeader>
                             <CardContent className="cm:grid cm:gap-3 cm:text-sm">
-                                {(['unpaid', 'paid'] as const).map((status) => (
+                                {(['unpaid', 'paid'] as const).filter((status) => status === 'unpaid' || canMarkPaid).map((status) => (
                                     <label key={status} className="cm:flex cm:items-center cm:gap-2"><input type="radio" name="payment_status" checked={form.data.payment_status === status} onChange={() => form.setData('payment_status', status)} />
                                         {status === 'unpaid' ? 'Unpaid: the customer pays later' : 'Paid already'}</label>
                                 ))}
+                                {errors.payment_status && <p className="cm:text-sm cm:text-destructive">{errors.payment_status}</p>}
                                 {paymentMethods.length > 0 && (
                                     <div className="cm:grid cm:gap-1"><Label htmlFor="p-method">Method</Label>
                                         <select id="p-method" className="cm:h-9 cm:rounded-md cm:border cm:border-border cm:bg-background cm:px-3" value={form.data.payment_method} onChange={(e) => form.setData('payment_method', e.target.value)}>

@@ -1,27 +1,27 @@
 {
-  "_DataTable-CZYn2yjS.js": {
-    "file": "DataTable-CZYn2yjS.js",
+  "_DataTable-D-dXQn5v.js": {
+    "file": "DataTable-D-dXQn5v.js",
     "name": "DataTable",
     "imports": [
-      "_main-rv3J9GZi.js"
+      "_main-Dwve2_KU.js"
     ]
   },
-  "_InputError-BSM5gF7B.js": {
-    "file": "InputError-BSM5gF7B.js",
+  "_InputError-BWELXRlT.js": {
+    "file": "InputError-BWELXRlT.js",
     "name": "InputError",
     "imports": [
-      "_main-rv3J9GZi.js"
+      "_main-Dwve2_KU.js"
     ]
   },
-  "_PaymentConfirmationDialog-BwVrSCwl.js": {
-    "file": "PaymentConfirmationDialog-BwVrSCwl.js",
+  "_PaymentConfirmationDialog-C6LdJa_b.js": {
+    "file": "PaymentConfirmationDialog-C6LdJa_b.js",
     "name": "PaymentConfirmationDialog",
     "imports": [
-      "_main-rv3J9GZi.js"
+      "_main-Dwve2_KU.js"
     ]
   },
-  "_main-rv3J9GZi.js": {
-    "file": "main-rv3J9GZi.js",
+  "_main-Dwve2_KU.js": {
+    "file": "main-Dwve2_KU.js",
     "name": "main",
     "dynamicImports": [
       "resources/js/admin/pages/Confirmations/Index.tsx",
@@ -52,21 +52,21 @@
     "name": "marketing"
   },
   "resources/js/admin/components/ChartImpl.tsx": {
-    "file": "ChartImpl-BYaWIkyX.js",
+    "file": "ChartImpl-CgVJQ0Yt.js",
     "name": "ChartImpl",
     "src": "resources/js/admin/components/ChartImpl.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js"
+      "_main-Dwve2_KU.js"
     ]
   },
   "resources/js/admin/fields/product/ProductEditor.tsx": {
-    "file": "ProductEditor-BvirnGP1.js",
+    "file": "ProductEditor-BZHUVEtb.js",
     "name": "ProductEditor",
     "src": "resources/js/admin/fields/product/ProductEditor.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js"
+      "_main-Dwve2_KU.js"
     ]
   },
   "resources/js/admin/main.tsx": {
@@ -75,189 +75,189 @@
     "src": "resources/js/admin/main.tsx",
     "isEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js"
+      "_main-Dwve2_KU.js"
     ]
   },
   "resources/js/admin/pages/Confirmations/Index.tsx": {
-    "file": "Index-CryabNwD.js",
+    "file": "Index-C7dIAPee.js",
     "name": "Index",
     "src": "resources/js/admin/pages/Confirmations/Index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js",
-      "_DataTable-CZYn2yjS.js",
-      "_PaymentConfirmationDialog-BwVrSCwl.js"
+      "_main-Dwve2_KU.js",
+      "_DataTable-D-dXQn5v.js",
+      "_PaymentConfirmationDialog-C6LdJa_b.js"
     ]
   },
   "resources/js/admin/pages/Customers/Show.tsx": {
-    "file": "Show-m39O9zT_.js",
+    "file": "Show-CA2r2ZiR.js",
     "name": "Show",
     "src": "resources/js/admin/pages/Customers/Show.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js"
+      "_main-Dwve2_KU.js"
     ]
   },
   "resources/js/admin/pages/Dashboard.tsx": {
-    "file": "Dashboard-DVrA5df3.js",
+    "file": "Dashboard-B5Zp55JU.js",
     "name": "Dashboard",
     "src": "resources/js/admin/pages/Dashboard.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js"
+      "_main-Dwve2_KU.js"
     ]
   },
   "resources/js/admin/pages/Inventory/Index.tsx": {
-    "file": "Index-XniZ-gM8.js",
+    "file": "Index-DjP7S2Pc.js",
     "name": "Index",
     "src": "resources/js/admin/pages/Inventory/Index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js",
-      "_DataTable-CZYn2yjS.js"
+      "_main-Dwve2_KU.js",
+      "_DataTable-D-dXQn5v.js"
     ]
   },
   "resources/js/admin/pages/Loyalty/Show.tsx": {
-    "file": "Show-pAdtxZWg.js",
+    "file": "Show-CstaUnww.js",
     "name": "Show",
     "src": "resources/js/admin/pages/Loyalty/Show.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js",
-      "_DataTable-CZYn2yjS.js"
+      "_main-Dwve2_KU.js",
+      "_DataTable-D-dXQn5v.js"
     ]
   },
   "resources/js/admin/pages/Marketing/Editor.tsx": {
-    "file": "Editor-efol1sTC.js",
+    "file": "Editor-GkgjMHFG.js",
     "name": "Editor",
     "src": "resources/js/admin/pages/Marketing/Editor.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js",
-      "_InputError-BSM5gF7B.js",
+      "_main-Dwve2_KU.js",
+      "_InputError-BWELXRlT.js",
       "_marketing-Bya9hWH-.js"
     ]
   },
   "resources/js/admin/pages/Marketing/Report.tsx": {
-    "file": "Report-Bz8n3XZG.js",
+    "file": "Report-CgWlefue.js",
     "name": "Report",
     "src": "resources/js/admin/pages/Marketing/Report.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js",
+      "_main-Dwve2_KU.js",
       "_marketing-Bya9hWH-.js"
     ]
   },
   "resources/js/admin/pages/Orders/Editor.tsx": {
-    "file": "Editor-CQewu7S_.js",
+    "file": "Editor-CqJoRMmW.js",
     "name": "Editor",
     "src": "resources/js/admin/pages/Orders/Editor.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js"
+      "_main-Dwve2_KU.js"
     ]
   },
   "resources/js/admin/pages/Orders/Show.tsx": {
-    "file": "Show-C4tIW2HW.js",
+    "file": "Show-B721DP48.js",
     "name": "Show",
     "src": "resources/js/admin/pages/Orders/Show.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js",
-      "_PaymentConfirmationDialog-BwVrSCwl.js"
+      "_main-Dwve2_KU.js",
+      "_PaymentConfirmationDialog-C6LdJa_b.js"
     ]
   },
   "resources/js/admin/pages/Products/Import.tsx": {
-    "file": "Import-BrIG5ebO.js",
+    "file": "Import-F7cD7_G-.js",
     "name": "Import",
     "src": "resources/js/admin/pages/Products/Import.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js",
-      "_InputError-BSM5gF7B.js"
+      "_main-Dwve2_KU.js",
+      "_InputError-BWELXRlT.js"
     ]
   },
   "resources/js/admin/pages/Products/Index.tsx": {
-    "file": "Index-BBzj3cH4.js",
+    "file": "Index-M5DxOM3C.js",
     "name": "Index",
     "src": "resources/js/admin/pages/Products/Index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js",
-      "_DataTable-CZYn2yjS.js"
+      "_main-Dwve2_KU.js",
+      "_DataTable-D-dXQn5v.js"
     ]
   },
   "resources/js/admin/pages/Reports/Show.tsx": {
-    "file": "Show-Abq8b3WK.js",
+    "file": "Show-BP74xnnQ.js",
     "name": "Show",
     "src": "resources/js/admin/pages/Reports/Show.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js"
+      "_main-Dwve2_KU.js"
     ]
   },
   "resources/js/admin/pages/Settings/Emails.tsx": {
-    "file": "Emails-CB17VgeT.js",
+    "file": "Emails-BaxPs4lY.js",
     "name": "Emails",
     "src": "resources/js/admin/pages/Settings/Emails.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js"
+      "_main-Dwve2_KU.js"
     ]
   },
   "resources/js/admin/pages/Settings/Features.tsx": {
-    "file": "Features-DaW9pf8T.js",
+    "file": "Features-DEBniLyT.js",
     "name": "Features",
     "src": "resources/js/admin/pages/Settings/Features.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js"
+      "_main-Dwve2_KU.js"
     ]
   },
   "resources/js/admin/pages/Settings/Payments.tsx": {
-    "file": "Payments-211i8EPv.js",
+    "file": "Payments-CSLI1L8A.js",
     "name": "Payments",
     "src": "resources/js/admin/pages/Settings/Payments.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js"
+      "_main-Dwve2_KU.js"
     ]
   },
   "resources/js/admin/pages/Settings/Section.tsx": {
-    "file": "Section-BJ_wDoir.js",
+    "file": "Section-DeKO3spU.js",
     "name": "Section",
     "src": "resources/js/admin/pages/Settings/Section.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js"
+      "_main-Dwve2_KU.js"
     ]
   },
   "resources/js/admin/pages/Settings/Shipping.tsx": {
-    "file": "Shipping-Ca6AEXiO.js",
+    "file": "Shipping-BD3TpHX7.js",
     "name": "Shipping",
     "src": "resources/js/admin/pages/Settings/Shipping.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js"
+      "_main-Dwve2_KU.js"
     ]
   },
   "resources/js/admin/pages/Shared/ResourceIndex.tsx": {
-    "file": "ResourceIndex-hFwSFe1r.js",
+    "file": "ResourceIndex-DCEjenzu.js",
     "name": "ResourceIndex",
     "src": "resources/js/admin/pages/Shared/ResourceIndex.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js",
-      "_DataTable-CZYn2yjS.js"
+      "_main-Dwve2_KU.js",
+      "_DataTable-D-dXQn5v.js"
     ]
   },
   "resources/js/admin/pages/Shared/SchemaForm.tsx": {
-    "file": "SchemaForm-DHHxx_VD.js",
+    "file": "SchemaForm-DZ51hj7X.js",
     "name": "SchemaForm",
     "src": "resources/js/admin/pages/Shared/SchemaForm.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_main-rv3J9GZi.js"
+      "_main-Dwve2_KU.js"
     ]
   },
   "style.css": {
