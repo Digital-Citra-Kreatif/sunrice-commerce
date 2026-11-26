@@ -93,6 +93,7 @@ return [
         'payment_status' => 'We couldn’t confirm your payment status. Try again to check before editing your checkout.',
         'empty' => 'Your cart is empty.',
         'sign_in' => 'Please sign in to check out.',
+        'cart_account' => 'This cart belongs to another account. Sign in to that account to continue.',
         'minimum' => 'The minimum order is :amount.',
         'no_rates' => 'We can\'t ship to this address yet.',
         'rate' => 'Choose a shipping method.',

@@ -93,6 +93,7 @@ return [
         'payment_status' => 'Status pembayaran belum dapat dipastikan. Coba periksa kembali sebelum mengubah checkout Anda.',
         'empty' => 'Keranjang Anda kosong.',
         'sign_in' => 'Silakan masuk untuk checkout.',
+        'cart_account' => 'Keranjang ini milik akun lain. Masuk ke akun tersebut untuk melanjutkan.',
         'minimum' => 'Minimal pesanan :amount.',
         'no_rates' => 'Kami belum bisa mengirim ke alamat ini.',
         'rate' => 'Pilih metode pengiriman.',

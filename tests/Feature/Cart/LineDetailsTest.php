@@ -26,7 +26,7 @@ it('shows what a line\'s meta means in the cart, at checkout and on the order', 
     $order = app(PlaceOrder::class)->handle($cart, CheckoutData::fromCart($cart)->merge(checkoutInput()), null)->order;
     $item = $order->items->sole();
     expect($item->details())->toBe(['Engraving: Rina']);
-    authorizeGuestOrders($order);
+    actAsOwnerOf($order);
     $this->get($order->url())->assertSee('Engraving: Rina');
 
     actingAsSuperAdmin();

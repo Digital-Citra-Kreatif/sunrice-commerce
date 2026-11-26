@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sunrice\Commerce;
 
 use Illuminate\Contracts\Auth\Access\Authorizable;
+use Sunrice\Account\AccountPlugin;
 use Sunrice\Admin\Assets\PluginBundle;
 use Sunrice\Admin\BasePlugin;
 use Sunrice\Admin\Dashboard\Widget;
@@ -45,7 +46,7 @@ final class CommercePlugin extends BasePlugin
     /** @return list<string> */
     public function requires(): array
     {
-        return [CmsPlugin::ID];
+        return [CmsPlugin::ID, AccountPlugin::ID];
     }
 
     public function register(Panel $panel): void

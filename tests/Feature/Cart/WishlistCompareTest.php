@@ -65,13 +65,13 @@ it('renders collection shortcuts and accepts both add and remove in AJAX form po
 
 it('shows the account profile name on its shared wishlist without exposing the email', function () {
     $user = User::query()->create(['name' => 'Dewi Lestari', 'email' => 'wishlist-owner@example.test', 'password' => 'secret-pass']);
-    $this->actingAs($user, 'commerce');
+    $this->actingAs($user, 'account');
     $this->post('/wishlist/items', ['product' => $this->mugId])->assertSessionHas('commerce.success');
     $this->get('/wishlist')->assertSee('wishlist dan nama profil Anda');
     $this->post('/wishlist/share', ['on' => 1])->assertSessionHas('commerce.success');
     $token = Wishlist::query()->sole()->share_token;
 
-    Auth::guard('commerce')->logout();
+    Auth::guard('account')->logout();
     $this->get("/wishlist/shared/{$token}")->assertOk()->assertSee('Wishlist · Dewi Lestari')
         ->assertSee('Mug')->assertDontSee($user->email)
         ->assertHeader('X-Robots-Tag', 'noindex, nofollow');

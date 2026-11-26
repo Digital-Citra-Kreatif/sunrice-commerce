@@ -4,8 +4,8 @@ providers:
   - Sunrice\Admin\AdminServiceProvider
   - Sunrice\Cms\CmsServiceProvider
   - Spatie\Honeypot\HoneypotServiceProvider
-  - Spatie\OneTimePasswords\OneTimePasswordsServiceProvider
   - Laravel\Socialite\SocialiteServiceProvider
+  - Sunrice\Account\AccountServiceProvider
   - Sunrice\Commerce\CommerceServiceProvider
   - Workbench\App\Providers\AdminPanelProvider
   - Workbench\App\Providers\WorkbenchServiceProvider

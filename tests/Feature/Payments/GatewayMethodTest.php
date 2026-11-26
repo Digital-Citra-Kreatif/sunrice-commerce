@@ -40,7 +40,7 @@ it('creates the gateway page once per payment and keeps it', function () {
         ->and($payment->instructions['instructions'])->toBe('Bayar lewat halaman pembayaran.')
         ->and($payment->meta)->toMatchArray(['token' => 'tok-1', 'sandbox' => true]);
 
-    authorizeGuestOrders($order);
+    actAsOwnerOf($order);
     $this->post("/order/{$order->order_key}/pay", ['payment_method' => 'fake_redirect'])->assertRedirect($payment->instructions['url']);
     expect(FakeRedirectGateway::$created)->toBe(1);
 
@@ -55,7 +55,7 @@ it('marks the order paid only for the amount asked, and asks the gateway on retu
     $hook($payment->amount - 1000)->assertStatus(400);
     expect($order->fresh()->payment_status)->toBe('unpaid');
 
-    authorizeGuestOrders($order);
+    actAsOwnerOf($order);
     $this->get("/order/{$order->order_key}/payment/return?status=paid");
     expect($order->fresh()->payment_status)->toBe('unpaid');   // the query string is not trusted
 

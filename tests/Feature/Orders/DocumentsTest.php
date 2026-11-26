@@ -71,7 +71,7 @@ it('serves documents to staff with permission and invoices to verified customers
     expect(substr((string) $response->getContent(), 0, 5))->toBe('%PDF-');
     $this->post('/admin/commerce/orders/bulk', ['action' => 'packing_slips', 'ids' => [$this->order->id]])->assertRedirect();
 
-    authorizeGuestOrders($this->order);
+    actAsOwnerOf($this->order);
     $this->get("/order/{$this->order->order_key}/invoice")->assertNotFound(); // unpaid
     $this->order->forceFill(['payment_status' => 'paid', 'status' => 'processing'])->save();
     $this->get("/order/{$this->order->order_key}/invoice")->assertOk()->assertHeader('Content-Type', 'application/pdf');

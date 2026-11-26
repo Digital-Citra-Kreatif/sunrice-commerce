@@ -10,7 +10,6 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use Spatie\Honeypot\ProtectAgainstSpam;
 use Sunrice\Commerce\Http\Controllers\Storefront;
-use Sunrice\Commerce\Http\Middleware\RequireVerifiedCheckout;
 use Sunrice\Commerce\Storefront\StorefrontRoutes;
 
 /** @var string $suffix */
@@ -48,24 +47,16 @@ Route::middleware(['commerce.feature:compare', 'commerce.noindex'])->prefix(Stor
     Route::delete('items/{product}', [Storefront\CompareController::class, 'remove'])->whereNumber('product')->name('commerce.compare.remove'.$suffix);
 });
 
-Route::middleware(['commerce.feature:checkout', 'commerce.noindex', RequireVerifiedCheckout::class])->prefix(StorefrontRoutes::path('checkout'))->group(function () use ($suffix): void {
+// Checkout is for signed-in accounts: a visitor is sent to sign in (one email field) and comes back here, cart intact.
+Route::middleware(['commerce.feature:checkout', 'commerce.noindex', 'sunrice.account.auth', 'sunrice.account.verified'])->prefix(StorefrontRoutes::path('checkout'))->group(function () use ($suffix): void {
     Route::get('/', [Storefront\CheckoutController::class, 'show'])->name('commerce.checkout'.$suffix);
     Route::post('/', [Storefront\CheckoutController::class, 'submit'])->middleware('throttle:commerce-checkout')->name('commerce.checkout.submit'.$suffix);
     Route::post('refresh', [Storefront\CheckoutController::class, 'refresh'])->middleware('throttle:commerce-cart')->name('commerce.checkout.refresh'.$suffix);
     Route::post('voucher', [Storefront\CheckoutController::class, 'voucher'])->middleware(['commerce.feature:vouchers', 'throttle:commerce-voucher'])->name('commerce.checkout.voucher'.$suffix);
 });
 
-Route::middleware(['commerce.feature:checkout', 'commerce.noindex', RequireVerifiedCheckout::class.':access'])
-    ->prefix(StorefrontRoutes::path('checkout').'/access')->group(function () use ($suffix): void {
-        Route::get('/', [Storefront\CheckoutAccessController::class, 'show'])->name('commerce.checkout-access'.$suffix);
-        Route::get('password', [Storefront\CheckoutAccessController::class, 'password'])->name('commerce.checkout-access.password'.$suffix);
-        Route::get('code', [Storefront\CheckoutAccessController::class, 'code'])->name('commerce.checkout-access.code'.$suffix);
-        Route::post('code', [Storefront\CheckoutAccessController::class, 'send'])
-            ->middleware([ProtectAgainstSpam::class, 'throttle:commerce-checkout-code'])->name('commerce.checkout-access.send'.$suffix);
-        Route::post('verify', [Storefront\CheckoutAccessController::class, 'verify'])->name('commerce.checkout-access.verify'.$suffix);
-    });
-
-Route::middleware(['commerce.feature:orders', 'commerce.noindex'])->group(function () use ($suffix): void {
+// An order's pages are its account's.
+Route::middleware(['commerce.feature:orders', 'commerce.noindex', 'sunrice.account.auth'])->group(function () use ($suffix): void {
     Route::get(StorefrontRoutes::path('order').'/{key}', [Storefront\OrderController::class, 'show'])->name('commerce.order'.$suffix);
     Route::get(StorefrontRoutes::path('order').'/{key}/pay', [Storefront\PayController::class, 'show'])->middleware('commerce.feature:payments')->name('commerce.order.pay'.$suffix);
     Route::post(StorefrontRoutes::path('order').'/{key}/pay', [Storefront\PayController::class, 'pay'])->middleware(['commerce.feature:payments', 'throttle:commerce-checkout'])->name('commerce.order.pay.submit'.$suffix);
@@ -75,15 +66,10 @@ Route::middleware(['commerce.feature:orders', 'commerce.noindex'])->group(functi
     Route::get(StorefrontRoutes::path('quote').'/{key}', [Storefront\QuoteController::class, 'show'])->name('commerce.quote'.$suffix);
     Route::post(StorefrontRoutes::path('quote').'/{key}/accept', [Storefront\QuoteController::class, 'accept'])->middleware('throttle:commerce-cart')->name('commerce.quote.accept'.$suffix);
     Route::post(StorefrontRoutes::path('quote').'/{key}/decline', [Storefront\QuoteController::class, 'decline'])->middleware('throttle:commerce-cart')->name('commerce.quote.decline'.$suffix);
-    Route::get(StorefrontRoutes::path('track_order'), [Storefront\OrderController::class, 'trackForm'])->name('commerce.track-order'.$suffix);
-    Route::post(StorefrontRoutes::path('track_order'), [Storefront\OrderController::class, 'track'])->middleware(ProtectAgainstSpam::class)->name('commerce.track-order.submit'.$suffix);
-    Route::get(StorefrontRoutes::path('track_order').'/code', [Storefront\OrderController::class, 'code'])->name('commerce.track-order.code'.$suffix);
-    Route::post(StorefrontRoutes::path('track_order').'/code', [Storefront\OrderController::class, 'verify'])->middleware('throttle:commerce-checkout')->name('commerce.track-order.verify'.$suffix);
 });
 
-Route::middleware(['commerce.feature:manual_payments', 'commerce.noindex'])->prefix(StorefrontRoutes::path('confirm_payment'))->group(function () use ($suffix): void {
+Route::middleware(['commerce.feature:manual_payments', 'commerce.noindex', 'sunrice.account.auth'])->prefix(StorefrontRoutes::path('confirm_payment'))->group(function () use ($suffix): void {
     Route::get('/', [Storefront\ConfirmPaymentController::class, 'show'])->name('commerce.confirm-payment'.$suffix);
-    Route::post('lookup', [Storefront\ConfirmPaymentController::class, 'lookup'])->middleware(ProtectAgainstSpam::class)->name('commerce.confirm-payment.lookup'.$suffix);
     Route::post('/', [Storefront\ConfirmPaymentController::class, 'submit'])->middleware([ProtectAgainstSpam::class, 'throttle:commerce-confirm'])->name('commerce.confirm-payment.submit'.$suffix);
 });
 

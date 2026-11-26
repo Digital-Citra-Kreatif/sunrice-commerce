@@ -70,7 +70,7 @@ it('publishes templates that the store then uses, and falls back without them', 
         $order = makeOrder(['user_id' => $user->id, 'payment_method' => 'instructions_qr']);
         $order->payments()->create(['method' => 'instructions_qr', 'amount' => 100000, 'status' => 'pending',
             'instructions' => ['image' => '/proof.png', 'confirmation' => 'optional']]);
-        $this->actingAs($user, 'commerce')->get('/account/orders')->assertOk()
+        $this->actingAs($user, 'account')->get('/account/orders')->assertOk()
             ->assertSee('data-app-navigation', false)->assertSee('data-app-order-table', false);
         $this->get($order->url())->assertOk()
             ->assertSee('data-app-payment', false)->assertSee('data-app-confirmation', false);

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Notifications;
 
 use Illuminate\Events\Dispatcher;
-use Sunrice\Commerce\Customers\Events\AccountDeletionRequested;
 use Sunrice\Commerce\Digital\Events\DownloadsGranted;
 use Sunrice\Commerce\Inventory\Events\StockLow;
 use Sunrice\Commerce\Inventory\Events\StockOut;
@@ -79,6 +78,5 @@ class SendStoreEmails
         $events->listen(DownloadsGranted::class, fn (DownloadsGranted $e) => $this->notifier->send('downloads_ready', $e->order, ['grants' => $e->grants]));
         $events->listen(StockLow::class, fn (StockLow $e) => $this->notifier->send('staff_low_stock', $e->variant, ['quantity' => $e->after]));
         $events->listen(StockOut::class, fn (StockOut $e) => $this->notifier->send('staff_out_of_stock', $e->variant));
-        $events->listen(AccountDeletionRequested::class, fn (AccountDeletionRequested $e) => $this->notifier->send('staff_deletion_request', $e->customer));
     }
 }

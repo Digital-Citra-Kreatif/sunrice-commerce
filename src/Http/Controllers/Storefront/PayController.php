@@ -52,9 +52,8 @@ class PayController
      * The customer is back from a gateway. The payment is checked whoever
      * returns (a HandlesReturn method asks its gateway, not the query string),
      * so a guest whose access lapsed while paying, or who comes back in
-     * another browser (an e-wallet app), isn't left on a "not found" page:
-     * they are sent to sign in or verify the order instead, and shown
-     * nothing about it until then.
+     * another browser (an e-wallet app), signs in first (the route is for
+     * accounts) and comes back to this address.
      */
     public function return(Request $request, string $key, OrderAccess $access, PaymentManager $payments, RecordPaymentResult $record): RedirectResponse
     {
@@ -96,13 +95,7 @@ class PayController
 
             return redirect($order->url());
         }
-        $message = __('commerce::payments.return_verify', ['number' => $order->displayNumber()]);
-        if ($order->user_id !== null && ! $order->wasPlacedAsGuest()) {
-            redirect()->setIntendedUrl($order->url());
-
-            return redirect(StorefrontRoutes::url('commerce.account.login'))->with('commerce.success', $message);
-        }
-
-        return redirect(StorefrontRoutes::url('commerce.track-order', ['number' => $order->number]))->with('commerce.success', $message);
+        // Signed in as someone else: the order isn't theirs to see.
+        abort(404);
     }
 }

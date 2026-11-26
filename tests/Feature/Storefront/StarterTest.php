@@ -105,7 +105,7 @@ it('fills the load test fixtures on top of the starter store and can be rerun', 
 it('renders every starter page with the demo data', function () {
     starterStore();
     $order = makeOrder();
-    authorizeGuestOrders($order);
+    actAsOwnerOf($order);
     $sale = FlashSale::query()->firstOrFail();
 
     foreach (['/', '/products', '/products?q=kaus', '/products?q=tidak-ada-apa-apa', '/products/category/women', '/products/category/women-t-shirts?sort=price',
@@ -119,7 +119,7 @@ it('renders every starter page with the demo data', function () {
     $this->get('/')->assertSee('commerce-hero', false)->assertSee('data-commerce-countdown', false);
     $this->get('/products/category/women')->assertSee('data-commerce-filters', false)->assertSee('commerce-swatch', false);
 
-    $this->actingAs(User::query()->where('email', StarterStoreSeeder::CUSTOMER_EMAIL)->firstOrFail(), (string) config('commerce.auth.guard', 'commerce'));
+    $this->actingAs(User::query()->where('email', StarterStoreSeeder::CUSTOMER_EMAIL)->firstOrFail(), 'account');
     $this->get('/account')->assertRedirect('/account/orders');
     foreach (['/account/orders', '/account/orders/'.Order::query()->where('status', 'completed')->value('id'), '/account/downloads',
         '/account/addresses', '/account/profile'] as $path) {

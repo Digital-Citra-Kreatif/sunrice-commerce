@@ -1,4 +1,4 @@
-{{-- $order, $invoiceUrl, $canCancel, $accountRequested, $invite, and $registerUrl. --}}
+{{-- $order, $invoiceUrl, $canCancel. --}}
 @php($S = \Sunrice\Commerce\Orders\OrderStatus::class)
 <aside class="commerce-order__side">
     <dl class="commerce-order__states">
@@ -43,12 +43,4 @@
             @include(\Sunrice\Commerce\Storefront\Layout::view('partials.order-cancel'), ['cancelUrl' => commerce_url('commerce.order.cancel', ['key' => $order->order_key])])
         @endif
     </div>
-
-    @if ($accountRequested ?? false)
-        <p class="commerce-order__invite">{{ __('commerce::checkout.order.account_verification') }}
-            <a href="{{ commerce_url('commerce.account.login') }}">{{ __('commerce::checkout.order.account_sign_in') }}</a>
-        </p>
-    @elseif ($invite && $registerUrl)
-        <p class="commerce-order__invite">{{ __('commerce::checkout.order.invite') }} <a href="{{ $registerUrl }}">{{ __('commerce::checkout.order.create_account') }}</a></p>
-    @endif
 </aside>

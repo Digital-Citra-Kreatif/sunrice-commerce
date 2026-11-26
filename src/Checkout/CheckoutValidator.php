@@ -48,7 +48,6 @@ class CheckoutValidator
     public function rules(CheckoutData $data, CalculationState $state): array
     {
         $s = $this->settings;
-        $guest = commerce_customer() === null;
         $rules = ['email' => ['required', 'string', 'email:rfc', 'max:190']];
 
         $require = [
@@ -69,9 +68,6 @@ class CheckoutValidator
         if ($s->get('checkout.company_fields', false)) {
             $rules['fields.company'] = ['nullable', 'string', 'max:120'];
             $rules['fields.tax_id'] = ['nullable', 'string', 'max:40'];
-        }
-        if ($guest && $this->createsAccount($data)) {
-            $rules['password'] = ['required', 'string', 'min:8', 'max:190'];
         }
         if ($s->get('checkout.order_notes', true)) {
             $rules['notes'] = ['nullable', 'string', 'max:1000'];
@@ -98,7 +94,7 @@ class CheckoutValidator
         if ($state->onRequest() && $this->mode->completion() !== 'quote') {
             $v->errors()->add('cart', __('commerce::checkout.errors.on_request'));
         }
-        if (commerce_customer() === null && ! app(VerifiedAccountCheckout::class)->guestAllowed()) {
+        if (commerce_customer() === null) {
             $v->errors()->add('email', __('commerce::checkout.errors.sign_in'));
         }
         $minimum = (int) $this->settings->get('checkout.minimum_order', 0);
@@ -135,19 +131,6 @@ class CheckoutValidator
     public function needsAddress(CheckoutData $data, CalculationState $state): bool
     {
         return $state->shipping['needed'] && $this->mode->shipping() && ! $data->isPickup();
-    }
-
-    public function createsAccount(CheckoutData $data): bool
-    {
-        if (! commerce_feature('accounts') || ! $this->settings->get('accounts.registration', true)) {
-            return false;
-        }
-
-        return match ((string) $this->settings->get('checkout.create_account', 'offer')) {
-            'always' => true,
-            'offer' => (bool) $data->get('create_account', false),
-            default => false,
-        };
     }
 
     /** @return array<string, string> */

@@ -4,7 +4,7 @@
 --}}
 @extends(\Sunrice\Commerce\Storefront\Layout::view('account.layout'))
 
-@section('account')
+@section('commerce-account')
     @php($L = \Sunrice\Commerce\Storefront\Layout::class)
     @php($S = \Sunrice\Commerce\Orders\OrderStatus::class)
     <a class="commerce-link commerce-link--action commerce-account__back"
@@ -28,11 +28,11 @@
     <div class="commerce-order__actions">
         <a href="{{ $order->url() }}" class="commerce-button commerce-button--secondary">{{ __('commerce::account.orders.details') }}</a>
         @if (! $order->isQuote() && commerce_feature('cart'))
-            <form method="POST" action="{{ commerce_url('commerce.account.order.again', ['order' => $order->id]) }}">@csrf
+            <form method="POST" action="{{ commerce_url('commerce.account.orders.again', ['order' => $order->id]) }}">@csrf
                 <button type="submit" class="commerce-link commerce-link--action">{{ __('commerce::account.orders.buy_again') }}</button></form>
         @endif
         @if ($canCancel)
-            @include($L::view('partials.order-cancel'), ['cancelUrl' => commerce_url('commerce.account.order.cancel', ['order' => $order->id])])
+            @include($L::view('partials.order-cancel'), ['cancelUrl' => commerce_url('commerce.account.orders.cancel', ['order' => $order->id])])
         @endif
     </div>
 

@@ -50,9 +50,7 @@ final class BuiltinFeatures
             new Feature('flash_sales', 'promotions', 'Flash sales', 'Time-boxed sale prices with countdowns and quantity caps.', ['catalog']),
             new Feature('vouchers', 'promotions', 'Vouchers', 'Discount codes and automatic discounts.', ['cart'], $cart),
 
-            new Feature('accounts', 'customers', 'Customer accounts', 'Registration, sign-in and My Account.', ['catalog']),
-            new Feature('passwordless_login', 'customers', 'Sign in with an emailed code', 'One-time codes instead of a password.', ['accounts'], default: false),
-            new Feature('google_login', 'customers', 'Sign in with Google', 'Needs GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.', ['accounts'], default: false),
+            new Feature('accounts', 'customers', 'Customer accounts', 'Every order belongs to an account. Sign-in, registration and My Account are the Accounts plugin\'s (Settings → Accounts).', ['catalog'], core: true),
             new Feature('wishlist', 'customers', 'Wishlist', 'Customers save products for later.', ['catalog']),
             new Feature('compare', 'customers', 'Product comparison', 'Compare products side by side.', ['catalog']),
             new Feature('loyalty', 'customers', 'Loyalty points', 'Customers earn points on completed orders and spend them at checkout, like a wallet.', ['accounts', 'checkout'], ['shop'], default: false),

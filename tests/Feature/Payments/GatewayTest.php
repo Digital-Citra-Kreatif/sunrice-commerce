@@ -132,7 +132,7 @@ it('checks the newest payment on the return after the customer switched method',
 it('records the gateway return and checks status once before expiring', function () {
     $order = placeWithGateway($this->mug);
     $ref = fakeReference($order);
-    authorizeGuestOrders($order);
+    actAsOwnerOf($order);
     $this->get("/order/{$order->order_key}/payment/return?status=failed")->assertRedirect($order->url());
     expect($order->fresh()->status)->toBe('failed');
 
@@ -145,7 +145,7 @@ it('records the gateway return and checks status once before expiring', function
 
 it('lets the customer switch methods on the pay page, the fee following', function () {
     $order = placeWithGateway($this->mug);
-    authorizeGuestOrders($order);
+    actAsOwnerOf($order);
     $this->get("/order/{$order->order_key}/pay")->assertOk()->assertSee('Kartu')->assertSee('Transfer');
 
     $this->post("/order/{$order->order_key}/pay", ['payment_method' => 'test_transfer'])->assertRedirect($order->url());
@@ -311,7 +311,7 @@ it('flags a payment that arrives after the deadline cancelled the order, without
 it('counts a payment made at the gateway after the customer chose another method', function () {
     $order = placeWithGateway($this->mug);
     $ref = fakeReference($order);
-    authorizeGuestOrders($order);
+    actAsOwnerOf($order);
     // The gateway's page stays open in another tab: choosing a transfer only sets the payment aside here.
     $this->post("/order/{$order->order_key}/pay", ['payment_method' => 'test_transfer'])->assertRedirect($order->url());
     expect($order->payments->pluck('status', 'method')->all())->toBe(['fake_gateway' => 'cancelled', 'test_transfer' => 'pending']);

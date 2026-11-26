@@ -263,7 +263,7 @@ it('accepts a guest checkout for an existing verified account and lets the buyer
         ->and((new StoreEmail('order_received', $order, lang: 'id'))->data()['action']['url'])
         ->toContain('/track-order?number='.rawurlencode($order->displayNumber()));
     $placed->assertRedirect($order->url());
-    $this->assertGuest('commerce');
+    $this->assertGuest('account');
     $this->get($order->url())->assertOk()->assertSee($order->number);
     $this->get($order->url().'/pay')->assertOk();
     $this->get($previous->url())->assertNotFound();
@@ -280,8 +280,8 @@ it('accepts a guest checkout for an existing verified account and lets the buyer
     $this->post('/track-order/code', ['code' => $code])->assertRedirect($order->url());
     $this->get($order->url().'/pay')->assertOk();
 
-    $this->actingAs($other, 'commerce')->get($order->url())->assertNotFound();
-    $this->actingAs($owner, 'commerce')->get($accountUrl)->assertOk()->assertSee($order->number);
+    $this->actingAs($other, 'account')->get($order->url())->assertNotFound();
+    $this->actingAs($owner, 'account')->get($accountUrl)->assertOk()->assertSee($order->number);
 });
 
 it('refuses orders while paused', function () {
@@ -302,7 +302,7 @@ it('links guest orders once the email is verified', function () {
 it('finds open quotes by their quote number on the track page', function () {
     $quote = makeOrder(['type' => 'quote', 'status' => 'requested', 'number' => null, 'quote_number' => 'Q-TRACK-1', 'email' => 'pt@example.com']);
 
-    authorizeGuestOrders($quote);
+    actAsOwnerOf($quote);
     $this->post('/track-order', ['number' => 'Q-TRACK-1', 'email' => 'pt@example.com'])->assertRedirect($quote->url());
 });
 

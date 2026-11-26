@@ -136,9 +136,8 @@ class StoreEmail extends Notification implements ShouldQueue
             $this->key === 'staff_payment_confirmation' => route('sunrice.admin.commerce.confirmations'),
             // Gift cards are redeemed in My Account → Points (signing in first, when needed).
             in_array($this->key, ['gift_card_issued', 'gift_card_received'], true) => commerce_url('commerce.account.points', [], $this->lang),
-            $this->order !== null && ($this->order->user_id === null || $this->order->wasPlacedAsGuest()) => commerce_url('commerce.track-order', ['number' => $this->order->displayNumber()], $this->lang),
             $this->order?->isQuote() === true => commerce_url('commerce.account.quotes', [], $this->lang),
-            $this->order !== null => commerce_url('commerce.account.order', ['order' => $this->order->id], $this->lang),
+            $this->order !== null => commerce_url('commerce.account.orders.show', ['order' => $this->order->id], $this->lang),
             default => null,
         };
 

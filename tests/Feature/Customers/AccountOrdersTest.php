@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Auth;
+use Sunrice\Account\Events\SignedIn;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
 use Sunrice\Commerce\Checkout\CheckoutData;
 use Sunrice\Commerce\Customers\Actions\AnonymizeCustomer;
-use Sunrice\Commerce\Customers\Actions\LinkGuestOrders;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Payments\Actions\RecordPaymentResult;
@@ -30,13 +30,11 @@ function guestOrder(Variant $variant, string $email): Order
     return app(PlaceOrder::class)->handle($cart, CheckoutData::fromCart($cart)->merge(checkoutInput(['email' => $email])), null)->order;
 }
 
-it('shows customers only their own orders, linked guest orders after verification', function () {
+it('shows customers only their own orders', function () {
     $mine = guestOrder($this->mug, 'rina@example.com');
     $other = guestOrder($this->mug, 'budi@example.com');
-    Auth::guard('commerce')->login($this->user);
+    Auth::guard('account')->login($this->user);
 
-    $this->get('/account/orders')->assertOk()->assertDontSee($mine->number);
-    app(LinkGuestOrders::class)->handle($this->user);
     $this->get('/account/orders')->assertOk()->assertSee($mine->number)->assertDontSee($other->number);
     $this->get("/account/orders/{$mine->id}")->assertOk()->assertSee('Rp60.000');
     $this->get("/account/orders/{$other->id}")->assertNotFound();
@@ -52,7 +50,7 @@ it('shows the same actionable payment instructions on both order pages', functio
         ],
     ]);
     $accountUrl = "/account/orders/{$order->id}";
-    $this->actingAs($this->user, 'commerce');
+    $this->actingAs($this->user, 'account');
     foreach ([$accountUrl, $order->url()] as $url) {
         $response = $this->get($url)->assertOk()->assertSee('Rp75.432')
             ->assertSee('src="/qris.svg"', false)->assertSee('Scan this QR code.')
@@ -75,7 +73,7 @@ it('lists only the signed-in customer’s quotes in My Account', function () {
     $other = makeOrder(['type' => 'quote', 'status' => 'requested', 'number' => null, 'quote_number' => 'QUOTE-OTHER']);
     $order = makeOrder(['number' => 'ORDER-MINE', 'user_id' => $this->user->id]);
 
-    Auth::guard('commerce')->login($this->user);
+    Auth::guard('account')->login($this->user);
 
     $this->get('/account/quotes')->assertOk()->assertSee($mine->quote_number)->assertDontSee($other->quote_number)->assertDontSee($order->number);
     $this->get('/account/orders')->assertOk()->assertSee($order->number)->assertDontSee($mine->quote_number);
@@ -85,9 +83,8 @@ it('buys again what is still available', function () {
     $tea = Variant::factory()->create(['product_id' => $this->mug->product_id, 'sku' => 'TEA', 'price' => 20000, 'uid' => 'tea']);
     $cart = cartWith([[$this->mug, 1], [$tea, 2]]);
     $order = app(PlaceOrder::class)->handle($cart, CheckoutData::fromCart($cart)->merge(checkoutInput()), null)->order;
-    app(LinkGuestOrders::class)->handle($this->user);
     $tea->delete();
-    Auth::guard('commerce')->login($this->user);
+    Auth::guard('account')->login($this->user);
 
     $this->post("/account/orders/{$order->id}/again")->assertRedirect('/cart')->assertSessionHas('commerce.error', fn ($m) => str_contains($m, 'Mug (') === false && str_contains($m, 'TEA') === false);
     expect(Cart::query()->where('status', 'active')->latest('id')->first()->items->pluck('quantity', 'variant_id')->all())->toBe([$this->mug->id => 1]);
@@ -97,9 +94,8 @@ it('buys again until the cart is full', function () {
     $tea = Variant::factory()->create(['product_id' => $this->mug->product_id, 'sku' => 'TEA', 'price' => 20000, 'uid' => 'tea']);
     $cart = cartWith([[$this->mug, 1], [$tea, 2]]);
     $order = app(PlaceOrder::class)->handle($cart, CheckoutData::fromCart($cart)->merge(checkoutInput()), null)->order;
-    app(LinkGuestOrders::class)->handle($this->user);
     config(['commerce.cart.max_lines' => 1]);
-    Auth::guard('commerce')->login($this->user);
+    Auth::guard('account')->login($this->user);
 
     $this->post("/account/orders/{$order->id}/again")->assertRedirect('/cart')
         ->assertSessionHas('commerce.error', 'Keranjang sudah penuh (1 produk). Hapus satu untuk menambah yang lain.');
@@ -108,8 +104,7 @@ it('buys again until the cart is full', function () {
 
 it('cancels from the account only while unpaid', function () {
     $order = guestOrder($this->mug, 'rina@example.com');
-    app(LinkGuestOrders::class)->handle($this->user);
-    Auth::guard('commerce')->login($this->user);
+    Auth::guard('account')->login($this->user);
     $this->get("/account/orders/{$order->id}")->assertSee("/account/orders/{$order->id}/cancel", false)
         ->assertSee('data-commerce-order-cancel-dialog', false)->assertDontSee('onsubmit="return confirm', false);
 
@@ -126,15 +121,17 @@ it('scrubs a customer\'s orders when the account is anonymized, keeping the amou
         ->and($order->email)->toEndWith('@invalid.local')->and($order->total)->toBe(60000);
 });
 
-it('keeps guest orders out of an account whose email isn\'t verified yet', function () {
-    // Someone registers with Budi's address but can't verify it.
-    $claimer = User::query()->create(['name' => 'Not Budi', 'email' => 'budi@example.com', 'password' => bcrypt('password')]);
-    Customer::forUser($claimer);
+it('gives an account the orders staff made for its address, once the address is proven', function () {
+    $staffMade = makeOrder(['email' => 'budi@example.com', 'customer_id' => Customer::query()->create(['email' => 'budi@example.com', 'name' => 'Budi'])->id]);
+    expect($staffMade->user_id)->toBeNull();
 
-    $order = guestOrder($this->mug, 'budi@example.com');
-    expect($order->user_id)->toBeNull();
+    // Someone registers with Budi's address and signs in without proving it (verification off): the order isn't theirs.
+    $claimer = User::query()->create(['name' => 'Not Budi', 'email' => 'budi@example.com', 'password' => 'secret-pass']);
+    event(new SignedIn($claimer, 'registration'));
+    expect($staffMade->fresh()->user_id)->toBeNull();
 
-    // A verified account still gets the guest orders placed with its email.
-    Customer::forUser($this->user);
-    expect(guestOrder($this->mug, 'rina@example.com')->user_id)->toBe($this->user->id);
+    // Proven (a sign-in code, Google, the link): it is.
+    $claimer->forceFill(['email_verified_at' => now()])->save();
+    event(new SignedIn($claimer, 'code'));
+    expect($staffMade->fresh()->user_id)->toBe($claimer->id);
 });

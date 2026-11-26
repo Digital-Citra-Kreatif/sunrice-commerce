@@ -70,7 +70,7 @@ it('calculates', function (array $scenario) {
         if (str_starts_with($kind, 'role:')) {
             $customer->assignRole(Role::findOrCreate(substr($kind, 5), 'web'));
         }
-        $this->actingAs($customer, 'commerce');
+        $this->actingAs($customer, 'account');
     }
     $ctx = PricingContext::for($customer)->with($scenario['context'] ?? []);
     app()->forgetScopedInstances();

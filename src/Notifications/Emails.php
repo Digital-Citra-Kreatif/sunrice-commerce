@@ -33,10 +33,6 @@ class Emails
             new EmailDefinition('balance_reminder', 'Balance reminder', feature: 'payments', description: 'Before the balance of an order paid with a deposit is due (Settings → Checkout).'),
             new EmailDefinition('quote_received', 'Quote request received', feature: 'orders'),
             new EmailDefinition('quote_ready', 'Quote ready', feature: 'orders', attachments: ['quotation'], defaultAttachments: ['quotation']),
-            new EmailDefinition('account_welcome', 'Welcome', feature: 'accounts', lang: 'commerce::account.welcome'),
-            new EmailDefinition('verify_email', 'Verify email', feature: 'accounts', locked: true, lang: 'commerce::account.verify'),
-            new EmailDefinition('login_code', 'Sign-in code', feature: 'passwordless_login', locked: true, lang: 'commerce::account.code'),
-            new EmailDefinition('password_reset', 'Password reset', feature: 'accounts', locked: true, lang: 'commerce::account.reset'),
 
             new EmailDefinition('staff_new_order', 'New order', 'staff', 'orders', attachments: ['packing_slip']),
             new EmailDefinition('staff_payment_confirmation', 'Payment confirmation to verify', 'staff', 'manual_payments'),
@@ -47,7 +43,6 @@ class Emails
             new EmailDefinition('staff_low_stock', 'Low stock', 'staff', 'inventory'),
             new EmailDefinition('staff_out_of_stock', 'Out of stock', 'staff', 'inventory'),
             new EmailDefinition('staff_return_requested', 'Return requested', 'staff', 'returns'),
-            new EmailDefinition('staff_deletion_request', 'Account deletion request', 'staff', 'accounts'),
         ] as $email) {
             $this->emails[$email->key] = $email;
         }

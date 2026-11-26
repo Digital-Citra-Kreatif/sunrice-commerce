@@ -2,24 +2,19 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Route;
-use Spatie\Permission\Models\Role;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Customers\Models\Address;
 use Sunrice\Commerce\Customers\Models\Customer;
-use Sunrice\Commerce\Customers\Notifications\VerifyCustomerEmail;
 use Sunrice\Commerce\Facades\Commerce;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Regions\RegionImporter;
-use Sunrice\Commerce\Settings\Actions\SaveStoreSettings;
-use Sunrice\Commerce\Settings\StoreSettings;
 use Workbench\App\Models\User;
 
 beforeEach(function () {
     (new RegionImporter(__DIR__.'/../../Fixtures/regions'))->import(4);
     $this->user = User::query()->create(['name' => 'Ana', 'email' => 'ana@example.com', 'password' => 'secret-pass', 'email_verified_at' => now()]);
-    $this->actingAs($this->user, 'commerce');
+    $this->actingAs($this->user, 'account');
     $this->customer = Customer::forUser($this->user);
 });
 
@@ -90,35 +85,8 @@ it('can\'t touch another customer\'s address', function () use ($address) {
     $this->delete("/account/addresses/{$theirs->id}")->assertNotFound();
 });
 
-it('changes the profile; a new email must be verified again', function () {
-    Notification::fake();
-    $this->put('/account/profile', ['name' => 'Ana Putri', 'email' => 'ana@example.com', 'phone' => '0811111111', 'accepts_marketing' => 1])
-        ->assertSessionHas('commerce.success', 'Profil disimpan.');
-    expect($this->customer->fresh()->phone)->toBe('+62811111111')->and($this->customer->fresh()->accepts_marketing)->toBeTrue();
-
-    // A new email needs the current password, so a stolen session can't take the account.
-    $this->put('/account/profile', ['name' => 'Ana Putri', 'email' => 'new@example.com'])->assertSessionHasErrors('current_password');
-    $this->put('/account/profile', ['name' => 'Ana Putri', 'email' => 'new@example.com', 'current_password' => 'wrong'])->assertSessionHasErrors('current_password');
-    expect($this->user->fresh()->email)->toBe('ana@example.com');
-
-    $this->put('/account/profile', ['name' => 'Ana Putri', 'email' => 'new@example.com', 'current_password' => 'secret-pass'])->assertSessionHas('commerce.success');
-    expect($this->user->fresh()->email_verified_at)->toBeNull();
-    Notification::assertSentTo($this->user->fresh(), VerifyCustomerEmail::class);
-});
-
-it('changes the password with the current one, and asks for deletion', function () {
-    $this->put('/account/password', ['current_password' => 'wrong', 'password' => 'new-password-1', 'password_confirmation' => 'new-password-1'])->assertSessionHasErrors('current_password');
-    $this->user->forceFill(['remember_token' => 'old-remember-token'])->save();
-    $this->put('/account/password', ['current_password' => 'secret-pass', 'password' => 'new-password-1', 'password_confirmation' => 'new-password-1'])->assertSessionHasNoErrors();
-    // "Remember me" on other devices stops working.
-    expect($this->user->fresh()->remember_token)->not->toBe('old-remember-token');
-
-    $this->post('/account/delete', ['confirm' => 1])->assertSessionHas('commerce.success');
-    expect($this->customer->fresh()->deletion_requested_at)->not->toBeNull();
-});
-
 it('lists pages registered by extensions', function () {
-    Route::middleware(['web', 'commerce.auth'])->get('account/points', fn () => 'points')->name('loyalty.points');
+    Route::middleware(['web', 'sunrice.account.auth'])->get('account/points', fn () => 'points')->name('loyalty.points');
     Commerce::registerAccountPage('points', 'Poin saya', 'loyalty.points', position: 50);
 
     $this->get('/account')->assertRedirect('/account/orders');
@@ -134,57 +102,7 @@ it('opens orders by default and links from a detail to all orders', function () 
         ->assertDontSee('Tautan cepat')->assertDontSee('Pesanan terbaru');
     $this->get("/account/orders/{$order->id}")->assertOk()
         ->assertSee('Kembali ke semua pesanan')
-        ->assertSee('href="'.url('/account/orders').'"  aria-current="page"', false);
-});
-
-it('falls back to the profile when orders are disabled', function () {
-    app(StoreSettings::class)->saveSection('general', ['selling_mode' => 'catalog']);
-    app(ToggleFeature::class)->handle('orders', false);
-
-    $this->get('/account')->assertRedirect('/account/profile');
-});
-
-it('makes an enabled announcement the first tab and default page', function () {
-    $this->get('/account/announcement')->assertNotFound();
-    $settings = app(StoreSettings::class);
-    Role::findOrCreate('Customer', 'web');
-    app(SaveStoreSettings::class)->handle('accounts', array_replace($settings->section('accounts'), [
-        'announcement_enabled' => true,
-        'announcement_position' => 'tab',
-        'announcement_title' => ['id' => 'Jadwal toko'],
-        'announcement_message' => ['id' => '<b>Libur hari Senin</b>'],
-    ]));
-
-    $this->get('/account')->assertRedirect('/account/announcement');
-    $this->get('/account/announcement')->assertOk()
-        ->assertSeeInOrder(['Pengumuman', 'Pesanan', 'Jadwal toko'])
-        ->assertSee('&lt;b&gt;Libur hari Senin&lt;/b&gt;', false)
-        ->assertDontSee('<b>Libur hari Senin</b>', false);
-    $this->get('/account/orders')->assertOk()->assertDontSee('Jadwal toko');
-
-    $settings->saveSection('accounts', ['announcement_enabled' => false]);
-    $this->get('/account')->assertRedirect('/account/orders');
-    $this->get('/account/announcement')->assertNotFound();
-});
-
-it('renders announcements above or below account content without replacing orders', function (string $position) {
-    app(StoreSettings::class)->saveSection('accounts', [
-        'announcement_enabled' => true,
-        'announcement_position' => $position,
-        'announcement_title' => ['id' => 'Jadwal toko'],
-        'announcement_message' => ['id' => 'Libur hari Senin'],
-    ]);
-    $this->get('/account')->assertRedirect('/account/orders');
-    $this->get('/account/announcement')->assertNotFound();
-    $this->get('/account/orders')->assertOk()
-        ->assertSeeInOrder($position === 'above' ? ['Libur hari Senin', '<h1>Pesanan</h1>'] : ['<h1>Pesanan</h1>', 'Libur hari Senin'], false);
-})->with(['above', 'below']);
-
-it('leaves orders as the default until an announcement has a message', function () {
-    app(StoreSettings::class)->saveSection('accounts', ['announcement_enabled' => true, 'announcement_message' => ['id' => '   ']]);
-
-    $this->get('/account')->assertRedirect('/account/orders');
-    $this->get('/account/announcement')->assertNotFound();
+        ->assertSee('aria-current="page"', false);
 });
 
 it('shows a points summary and history', function () {

@@ -55,7 +55,7 @@ it('offers quote requests only when switched on, and with roles only to those cu
     Role::findOrCreate('Wholesale', 'web');
     $buyer = User::query()->create(['name' => 'Toko Grosir', 'email' => 'grosir@example.com', 'password' => bcrypt('password'), 'email_verified_at' => now()]);
     $buyer->assignRole('Wholesale');
-    $this->actingAs($buyer, (string) config('commerce.auth.guard', 'commerce'));
+    $this->actingAs($buyer, 'account');
     app()->forgetScopedInstances();
     expect(app(CheckoutMode::class)->quoteOffered())->toBeTrue();
 

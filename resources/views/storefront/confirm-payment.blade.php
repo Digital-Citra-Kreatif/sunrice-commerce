@@ -1,5 +1,5 @@
 {{--
-    "I have paid": the lookup form, or the confirmation form for $order and its pending $payment.
+    "I have paid": the confirmation form for $order (the signed-in account's) and its pending $payment.
     $accounts (bank accounts paid into), $proofRequired, $captcha (widget data or null).
 --}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
@@ -13,18 +13,7 @@
         @include($L::view('partials.messages'))
         @error('order')<p class="commerce-message commerce-message--error" role="alert">{{ $message }}</p>@enderror
 
-        @if (! $order)
-            <p>{{ __('commerce::payments.confirm.find') }}</p>
-            <form method="POST" action="{{ commerce_url('commerce.confirm-payment.lookup') }}" class="commerce-form">
-                @csrf <x-honeypot />
-                <label class="commerce-field"><span>{{ __('commerce::checkout.track.number') }}</span>
-                    <input type="text" name="number" value="{{ old('number') }}" required>
-                    @include($L::view('partials.field-error'), ['name' => 'number'])</label>
-                <label class="commerce-field"><span>{{ __('commerce::checkout.fields.email') }}</span>
-                    <input type="email" name="email" value="{{ old('email') }}" required></label>
-                <button type="submit" class="commerce-button commerce-button--primary">{{ __('commerce::checkout.track.submit') }}</button>
-            </form>
-        @elseif (! $payment)
+        @if (! $payment)
             <p>{{ __('commerce::payments.confirm.not_open') }}</p>
             <p><a href="{{ $order->url() }}">{{ __('commerce::payments.back_to_order') }}</a></p>
         @else

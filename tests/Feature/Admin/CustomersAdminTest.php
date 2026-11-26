@@ -56,7 +56,7 @@ it('lists, filters, edits and anonymizes customers', function () {
         ->and($user->fresh()->email)->toBe($registered->email)
         ->and(Address::query()->count())->toBe(0);
     $this->post('/account/login', ['email' => 'budi@example.com', 'password' => 'x']);
-    $this->assertGuest('commerce');
+    $this->assertGuest('account');
 });
 
 it('filters by role, orders, spending and sign-up date, and exports the filtered list', function () {

@@ -89,7 +89,7 @@ customer (`commerce.auth`):
 | `/account/addresses` | `commerce.account.addresses` | `account.addresses` |
 | `/account/orders` | `commerce.account.orders` | `account.orders` (needs `orders`) |
 | `/account/quotes` | `commerce.account.quotes` | `account.quotes` (needs `orders`) |
-| `/account/orders/{order}` | `commerce.account.order` | `account.order` (needs `orders`) |
+| `/account/orders/{order}` | `commerce.account.orders.show` | `account.order` (needs `orders`) |
 | `/account/downloads` | `commerce.account.downloads` | `account.downloads` |
 | `/account/points` | `commerce.account.points` | `account.points` (needs `loyalty`) |
 

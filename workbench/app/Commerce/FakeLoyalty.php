@@ -55,7 +55,7 @@ class FakeLoyalty implements DiscountProvider, ReservesDiscounts
         Event::listen(OrderCancelled::class, fn (OrderCancelled $e) => self::reverse($e->order, PHP_INT_MAX));
 
         View::addNamespace('loyalty', dirname(__DIR__, 2).'/resources/views/loyalty');
-        Route::middleware(['web', 'commerce.auth'])->group(function (): void {
+        Route::middleware(['web', 'sunrice.account.auth'])->group(function (): void {
             Route::get('account/points', fn () => view('loyalty::points', ['balance' => self::balance((int) app(Commerce::class)->customer()?->id)]))->name('loyalty.points');
             Route::post('loyalty/use', function (): RedirectResponse {
                 $customer = app(Commerce::class)->customer();

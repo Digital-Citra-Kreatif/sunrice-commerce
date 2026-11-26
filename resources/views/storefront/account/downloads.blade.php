@@ -3,7 +3,7 @@
 --}}
 @extends(\Sunrice\Commerce\Storefront\Layout::view('account.layout'))
 
-@section('account')
+@section('commerce-account')
     <h1>{{ __('commerce::digital.title') }}</h1>
     @if ($grants->isEmpty())
         <p>{{ __('commerce::digital.none') }}</p>

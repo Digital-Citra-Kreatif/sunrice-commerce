@@ -18,11 +18,15 @@ use Sunrice\Commerce\Storefront\Layout;
  */
 class ConfirmPaymentController
 {
-    public function show(Request $request, OrderAccess $access): View
+    public function show(Request $request, OrderAccess $access): View|RedirectResponse
     {
         $key = (string) $request->query('order', '');
-        $order = $key !== '' ? $access->find($request, $key) : null;
-        $payment = $order?->payments()->where('status', 'pending')->reorder('id', 'desc')->first();
+        if ($key === '') {
+            // Which order? Each one's page has the link here.
+            return redirect(commerce_url('commerce.account.orders'));
+        }
+        $order = $access->find($request, $key);
+        $payment = $order->payments()->where('status', 'pending')->reorder('id', 'desc')->first();
 
         return view(Layout::view('confirm-payment'), [
             'order' => $order,
@@ -32,11 +36,6 @@ class ConfirmPaymentController
             'captcha' => app(Captcha::class)->widget(app()->getLocale()),
             'seoTitle' => __('commerce::payments.confirm.title'),
         ]);
-    }
-
-    public function lookup(Request $request, OrderController $orders): RedirectResponse
-    {
-        return $orders->requestAccess($request, confirm: true);
     }
 
     public function submit(Request $request, SubmitPaymentConfirmation $submit, OrderAccess $access): RedirectResponse

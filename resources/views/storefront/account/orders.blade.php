@@ -3,7 +3,7 @@
 --}}
 @extends(\Sunrice\Commerce\Storefront\Layout::view('account.layout'))
 
-@section('account')
+@section('commerce-account')
     <h1>{{ $type === 'quote' ? __('commerce::account.orders.quotes') : __('commerce::account.orders.title') }}</h1>
     <x-commerce::slot name="account.overview" :customer="$customer" />
     @isset($orderFilters)

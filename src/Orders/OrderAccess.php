@@ -7,46 +7,21 @@ namespace Sunrice\Commerce\Orders;
 use Illuminate\Http\Request;
 use Sunrice\Commerce\Orders\Models\Order;
 
-/** Order references identify a record. Access is granted by ownership or an authorized guest session. */
+/**
+ * Who may open an order's pages (/order/{key}, its pay page, invoice,
+ * payment confirmation): the account it belongs to, signed in. The key in
+ * the address names the order; it never opens it by itself.
+ */
 final class OrderAccess
 {
     public function allows(Request $request, Order $order): bool
     {
-        if ($order->user_id !== null) {
-            $user = commerce_customer();
+        $user = commerce_customer();
 
-            if ($user !== null) {
-                return (int) $user->getAuthIdentifier() === (int) $order->user_id;
-            }
-            if (! $order->wasPlacedAsGuest()) {
-                return false;
-            }
-        }
-
-        $grant = $request->session()->get("commerce.orders.{$order->id}");
-        if (is_string($grant)) {
-            return $order->user_id === null && hash_equals($order->order_key, $grant);
-        }
-
-        return is_array($grant)
-            && ($grant['until'] ?? 0) >= now()->timestamp
-            && is_string($grant['key'] ?? null)
-            && hash_equals($order->order_key, $grant['key'])
-            && ($order->user_id === null || ($grant['email'] ?? null) === $order->email);
+        return $user !== null && $order->user_id !== null && (int) $user->getAuthIdentifier() === (int) $order->user_id;
     }
 
-    public function grantGuest(Request $request, Order $order): void
-    {
-        if ($order->user_id !== null && ! $order->wasPlacedAsGuest()) {
-            return;
-        }
-        $request->session()->put("commerce.orders.{$order->id}", [
-            'key' => $order->order_key,
-            'email' => $order->email,
-            'until' => now()->addHour()->timestamp,
-        ]);
-    }
-
+    /** The order with this key, for its account; "not found" for anyone else. */
     public function find(Request $request, string $key): Order
     {
         abort_unless(strlen($key) === 40, 404);

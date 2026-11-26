@@ -32,7 +32,7 @@ it('keeps cart, checkout, order, account and payment pages out of search engines
     $mug = checkoutStore();
     cartWith([[$mug, 1]]);
     $order = makeOrder();
-    authorizeGuestOrders($order);
+    actAsOwnerOf($order);
 
     foreach (['/cart', '/checkout', '/confirm-payment', '/track-order', $order->url(), '/account/login'] as $url) {
         $response = $this->get($url);

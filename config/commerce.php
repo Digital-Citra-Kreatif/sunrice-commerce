@@ -31,29 +31,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Customer accounts
-    |--------------------------------------------------------------------------
-    |
-    | Customers sign in on the storefront with their own session guard, on the
-    | same user table as Sunrice's admin, so a storefront sign-in never opens
-    | the admin. The guard is registered automatically when it doesn't exist.
-    | `passwords` is the password broker used for customer password resets.
-    |
-    */
-
-    // Sign in with Google: used when config/services.php has no `google` block of its own.
-    'google' => [
-        'client_id' => env('GOOGLE_CLIENT_ID'),
-        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-    ],
-
-    'auth' => [
-        'guard' => 'commerce',
-        'passwords' => 'users',
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Storefront
     |--------------------------------------------------------------------------
     |
@@ -71,9 +48,7 @@ return [
             'checkout' => 'checkout',
             'order' => 'order',
             'confirm_payment' => 'confirm-payment',
-            'track_order' => 'track-order',
             'quote' => 'quote',
-            'account' => 'account',
             'wishlist' => 'wishlist',
             'compare' => 'compare',
             'reviews' => 'reviews',
@@ -352,9 +327,6 @@ return [
             'attribute_taxonomies' => [],
         ],
         'checkout' => [
-            'require_verified_account' => false,
-            'guest_checkout' => true,
-            'create_account' => 'offer',
             'quote_requests' => 'off',
             'quote_request_roles' => [],
             'require_phone' => true,
@@ -378,17 +350,6 @@ return [
             'quote_valid_days' => 14,
             'auto_complete_shipped' => false,
             'auto_complete_digital' => true,
-        ],
-        'accounts' => [
-            'registration' => true,
-            'verify_email' => true,
-            'require_phone' => false,
-            'customer_roles' => ['Customer'],
-            'code_minutes' => 10,
-            'announcement_enabled' => false,
-            'announcement_position' => 'tab',
-            'announcement_title' => [],
-            'announcement_message' => [],
         ],
         'taxes' => [
             'prices_include_tax' => true,

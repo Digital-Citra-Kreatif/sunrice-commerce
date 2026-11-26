@@ -8,7 +8,7 @@
     @php($lines = $order->items->whereNull('parent_id')->keyBy('id'))
     <details class="commerce-accordion commerce-return-form" @if ($errors->hasAny(['items', 'items.*', 'reason', 'details', 'return'])) open @endif>
         <summary>{{ __('commerce::account.returns.request') }}</summary>
-        <form class="commerce-return-form__fields" method="POST" action="{{ commerce_url('commerce.account.order.return', ['order' => $order->id]) }}">@csrf
+        <form class="commerce-return-form__fields" method="POST" action="{{ commerce_url('commerce.account.orders.return', ['order' => $order->id]) }}">@csrf
             @include($L::view('partials.field-error'), ['name' => 'return'])
             <fieldset class="commerce-return-form__items">
                 <legend>{{ __('commerce::account.returns.items') }}</legend>

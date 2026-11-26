@@ -26,7 +26,7 @@ beforeEach(function () {
 function reviewer(bool $bought = false): Customer
 {
     $user = User::query()->create(['name' => 'Ana', 'email' => 'ana@example.com', 'password' => 'secret-pass', 'email_verified_at' => now()]);
-    test()->actingAs($user, 'commerce');
+    test()->actingAs($user, 'account');
     $customer = Customer::forUser($user);
     if ($bought) {
         $order = makeOrder(['customer_id' => $customer->id, 'user_id' => $user->id, 'status' => OrderStatus::COMPLETED, 'payment_status' => OrderStatus::PAID]);
@@ -50,7 +50,7 @@ it('keeps a verified buyer review pending until approved, then shows it with the
         ->and($document->querySelector('#review-body')?->textContent)->toBe('Holds my coffee well.');
     $this->get('/products/mug')->assertOk()->assertSee('Ulasan sudah dikirim');
 
-    Auth::guard('commerce')->logout();
+    Auth::guard('account')->logout();
     $this->get('/products/mug')->assertOk()->assertDontSee('Holds my coffee well.')
         ->assertDontSee('Ulasan sudah dikirim')->assertSee('Belum ada ulasan');
 

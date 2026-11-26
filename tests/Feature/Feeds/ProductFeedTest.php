@@ -75,7 +75,7 @@ it('is built as a guest sees the store, whoever asks first', function () {
     app(StoreSettings::class)->saveSection('catalog', ['price_visibility' => 'signed_in']);
     $user = User::query()->create(['name' => 'Ana', 'email' => 'ana@example.com', 'password' => 'secret-pass', 'email_verified_at' => now()]);
 
-    $signedIn = $this->actingAs($user, 'commerce')->get('/feeds/products.xml')->assertOk()->getContent();
+    $signedIn = $this->actingAs($user, 'account')->get('/feeds/products.xml')->assertOk()->getContent();
     expect(feedItems($signedIn))->toBe([]);
 });
 

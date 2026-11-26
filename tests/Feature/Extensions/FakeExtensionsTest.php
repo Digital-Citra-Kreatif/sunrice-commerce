@@ -65,7 +65,7 @@ it('ships with a courier extension: live rates, then tracking until delivered', 
 it('runs a loyalty extension: spend, release, earn and reverse points', function () {
     FakeLoyalty::register();
     $user = User::query()->create(['name' => 'Rina', 'email' => 'rina@example.com', 'password' => bcrypt('password'), 'email_verified_at' => now()]);
-    $this->actingAs($user, 'commerce');
+    $this->actingAs($user, 'account');
     $customer = Customer::forUser($user);
     DB::table('loyalty_ledger')->insert(['customer_id' => $customer->id, 'points' => 300, 'reason' => 'earn', 'created_at' => now(), 'updated_at' => now()]);
 
@@ -102,7 +102,7 @@ it('runs a loyalty extension: spend, release, earn and reverse points', function
 it('refuses an order when the points are gone by the time it is placed', function () {
     FakeLoyalty::register();
     $user = User::query()->create(['name' => 'Rina', 'email' => 'rina@example.com', 'password' => bcrypt('password'), 'email_verified_at' => now()]);
-    $this->actingAs($user, 'commerce');
+    $this->actingAs($user, 'account');
     $customer = Customer::forUser($user);
     $customer->forceFill(['meta' => ['loyalty_use' => true]])->save();
     DB::table('loyalty_ledger')->insert(['customer_id' => $customer->id, 'points' => 100, 'reason' => 'earn', 'created_at' => now(), 'updated_at' => now()]);

@@ -49,10 +49,10 @@ if (! function_exists('commerce_url')) {
 }
 
 if (! function_exists('commerce_customer')) {
-    /** The customer signed in to the storefront (commerce guard), or null. */
+    /** The customer signed in to the site (the account package's guard), or null. */
     function commerce_customer(): ?Authenticatable
     {
-        return CurrentCustomer::isGuestOnly() ? null : auth()->guard((string) config('commerce.auth.guard', 'commerce'))->user();
+        return CurrentCustomer::isGuestOnly() ? null : auth()->guard(CurrentCustomer::guard())->user();
     }
 }
 

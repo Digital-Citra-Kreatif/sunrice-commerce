@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Sunrice\Account\Auth\Actions\AssignDefaultRoles;
 use Sunrice\Admin\Actions\Media\SaveMediaFolder;
 use Sunrice\Admin\Actions\Media\UploadMedia;
 use Sunrice\Admin\Media\Media;
@@ -42,7 +43,6 @@ use Sunrice\Commerce\Catalog\Models\DownloadFile;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
 use Sunrice\Commerce\Checkout\CheckoutData;
-use Sunrice\Commerce\Customers\Actions\AssignCustomerRole;
 use Sunrice\Commerce\Customers\Actions\SaveAddress;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Database\Seeders\Starter\Artwork;
@@ -646,7 +646,7 @@ class StarterStoreSeeder extends Seeder
         }
         /** @var Model&Authenticatable $user */
         $user = $model::query()->forceCreate(['name' => 'Dewi Lestari', 'email' => self::CUSTOMER_EMAIL, 'password' => Hash::make(self::CUSTOMER_PASSWORD), 'email_verified_at' => now()]);
-        app(AssignCustomerRole::class)->handle($user);
+        app(AssignDefaultRoles::class)->handle($user);
         $customer = Customer::forUser($user);
         $customer->forceFill(['locale' => $this->locale, 'phone' => '+6281234560026', 'accepts_marketing' => true, 'marketing_consent_at' => now()])->save();
 
@@ -763,7 +763,7 @@ class StarterStoreSeeder extends Seeder
      */
     protected function order(Authenticatable $user, array $lines, string $payment, ?array $address, ?string $rate): Order
     {
-        Auth::guard((string) config('commerce.auth.guard', 'commerce'))->setUser($user);
+        Auth::guard(\Sunrice\Commerce\Customers\CurrentCustomer::guard())->setUser($user);
         app()->forgetScopedInstances();
         $customer = Customer::forUser($user);
         $cart = Cart::query()->create(['token' => Str::random(64), 'status' => 'active', 'currency' => 'IDR', 'customer_id' => $customer->id, 'last_activity_at' => now()]);

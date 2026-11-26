@@ -3,7 +3,7 @@
 --}}
 @extends(\Sunrice\Commerce\Storefront\Layout::view('account.layout'))
 
-@section('account')
+@section('commerce-account')
     <header class="commerce-address-book__header">
         <h1>{{ __('commerce::account.addresses.title') }}</h1>
         @unless ($showAddressForm)

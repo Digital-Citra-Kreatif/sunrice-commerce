@@ -43,7 +43,7 @@ beforeEach(function () {
     $this->user = User::query()->create(['name' => 'Rina', 'email' => 'rina@example.com', 'password' => 'secret-pass', 'email_verified_at' => now()]);
     $this->customer = Customer::forUser($this->user);
     $this->customer->save();
-    $this->actingAs($this->user, 'commerce');
+    $this->actingAs($this->user, 'account');
 });
 
 function placeAsRina(Cart $cart): Order
@@ -175,7 +175,7 @@ it('pays a whole order with points and refunds it back onto the wallet', functio
 });
 
 it('does not offer or persist points for a guest', function () {
-    Auth::guard('commerce')->logout();
+    Auth::guard('account')->logout();
     $cart = cartWith([[$this->mug, 1]]);
     $this->get('/checkout')->assertOk()->assertDontSee('id="checkout-points"', false);
     $this->withCredentials()->postJson('/checkout/refresh', checkoutInput(['use_points' => '1']))

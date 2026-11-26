@@ -4,24 +4,26 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Customers\Listeners;
 
-use Illuminate\Auth\Events\Login;
+use Sunrice\Account\Auth\Verification;
+use Sunrice\Account\Events\SignedIn;
 use Sunrice\Commerce\Cart\Actions\MergeCarts;
 use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Cart\Models\Cart;
-use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
+use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Wishlist\Wishlist;
 use Sunrice\Commerce\Wishlist\WishlistManager;
 
-/** At a storefront sign-in, the guest cart and wishlist join the customer's. */
+/** At a sign-in on the site (the account package's SignedIn), the visitor's cart and wishlist join the customer's. */
 class MergeOnSignIn
 {
-    public function handle(Login $event): void
+    public function handle(SignedIn $event): void
     {
-        if ($event->guard !== CurrentCustomer::guard()) {
-            return;
-        }
         $customer = Customer::forUser($event->user);
+        // Orders staff made for this address before it had an account (Orders → New) are theirs once the address is proven.
+        if (Verification::verified($event->user)) {
+            Order::query()->where('customer_id', $customer->id)->whereNull('user_id')->update(['user_id' => $event->user->getAuthIdentifier()]);
+        }
         if ($customer->locale === null) {
             $customer->forceFill(['locale' => app()->getLocale()])->save();
         }
