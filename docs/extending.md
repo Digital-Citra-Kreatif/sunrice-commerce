@@ -224,9 +224,6 @@ types are cached for ten minutes per request.
 - `TracksShipments::track(Shipment): TrackingInfo` — `commerce:tick` checks open shipments with a
   tracking number at most once an hour; `TrackingInfo(..., delivered: true)` marks the parcel
   delivered (`ShipmentDelivered`).
-- `BooksShipments::book(Order, Shipment): BookingResult` — book a pickup and get the tracking
-  number. Commerce doesn't call it yet: call it from your own admin action or listener
-  (`ShipmentCreated`).
 
 ## Cart lines
 

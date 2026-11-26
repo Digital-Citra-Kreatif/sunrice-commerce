@@ -15,8 +15,6 @@ use Illuminate\Support\Carbon;
  */
 final class NumberFormat
 {
-    public const RESETS = ['never', 'yearly', 'monthly', 'daily'];
-
     public static function render(string $format, int $sequence, DateTimeInterface $at): string
     {
         $at = Carbon::instance($at);

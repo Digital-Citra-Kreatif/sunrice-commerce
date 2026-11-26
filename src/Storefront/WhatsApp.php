@@ -24,11 +24,6 @@ class WhatsApp
         )));
     }
 
-    public function configured(): bool
-    {
-        return $this->numbers() !== [];
-    }
-
     /** The number to use now. */
     public function next(): ?string
     {

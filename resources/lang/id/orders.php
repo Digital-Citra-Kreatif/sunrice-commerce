@@ -45,7 +45,6 @@ return [
         'placed' => 'Pesanan dibuat',
         'quote_requested' => 'Permintaan penawaran',
         'payment' => 'Pembayaran :status (:amount)',
-        'payment_recorded' => 'Pembayaran :method dicatat sebagai :status',
         'shipment' => 'Dikirim dengan :courier',
         'shipment_updated' => 'Pengiriman diperbarui',
         'delivered' => 'Paket diterima',

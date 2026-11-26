@@ -69,9 +69,6 @@ use Sunrice\Commerce\Support\Staff;
  */
 class PlaceOrder
 {
-    /** @var array<int, Order> */
-    protected array $placed = [];
-
     /** The account made by this checkout (verification off), which the order joins. */
     public function __construct(
         protected StoreSettings $settings,

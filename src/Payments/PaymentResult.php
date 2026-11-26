@@ -13,8 +13,6 @@ use Carbon\CarbonInterface;
  */
 final class PaymentResult
 {
-    public const STATUSES = ['paid', 'pending', 'awaiting_confirmation', 'failed', 'expired', 'cancelled', 'refunded'];
-
     /** @param  array<string, mixed>  $raw */
     public function __construct(
         public readonly string $status,

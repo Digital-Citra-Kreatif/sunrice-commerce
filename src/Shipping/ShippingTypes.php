@@ -27,11 +27,6 @@ class ShippingTypes
         $this->types[$class::key()] = $class;
     }
 
-    public function has(string $key): bool
-    {
-        return isset($this->types[$key]);
-    }
-
     public function get(string $key): ?ShippingMethodType
     {
         return isset($this->types[$key]) ? app($this->types[$key]) : null;

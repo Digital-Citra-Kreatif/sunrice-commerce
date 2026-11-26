@@ -22,11 +22,6 @@ return [
     'logout' => 'Sign out',
     'overview' => [
         'title' => 'My account',
-        'hello' => 'Hello, :name',
-        'recent_orders' => 'Recent orders',
-        'all_orders' => 'See all orders',
-        'no_orders' => "You haven't ordered yet.",
-        'links' => 'Quick links',
     ],
     'profile' => [
         'title' => 'Profile',
@@ -86,7 +81,6 @@ return [
         'back_to_orders' => 'Back to all orders',
         'back_to_quotes' => 'Back to all quotes',
         'filters' => [
-            'date_range' => 'Date range',
             'title' => 'Order filters',
             'search' => 'Search orders',
             'search_hint' => 'Order number or product name',
@@ -120,7 +114,6 @@ return [
         'value' => 'Worth :value at checkout',
         'history' => 'Points history',
         'title' => 'Points',
-        'balance' => 'You have :points points, worth :value.',
         'how' => 'You earn :percent% of what you spend on products, in points, when an order is completed. Spend them at checkout.',
         'max' => 'Up to :max points per order.',
         'expiring' => ':points points expire on :date.',

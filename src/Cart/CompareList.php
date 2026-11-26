@@ -47,9 +47,4 @@ class CompareList
     {
         return in_array($productId, $this->ids(), true);
     }
-
-    public function clear(): void
-    {
-        session()->forget(self::KEY);
-    }
 }

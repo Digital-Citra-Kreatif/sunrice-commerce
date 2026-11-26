@@ -45,7 +45,6 @@ return [
         'placed' => 'Order placed',
         'quote_requested' => 'Quote requested',
         'payment' => 'Payment :status (:amount)',
-        'payment_recorded' => ':method payment recorded as :status',
         'shipment' => 'Shipped with :courier',
         'shipment_updated' => 'Shipment updated',
         'delivered' => 'Shipment delivered',

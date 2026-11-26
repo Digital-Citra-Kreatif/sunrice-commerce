@@ -39,7 +39,6 @@ return [
     ],
     'save_address' => 'Save this address to my account',
     'billing_same' => 'Billing address is the same',
-    'update_shipping' => 'Update shipping',
     'shipping_pending' => 'Choose a shipping method',
     'refresh' => [
         'updating' => 'Updating your order total…',
@@ -47,7 +46,6 @@ return [
         'failed' => 'Your total couldn’t be updated. Select Update total to continue.',
         'update' => 'Update total',
         'submitting' => 'Placing your order…',
-        'retry' => 'Try again',
     ],
     'enter_address' => 'Enter your address to see shipping options.',
     'pickup_address' => 'This address will be used if you select delivery.',
@@ -56,7 +54,6 @@ return [
     'terms' => 'I agree to the :link',
     'terms_link' => 'terms and conditions',
     'close_terms' => 'Close',
-    'voucher_link' => 'Have a voucher? Add it in the cart',
     'voucher' => [
         'title' => 'Apply a voucher',
         'code' => 'Voucher code',

@@ -22,11 +22,6 @@ return [
     'logout' => 'Keluar',
     'overview' => [
         'title' => 'Akun saya',
-        'hello' => 'Halo, :name',
-        'recent_orders' => 'Pesanan terbaru',
-        'all_orders' => 'Lihat semua pesanan',
-        'no_orders' => 'Anda belum pernah memesan.',
-        'links' => 'Tautan cepat',
     ],
     'profile' => [
         'title' => 'Profil',
@@ -95,7 +90,6 @@ return [
         'added_again' => 'Produknya sudah masuk keranjang lagi.',
         'unavailable' => 'Sudah tidak tersedia: :products.',
         'filters' => [
-            'date_range' => 'Rentang tanggal',
             'title' => 'Filter pesanan',
             'search' => 'Cari pesanan',
             'search_hint' => 'Nomor pesanan atau nama produk',
@@ -120,7 +114,6 @@ return [
         'value' => 'Senilai :value saat checkout',
         'history' => 'Riwayat poin',
         'title' => 'Poin',
-        'balance' => 'Anda punya :points poin, senilai :value.',
         'how' => 'Anda mendapat :percent% dari belanja produk Anda dalam bentuk poin saat pesanan selesai. Pakai poinnya saat checkout.',
         'max' => 'Maksimal :max poin per pesanan.',
         'expiring' => ':points poin kedaluwarsa pada :date.',

@@ -226,7 +226,6 @@ Access is **gated** at runtime:
 | --- | --- |
 | Storefront and admin routes | Middleware `commerce.feature:vouchers` → 404 when inactive |
 | Admin navigation items | `can: fn ($user) => Features::active('orders') && $user->can('commerce.orders.view')` |
-| Policies | Commerce policies extend `FeatureGatedPolicy`; its `before()` returns `false` when the module is inactive |
 | Blade | `@commerceFeature('wishlist') … @endcommerceFeature`; components render nothing when inactive |
 | Listeners | `Listeners\Concerns\RunsWhenActive` (`protected string $feature`) skips the handler |
 | Schedules | `->when(fn () => Features::active('flash_sales'))` |
@@ -1257,7 +1256,6 @@ interface ShippingMethodType
 }
 
 interface TracksShipments { public function track(Shipment $shipment): TrackingInfo; }
-interface BooksShipments  { public function book(Order $order, Shipment $shipment): BookingResult; }
 ```
 
 - **`ShippingRequest`** carries:
@@ -1665,7 +1663,7 @@ Read-side helpers are public too: `Commerce::features()`, `Commerce::settings()`
 | Contract | For |
 | --- | --- |
 | `Payments\Contracts\PaymentMethod` (+ `HandlesReturn`, `HandlesWebhooks`, `SupportsRefunds`, `SupportsCancel`, `SupportsStatusCheck`) | Gateways (§13.1) |
-| `Shipping\Contracts\ShippingMethodType` (+ `TracksShipments`, `BooksShipments`) | Couriers (§14.1) |
+| `Shipping\Contracts\ShippingMethodType` (+ `TracksShipments`) | Couriers (§14.1) |
 | `Pricing\Contracts\PriceCandidateProvider` | Member prices, price lists |
 | `Pricing\Contracts\DiscountProvider` (+ `ReservesDiscounts`) | Loyalty points, gift cards, cashback |
 | `Pricing\Contracts\CalculationStage` | Extra fees, rounding rules |
@@ -1762,7 +1760,7 @@ small value objects):
 
 - **Authorization**: every admin route and MCP tool authorizes with commerce permissions.
   Policies cover models: orders, customers, vouchers, flash sales, rules, confirmations, downloads,
-  documents. All extend `FeatureGatedPolicy`.
+  documents.
 - **Customers' own data**: account routes check ownership. An order's pages (`order_key`, 40
   random characters) open only for the order's signed-in account.
 - **Input**:

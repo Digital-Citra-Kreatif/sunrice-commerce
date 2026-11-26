@@ -39,7 +39,6 @@ return [
     ],
     'save_address' => 'Simpan alamat ini ke akun saya',
     'billing_same' => 'Alamat penagihan sama',
-    'update_shipping' => 'Perbarui ongkir',
     'shipping_pending' => 'Pilih metode pengiriman',
     'refresh' => [
         'updating' => 'Memperbarui total pesanan…',
@@ -47,7 +46,6 @@ return [
         'failed' => 'Total belum diperbarui. Pilih Perbarui total untuk melanjutkan.',
         'update' => 'Perbarui total',
         'submitting' => 'Memproses pesanan…',
-        'retry' => 'Coba lagi',
     ],
     'enter_address' => 'Isi alamat Anda untuk melihat pilihan pengiriman.',
     'pickup_address' => 'Alamat ini dipakai jika Anda memilih kurir.',
@@ -56,7 +54,6 @@ return [
     'terms' => 'Saya menyetujui :link',
     'terms_link' => 'syarat dan ketentuan',
     'close_terms' => 'Tutup',
-    'voucher_link' => 'Punya voucher? Masukkan di keranjang',
     'voucher' => [
         'title' => 'Pakai kupon',
         'code' => 'Kode kupon',

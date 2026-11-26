@@ -90,14 +90,4 @@ final class CommercePermissions
             'commerce.*',
         ];
     }
-
-    /**
-     * Any commerce settings permission (who may open Settings → Store).
-     *
-     * @return list<string>
-     */
-    public static function settings(): array
-    {
-        return array_values(array_filter(array_keys(self::all()), fn (string $n) => str_starts_with($n, 'commerce.settings.')));
-    }
 }

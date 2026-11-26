@@ -521,7 +521,6 @@ cross-check refusal.
 - `src/Features/Http/EnsureFeatureActive.php` (route middleware alias `commerce.feature`, 404 when
   inactive).
 - Blade `@commerceFeature`.
-- `src/Features/FeatureGatedPolicy.php`.
 - `src/Listeners/Concerns/RunsWhenActive.php`.
 - `src/Features/BindsFeatureImplementations.php`: helper binding a contract to its active or null
   implementation (`ARCHITECTURE.md` §4.4).
@@ -1161,7 +1160,7 @@ record the actor and source, numbers follow the formats, and the currency lock i
 **Files:**
 - Migrations `create_commerce_shipping_zones_table`, `create_commerce_shipping_zone_regions_table`,
   `create_commerce_shipping_methods_table`.
-- Contract `ShippingMethodType` (plus `TracksShipments`, `BooksShipments`).
+- Contract `ShippingMethodType` (plus `TracksShipments`).
 - `ShippingRequest`, `Package`, `ShippingRate`.
 - Built-ins `FreeShipping`, `FlatRate`, `WeightBased`, `LocalPickup`.
 - `ZoneMatcher` and `ShippingManager`; the Calculator's `Shipping` stage becomes real.

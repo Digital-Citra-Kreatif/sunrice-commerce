@@ -34,7 +34,7 @@ class EmailsSettingsController extends Controller
             }
             $rows[] = ['key' => $key, 'label' => $email->label, 'audience' => $email->audience, 'description' => $email->description,
                 'enabled' => $settings->enabled($key), 'locked' => $email->locked, 'edit_url' => "commerce/settings/emails/{$key}",
-                'preview_url' => $this->usesStoreEmail($key) ? route('sunrice.admin.commerce.settings.emails.preview', $key, false) : null];
+                'preview_url' => route('sunrice.admin.commerce.settings.emails.preview', $key, false)];
         }
 
         return Inertia::render('Commerce/Settings/Emails', ['sections' => SettingsController::menu($request->user()), 'emails' => $rows]);
@@ -119,7 +119,6 @@ class EmailsSettingsController extends Controller
     {
         $this->guard();
         $this->email($emails, $key);
-        abort_unless($this->usesStoreEmail($key), 404);
         $locale = in_array($request->query('lang'), Locales::all(), true) ? (string) $request->query('lang') : Locales::default();
 
         return response($this->render($key, $locale), 200, ['Content-Type' => 'text/html; charset=utf-8']);
@@ -129,7 +128,6 @@ class EmailsSettingsController extends Controller
     {
         $this->guard();
         $this->email($emails, $key);
-        abort_unless($this->usesStoreEmail($key), 404);
         $to = (string) $request->user()->getAttribute('email');
         Notification::route('mail', $to)->notifyNow((new StoreEmail($key, $this->sampleOrder(), null, null, [], Locales::default()))->locale(Locales::default()));
 
@@ -156,11 +154,6 @@ class EmailsSettingsController extends Controller
         ]);
     }
 
-    protected function usesStoreEmail(string $key): bool
-    {
-        return ! in_array($key, ['account_welcome', 'verify_email', 'login_code', 'password_reset'], true);
-    }
-
     protected function guard(): void
     {
         $this->authorize('commerce.settings.emails');
@@ -177,7 +170,7 @@ class EmailsSettingsController extends Controller
     /** @return list<string> the texts the email's settings can change */
     protected function parts(EmailDefinition $email): array
     {
-        return $this->usesStoreEmail($email->key) ? ['subject', 'heading', 'intro'] : ['subject'];
+        return ['subject', 'heading', 'intro'];
     }
 
     /** @return list<string> addresses, from a list or a string ("a@x.id, b@x.id") */
@@ -200,7 +193,6 @@ class EmailsSettingsController extends Controller
     {
         $all = ['number' => 'Order number', 'name' => 'Customer name', 'store' => 'Store name', 'product' => 'Product', 'balance' => 'Balance due', 'due_date' => 'Balance due date'];
         $names = match (true) {
-            in_array($email->key, ['account_welcome', 'verify_email', 'login_code', 'password_reset'], true) => ['store'],
             in_array($email->key, ['back_in_stock', 'staff_low_stock', 'staff_out_of_stock'], true) => ['product', 'name', 'store'],
             in_array($email->key, ['balance_reminder', 'staff_balance_overdue'], true) => ['number', 'name', 'store', 'balance', 'due_date'],
             default => ['number', 'name', 'store'],
@@ -236,10 +228,8 @@ class EmailsSettingsController extends Controller
                 'instructions' => 'Each address gets a hidden copy (BCC). Type an address and press Enter.'];
         }
         $fields[] = $perLanguage('subject', 'Subject');
-        if ($this->usesStoreEmail($email->key)) {
-            $fields[] = $perLanguage('heading', 'Heading');
-            $fields[] = $perLanguage('intro', 'Text', 'textarea');
-        }
+        $fields[] = $perLanguage('heading', 'Heading');
+        $fields[] = $perLanguage('intro', 'Text', 'textarea');
         if ($email->attachments !== []) {
             $labels = ['invoice' => 'Invoice (PDF)', 'invoice_to_pay' => 'Invoice (PDF), only when paying by transfer, QRIS or another manual method', 'quotation' => 'Quotation (PDF)', 'packing_slip' => 'Packing slip (PDF)', 'downloads' => 'Download files (when small enough)'];
             $fields[] = ['handle' => 'attachments', 'type' => 'select', 'label' => 'Attachments', 'config' => ['multiple' => true,

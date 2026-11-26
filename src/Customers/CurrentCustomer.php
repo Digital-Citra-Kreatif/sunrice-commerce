@@ -64,10 +64,4 @@ class CurrentCustomer
     {
         return SiteGuard::name();
     }
-
-    /** Whether the storefront shares the admin's guard (sign-ins by code or Google refuse staff then). */
-    public static function sharesAdminGuard(): bool
-    {
-        return SiteGuard::sharesPanelGuard();
-    }
 }
