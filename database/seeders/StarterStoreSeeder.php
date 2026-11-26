@@ -44,6 +44,7 @@ use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
 use Sunrice\Commerce\Checkout\CheckoutData;
 use Sunrice\Commerce\Customers\Actions\SaveAddress;
+use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Database\Seeders\Starter\Artwork;
 use Sunrice\Commerce\Database\Seeders\Starter\Catalog;
@@ -763,7 +764,7 @@ class StarterStoreSeeder extends Seeder
      */
     protected function order(Authenticatable $user, array $lines, string $payment, ?array $address, ?string $rate): Order
     {
-        Auth::guard(\Sunrice\Commerce\Customers\CurrentCustomer::guard())->setUser($user);
+        Auth::guard(CurrentCustomer::guard())->setUser($user);
         app()->forgetScopedInstances();
         $customer = Customer::forUser($user);
         $cart = Cart::query()->create(['token' => Str::random(64), 'status' => 'active', 'currency' => 'IDR', 'customer_id' => $customer->id, 'last_activity_at' => now()]);
