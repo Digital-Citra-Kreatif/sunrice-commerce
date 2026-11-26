@@ -59,8 +59,7 @@ class LoginCodes
             };
         }
         // The first code proves the address: like the verification link, it welcomes the new account.
-        if ($user->getAttribute('email_verified_at') === null) {
-            $user->forceFill(['email_verified_at' => now()])->save();
+        if (app(ConfirmMailbox::class)->handle($user)) {
             if (method_exists($user, 'notify')) {
                 $user->notify(new WelcomeCustomer(app()->getLocale()));
             }

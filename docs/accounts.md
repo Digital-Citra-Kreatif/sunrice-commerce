@@ -202,6 +202,12 @@ The verification email is sent:
 Changing or resetting the password gives the account a new remember token, so "remember me" stops
 working on other devices.
 
+An account whose email was never verified, and is then proven another way (a sign-in code, a
+checkout code or Google), loses the password it was registered with and its remember token: anyone
+can register someone else's address, so that password isn't the owner's to trust. The customer is
+signed in and sets a new password from My Account, without the current one. Verified accounts and
+staff keep theirs.
+
 Following the link marks the email verified, sends the welcome email (the first time), links earlier
 guest orders and signs the customer in. Laravel's `Verified` event is dispatched when the user model
 implements `MustVerifyEmail`.
