@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Security: a download that is an external link only redirects to an http(s) address. Links are
+  already checked when a product is saved; `/downloads/{token}` now also answers 404 for any
+  other scheme (a link stored before that check, or written to the database directly), before
+  the download is counted.
+
 - **Changed:** a gift card bought with a discount is worth what was paid for it, not its price
   before discounts. It used to be issued at the higher of the regular and the paid price, so a
   voucher, pricing rule or sale price on a gift card was a repeatable gain once the code was

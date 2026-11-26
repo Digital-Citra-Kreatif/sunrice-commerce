@@ -423,7 +423,8 @@ Store defaults, Settings → Store → Digital products:
 customer. The order page also shows its download links. The download endpoint,
 `/downloads/{token}`, checks the grant, records the request and deducts one use from the remaining
 limit, if set. It streams local files or redirects to a five-minute cloud URL when the disk
-supports temporary URLs. External files redirect to their configured destination. Revoked,
+supports temporary URLs. External files redirect to their configured destination, which must
+be an http(s) address (anything else answers 404 without counting a download). Revoked,
 expired and used-up grants return HTTP 410. This route stays available when the Digital products
 module is off.
 

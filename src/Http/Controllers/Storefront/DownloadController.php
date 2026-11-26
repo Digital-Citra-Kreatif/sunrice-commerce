@@ -16,8 +16,9 @@ use Throwable;
 /**
  * GET downloads/{token}: the file behind a grant. Each download counts
  * (atomically, against the limit) and is logged; links redirect, cloud
- * disks redirect to a short-lived URL, local files are streamed. Works
- * while the digital module is off, so bought files stay available.
+ * disks redirect to a short-lived URL, local files are streamed. A link
+ * only redirects to an http(s) address. Works while the digital module is
+ * off, so bought files stay available.
  */
 class DownloadController
 {
@@ -29,6 +30,10 @@ class DownloadController
         if (($refusal = $grant->refusal()) !== null) {
             abort(410, __('commerce::digital.'.$refusal));
         }
+        $file = $grant->file;
+        $link = $file->type === 'url' || ($file->path === null && $file->url !== null);
+        // Links are checked when saved; this keeps any other scheme out of the redirect, before a use is counted.
+        abort_if($link && preg_match('#^https?://#i', (string) $file->url) !== 1, 404);
 
         $counted = DB::table('commerce_download_grants')->where('id', $grant->id)
             ->where(fn ($q) => $q->whereNull('downloads_remaining')->orWhere('downloads_remaining', '>', 0))
@@ -41,8 +46,7 @@ class DownloadController
         abort_if($counted !== 1, 410, __('commerce::digital.used_up'));
         DownloadLog::query()->create(['grant_id' => $grant->id, 'ip_address' => $request->ip(), 'user_agent' => mb_substr((string) $request->userAgent(), 0, 255)]);
 
-        $file = $grant->file;
-        if ($file->type === 'url' || ($file->path === null && $file->url !== null)) {
+        if ($link) {
             return redirect()->away((string) $file->url);
         }
         abort_if($file->disk === null || $file->path === null, 404);
