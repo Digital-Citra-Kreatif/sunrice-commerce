@@ -51,22 +51,10 @@ return new class extends Migration
             $table->boolean('default_billing')->default(false);
             $table->timestamps();
         });
-
-        Schema::create('commerce_social_accounts', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_id')->index();
-            $table->string('provider', 30);
-            $table->string('provider_id');
-            $table->string('email')->nullable();
-            $table->string('avatar')->nullable();
-            $table->timestamps();
-            $table->unique(['provider', 'provider_id']);
-        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('commerce_social_accounts');
         Schema::dropIfExists('commerce_addresses');
         Schema::dropIfExists('commerce_customers');
     }

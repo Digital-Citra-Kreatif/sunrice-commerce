@@ -137,7 +137,7 @@ class CheckoutValidator
     protected function attributes(): array
     {
         $attributes = [];
-        foreach (['name', 'email', 'phone', 'password', 'notes'] as $field) {
+        foreach (['name', 'email', 'phone', 'notes'] as $field) {
             $attributes[$field] = __('commerce::checkout.fields.'.$field);
         }
         $attributes['shipping_address.label'] = __('commerce::checkout.address_picker.label');

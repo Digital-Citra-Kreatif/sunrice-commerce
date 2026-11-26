@@ -428,7 +428,7 @@ be an http(s) address (anything else answers 404 without counting a download). R
 expired and used-up grants return HTTP 410. This route stays available when the Digital products
 module is off.
 
-The token itself grants access, so guests can download from email without signing in. Anyone
+The token itself grants access, so customers can download from email without signing in. Anyone
 who receives a forwarded link can use it while the grant is valid. If a store requires proof of
 the buyer's identity on every download, it needs an additional ownership or email verification
 check before serving the file.

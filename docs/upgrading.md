@@ -43,6 +43,35 @@ When a release changes how sales are counted, the changelog says so; recompute h
 php artisan commerce:stats --rebuild
 ```
 
+## Customer accounts on `sunrice/account`
+
+From this release, customer accounts are the Accounts plugin's and there is no guest checkout.
+Composer installs `sunrice/account` with commerce. After updating:
+
+1. In your panel provider, add the account plugin and its Users screen:
+
+   ```php
+   use Sunrice\Account\AccountPlugin;
+   use Sunrice\Account\Admin\AccountUserResource;
+
+   $panel->userResource(AccountUserResource::class)
+       ->plugin(CmsPlugin::make())->plugin(AccountPlugin::make())->plugin(CommercePlugin::make());
+   ```
+
+   Remove `Sunrice\Commerce\Admin\StaffUserResource`: it no longer exists.
+2. Run `php artisan migrate` and `php artisan account:install`.
+3. Remove the `HasOneTimePasswords` trait (and its import) from your user model; you can also
+   remove `spatie/laravel-one-time-passwords` and `laravel/socialite` if your app required them
+   only for commerce.
+4. Set up sign-in in **Settings → Accounts** (registration, email verification, the emailed code,
+   Google, default roles, the account emails). The old Settings → Store → Accounts values are
+   not carried over.
+5. If you published the storefront templates, follow the template notes in `CHANGELOG.md`:
+   the account sign-in templates are gone, account pages fill `@section('commerce-account')`, and
+   the checkout partials lost their guest variables.
+
+There is no data migration. See [accounts.md](accounts.md) and [checkout.md](checkout.md#accounts-at-checkout).
+
 ## Breaking changes
 
 Commerce follows semantic versioning for the public API listed in [extending.md](extending.md), the

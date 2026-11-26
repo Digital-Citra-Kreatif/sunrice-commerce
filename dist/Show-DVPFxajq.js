@@ -1,5 +1,5 @@
-import { i as M, b as t, c as L, j as a, a as m, M as re, d as ae, u as ne, R as j, e as ce, P as le, S as R, F as D } from "./main-Dwve2_KU.js";
-import { P as ie } from "./PaymentConfirmationDialog-C6LdJa_b.js";
+import { i as M, b as t, c as L, j as a, a as m, M as re, d as ae, u as ne, R as P, e as ce, P as le, S as R, F as D } from "./main-BOqfDoTx.js";
+import { P as ie } from "./PaymentConfirmationDialog-Cqx-FL1y.js";
 function se({ order: o, couriers: r, onClose: x }) {
   const { Dialog: d, DialogContent: F, DialogFooter: h, DialogHeader: p, DialogTitle: g, Button: u, Input: s, Label: N } = L, _ = o.items.filter((n) => n.unfulfilled > 0), c = M.useForm({
     courier: r[0]?.key ?? "",
@@ -166,7 +166,7 @@ function ue(o) {
     DropdownMenuItem: V
   } = L, { Link: I, router: q } = M;
   ae(), ne([{ label: "Shop", href: m("commerce") }, { label: "Orders", href: m("commerce/orders") }, { label: r.number }]);
-  const v = `commerce/orders/${r.id}`, [P, O] = j.useState(null), [z, E] = j.useState(""), [W, A] = j.useState(!1), [X, H] = j.useState(!1), [Z, G] = j.useState(!1), y = M.useForm({ message: "", customer: !1 }), C = M.useForm({ reference: "", paid_at: "", account: "" }), ee = ce.orderPanels(), Q = x.filter((e) => e.permission && e.allowed), U = (e, l) => q.post(m(`${v}/transition`), { to: e, reason: l ?? null }, { preserveScroll: !0, onFinish: () => O(null) });
+  const v = `commerce/orders/${r.id}`, [j, O] = P.useState(null), [z, E] = P.useState(""), [W, A] = P.useState(!1), [X, H] = P.useState(!1), [Z, Q] = P.useState(!1), k = M.useForm({ message: "", customer: !1 }), C = M.useForm({ reference: "", paid_at: "", account: "" }), ee = ce.orderPanels(), U = x.filter((e) => e.permission && e.allowed), G = (e, l) => q.post(m(`${v}/transition`), { to: e, reason: l ?? null }, { preserveScroll: !0, onFinish: () => O(null) });
   return /* @__PURE__ */ a("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6", children: [
     /* @__PURE__ */ t(
       le,
@@ -181,10 +181,10 @@ function ue(o) {
         ] }),
         back: { href: m("commerce/orders"), label: "Back to orders" },
         actions: /* @__PURE__ */ a(D, { children: [
-          Q.length > 0 && /* @__PURE__ */ a(K, { children: [
+          U.length > 0 && /* @__PURE__ */ a(K, { children: [
             /* @__PURE__ */ t(Y, { asChild: !0, children: /* @__PURE__ */ t(s, { type: "button", variant: "outline", children: "Change status" }) }),
-            /* @__PURE__ */ t(J, { align: "end", children: Q.map((e) => /* @__PURE__ */ t(V, { variant: e.to === "cancelled" ? "destructive" : "default", onSelect: () => {
-              e.to === "cancelled" || e.to === "on_hold" ? (E(""), O(e)) : U(e.to);
+            /* @__PURE__ */ t(J, { align: "end", children: U.map((e) => /* @__PURE__ */ t(V, { variant: e.to === "cancelled" ? "destructive" : "default", onSelect: () => {
+              e.to === "cancelled" || e.to === "on_hold" ? (E(""), O(e)) : G(e.to);
             }, children: e.to === "cancelled" ? "Cancel order…" : e.to === "on_hold" ? "Put on hold…" : `Mark ${e.label.toLowerCase()}` }, e.to)) })
           ] }),
           d.mark_paid && /* @__PURE__ */ t(s, { variant: "outline", onClick: () => A(!0), children: "Mark paid" }),
@@ -194,7 +194,7 @@ function ue(o) {
         menu: [
           { label: "Customer view", href: r.storefront_url, external: !0 },
           ...d.edit_items ? [{ label: "Edit items", href: m(`${v}/edit`) }] : [],
-          ...d.refund ? [{ label: "Refund…", onSelect: () => G(!0) }] : [],
+          ...d.refund ? [{ label: "Refund…", onSelect: () => Q(!0) }] : [],
           ...d.send_link ? [{ label: "Send payment link", onSelect: () => q.post(m(`${v}/payment-link`), {}, { preserveScroll: !0 }) }] : [],
           ...d.delete && !r.trashed ? [{ label: "Move to trash", destructive: !0, group: "Delete", onSelect: () => {
             window.confirm("Move this order to the trash?") && q.delete(m(v));
@@ -266,15 +266,15 @@ function ue(o) {
               ] })
             ] }, e.id)) }),
             /* @__PURE__ */ a("dl", { className: "cm:grid cm:gap-1 cm:border-t cm:pt-3 cm:text-sm", children: [
-              /* @__PURE__ */ t(k, { label: "Subtotal", value: r.totals.subtotal }),
-              r.adjustments.filter((e) => e.kind !== "tax").map((e, l) => /* @__PURE__ */ t(k, { label: `${e.label}${e.code ? ` (${e.code})` : ""}`, value: e.amount, muted: !0 }, l)),
-              r.totals.shipping !== null && /* @__PURE__ */ t(k, { label: `Shipping${r.shipping_method?.label ? ` · ${r.shipping_method.label}` : ""}`, value: r.totals.shipping }),
-              r.adjustments.filter((e) => e.kind === "tax").map((e, l) => /* @__PURE__ */ t(k, { label: `${e.label}${e.included ? " (included)" : ""}`, value: e.amount, muted: !0 }, `t${l}`)),
-              /* @__PURE__ */ t(k, { label: "Total", value: r.totals.total, strong: !0 }),
-              r.type === "order" && /* @__PURE__ */ t(k, { label: "Paid", value: r.totals.paid, muted: !0 }),
-              r.totals.refunded && /* @__PURE__ */ t(k, { label: "Refunded", value: `−${r.totals.refunded}`, muted: !0 }),
-              r.totals.deposit && /* @__PURE__ */ t(k, { label: "Deposit asked", value: r.totals.deposit, muted: !0 }),
-              r.totals.balance && /* @__PURE__ */ t(k, { label: r.totals.balance_due_at ? `Balance, due ${f(r.totals.balance_due_at)}` : "Balance", value: r.totals.balance })
+              /* @__PURE__ */ t(y, { label: "Subtotal", value: r.totals.subtotal }),
+              r.adjustments.filter((e) => e.kind !== "tax").map((e, l) => /* @__PURE__ */ t(y, { label: `${e.label}${e.code ? ` (${e.code})` : ""}`, value: e.amount, muted: !0 }, l)),
+              r.totals.shipping !== null && /* @__PURE__ */ t(y, { label: `Shipping${r.shipping_method?.label ? ` · ${r.shipping_method.label}` : ""}`, value: r.totals.shipping }),
+              r.adjustments.filter((e) => e.kind === "tax").map((e, l) => /* @__PURE__ */ t(y, { label: `${e.label}${e.included ? " (included)" : ""}`, value: e.amount, muted: !0 }, `t${l}`)),
+              /* @__PURE__ */ t(y, { label: "Total", value: r.totals.total, strong: !0 }),
+              r.type === "order" && /* @__PURE__ */ t(y, { label: "Paid", value: r.totals.paid, muted: !0 }),
+              r.totals.refunded && /* @__PURE__ */ t(y, { label: "Refunded", value: `−${r.totals.refunded}`, muted: !0 }),
+              r.totals.deposit && /* @__PURE__ */ t(y, { label: "Deposit asked", value: r.totals.deposit, muted: !0 }),
+              r.totals.balance && /* @__PURE__ */ t(y, { label: r.totals.balance_due_at ? `Balance, due ${f(r.totals.balance_due_at)}` : "Balance", value: r.totals.balance })
             ] })
           ] })
         ] }),
@@ -380,16 +380,16 @@ function ue(o) {
           /* @__PURE__ */ t(g, { children: /* @__PURE__ */ t(u, { children: "Timeline" }) }),
           /* @__PURE__ */ a(p, { className: "cm:grid cm:gap-4", children: [
             d.edit && /* @__PURE__ */ a("form", { className: "cm:grid cm:gap-2", onSubmit: (e) => {
-              e.preventDefault(), y.post(m(`${v}/notes`), { preserveScroll: !0, onSuccess: () => y.reset() });
+              e.preventDefault(), k.post(m(`${v}/notes`), { preserveScroll: !0, onSuccess: () => k.reset() });
             }, children: [
               /* @__PURE__ */ t(_, { htmlFor: "o-note", className: "cm:sr-only", children: "Note" }),
-              /* @__PURE__ */ t(N, { id: "o-note", placeholder: "Add a note…", value: y.data.message, onChange: (e) => y.setData("message", e.target.value) }),
+              /* @__PURE__ */ t(N, { id: "o-note", placeholder: "Add a note…", value: k.data.message, onChange: (e) => k.setData("message", e.target.value) }),
               /* @__PURE__ */ a("div", { className: "cm:flex cm:items-center cm:justify-between cm:gap-2", children: [
                 /* @__PURE__ */ a("label", { className: "cm:flex cm:items-center cm:gap-2 cm:text-sm", children: [
-                  /* @__PURE__ */ t(c, { checked: y.data.customer, onCheckedChange: (e) => y.setData("customer", e === !0) }),
+                  /* @__PURE__ */ t(c, { checked: k.data.customer, onCheckedChange: (e) => k.setData("customer", e === !0) }),
                   " Send to the customer"
                 ] }),
-                /* @__PURE__ */ t(s, { size: "sm", type: "submit", disabled: y.processing || y.data.message.trim() === "", children: "Add note" })
+                /* @__PURE__ */ t(s, { size: "sm", type: "submit", disabled: k.processing || k.data.message.trim() === "", children: "Add note" })
               ] })
             ] }),
             /* @__PURE__ */ t("ol", { className: "cm:grid cm:gap-3 cm:text-sm", children: r.timeline.map((e) => /* @__PURE__ */ a("li", { className: "cm:grid cm:gap-0.5 cm:border-l-2 cm:pl-3", style: { borderColor: e.visibility === "customer" ? "var(--color-primary, currentColor)" : void 0 }, children: [
@@ -411,7 +411,7 @@ function ue(o) {
             /* @__PURE__ */ t("p", { className: "cm:font-medium", children: r.customer.href ? /* @__PURE__ */ t(I, { href: m(r.customer.href), className: "cm:hover:underline", children: r.customer.name ?? r.customer.email }) : r.customer.name ?? r.customer.email }),
             r.customer.email && /* @__PURE__ */ t("a", { href: `mailto:${r.customer.email}`, className: "cm:text-muted-foreground cm:hover:underline", children: r.customer.email }),
             r.customer.phone && /* @__PURE__ */ t("a", { href: `https://wa.me/${r.customer.phone.replace(/\D/g, "")}`, target: "_blank", rel: "noreferrer", className: "cm:text-muted-foreground cm:hover:underline", children: r.customer.phone }),
-            r.customer.guest && /* @__PURE__ */ t("p", { className: "cm:text-xs cm:text-muted-foreground", children: "Guest checkout" })
+            r.customer.guest && /* @__PURE__ */ t("p", { className: "cm:text-xs cm:text-muted-foreground", children: "No account yet: the order joins theirs when they sign in with this email" })
           ] })
         ] }),
         /* @__PURE__ */ a(h, { children: [
@@ -497,10 +497,10 @@ function ue(o) {
         ] })
       ] })
     ] }),
-    /* @__PURE__ */ t(i, { open: P !== null, onOpenChange: (e) => !e && O(null), children: /* @__PURE__ */ a(n, { children: [
+    /* @__PURE__ */ t(i, { open: j !== null, onOpenChange: (e) => !e && O(null), children: /* @__PURE__ */ a(n, { children: [
       /* @__PURE__ */ a(S, { children: [
-        /* @__PURE__ */ t($, { children: P?.to === "cancelled" ? "Cancel this order?" : "Put this order on hold?" }),
-        /* @__PURE__ */ t(B, { children: P?.to === "cancelled" ? "Stock, flash sale quantities and voucher uses are given back." : "It can go back to its status later." })
+        /* @__PURE__ */ t($, { children: j?.to === "cancelled" ? "Cancel this order?" : "Put this order on hold?" }),
+        /* @__PURE__ */ t(B, { children: j?.to === "cancelled" ? "Stock, flash sale quantities and voucher uses are given back." : "It can go back to its status later." })
       ] }),
       /* @__PURE__ */ a("div", { className: "cm:grid cm:gap-1", children: [
         /* @__PURE__ */ t(_, { htmlFor: "o-reason", children: "Reason (on the timeline)" }),
@@ -508,7 +508,7 @@ function ue(o) {
       ] }),
       /* @__PURE__ */ a(w, { children: [
         /* @__PURE__ */ t(s, { variant: "outline", onClick: () => O(null), children: "Back" }),
-        /* @__PURE__ */ t(s, { onClick: () => P && U(P.to, z), children: "Confirm" })
+        /* @__PURE__ */ t(s, { onClick: () => j && G(j.to, z), children: "Confirm" })
       ] })
     ] }) }),
     /* @__PURE__ */ t(i, { open: W, onOpenChange: A, children: /* @__PURE__ */ a(n, { children: [
@@ -539,10 +539,10 @@ function ue(o) {
       ] })
     ] }) }),
     X && /* @__PURE__ */ t(se, { order: r, couriers: o.couriers, onClose: () => H(!1) }),
-    Z && /* @__PURE__ */ t(de, { order: r, onClose: () => G(!1) })
+    Z && /* @__PURE__ */ t(de, { order: r, onClose: () => Q(!1) })
   ] });
 }
-function k({ label: o, value: r, muted: x, strong: d }) {
+function y({ label: o, value: r, muted: x, strong: d }) {
   return /* @__PURE__ */ a("div", { className: `cm:flex cm:justify-between cm:gap-4 ${x ? "cm:text-muted-foreground" : ""} ${d ? "cm:text-base cm:font-semibold" : ""}`, children: [
     /* @__PURE__ */ t("dt", { children: o }),
     /* @__PURE__ */ t("dd", { children: r })

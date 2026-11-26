@@ -25,7 +25,7 @@ Global functions for templates, defined in `src/helpers.php`. Each is wrapped in
 | `commerce_money(int $amount, bool $withSymbol = true)` | `string`: the amount in the store currency |
 | `commerce_feature(string $feature)` | `bool`: whether a store module is on |
 | `commerce_url(string $name, array $parameters = [], ?string $locale = null)` | `string`: a store page URL in the visitor's language |
-| `commerce_customer()` | `?Authenticatable`: the user signed in to the storefront |
+| `commerce_customer()` | `?Authenticatable`: the account signed in to the storefront |
 | `commerce_product(EntryTranslation\|Entry\|int $entry)` | `?ProductView`: what templates show for a product |
 | `commerce_store_name()` | `string`: the store's name |
 | `commerce_values(EntryTranslation\|Term\|TermTranslation $item)` | `array`: an entry's or term's fields as templates get them |
@@ -90,18 +90,19 @@ It follows `commerce.storefront.paths`, so links survive a path change. Route na
 commerce_customer(): ?Illuminate\Contracts\Auth\Authenticatable
 ```
 
-The user signed in to the storefront, on the store's own guard (`commerce.auth.guard`, default
-`commerce`), or null. Signing in to the admin doesn't sign in to the store.
+The account signed in to the storefront, on the account package's guard
+(`Sunrice\Account\Auth\SiteGuard::name()`, default `account`), or null. Signing in to the admin
+doesn't sign in to the store.
 
 ```blade
 @if ($user = commerce_customer())
     Hello, {{ $user->name }}
 @else
-    <a href="{{ commerce_url('commerce.account.login') }}">Sign in</a>
+    <a href="{{ \Sunrice\Account\Facades\Account::signInUrl() }}">Sign in</a>
 @endif
 ```
 
-This is the user model. For the customer record (addresses, stats), use `Commerce::customer()`,
+`Account::signInUrl()` returns to the page it is on after signing in. This is the user model. For the customer record (addresses, stats), use `Commerce::customer()`,
 which returns a `Customers\Models\Customer` or null. See [accounts.md](accounts.md).
 
 ## commerce_product

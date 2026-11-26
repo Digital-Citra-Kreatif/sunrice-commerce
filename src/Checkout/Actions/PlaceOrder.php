@@ -213,9 +213,6 @@ class PlaceOrder
             'phone' => $customer->phone ?: Phone::normalize($data->phone(), $country),
             'locale' => $customer->locale ?? app()->getLocale(),
         ]);
-        if ($data->get('accepts_marketing') && ! $customer->accepts_marketing) {
-            $customer->forceFill(['accepts_marketing' => true, 'marketing_consent_at' => now()]);
-        }
         $customer->save();
 
         if ($data->get('save_address') && $data->shippingAddress() !== null && ! $data->isPickup()) {

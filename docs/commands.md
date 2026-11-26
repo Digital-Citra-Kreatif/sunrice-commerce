@@ -22,8 +22,7 @@ The scheduled commands are registered for you; run Laravel's scheduler every min
 php artisan commerce:install [--templates] [--starter] [--demo] [--no-regions] [--regions=district] [--force]
 ```
 
-Publishes the config and assets, the sign-in code migration (when missing), migrates, adds the
-`HasOneTimePasswords` trait to the user model, scaffolds the store, syncs permissions and roles,
+Publishes the config and assets, migrates, scaffolds the store, syncs permissions and roles,
 imports regions and prints the next steps. Safe to run again. It needs `CommercePlugin` on the
 app's Sunrice panel (`php artisan sunrice:install --plugins`) and stops with instructions without it.
 

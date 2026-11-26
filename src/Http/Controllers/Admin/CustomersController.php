@@ -15,6 +15,7 @@ use Inertia\Response;
 use Spatie\Permission\Models\Role;
 use Sunrice\Account\Admin\Accounts;
 use Sunrice\Account\Auth\Actions\SendPasswordResetLink;
+use Sunrice\Account\Auth\Actions\SignInWithGoogle;
 use Sunrice\Account\Auth\Actions\VerifyEmail;
 use Sunrice\Account\Profiles\Actions\AnonymizeAccount;
 use Sunrice\Account\Settings\AccountSettings;
@@ -67,10 +68,10 @@ class CustomersController extends Controller
                 'orders_count' => $c->orders_count,
                 'total_spent' => $money->format($c->total_spent),
                 'last_order_at' => $c->last_order_at?->isoFormat('D MMM YYYY'),
-                'account' => $c->deletion_requested_at ? 'Deletion requested' : ($c->user_id ? 'Registered' : 'Guest'),
+                'account' => $c->deletion_requested_at ? 'Deletion requested' : ($c->user_id ? 'Registered' : 'No account yet'),
                 'account_tone' => $c->deletion_requested_at ? 'warning' : ($c->user_id ? 'ok' : 'neutral'),
             ] : []), [
-                ['key' => 'account', 'label' => 'Account', 'type' => 'select', 'options' => [['value' => 'registered', 'label' => 'Registered'], ['value' => 'guest', 'label' => 'Guests']]],
+                ['key' => 'account', 'label' => 'Account', 'type' => 'select', 'options' => [['value' => 'registered', 'label' => 'Registered'], ['value' => 'guest', 'label' => 'No account yet']]],
                 ['key' => 'marketing', 'label' => 'Marketing', 'type' => 'select', 'options' => [['value' => 'yes', 'label' => 'Accepts marketing'], ['value' => 'no', 'label' => "Doesn't"]]],
                 ['key' => 'role', 'label' => 'Role', 'type' => 'select', 'options' => array_map(fn (string $r) => ['value' => $r, 'label' => $r],
                     app(AccountSettings::class)->roles())],
@@ -204,7 +205,7 @@ class CustomersController extends Controller
             'account' => $user === null ? null : [
                 'email_verified' => $user->getAttribute('email_verified_at') !== null,
                 'roles' => method_exists($user, 'getRoleNames') ? $user->getRoleNames()->all() : [],
-                'google' => DB::table('commerce_social_accounts')->where('user_id', $user->getAuthIdentifier())->value('email'),
+                'google' => DB::table(SignInWithGoogle::TABLE)->where('user_id', $user->getAuthIdentifier())->value('email'),
             ],
             'roleOptions' => array_values(array_unique([...$customerRoles, ...self::givableRoles($request->user())])),
             'orders' => app(AdminOrderScopes::class)->apply(Order::query())->where('customer_id', $customer->id)->latest('placed_at')->limit(20)->get()

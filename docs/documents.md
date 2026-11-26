@@ -101,8 +101,8 @@ AI agents don't download documents; they work with the order data ([ai-agents.md
 ## For customers
 
 With **Customers can download invoices** on, a paid order shows an invoice download link on its order
-page and in My Account → Orders. The link is `/order/{key}/invoice`, so only someone with the
-order's long random key can open it. Unpaid orders and quotes have no customer download.
+page and in My Account → Orders. The link is `/order/{key}/invoice`, which only the order's
+signed-in account can open. Unpaid orders and quotes have no customer download.
 
 ## In emails
 

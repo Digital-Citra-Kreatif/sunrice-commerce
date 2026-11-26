@@ -261,25 +261,25 @@ function lc(e) {
     t.registerPageLoader(n, r);
 }
 const mc = {
-  "Commerce/Confirmations/Index": () => import("./Index-C7dIAPee.js"),
-  "Commerce/Customers/Show": () => import("./Show-CA2r2ZiR.js"),
-  "Commerce/Dashboard": () => import("./Dashboard-B5Zp55JU.js"),
-  "Commerce/Inventory/Index": () => import("./Index-DjP7S2Pc.js"),
-  "Commerce/Loyalty/Show": () => import("./Show-CstaUnww.js"),
-  "Commerce/Marketing/Editor": () => import("./Editor-GkgjMHFG.js"),
-  "Commerce/Marketing/Report": () => import("./Report-CgWlefue.js"),
-  "Commerce/Orders/Editor": () => import("./Editor-CqJoRMmW.js"),
-  "Commerce/Orders/Show": () => import("./Show-B721DP48.js"),
-  "Commerce/Products/Index": () => import("./Index-M5DxOM3C.js"),
-  "Commerce/Products/Import": () => import("./Import-F7cD7_G-.js"),
-  "Commerce/Reports/Show": () => import("./Show-BP74xnnQ.js"),
-  "Commerce/Settings/Section": () => import("./Section-DeKO3spU.js"),
-  "Commerce/Settings/Emails": () => import("./Emails-BaxPs4lY.js"),
-  "Commerce/Settings/Features": () => import("./Features-DEBniLyT.js"),
-  "Commerce/Settings/Payments": () => import("./Payments-CSLI1L8A.js"),
-  "Commerce/Settings/Shipping": () => import("./Shipping-BD3TpHX7.js"),
-  "Commerce/Shared/SchemaForm": () => import("./SchemaForm-DZ51hj7X.js"),
-  "Commerce/Shared/ResourceIndex": () => import("./ResourceIndex-DCEjenzu.js")
+  "Commerce/Confirmations/Index": () => import("./Index-yqP0TnCS.js"),
+  "Commerce/Customers/Show": () => import("./Show-CWltbuV3.js"),
+  "Commerce/Dashboard": () => import("./Dashboard-BQu0Bc4g.js"),
+  "Commerce/Inventory/Index": () => import("./Index-6QWkyvA-.js"),
+  "Commerce/Loyalty/Show": () => import("./Show-De0uhztj.js"),
+  "Commerce/Marketing/Editor": () => import("./Editor-O8cBFnC-.js"),
+  "Commerce/Marketing/Report": () => import("./Report-CJRwUrAx.js"),
+  "Commerce/Orders/Editor": () => import("./Editor-Bt2c1fpT.js"),
+  "Commerce/Orders/Show": () => import("./Show-DVPFxajq.js"),
+  "Commerce/Products/Index": () => import("./Index-43qEKVxO.js"),
+  "Commerce/Products/Import": () => import("./Import-DbvSjTcq.js"),
+  "Commerce/Reports/Show": () => import("./Show-DjITzr8G.js"),
+  "Commerce/Settings/Section": () => import("./Section-CCXW6x1X.js"),
+  "Commerce/Settings/Emails": () => import("./Emails-C1Y78Z-7.js"),
+  "Commerce/Settings/Features": () => import("./Features-DYwYMy6q.js"),
+  "Commerce/Settings/Payments": () => import("./Payments-DsAXMf6O.js"),
+  "Commerce/Settings/Shipping": () => import("./Shipping-DIuD3vEj.js"),
+  "Commerce/Shared/SchemaForm": () => import("./SchemaForm-Bw5D5-eY.js"),
+  "Commerce/Shared/ResourceIndex": () => import("./ResourceIndex-BuMySZcP.js")
 };
 function dc() {
   lc(mc);
@@ -706,7 +706,7 @@ function Ee({ field: e, value: t, onChange: n, id: r }) {
     ] })
   ] });
 }
-const Tc = P.lazy(() => import("./ProductEditor-BZHUVEtb.js")), $c = (e) => P.createElement(P.Suspense, { fallback: null }, P.createElement(Tc, e)), Ec = {
+const Tc = P.lazy(() => import("./ProductEditor-D_joWwI8.js")), $c = (e) => P.createElement(P.Suspense, { fallback: null }, P.createElement(Tc, e)), Ec = {
   commerce_money: Te,
   commerce_datetime_range: Ce,
   commerce_region: $e,
@@ -718,7 +718,7 @@ const Tc = P.lazy(() => import("./ProductEditor-BZHUVEtb.js")), $c = (e) => P.cr
 function Lc() {
   (window.SunriceCmsQueue ??= []).push((e) => Object.entries(Ec).forEach(([t, n]) => e.registerFieldInput(t, n)));
 }
-const Mc = P.lazy(() => import("./ChartImpl-CgVJQ0Yt.js"));
+const Mc = P.lazy(() => import("./ChartImpl-CDdPnqRz.js"));
 function Pc(e) {
   const t = /* @__PURE__ */ c("div", { className: "cm:animate-pulse cm:rounded-md cm:bg-muted", style: { height: e.height ?? 260 } });
   return /* @__PURE__ */ c(P.Suspense, { fallback: t, children: /* @__PURE__ */ c(Mc, { ...e }) });

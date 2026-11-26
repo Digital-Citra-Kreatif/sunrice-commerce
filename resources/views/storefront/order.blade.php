@@ -1,7 +1,7 @@
 {{--
     The order or quote page (by its key), also the thank-you page after checkout.
     $order, $payment, $instructionsView, $payUrl, $whatsappUrl, $openWhatsApp,
-    $downloads, $invoiceUrl, $canCancel, $accountRequested, $invite, $registerUrl.
+    $downloads, $invoiceUrl, $canCancel.
     A confirmation header, then what to do next (how to pay, downloads),
     the items and totals, and a side column with the order's states,
     addresses, shipments and actions.

@@ -350,15 +350,18 @@ the timeline and dispatch the events.
 ```php
 Commerce::registerAccountPage('points', 'Points', 'loyalty.points', 'loyalty', position: 60);
 
-Route::middleware(['web', 'commerce.auth'])->get('account/points', PointsController::class)->name('loyalty.points');
+Route::middleware(['web', 'sunrice.account.auth'])->get('account/points', PointsController::class)->name('loyalty.points');
 ```
 
-Views extend the account layout and fill `account`; the menu and the current item come from the
-registry:
+`registerAccountPage()` forwards to the account package's `Account::page()`, which draws the menu;
+the page shows while the feature you name is on. To put the route under the account prefix in
+every language, register it with `Account::routes()` instead
+(`Sunrice\Account\Facades\Account`). Views extend the store's account layout and fill
+`commerce-account`:
 
 ```blade
 @extends(\Sunrice\Commerce\Storefront\Layout::view('account.layout'))
-@section('account') … @endsection
+@section('commerce-account') … @endsection
 ```
 
 `Commerce::customer()` is the signed-in customer.
@@ -514,7 +517,6 @@ are public properties.
 | `Catalog\Events\ProductSynced` | `Product $product` |
 | `Catalog\Events\ProductSyncFailed` | `Product $product, string $error` |
 | `Checkout\Events\CheckoutStarted` | `Cart $cart` |
-| `Customers\Events\AccountDeletionRequested` | `Customer $customer` |
 | `Digital\Events\DownloadsGranted` | `Order $order, array $grants, bool $resent` |
 | `Events\FeatureToggled` | `string $feature, bool $on, array $deactivated, array $activated` |
 | `Events\StoreSettingsSaved` | `string $section, array $changes` |

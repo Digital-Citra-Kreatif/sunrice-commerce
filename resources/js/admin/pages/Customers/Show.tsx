@@ -32,7 +32,7 @@ export default function CustomerShow({ customer, account, roleOptions, orders, c
             <PageHeader title={customer.name ?? customer.email} description={<>{customer.email}{customer.phone ? ` · ${customer.phone}` : ''}</>}
                 actions={<>
                     {customer.deletion_requested_at && <StatusBadge tone="warning">Deletion requested {date(customer.deletion_requested_at)}</StatusBadge>}
-                    {account ? <StatusBadge tone="ok">Registered</StatusBadge> : <StatusBadge>Guest</StatusBadge>}
+                    {account ? <StatusBadge tone="ok">Registered</StatusBadge> : <StatusBadge>No account yet</StatusBadge>}
                 </>} />
             <div className="cm:grid cm:gap-4 cm:sm:grid-cols-3">
                 {[['Orders', String(customer.orders_count)], ['Spent', customer.total_spent], ['Last order', date(customer.last_order_at)]].map(([label, value]) => (

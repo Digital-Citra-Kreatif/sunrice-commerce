@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Sunrice\Account\Profiles\Actions\RequestDeletion;
 use Sunrice\Commerce\Catalog\Models\Product;
 use Sunrice\Commerce\Customers\Models\Address;
 use Sunrice\Commerce\Customers\Models\Customer;
@@ -188,4 +189,21 @@ it('keeps order filters across pages and paginates ten results at a time', funct
     $this->get($filters.'&page=2')->assertOk()
         ->assertSee('ORD-PAGED-01')->assertDontSee('ORD-PAGED-02')
         ->assertSee('aria-current="page">2', false);
+});
+
+it('keeps the customer record in step with the account\'s profile', function () {
+    // The profile page is the Accounts plugin's: name, phone and consent change there.
+    $this->put('/account/profile', ['name' => 'Ana Putri', 'email' => 'ana@example.com', 'phone' => '0811111111', 'accepts_marketing' => '1'])
+        ->assertSessionHasNoErrors();
+
+    $customer = $this->customer->fresh();
+    expect([$customer->name, $customer->phone, $customer->accepts_marketing])->toBe(['Ana Putri', '+62811111111', true])
+        ->and($customer->marketing_consent_at)->not->toBeNull();
+
+    $this->put('/account/profile', ['name' => 'Ana Putri', 'email' => 'ana@example.com', 'phone' => '0811111111'])->assertSessionHasNoErrors();
+    expect($this->customer->fresh()->accepts_marketing)->toBeFalse()->and($this->customer->fresh()->marketing_consent_at)->toBeNull();
+
+    // Asking to be deleted shows in Shop → Customers.
+    app(RequestDeletion::class)->handle($this->user);
+    expect($this->customer->fresh()->deletion_requested_at)->not->toBeNull();
 });

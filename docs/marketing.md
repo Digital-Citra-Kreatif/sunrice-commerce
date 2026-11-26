@@ -26,13 +26,11 @@ never waits for them. Staff need the permission `commerce.marketing.manage`.
 
 ## Who gets marketing email
 
-Only customers with marketing consent (`accepts_marketing`: the checkbox at checkout and
-registration, the profile page, or staff on the customer page). Never anonymized customers,
+Only customers with marketing consent: the checkbox on the account's registration form and profile
+page (the Accounts plugin's), copied to `accepts_marketing` on the customer record; staff can also
+set it on the customer page in Shop → Customers. Never anonymized customers,
 customers who asked to be deleted, or placeholder addresses. Consent is checked again when each
 email is sent, so someone who unsubscribes after a campaign was queued doesn't get it.
-
-One exception: the abandoned-cart automation also emails a guest who typed their email at checkout
-and ticked "send me news and offers" there, unless that address unsubscribed before.
 
 ## Audiences
 
@@ -50,8 +48,8 @@ Rules narrow the customers who accept marketing; all of them must match, or any 
 | Bought from the categories or brands | ordered a product in one of the chosen categories or brands |
 | Became a customer in the last (days) | joined (registered or first ordered) in the last N days |
 | Customer for more than (days) | joined more than N days ago |
-| Account | registered, or guests who ordered without an account |
-| Has the role | have the customer role (Settings → Store → Accounts → Customer roles) |
+| Account | registered, or guests (customers staff made for a manual order, without an account) |
+| Has the role | have one of the default roles of new accounts (Settings → Accounts) |
 | Language | use that language (the main language includes customers without one) |
 | Province / City (address) | have a saved address in it (part of the name is enough) |
 | Has products in their cart | have an active cart with products (signed-in customers) |
@@ -77,7 +75,7 @@ main language's. The email uses the store's frame, logo and brand color, like th
 | `{store_name}`, `{store_url}`, `{account_url}` | the store, its home page, My Account |
 | `{orders_count}`, `{total_spent}` | their orders and spending |
 | `{last_order_number}`, `{last_order_date}`, `{days_since_last_order}` | their last order |
-| `{cart_url}`, `{cart_items}`, `{cart_total}` | their cart (abandoned-cart emails); `{cart_url}` brings a guest's cart back on any browser |
+| `{cart_url}`, `{cart_items}`, `{cart_total}` | their cart (abandoned-cart emails); `{cart_url}` opens their cart, after signing in |
 | `{voucher_code}` | the email's voucher code (Details → Voucher code; create the voucher in Shop → Vouchers) |
 | `{unsubscribe_url}` | the unsubscribe page (every email already has an unsubscribe link at the bottom) |
 
@@ -132,7 +130,7 @@ Set `commerce.marketing.track` to `false` to stop counting opens (clicks still r
 Every email has an unsubscribe link at the bottom and `List-Unsubscribe` headers with one-click
 unsubscribe (RFC 8058), which Gmail and others show next to the sender. The link opens a page that
 asks to confirm, so link checkers in mail systems don't unsubscribe anyone. Unsubscribing removes
-the marketing consent; order emails keep coming. Customers can opt in again from their profile.
+the marketing consent; order emails keep coming. Staff can switch it back on from the customer page.
 
 The tracking and unsubscribe links live under `/mail/` (`commerce.marketing.path`), work without a
 session or cookies, and keep working while the module is off.

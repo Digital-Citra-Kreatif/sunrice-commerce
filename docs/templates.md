@@ -62,7 +62,6 @@ for every other language, like Sunrice's pages. Route names are `commerce.*` and
 | `/order/{key}/pay` | `commerce.order.pay` | `pay` | `orders`, `payments` |
 | `/order/{key}/invoice` | `commerce.order.invoice` | a PDF, once paid ([documents.md](documents.md)) | `orders`, `documents` |
 | `/quote/{key}` | `commerce.quote` | `order` (as a quote) | `orders` |
-| `/track-order` | `commerce.track-order` | `track-order` | `orders` |
 | `/confirm-payment` | `commerce.confirm-payment` | `confirm-payment` | `manual_payments` |
 | `/wishlist` | `commerce.wishlist` | `wishlist` | `wishlist` |
 | `/wishlist/shared/{token}` | `commerce.wishlist.shared` | `wishlist` (read only) | `wishlist` |
@@ -73,25 +72,23 @@ for every other language, like Sunrice's pages. Route names are `commerce.*` and
 | `/go/{type}/{entry}` | `commerce.go` | a redirect (WhatsApp, external shop, inquiry) | — |
 | `/downloads/{token}` | `commerce.download` | a file (works even while `digital` is off) | — |
 
-My Account pages need the `accounts` feature. The pages after sign-in also need a signed-in
-customer (`commerce.auth`):
+The checkout, order, pay, invoice, quote and payment confirmation pages are for signed-in accounts
+(`sunrice.account.auth`); a visitor is sent to sign in and comes back.
+
+The store's My Account pages need the `accounts` feature and a signed-in account. They live under
+the account package's prefix (`/account` by default):
 
 | Path (default) | Route name | View |
 | --- | --- | --- |
-| `/account/login` | `commerce.account.login` | `account.login` |
-| `/account/register` | `commerce.account.register` | `account.register` |
-| `/account/forgot-password` | `commerce.account.password.request` | `account.forgot-password` |
-| `/account/reset-password/{token}` | `commerce.account.password.reset` | `account.reset-password` |
-| `/account/code` | `commerce.account.code` | `account.code` |
-| `/account` | `commerce.account` | Redirects to Orders, the announcement tab, or Profile |
-| `/account/announcement` | `commerce.account.announcement` | `account.announcement` (only for the first-tab placement) |
-| `/account/profile` | `commerce.account.profile` | `account.profile` |
 | `/account/addresses` | `commerce.account.addresses` | `account.addresses` |
 | `/account/orders` | `commerce.account.orders` | `account.orders` (needs `orders`) |
 | `/account/quotes` | `commerce.account.quotes` | `account.quotes` (needs `orders`) |
 | `/account/orders/{order}` | `commerce.account.orders.show` | `account.order` (needs `orders`) |
 | `/account/downloads` | `commerce.account.downloads` | `account.downloads` |
 | `/account/points` | `commerce.account.points` | `account.points` (needs `loyalty`) |
+
+`/account` itself opens Orders. The sign-in, registration, password and profile pages, and their
+templates, are the account package's (`resources/views/vendor/account/` in your app).
 
 A page whose feature is off returns 404. See [accounts.md](accounts.md) for sign-in and the account
 menu, and [extending.md](extending.md#my-account-pages) to add your own account page.
@@ -191,8 +188,8 @@ with slashes and add `.blade.php`.
 | View | Data and responsibility |
 | --- | --- |
 | `checkout` | The page frame and single checkout form. Holds the CSRF token, totals hash, feature checks and checkout slots. |
-| `checkout.contact` | `$data`, `$settings`, `$guest`, `$needsAddress`, `$offerAccount`, `$accountRequired`, `$extraFields`. Contact, optional company and account fields. |
-| `checkout.shipping-address` | `$data`, `$settings`, `$guest`, `$savedAddresses`, `$extraFields`. Saved addresses, the address editor and pickup contact. |
+| `checkout.contact` | `$data` (its email is the signed-in account's), `$settings`, `$needsAddress`, `$extraFields`. The account's email, read-only, and optional company fields. |
+| `checkout.shipping-address` | `$data`, `$settings`, `$savedAddresses`, `$extraFields`. Saved addresses, the address editor and pickup contact. |
 | `checkout.billing-address` | `$data`. Billing address for an order with a separate billing address. |
 | `checkout.address-dialog` | Dialog shell. The storefront script mounts the shipping address editor here. |
 | `checkout.delivery`, `partials.shipping-methods` | `$data`, `$state`. Delivery section and rates list. |
@@ -200,7 +197,7 @@ with slashes and add `.blade.php`.
 | `checkout.points`, `partials.checkout-vouchers` | Available points and voucher controls. Points use `$data` and `$loyaltyPoints`. Vouchers use `$state` and the voucher actions. |
 | `checkout.notes` | `$data`, `$settings`, `$extraFields`. Order notes, dropship details and extension fields. |
 | `checkout.summary`, `partials.checkout-summary` | `$cart`, `$state`. The summary wrapper and its contents, used on the page and by checkout refresh. |
-| `checkout.submit` | `$data`, `$guest`, `$termsUrl`, `$termsContent`, `$captcha`, `$submitLabel`. Terms, CAPTCHA, status and submit controls. |
+| `checkout.submit` | `$data`, `$termsUrl`, `$termsContent`, `$captcha`, `$submitLabel`. Terms, CAPTCHA, status and submit controls. |
 | `checkout.terms-dialog` | `$termsContent`. Published CMS title, locale, intro and sanitized body. The checkout terms link opens this dialog. |
 | `cart`, `partials.cart` | The page and cart component frame. The component receives `$cart` and the paginated `$lines`. |
 | `cart.empty` | Shared empty state for the cart page and drawer. `$continueShopping` is optional and defaults to the configured shopping destination. |
@@ -221,18 +218,17 @@ after overriding those areas.
 
 | View | Data and responsibility |
 | --- | --- |
-| `account.layout`, `account.navigation` | Shared signed-in frame and navigation. The navigation receives `$navigation` and the selected `$current` key. Custom account pages can extend `account.layout` and fill `@section('account')`. |
+| `account.layout` | The frame of the store's pages in My Account: it extends the account package's layout (which draws the menu, the messages and the announcement) and adds the store's styles and messages. Custom account pages can extend `account.layout` and fill `@section('commerce-account')`. |
 | `account.orders`, `account.quotes`, `account.order-table` | Order and quote pages and their shared table. The table receives the paginated `$orders`. |
 | `account.order-filters` | `$orderFilters`, `$orderCategories` (category ID to label from the customer's orders), `$orderFilterErrors`, `$filtersActive`. Order search, status, product category and date controls. |
 | `account.address-form`, `account.address-card` | `$editing` for the address form. The card takes `$address`, `$addresses`, and `$showAddressForm`. |
 | `account.order`, `account.order-returns` | Account order detail and its return history and form. Returns receive `$order`, `$returns` and `$returnable`. |
-| `account.announcement-banner`, `account.announcement` | Announcement above or below account content, or on its own tab. |
 | `order.confirmation`, `order.sidebar` | Thank-you or quote header, order status, shipping, tracking, and order actions. Both receive `$order`. |
 | `partials.order-payment`, `partials.order-items`, `partials.downloads` | Shared payment, order items, and download markup for order and account screens. |
 
-Profile, points, downloads, sign-in, registration and password recovery are also independently
-overridable. See the [account view reference](#account-pages) for their view names. Keep the
-existing account POST actions and CAPTCHA where configured. Reuse the controller-provided
+Points and downloads are also independently overridable. See the
+[account view reference](#account-pages) for their view names. Keep the existing account POST
+actions. Reuse the controller-provided
 order and download links so the server can enforce ownership and access.
 
 ## The starter theme
@@ -335,11 +331,10 @@ and the controllers that render them. Every store page also gets `$seoTitle`.
 | `tag` | `$term`: the tag. |
 | `brands` | `$brands`: brands with live products, each `['name', 'url', 'logo', 'count']`. |
 | `cart` | `$cart`: `CartView`, rendered with `<x-commerce::cart>`. |
-| `checkout` | `$cart` (CartView), `$state` (CalculationState), `$data` (CheckoutData), `$mode` (CheckoutMode), `$settings`, `$needsAddress`, `$paymentMethods`, `$savedAddresses`, `$loyaltyPoints`, `$guest`, `$offerAccount`, `$accountRequired`, `$extraFields`, `$termsUrl`, `$submitLabel`, `$captcha` (optional widget HTML). See [checkout.md](checkout.md). |
-| `order` | `$order`, `$payment`, `$instructionsView`, `$payUrl`, `$whatsappUrl`, `$openWhatsApp`, `$downloads`, `$invoiceUrl`, `$canCancel`, `$invite`, `$registerUrl`. Also renders quotes. See [orders.md](orders.md). |
+| `checkout` | `$cart` (CartView), `$state` (CalculationState), `$data` (CheckoutData), `$mode` (CheckoutMode), `$settings`, `$needsAddress`, `$paymentMethods`, `$savedAddresses`, `$loyaltyPoints`, `$extraFields`, `$termsUrl`, `$submitLabel`, `$captcha` (optional widget HTML). See [checkout.md](checkout.md). |
+| `order` | `$order`, `$payment`, `$instructionsView`, `$payUrl`, `$whatsappUrl`, `$openWhatsApp`, `$downloads`, `$invoiceUrl`, `$canCancel`. Also renders quotes. See [orders.md](orders.md). |
 | `pay` | `$order`, `$methods`: pay an unpaid order, or choose another method. |
-| `confirm-payment` | The lookup form, or the form for `$order` and its pending `$payment`; `$accounts` (bank accounts paid into), `$proofRequired`, `$captcha` (widget data or null). |
-| `track-order` | `$verification` switches from order lookup to email code entry. |
+| `confirm-payment` | The form for `$order` (the signed-in account's) and its pending `$payment`; `$accounts` (bank accounts paid into), `$proofRequired`, `$captcha` (widget data or null). |
 | `wishlist` | `$wishlist`, `$products` (product entries), `$shareUrl`, `$readOnly` (true on a shared list), `$ownerName` on a shared account wishlist. |
 | `partials.order-cancel` | `$cancelUrl`. Order cancellation confirmation shared by My Account and the order confirmation page. |
 | `compare` | `$entries` (product entries side by side), `$fields` (the compared attributes), `$specLabels`. |
@@ -348,21 +343,13 @@ and the controllers that render them. Every store page also gets `$seoTitle`.
 
 ### Account pages
 
-Account pages extend `account.layout` and fill `@section('account')`. They all get `$customer`,
-`$user`, `$navigation` (the account menu) and `$current` (the current menu key). The layout finds
-both itself when you leave them out, so extension pages can extend it directly.
+Account pages extend `account.layout` and fill `@section('commerce-account')`. They all get
+`$customer` and `$user`. The menu is the account package's, so extension pages can extend the
+layout directly.
 
 | Template | Variables |
 | --- | --- |
-| `account.layout` | The account menu beside the page, and flash messages. |
-| `account.login` | Sign in with a password, an emailed code or Google (each shown while its feature is on), and `$captcha` for password sign-in. |
-| `account.register` | Create an account. |
-| `account.forgot-password` | Request a reset link, with `$captcha` when configured. |
-| `account.reset-password` | `$token`, `$email`. |
-| `account.code` | `$email`: enter the emailed sign-in code. |
-| `account.announcement` | `$announcement`: the localized title and message for the first tab. |
-| `account.announcement-banner` | Included by `account.layout` above or below account content according to the Store → Accounts setting. |
-| `account.profile` | `$google`: name, email, phone, password, Google link, deleting the account. |
+| `account.layout` | The account package's layout around the page, with the store's styles and flash messages. |
 | `account.addresses` | `$addresses`, `$editing` (the address being edited, or null), `$showAddressForm` (true for `?add=1` or a valid `?edit={id}`). |
 | `account.orders` | `$orders` (paginated, with filter query parameters), `$type`: `order`, `$orderFilters` (entered values), `$orderCategories`, `$orderFilterErrors` (validation messages), `$filtersActive` (whether any filters were applied). Renders the legacy `account.overview` slot. |
 | `account.quotes` | `$orders` (paginated), `$type`: `quote`. |
@@ -552,9 +539,7 @@ Sunrice's `/{locale}` prefix.
 | `checkout` | `checkout` | Checkout and its refresh |
 | `order` | `order` | Order, pay, payment return, invoice, cancel |
 | `confirm_payment` | `confirm-payment` | Payment confirmation |
-| `track_order` | `track-order` | Track order |
 | `quote` | `quote` | Quote page |
-| `account` | `account` | My Account and sign-in (also Google sign-in) |
 | `wishlist` | `wishlist` | Wishlist and shared wishlists |
 | `compare` | `compare` | Compare |
 | `brands` | `brands` | Brands index |
@@ -575,7 +560,7 @@ Rebuild the route cache (`php artisan route:cache`) after a change. Always build
 
 ## SEO
 
-- **Private pages stay out of search engines.** Cart, checkout, order, pay, quote, track order,
+- **Private pages stay out of search engines.** Cart, checkout, order, pay, quote,
   payment confirmation, account, wishlist, compare, downloads, `/go` and the cart API run the
   `commerce.noindex` middleware: the response gets `X-Robots-Tag: noindex, nofollow`, and the
   minimal layout also outputs a robots meta tag. Brands and flash sale pages are indexable.

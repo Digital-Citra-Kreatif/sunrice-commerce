@@ -1,7 +1,7 @@
-import { i as C, d as j, u as A, a as g, R as B, j as i, b as e, P as L, F as k, S as m, c as $ } from "./main-Dwve2_KU.js";
+import { i as C, d as j, u as A, a as g, R as B, j as i, b as e, P as L, F as k, S as m, c as $ } from "./main-BOqfDoTx.js";
 const u = (d) => d ? new Date(d).toLocaleDateString(void 0, { dateStyle: "medium" }) : "—";
 function P({ customer: d, account: r, roleOptions: S, orders: N, can: l }) {
-  const { Card: n, CardContent: t, CardHeader: h, CardTitle: o, Button: s, Input: x, Label: p, Textarea: _, Switch: D, Checkbox: w } = $, { Link: y, router: z } = C;
+  const { Card: n, CardContent: t, CardHeader: h, CardTitle: o, Button: s, Input: x, Label: p, Textarea: _, Switch: y, Checkbox: D } = $, { Link: w, router: z } = C;
   j(), A([{ label: "Shop", href: g("commerce") }, { label: "Customers", href: g("commerce/customers") }, { label: d.name ?? d.email }]);
   const c = C.useForm({ name: d.name ?? "", phone: d.phone ?? "", note: d.note ?? "", accepts_marketing: d.accepts_marketing, roles: r?.roles ?? [] }), [F, b] = B.useState(!1), f = (a) => z.post(g(`commerce/customers/${d.id}/${a}`), {}, { preserveScroll: !0 });
   return /* @__PURE__ */ i("div", { className: "cm:flex cm:min-w-0 cm:flex-col cm:gap-6", children: [
@@ -18,7 +18,7 @@ function P({ customer: d, account: r, roleOptions: S, orders: N, can: l }) {
             "Deletion requested ",
             u(d.deletion_requested_at)
           ] }),
-          r ? /* @__PURE__ */ e(m, { tone: "ok", children: "Registered" }) : /* @__PURE__ */ e(m, { children: "Guest" })
+          r ? /* @__PURE__ */ e(m, { tone: "ok", children: "Registered" }) : /* @__PURE__ */ e(m, { children: "No account yet" })
         ] })
       }
     ),
@@ -30,7 +30,7 @@ function P({ customer: d, account: r, roleOptions: S, orders: N, can: l }) {
       /* @__PURE__ */ i("div", { className: "cm:grid cm:content-start cm:gap-6", children: [
         /* @__PURE__ */ i(n, { children: [
           /* @__PURE__ */ e(h, { children: /* @__PURE__ */ e(o, { children: "Orders" }) }),
-          /* @__PURE__ */ e(t, { children: N.length === 0 ? /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-muted-foreground", children: "No orders yet." }) : /* @__PURE__ */ e("ul", { className: "cm:grid cm:gap-1", children: N.map((a) => /* @__PURE__ */ e("li", { children: /* @__PURE__ */ i(y, { href: g(a.href), className: "cm:flex cm:justify-between cm:rounded cm:p-2 cm:hover:bg-muted", children: [
+          /* @__PURE__ */ e(t, { children: N.length === 0 ? /* @__PURE__ */ e("p", { className: "cm:text-sm cm:text-muted-foreground", children: "No orders yet." }) : /* @__PURE__ */ e("ul", { className: "cm:grid cm:gap-1", children: N.map((a) => /* @__PURE__ */ e("li", { children: /* @__PURE__ */ i(w, { href: g(a.href), className: "cm:flex cm:justify-between cm:rounded cm:p-2 cm:hover:bg-muted", children: [
             /* @__PURE__ */ i("span", { children: [
               a.number,
               " · ",
@@ -74,14 +74,14 @@ function P({ customer: d, account: r, roleOptions: S, orders: N, can: l }) {
               /* @__PURE__ */ e(_, { id: "c-note", disabled: !l.edit, value: c.data.note, onChange: (a) => c.setData("note", a.target.value) })
             ] }),
             /* @__PURE__ */ i("div", { className: "cm:flex cm:items-center cm:gap-2", children: [
-              /* @__PURE__ */ e(D, { id: "c-marketing", disabled: !l.edit, checked: c.data.accepts_marketing, onCheckedChange: (a) => c.setData("accepts_marketing", a) }),
+              /* @__PURE__ */ e(y, { id: "c-marketing", disabled: !l.edit, checked: c.data.accepts_marketing, onCheckedChange: (a) => c.setData("accepts_marketing", a) }),
               /* @__PURE__ */ e(p, { htmlFor: "c-marketing", children: "Accepts marketing" })
             ] }),
             r && /* @__PURE__ */ i("fieldset", { className: "cm:grid cm:gap-1.5", children: [
               /* @__PURE__ */ e("legend", { className: "cm:mb-1 cm:text-sm cm:font-medium", children: "Roles" }),
               S.map((a) => /* @__PURE__ */ i("label", { className: "cm:flex cm:items-center cm:gap-2 cm:text-sm", children: [
                 /* @__PURE__ */ e(
-                  w,
+                  D,
                   {
                     disabled: !l.edit,
                     checked: c.data.roles.includes(a),

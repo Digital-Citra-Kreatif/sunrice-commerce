@@ -166,9 +166,9 @@ class CheckoutController
         try {
             // A quote has no payment: no method, fee or points, and staff set the prices, so the totals seen aren't binding.
             $placed = $quote
-                ? $place->handle($cart, $data->merge(['payment_method' => null, 'use_points' => false]), null, $request->only('password'),
+                ? $place->handle($cart, $data->merge(['payment_method' => null, 'use_points' => false]), null, [],
                     ['ip_address' => $request->ip(), 'user_agent' => $request->userAgent()])
-                : $place->handle($cart, $data, (string) $request->input('totals_hash'), $request->only('password'),
+                : $place->handle($cart, $data, (string) $request->input('totals_hash'), [],
                     ['ip_address' => $request->ip(), 'user_agent' => $request->userAgent()]);
         } catch (CheckoutChanged $e) {
             return redirect(StorefrontRoutes::url('commerce.checkout'))->with('commerce.changes', $e->changes)->with('commerce.error', $e->getMessage());
@@ -176,7 +176,7 @@ class CheckoutController
             return redirect(StorefrontRoutes::url('commerce.checkout'))->with('commerce.error', $e->getMessage());
         } catch (ValidationException $e) {
             return redirect(StorefrontRoutes::url('commerce.checkout'))->withErrors($e->errors())
-                ->withInput($request->except(['password', $captcha->field()]));
+                ->withInput($request->except([$captcha->field()]));
         }
         if ($placed->order->type === ResolveCheckoutSession::TYPE) {
             $request->session()->put(ResolveCheckoutSession::SESSION_KEY, $placed->order->order_key);
@@ -289,7 +289,7 @@ class CheckoutController
 
     private function postedData(Request $request, Cart $cart, bool $fullForm = false): CheckoutData
     {
-        $input = $request->except(['password', 'totals_hash', 'action']);
+        $input = $request->except(['totals_hash', 'action']);
         if ($fullForm) {
             $input['_form'] = 'checkout';
         }

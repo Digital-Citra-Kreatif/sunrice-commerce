@@ -240,7 +240,7 @@ export default function OrderShow(props: OrderPageProps) {
                             <p className="cm:font-medium">{order.customer.href ? <Link href={adminUrl(order.customer.href)} className="cm:hover:underline">{order.customer.name ?? order.customer.email}</Link> : (order.customer.name ?? order.customer.email)}</p>
                             {order.customer.email && <a href={`mailto:${order.customer.email}`} className="cm:text-muted-foreground cm:hover:underline">{order.customer.email}</a>}
                             {order.customer.phone && <a href={`https://wa.me/${order.customer.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="cm:text-muted-foreground cm:hover:underline">{order.customer.phone}</a>}
-                            {order.customer.guest && <p className="cm:text-xs cm:text-muted-foreground">Guest checkout</p>}
+                            {order.customer.guest && <p className="cm:text-xs cm:text-muted-foreground">No account yet: the order joins theirs when they sign in with this email</p>}
                         </CardContent>
                     </Card>
                     <Card>

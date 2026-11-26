@@ -9,7 +9,7 @@ when the customer places the order; nothing the browser sends is trusted for pri
 - [Selling modes and how checkout ends](#selling-modes-and-how-checkout-ends)
 - [The checkout page](#the-checkout-page)
 - [Checkout settings](#checkout-settings)
-- [Guests and accounts](#guests-and-accounts)
+- [Accounts at checkout](#accounts-at-checkout)
 - [Addresses](#addresses)
 - [Shipping and payment choice](#shipping-and-payment-choice)
 - [The totals hash](#the-totals-hash)
@@ -74,27 +74,29 @@ with `general.pause_message` (or a default text).
 | `POST /checkout/refresh` | `commerce.checkout.refresh` | JSON: saves what was entered and returns rates, payment methods, totals, notices, the new hash and rendered partials. |
 
 The path comes from `commerce.storefront.paths.checkout`; other languages get the `/{locale}`
-prefix. The routes need the `checkout` feature and are `noindex`.
+prefix. The routes need the `checkout` feature, are `noindex`, and are for signed-in accounts with
+a verified email (`sunrice.account.auth` and `sunrice.account.verified`); see
+[Accounts at checkout](#accounts-at-checkout).
 
 The page has these sections, in order:
 
-1. contact: email (and company and tax number when asked), the account choice. Orders without
+1. contact: the account's email, read-only (and company and tax number when asked). Orders without
    shipping collect a name and phone here when required;
 2. shipping address, when something needs shipping and Shipping is on: recipient name and phone,
-   a saved-address selector for signed-in customers, "save this address", "billing is the same".
+   a saved-address selector, "save this address", "billing is the same".
    Pickup collects the contact details in the shipping section;
 3. billing address, when it differs;
 4. shipping method;
-5. vouchers, followed by loyalty points for signed-in customers with a balance and payment
+5. vouchers, followed by loyalty points for customers with a balance and payment
    methods for the remaining total in Online store mode;
 6. order notes, dropshipper and extra fields;
 7. order summary (the first 10 lines, `commerce.cart.preview_lines`, and the rest behind "and 3
-   more"), marketing consent (guests), terms;
+   more"), terms;
 8. the "Update total" fallback and the submit button: "Place order", "Request a quote" or "Order via WhatsApp".
 
 What the customer types is kept on the cart (`commerce_carts.checkout`, see
-`Checkout\CheckoutData::KEYS`), so a reload keeps it. Passwords are never stored there. Signed-in
-customers start with their profile and default shipping address. The first view sets
+`Checkout\CheckoutData::KEYS`), so a reload keeps it. Customers start with their name, phone and
+default shipping address. The first view sets
 `started_at` and dispatches `Checkout\Events\CheckoutStarted`.
 
 Storefront slots let packages add to the page: `checkout.before`, `checkout.after_contact`,
@@ -111,9 +113,7 @@ Settings → Store → Checkout (section `checkout`, permission `commerce.settin
 
 | Setting | Key | Default | Effect |
 | --- | --- | --- | --- |
-| Who can check out | `access` | `guest` | `guest`, `guest_verified`, `account` or `verified_account`; see below. |
 | Customers can also request a quote | `quote_requests` | `off` | Online store mode: `everyone` or `roles` (`quote_request_roles`) get **Request a quote instead**. See [Quote requests](#quote-requests). |
-| Accounts at checkout | `create_account` | `offer` | For `guest` and `guest_verified`: `never`, `offer` (a checkbox) or `always` (guests must set a password). |
 | Require a phone number | `require_phone` | on | Contact phone and address phone are required. |
 | Ask for a company name and tax number | `company_fields` | off | Adds `fields.company` and `fields.tax_id`. |
 | Second address line | `address_line2` | on | Shows `line2`. |
@@ -124,69 +124,27 @@ Settings → Store → Checkout (section `checkout`, permission `commerce.settin
 | Minimum order | `minimum_order` | `0` | See below. |
 | Terms page | `terms_page` | none | An entry; customers must tick that they accept it. |
 
-### Who can check out
-
-| `access` | Shoppers who aren't signed in |
-| --- | --- |
-| `guest` | Check out as guests. |
-| `guest_verified` | Confirm their email with an emailed code first, then check out as guests. No account is made unless they ask for one (or `create_account` is `always`). An account made this way is verified at once, with no verification link. |
-| `account` | Are sent to sign in. |
-| `verified_account` | Confirm their email with a code, which signs in to the account for that email or creates one, so every buyer gets an account. Needs the **Accounts** feature; without it, the store behaves as `guest_verified`. |
-
-Stores saved before `access` existed keep their behaviour: `require_verified_account` on reads as
-`verified_account`, `guest_checkout` off as `account`, and anything else as `guest`. Once
-**Who can check out** is saved, those two keys are no longer read.
-`VerifiedAccountCheckout::mode()` returns the current choice.
-
-With `guest_verified`, the confirmed email is kept for the browser session. Checkout shows it
-read-only with a **Use another email** link that starts over, and the order is placed with it.
-Signed-in customers with a verified email skip the code. The password sign-in link on the code
-page shows only with the **Accounts** feature on.
-
-### Verified-account checkout
-
-Choose **Only verified accounts** (`verified_account`) with the **Accounts** feature on.
-Shoppers can fill a cart before they sign in. At checkout, the default prompt sends an
-eight-digit code to their email. The code lasts 10 minutes and is tied to the browser
-session. Shoppers can correct the email or request a new code, which replaces the old one.
-
-A valid code signs in the existing account or creates a verified account. This checkout
-path can create an account even when the separate registration page is disabled. Returning
-shoppers can use their existing password. A shopper who signs in to an unverified account
-still needs to verify their email. Both paths preserve the cart and return to checkout.
-My Account also offers sign-in codes when the user model supports the package's
-[emailed-code sign-in](accounts.md#emailed-code), including for shoppers who have never set a password.
-
-The order uses the verified account's identity and email. **Track order** still provides
-single-order access for older guest orders. While this mode is enabled, signing in or
-verifying a customer account does not link historical guest orders by email.
-
-Configure a working mail transport. The package sends checkout codes after returning the
-web response, without a queue worker. With Laravel's `log` mailer, look for the checkout
-verification email in the configured log. If you publish storefront templates, update the
-checkout contact template to show the verified address as read-only. The server always uses
-the verified address.
-
 The same section holds order settings: customer cancelling, order and quote numbers, quote
 validity and auto-complete. They are described in [orders.md](orders.md).
 
 **Minimum order.** Checkout refuses a cart whose subtotal minus discounts (vouchers included) is below
 `minimum_order`. Shipping and fees don't count. `0` turns it off.
 
-## Guests and accounts
+## Accounts at checkout
 
-- With `access` set to `account`, a guest who opens checkout is sent to the sign-in page (when the
-  Accounts module is on) and comes back afterwards. Placing as a guest is refused with "Please sign
-  in to check out."
-- A guest who asks for an account (or `create_account` is `always`) enters a password (8
-  characters or more). The account is made inside the placing transaction, unless that email
-  already has one.
-  - With `accounts.verify_email` on, the customer is emailed a verification link and the order is
-    a guest order until then; it is linked to the account once the email is verified.
-  - With it off, the customer is signed in straight away and the order belongs to the account.
-- Either way the order gets a `Customer` record, found by email for guests. Name, phone and
-  locale are filled in when empty. Ticking marketing consent sets `accepts_marketing`.
-- Signed-in customers can save an address to their address book from the shipping address dialog.
+Every order belongs to an account; there is no guest checkout. Browsing, the cart, the wishlist
+and comparing work without one.
+
+- A visitor who opens `/checkout` is sent to the account package's sign-in page and comes back to
+  checkout with their cart. With the emailed code (on by default in Settings → Accounts), one
+  email field signs in or creates the account.
+- An account whose email isn't verified yet is sent the verification link first, while Settings →
+  Accounts requires verified emails.
+- The order goes to the signed-in account's email, whatever the form posts. Placing without being
+  signed in is refused with "Please sign in to check out."
+- The order gets the account's `Customer` record. Name, phone and locale are filled in when empty.
+- Customers can save an address to their address book from the shipping address dialog.
+- A cart that belongs to another account is refused.
 
 See [accounts.md](accounts.md).
 
@@ -222,7 +180,7 @@ At checkout, choosing a saved address fills both its fields and its region codes
 addresses also clears optional values missing from the new selection. The shipping section shows a
 summary and a saved-address selector when available. **Add address** opens a dialog. Give the
 address an optional title to identify it in the selector. The street address is used if the title is
-blank. **Save this address to my account** is selected by default for a new address when signed in.
+blank. **Save this address to my account** is selected by default for a new address.
 **Use this address** saves and selects the address immediately when checked, then refreshes shipping
 rates. Uncheck it to use the address for this checkout only. **Cancel** keeps the previous address.
 With JavaScript off, the form is inline and **Use saved address** applies the
@@ -277,12 +235,12 @@ does it all in one database transaction (retried up to three times), and returns
 2. **Paused?** With `general.pause_orders` on, `CheckoutRefused` is thrown with the pause message.
 3. **Calculate.** A fresh calculation of the cart with the entered destination, rate and payment
    method.
-4. **Validate.** `Checkout\CheckoutValidator` runs the rules: contact, account, addresses, the
+4. **Validate.** `Checkout\CheckoutValidator` runs the rules: contact, a signed-in account, addresses, the
    rate among the current rates, an available payment method, the minimum order, terms, notes,
    dropshipper and extension fields. Field errors throw a `ValidationException`.
 5. **Compare the hash.** A different hash throws `CheckoutChanged`.
-6. **The customer.** The account is created if asked; the `Customer` is found or made; the address
-   is saved if asked.
+6. **The customer.** The signed-in account's `Customer` is found or made; the address is saved if
+   asked.
 7. **Insert the order.** The number comes from `Orders\Numbering` (`order` or `quote`). The order
    gets its states, addresses, shipping method snapshot, totals, notes, dropshipper, extra fields
    and applied codes; then its lines (bundle components as child lines), adjustments (discounts,
@@ -362,13 +320,12 @@ Staff mark the order paid from the admin once payment is settled in the chat.
 | `commerce-voucher` | 10 a minute per cart and IP | Applying a voucher code |
 | `commerce-confirm` | 10 an hour per order and IP | Submitting a payment confirmation |
 
-The order lookup at `/track-order` and the payment confirmation lookup allow 10 misses per email
-and IP and 20 per IP in 10 minutes, and have a honeypot. See [payments.md](payments.md) for the
-confirmation form.
+See [payments.md](payments.md) for the confirmation form.
 
 When the host configures Sunrice's captcha, checkout verifies the token on the final **Place
 order** submission. Address changes, points updates and shipping recalculations leave the
-token for that submission. See [Accounts](accounts.md#registration) for the provider setup.
+token for that submission. The captcha is the panel's (`sunrice-admin.captcha`), which the
+account package's forms use too.
 
 ## Extra fields and custom completions
 

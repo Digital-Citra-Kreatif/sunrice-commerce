@@ -63,7 +63,6 @@ final class CommercePermissions
             'commerce.settings.payments' => ['Edit store settings: Payments', 'Store: Settings'],
             'commerce.settings.shipping' => ['Edit store settings: Shipping', 'Store: Settings'],
             'commerce.settings.taxes' => ['Edit store settings: Taxes', 'Store: Settings'],
-            'commerce.settings.accounts' => ['Edit store settings: Accounts', 'Store: Settings'],
             'commerce.settings.emails' => ['Edit store settings: Emails', 'Store: Settings'],
             'commerce.settings.documents' => ['Edit store settings: Documents', 'Store: Settings'],
         ];

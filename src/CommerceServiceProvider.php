@@ -19,6 +19,8 @@ use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Sunrice\Account\Account;
 use Sunrice\Account\Events\Anonymized;
+use Sunrice\Account\Events\DeletionRequested;
+use Sunrice\Account\Events\ProfileUpdated;
 use Sunrice\Account\Events\Registered;
 use Sunrice\Account\Events\SignedIn;
 use Sunrice\Cms\Content;
@@ -178,8 +180,9 @@ class CommerceServiceProvider extends PackageServiceProvider
     protected function registerCustomers(): void
     {
         Event::listen(SignedIn::class, Customers\Listeners\MergeOnSignIn::class);
-        // An account is a customer from the start, and its record follows it.
-        Event::listen(Registered::class, fn (Registered $event) => Customers\Models\Customer::forUser($event->user));
+        // An account is a customer from the start, and its record follows the account's profile.
+        Event::listen([Registered::class, ProfileUpdated::class,
+            SignedIn::class, DeletionRequested::class], Customers\Listeners\SyncCustomerFromAccount::class);
 
         // Staff removed an account's personal data (Administration → Accounts, or Shop → Customers): the store's records follow.
         Event::listen(Anonymized::class, function (Anonymized $event): void {

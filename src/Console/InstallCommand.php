@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Console;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Schema;
 use Sunrice\Admin\Panel;
 use Sunrice\Commerce\CommercePlugin;
 use Sunrice\Commerce\Database\Seeders\DemoStoreSeeder;
@@ -42,10 +41,6 @@ class InstallCommand extends Command
 
             return $this->callSilently('commerce:publish-assets') === self::SUCCESS;
         });
-
-        if (! Schema::hasTable('one_time_passwords')) {
-            $this->components->task('Sign-in code table (spatie/laravel-one-time-passwords)', fn () => $this->callSilently('vendor:publish', ['--tag' => 'one-time-passwords-migrations']) === self::SUCCESS);
-        }
 
         $this->components->task('Migrations', fn () => $this->callSilently('migrate', ['--force' => true]) === self::SUCCESS);
 

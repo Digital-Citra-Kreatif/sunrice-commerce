@@ -11,7 +11,7 @@ use Sunrice\Admin\Panel;
 /**
  * The app's user model and the panel's guard. Staff and customers are both
  * rows of that model: staff sign in to the panel's guard, customers to
- * the store's own (commerce.auth.guard), on the same user provider.
+ * the site's own (the Accounts plugin's), on the same user provider.
  */
 final class Staff
 {
