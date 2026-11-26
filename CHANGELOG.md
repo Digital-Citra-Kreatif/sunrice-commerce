@@ -7,6 +7,13 @@
   with the name, phone and address typed at checkout; it now waits for its owner to sign in again.
   Guest carts are unchanged.
 
+- Security: an account that was registered but never verified loses the password it was registered
+  with when its email is first proven another way (a sign-in code, a checkout code, Google). Anyone
+  can register someone else's address, so that password wasn't the owner's to trust; the owner sets
+  a new one from My Account without the current one. Verified accounts and staff are unaffected,
+  and following the verification link keeps the password as before
+  (`Customers\Auth\ConfirmMailbox`).
+
 ## 0.4.0 (2026-11-21)
 
 **Upgrading from 0.3**: needs Sunrice 0.8. Run

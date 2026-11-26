@@ -16,6 +16,7 @@ use Laravel\Socialite\Two\AbstractProvider;
 use Laravel\Socialite\Two\User;
 use Sunrice\Commerce\Customers\Actions\AssignCustomerRole;
 use Sunrice\Commerce\Customers\Actions\LinkGuestOrders;
+use Sunrice\Commerce\Customers\Auth\ConfirmMailbox;
 use Sunrice\Commerce\Customers\Auth\LoginCodes;
 use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
@@ -94,8 +95,9 @@ class GoogleController
             $accounts->clone()->insert(['user_id' => $user->getKey(), 'provider' => 'google', 'provider_id' => (string) $google->getId(),
                 'email' => $email, 'avatar' => $google->getAvatar(), 'created_at' => now(), 'updated_at' => now()]);
         }
-        if ($user->getAttribute('email_verified_at') === null && $verified) {
-            $user->forceFill(['email_verified_at' => now()])->save();
+        // Google vouches for the address: a password someone gave it before that is dropped.
+        if ($verified && mb_strtolower((string) $user->getAttribute('email')) === $email) {
+            app(ConfirmMailbox::class)->handle($user);
         }
         Customer::forUser($user);
         Auth::guard(CurrentCustomer::guard())->login($user, true);
