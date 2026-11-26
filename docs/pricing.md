@@ -364,8 +364,10 @@ reward purchases keeps **Points earned (%)** at 0 and uses points only as a wall
 
 - **Selling gift cards.** Switch on **Gift card** on a product (Fulfillment, in the product editor,
   with Loyalty on; `gift_card` in the product data). It isn't shipped. When an order with it is
-  **paid** (`OrderPaid`), each unit becomes a code worth the line's price before discounts, and the
-  customer gets the **Gift card codes** email (`gift_card_issued`) with a link to My Account →
+  **paid** (`OrderPaid`), each unit becomes a code worth what was paid for it: the line's total
+  after its discounts (sale prices, pricing rules, vouchers), shared between its units. A card
+  bought at 20% off is worth 80% of its price, so a discount can't be turned into points; a line
+  discounted to nothing issues no code. The customer gets the **Gift card codes** email (`gift_card_issued`) with a link to My Account →
   Points. Buying a gift card earns no points. An order refunded in full (or cancelled) disables its
   codes not redeemed yet.
 - **Sending it to someone.** A gift card's product form has optional **Recipient's name**, **email**

@@ -78,6 +78,25 @@ it('issues a code per gift card bought once paid, emails them, and earns no poin
         ->and(LoyaltyTransaction::query()->where('kind', 'earn')->count())->toBe(0);
 });
 
+it('makes a discounted gift card worth what was paid for it', function () {
+    Notification::fake();
+    $order = buyGiftCards(3);
+    // 100.000 off the line (a voucher, a sale): 200.000 paid for three cards listed at 150.000 each.
+    $order->items()->sole()->forceFill(['regular_unit_price' => 150000, 'discount_total' => 100000, 'total' => 200000])->save();
+
+    app(MarkOrderPaid::class)->handle($order, Actor::system());
+
+    expect(GiftCard::query()->orderBy('id')->pluck('value')->all())->toBe([66667, 66667, 66666]);
+});
+
+it('issues no code for a gift card given away in full', function () {
+    Notification::fake();
+    $order = buyGiftCards(1);
+    $order->items()->sole()->forceFill(['discount_total' => 100000, 'total' => 0])->save();
+
+    expect(app(GiftCards::class)->issueFor($order))->toBe([])->and(GiftCard::query()->count())->toBe(0);
+});
+
 it('redeems a code for points once, with its own expiry, in My Account', function () {
     $card = app(GiftCards::class)->make(250000);
     $this->actingAs($this->user, 'commerce');

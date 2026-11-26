@@ -62,8 +62,9 @@ class GiftCards
     }
 
     /**
-     * The gift cards a paid order bought: one per unit of each gift card line, worth the
-     * line's price before discounts. Once per line (a second call issues nothing).
+     * The gift cards a paid order bought: one per unit of each gift card line, together worth
+     * what the line cost after its discounts (a card bought at 20% off is worth what was paid,
+     * so a discount can't be turned into points). Once per line (a second call issues nothing).
      *
      * @return list<GiftCard> the new ones
      */
@@ -77,9 +78,14 @@ class GiftCards
                 if (! ($item->product->gift_card ?? false) || GiftCard::query()->where('order_item_id', $item->id)->exists()) {
                     continue;
                 }
-                $value = max((int) $item->regular_unit_price, (int) $item->unit_price);
+                $paid = max(0, (int) $item->total);
                 $recipient = (array) ($item->meta['line']['gift_card'] ?? []);
                 for ($i = 0; $i < $item->quantity; $i++) {
+                    // A total that doesn't divide evenly gives its remainder to the first cards.
+                    $value = intdiv($paid, $item->quantity) + ($i < $paid % $item->quantity ? 1 : 0);
+                    if ($value === 0) {
+                        continue; // given away in full: nothing to redeem
+                    }
                     $card = $this->make($value, $locked, $item);
                     if (is_string($recipient['email'] ?? null)) {
                         $card->forceFill(['recipient_name' => $recipient['name'] ?? null, 'recipient_email' => $recipient['email'], 'message' => $recipient['message'] ?? null])->save();
