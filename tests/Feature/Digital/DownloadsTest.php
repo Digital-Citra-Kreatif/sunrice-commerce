@@ -91,6 +91,15 @@ it('redirects to external links and to temporary URLs on cloud disks', function 
     $this->get('/downloads/'.DownloadGrant::query()->sole()->token)->assertRedirect('https://s3.example/ebook.pdf?signed=1');
 });
 
+it('refuses a link that is not http(s) without counting a download', function () {
+    $this->file->update(['type' => 'url', 'url' => 'javascript:alert(1)', 'disk' => null, 'path' => null]);
+    paidEbookOrder($this->ebook);
+    $grant = DownloadGrant::query()->sole();
+
+    $this->get('/downloads/'.$grant->token)->assertNotFound();
+    expect($grant->fresh()->download_count)->toBe(0);
+});
+
 it('lists downloads in My Account and lets staff manage grants', function () {
     $order = paidEbookOrder($this->ebook);
     $user = User::query()->create(['name' => 'Rina', 'email' => 'rina@example.com', 'password' => bcrypt('x'), 'email_verified_at' => now()]);
