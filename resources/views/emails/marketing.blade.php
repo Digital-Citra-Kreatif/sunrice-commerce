@@ -18,7 +18,7 @@
 <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">{{ $preheader }}</div>
 @endif
 
-{!! $body !!}
+{!! commerce_rich_text(is_string($body ?? null) ? $body : null) !!}
 
 @if ($button)
 <x-mail::button :url="$button['url']">

@@ -8,7 +8,7 @@
         @if (filled($termsContent['intro']))
             <p>{{ $termsContent['intro'] }}</p>
         @endif
-        {!! $termsContent['body'] !!}
+        {!! commerce_rich_text(is_string($termsContent['body'] ?? null) ? $termsContent['body'] : null) !!}
     </div>
     <footer>
         <form method="dialog">

@@ -7,6 +7,7 @@ use Sunrice\Cms\Models\Entry;
 use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Cms\Models\Term;
 use Sunrice\Cms\Models\TermTranslation;
+use Sunrice\Cms\Support\HtmlSanitizer;
 use Sunrice\Commerce\Catalog\ProductView;
 use Sunrice\Commerce\Catalog\ProductViewFactory;
 use Sunrice\Commerce\Customers\CurrentCustomer;
@@ -97,6 +98,18 @@ if (! function_exists('commerce_values')) {
         }
 
         return $memo[$item] ??= $item->values();
+    }
+}
+
+if (! function_exists('commerce_rich_text')) {
+    /**
+     * Rich text safe to print raw: sanitized again at render time (the CMS
+     * cleans it on save; this keeps imported or older content safe too):
+     * `{!! commerce_rich_text($description) !!}`.
+     */
+    function commerce_rich_text(?string $html): string
+    {
+        return $html === null || $html === '' ? '' : HtmlSanitizer::sanitize($html);
     }
 }
 

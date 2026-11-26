@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Security: a download link of the "URL" kind only redirects to http(s) addresses now —
+  `DownloadController` answers 404 for anything else, so a stored `javascript:` URL can't run
+  when a customer opens the link.
+- Security: rich text printed raw by the storefront and email templates (product, category and
+  brand descriptions, size guide, terms dialog, marketing emails, starter templates) is now
+  sanitized again at render time with the CMS's `HtmlSanitizer` via the new
+  `commerce_rich_text()` helper, not only when saved.
+
 - **Changed:** a gift card bought with a discount is worth what was paid for it, not its price
   before discounts. It used to be issued at the higher of the regular and the paid price, so a
   voucher, pricing rule or sale price on a gift card was a repeatable gain once the code was

@@ -23,8 +23,8 @@
         <div class="commerce-footer__brand">
             <p class="commerce-footer__name">{{ $storeName }}</p>
             @if (filled($footer['text'] ?? null))
-                {{-- Rich text is cleaned when it's saved. --}}
-                <div class="commerce-footer__text">{!! $footer['text'] !!}</div>
+                {{-- Rich text is cleaned when it's saved and again when rendered. --}}
+                <div class="commerce-footer__text">{!! commerce_rich_text(is_string($footer['text'] ?? null) ? $footer['text'] : null) !!}</div>
             @endif
             @if ($social->isNotEmpty())
                 <ul class="commerce-footer__social">

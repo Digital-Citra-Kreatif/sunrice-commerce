@@ -20,8 +20,8 @@
             <img class="commerce-page__image" src="{{ $image->url() }}" alt="{{ $image->altIn() ?? '' }}" width="1600" height="600">
         @endif
         @if (filled($body = $values['body'] ?? null))
-            {{-- Rich text is cleaned when it's saved. --}}
-            <div class="commerce-prose">{!! $body !!}</div>
+            {{-- Rich text is cleaned when it's saved and again when rendered. --}}
+            <div class="commerce-prose">{!! commerce_rich_text(is_string($body) ? $body : null) !!}</div>
         @endif
     </article>
 @endsection

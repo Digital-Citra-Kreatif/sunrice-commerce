@@ -1,7 +1,7 @@
-{{-- $entry: the product entry with a sanitized rich-text description. --}}
-@if (filled((commerce_values($entry)['description'] ?? null)))
+{{-- $entry: the product entry; its rich-text description is sanitized at render too. --}}
+@if (filled($description = (commerce_values($entry)['description'] ?? null)))
     <details class="commerce-accordion" open>
         <summary>{{ __('commerce::storefront.theme.description') }}</summary>
-        <div class="commerce-product__description commerce-prose">{!! (commerce_values($entry)['description'] ?? null) !!}</div>
+        <div class="commerce-product__description commerce-prose">{!! commerce_rich_text(is_string($description) ? $description : null) !!}</div>
     </details>
 @endif

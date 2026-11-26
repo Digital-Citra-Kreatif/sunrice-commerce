@@ -43,6 +43,9 @@ class DownloadController
 
         $file = $grant->file;
         if ($file->type === 'url' || ($file->path === null && $file->url !== null)) {
+            // Only http(s): never redirect to a javascript: or other scheme.
+            abort_if(preg_match('#^https?://#i', (string) $file->url) !== 1, 404);
+
             return redirect()->away((string) $file->url);
         }
         abort_if($file->disk === null || $file->path === null, 404);

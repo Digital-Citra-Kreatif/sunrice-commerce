@@ -28,7 +28,7 @@
             @endif
             <h1 class="commerce-listing__title">{{ $term->title }}</h1>
             @if (filled($description = (commerce_values($term)['description'] ?? null)))
-                <div class="commerce-term__description">{!! $description !!}</div>
+                <div class="commerce-term__description">{!! commerce_rich_text(is_string($description) ? $description : null) !!}</div>
             @endif
             @php($children = $term->term->children()->with('translations')->orderBy('sort_order')->get())
             @if ($children->isNotEmpty())

@@ -17,7 +17,7 @@
             @endif
             <h1 class="commerce-listing__title">{{ $term->title }}</h1>
             @if (filled($description = (commerce_values($term)['description'] ?? null)))
-                <div class="commerce-term__description">{!! $description !!}</div>
+                <div class="commerce-term__description">{!! commerce_rich_text(is_string($description) ? $description : null) !!}</div>
             @endif
             @if (filled($website = (commerce_values($term)['website'] ?? null)))
                 <p><a href="{{ $website }}" rel="noopener nofollow" target="_blank">{{ parse_url($website, PHP_URL_HOST) ?: $website }}</a></p>

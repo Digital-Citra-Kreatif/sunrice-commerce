@@ -141,7 +141,7 @@
     @endif
 
     @if (filled($body = $values['body'] ?? null))
-        <section class="commerce-section commerce-prose">{!! $body !!}</section>
+        <section class="commerce-section commerce-prose">{!! commerce_rich_text(is_string($body) ? $body : null) !!}</section>
     @endif
 
     <ul class="commerce-promises" aria-label="{{ __('commerce::storefront.theme.promises') }}">
