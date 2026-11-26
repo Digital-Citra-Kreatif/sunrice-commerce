@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Spatie\OneTimePasswords\Models\OneTimePassword;
 use Spatie\Permission\Models\Role;
+use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Customers\Notifications\CustomerLoginCode;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Workbench\App\Models\User;
@@ -71,4 +73,30 @@ it('refuses staff when the storefront shares the admin guard', function () {
     $this->user->assignRole(Role::findOrCreate(config('sunrice-admin.super_admin_role'), 'web'));
     $this->post('/account/login/code', ['email' => 'ana@example.com']);
     Notification::assertNothingSent();
+});
+
+it('drops the password an unverified account was registered with', function () {
+    // Someone else registered Ana's address with a password of their own.
+    $this->user->forceFill(['password' => 'attacker-pass', 'remember_token' => 'old-token'])->save();
+
+    $this->post('/account/login/code', ['email' => 'ana@example.com']);
+    $this->post('/account/code', ['code' => sentCode($this->user)])->assertRedirect('/account');
+
+    $user = $this->user->fresh();
+    expect(Hash::check('attacker-pass', $user->password))->toBeFalse()
+        ->and($user->remember_token)->not->toBe('old-token')
+        ->and(Customer::forUser($user)->meta['password_set'])->toBeFalse();
+
+    $this->post('/account/logout');
+    $this->post('/account/login', ['email' => 'ana@example.com', 'password' => 'attacker-pass'])->assertSessionHasErrors('email');
+    $this->assertGuest('commerce');
+});
+
+it('keeps the password of an account that was already verified', function () {
+    $this->user->forceFill(['password' => 'my-own-pass', 'email_verified_at' => now()])->save();
+
+    $this->post('/account/login/code', ['email' => 'ana@example.com']);
+    $this->post('/account/code', ['code' => sentCode($this->user)])->assertRedirect('/account');
+
+    expect(Hash::check('my-own-pass', $this->user->fresh()->password))->toBeTrue();
 });

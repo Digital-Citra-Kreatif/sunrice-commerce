@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Sunrice\Commerce\Customers\Actions\AssignCustomerRole;
+use Sunrice\Commerce\Customers\Auth\ConfirmMailbox;
 use Sunrice\Commerce\Customers\Auth\LoginCodes;
 use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
@@ -56,9 +57,8 @@ class SignInWithCheckoutCode
             return null;
         }
 
-        if ($user->getAttribute('email_verified_at') === null) {
-            $user->forceFill(['email_verified_at' => now()])->save();
-        }
+        // An account registered earlier but never verified: its password isn't the mailbox owner's to trust.
+        app(ConfirmMailbox::class)->handle($user);
 
         if ($user->wasRecentlyCreated) {
             $this->roles->handle($user);
