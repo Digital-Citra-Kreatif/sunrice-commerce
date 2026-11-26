@@ -4,7 +4,7 @@
     $ownReview = $ownReview ?? null;
 @endphp
 @if ($blocked === 'sign_in')
-    <p class="commerce-reviews__eligibility">{!! __('commerce::storefront.reviews.sign_in_link', ['url' => e(commerce_url('commerce.account.login'))]) !!}</p>
+    <p class="commerce-reviews__eligibility">{!! __('commerce::storefront.reviews.sign_in_link', ['url' => e(\Sunrice\Account\Facades\Account::signInUrl())]) !!}</p>
 @elseif ($blocked === 'buyers_only')
     <p class="commerce-reviews__eligibility">{{ __('commerce::storefront.reviews.buyers_only') }}</p>
 @else

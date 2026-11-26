@@ -12,12 +12,10 @@ return [
     'unique_code' => 'Kode unik',
     'copy' => 'Salin',
     'copied' => 'Tersalin',
-    'account' => 'Rekening',
     'holder' => 'Atas nama',
     'exact_amount' => 'Transfer tepat :amount (angka terakhir membantu kami menemukan pembayaran Anda).',
-    'code' => 'Kode unik :code',
     'cod' => 'Bayar tunai ke kurir saat pesanan tiba.',
-    'return_verify' => 'Kami sedang memeriksa pembayaran untuk pesanan :number. Verifikasi pesanan atau masuk untuk melihatnya.',
+    'return_verify' => 'Kami sedang memeriksa pembayaran pesanan :number. Masuk untuk melihatnya.',
     'continue_gateway' => 'Lanjutkan pembayaran',
     'confirm_link' => 'Saya sudah bayar',
     'confirm' => [
@@ -43,7 +41,5 @@ return [
     'balance_due_by' => 'Pelunasan, paling lambat :date',
     'paid_so_far' => 'Sudah dibayar',
     'pay_balance' => 'Bayar pelunasan',
-    'balance_intro' => 'DP sudah diterima. Pelunasan :amount paling lambat :date.',
-    'balance_intro_nodate' => 'DP sudah diterima. Pelunasan :amount belum dibayar.',
     'confirmation_waiting' => 'Konfirmasi pembayaran belum diperiksa setelah :hours jam: staf diingatkan',
 ];

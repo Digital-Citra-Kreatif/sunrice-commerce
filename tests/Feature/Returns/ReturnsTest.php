@@ -27,7 +27,7 @@ beforeEach(function () {
     $this->order = makeOrder(['customer_id' => $customer->id, 'user_id' => $this->user->id, 'email' => 'ana@example.com',
         'status' => OrderStatus::COMPLETED, 'payment_status' => OrderStatus::PAID, 'completed_at' => now()->subDays(3)]);
     $this->item = $this->order->items()->create(['name' => 'Mug', 'quantity' => 2]);
-    $this->actingAs($this->user, 'commerce');
+    $this->actingAs($this->user, 'account');
 });
 
 it('lets a customer ask to return items of a completed order, and tells staff', function () {

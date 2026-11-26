@@ -125,7 +125,7 @@ Rules that keep stores consistent:
 - **Templates**: views in your namespace (`commerce-midtrans::instructions`); return the name from
   `instructionsView()`. Customers' themes can override them with `vendor/commerce-midtrans`.
 - **Storefront slots**: `Commerce::registerStorefrontSlot('checkout.after_payment', 'commerce-midtrans::badge', 'midtrans')`.
-- **My Account**: `Commerce::registerAccountPage()` plus a route under `commerce.auth`.
+- **My Account**: `Commerce::registerAccountPage()` plus a route behind `sunrice.account.auth`.
 - **Admin UI**: build a small script that calls `window.SunriceCommerce.register…` (order panel,
   dashboard widget, settings section, product tab), mark `react`, `react-dom` and
   `react/jsx-runtime` as externals mapped to `window.Sunrice.React` / `ReactDOM`, and load it with

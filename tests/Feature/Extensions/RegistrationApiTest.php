@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\ServiceProvider;
+use Sunrice\Account\MyAccount\Navigation as AccountNavigation;
 use Sunrice\Commerce\Admin\Dashboard\DashboardCards;
 use Sunrice\Commerce\Analytics\Period;
 use Sunrice\Commerce\Analytics\Reports\Report;
@@ -13,7 +14,6 @@ use Sunrice\Commerce\Checkout\CheckoutFields;
 use Sunrice\Commerce\Checkout\Completion\Completions;
 use Sunrice\Commerce\Checkout\Completion\WhatsAppCompletion;
 use Sunrice\Commerce\Commerce;
-use Sunrice\Commerce\Customers\AccountNavigation;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Features\Feature;
 use Sunrice\Commerce\Features\FeatureRegistry;
@@ -150,7 +150,7 @@ class GiftWrapServiceProvider extends ServiceProvider
         $commerce->registerCalculationStage(GiftWrapStage::class, 95);
         $commerce->checkoutFieldsUsing(fn (CheckoutData $data, CalculationState $state) => [['handle' => 'gift_message', 'type' => 'textarea', 'label' => 'Gift message', 'section' => 'extra']]);
         $commerce->registerCheckoutCompletion(TelegramCompletion::class);
-        $commerce->registerAccountPage('gifts', 'Gifts', 'commerce.account', 'gift_wrap');
+        $commerce->registerAccountPage('gifts', 'Gifts', 'commerce.account.orders', 'gift_wrap');
         $commerce->registerStorefrontSlot('checkout.after_payment', 'commerce::storefront.partials.messages', 'gift_wrap');
         $commerce->registerOrderPanel('gift', 'Gift wrap', fn ($order) => ['wrapped' => true], 'commerce.orders.view');
         $commerce->registerDashboardWidget('gift-wrap', fn (mixed $user, Period $period) => ['from' => $period->from], 'commerce.dashboard.view', 'gift_wrap');

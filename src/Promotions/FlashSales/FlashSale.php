@@ -69,13 +69,6 @@ class FlashSale extends Model
         return $query->where('active', true)->where('starts_at', '>', now());
     }
 
-    public function isRunning(?\DateTimeInterface $at = null): bool
-    {
-        $at ??= now();
-
-        return $this->active && $this->starts_at <= $at && $this->ends_at > $at;
-    }
-
     public function descriptionFor(?string $locale = null): string
     {
         $all = (array) $this->description;

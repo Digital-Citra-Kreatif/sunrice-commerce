@@ -8,7 +8,7 @@
     </label>
     @if ($action !== null && $product->canAddToCart() && commerce_feature('cart'))
         <button type="submit" class="commerce-add__button">{{ $product->cta['label'] }}</button>
-    @elseif ($product->price['signIn'] && Route::has('commerce.account.login'))
-        <a class="commerce-add__button" href="{{ commerce_url('commerce.account.login') }}">{{ __('commerce::storefront.cta.sign_in_for_price') }}</a>
+    @elseif ($product->price['signIn'])
+        <a class="commerce-add__button" href="{{ \Sunrice\Account\Facades\Account::signInUrl() }}">{{ __('commerce::storefront.cta.sign_in_for_price') }}</a>
     @endif
 </div>

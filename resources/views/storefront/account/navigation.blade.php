@@ -1,9 +1,0 @@
-{{-- $navigation and $current: the available menu items and selected key. --}}
-<nav class="commerce-account__nav" aria-label="{{ __('commerce::account.overview.title') }}">
-    <ul>
-        @foreach ($navigation as $item)
-            <li><a href="{{ $item['url'] }}" @if ($item['key'] === $current) aria-current="page" @endif>{{ $item['label'] }}</a></li>
-        @endforeach
-    </ul>
-    <form method="POST" action="{{ commerce_url('commerce.account.logout') }}">@csrf<button type="submit" class="commerce-link">{{ __('commerce::account.logout') }}</button></form>
-</nav>

@@ -16,7 +16,7 @@ final class CheckoutData
 {
     public const KEYS = [
         'email', 'phone', 'name', 'shipping_address', 'billing_same', 'billing_address', 'shipping_rate', 'payment_method',
-        'notes', 'dropship', 'terms', 'create_account', 'accepts_marketing', 'fields', 'save_address', 'address_id', 'use_points',
+        'notes', 'dropship', 'terms', 'fields', 'save_address', 'address_id', 'use_points',
     ];
 
     /** @param  array<string, mixed>  $values */
@@ -44,7 +44,7 @@ final class CheckoutData
             $values[$key] = match ($key) {
                 'shipping_address' => is_array($value) ? self::normalizeShippingAddress($value) : null,
                 'billing_address' => is_array($value) ? AddressRules::normalize($value)->toArray() : null,
-                'billing_same', 'terms', 'create_account', 'accepts_marketing', 'save_address', 'use_points' => filter_var($value, FILTER_VALIDATE_BOOLEAN),
+                'billing_same', 'terms', 'save_address', 'use_points' => filter_var($value, FILTER_VALIDATE_BOOLEAN),
                 'email' => is_string($value) ? mb_strtolower(trim($value)) : null,
                 'dropship', 'fields' => is_array($value) ? $value : [],
                 'address_id' => is_numeric($value) ? (int) $value : null,
@@ -53,7 +53,7 @@ final class CheckoutData
         }
         // Checkboxes that are absent from a full form post are unticked.
         if (($input['_form'] ?? null) === 'checkout') {
-            foreach (['billing_same', 'terms', 'create_account', 'accepts_marketing', 'save_address'] as $flag) {
+            foreach (['billing_same', 'terms', 'save_address'] as $flag) {
                 $values[$flag] = filter_var($input[$flag] ?? false, FILTER_VALIDATE_BOOLEAN);
             }
             if (! array_key_exists('payment_method', $input)) {

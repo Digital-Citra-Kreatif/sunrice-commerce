@@ -12,12 +12,10 @@ return [
     'unique_code' => 'Unique code',
     'copy' => 'Copy',
     'copied' => 'Copied',
-    'account' => 'Account',
     'holder' => 'Account holder',
     'exact_amount' => 'Transfer exactly :amount (the last digits help us find your payment).',
-    'code' => 'Unique code :code',
     'cod' => 'Pay the courier in cash when your order arrives.',
-    'return_verify' => 'We\'re checking your payment for order :number. Verify the order or sign in to see it.',
+    'return_verify' => 'We\'re checking your payment for order :number. Sign in to see it.',
     'continue_gateway' => 'Continue to payment',
     'confirm_link' => 'I have paid',
     'confirm' => [
@@ -43,7 +41,5 @@ return [
     'balance_due_by' => 'Balance, due by :date',
     'paid_so_far' => 'Paid',
     'pay_balance' => 'Pay the balance',
-    'balance_intro' => 'Deposit received. The balance of :amount is due by :date.',
-    'balance_intro_nodate' => 'Deposit received. The balance of :amount is still due.',
     'confirmation_waiting' => 'Payment confirmation still waiting for review after :hours hours: staff reminded',
 ];

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Marketing;
 
-use Illuminate\Support\Facades\Route;
+use Sunrice\Account\Routing\AccountRoutes;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Orders\Models\Order;
@@ -65,7 +65,7 @@ class SmartTags
             'email' => $email,
             'store_name' => commerce_store_name(),
             'store_url' => url('/'),
-            'account_url' => Route::has('commerce.account') ? commerce_url('commerce.account', [], $locale) : url('/'),
+            'account_url' => AccountRoutes::url('sunrice.account.dashboard', [], $locale),
             'orders_count' => (string) ($customer->orders_count ?? 0),
             'total_spent' => $money->format((int) ($customer->total_spent ?? 0)),
             'last_order_number' => $last?->displayNumber() ?? '',

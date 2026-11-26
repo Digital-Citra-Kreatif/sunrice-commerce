@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Sunrice\Account\Auth\Actions\AssignDefaultRoles;
+use Sunrice\Account\Routing\AccountRoutes;
 use Sunrice\Admin\Actions\Media\SaveMediaFolder;
 use Sunrice\Admin\Actions\Media\UploadMedia;
 use Sunrice\Admin\Media\Media;
@@ -42,8 +44,8 @@ use Sunrice\Commerce\Catalog\Models\DownloadFile;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
 use Sunrice\Commerce\Checkout\CheckoutData;
-use Sunrice\Commerce\Customers\Actions\AssignCustomerRole;
 use Sunrice\Commerce\Customers\Actions\SaveAddress;
+use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Database\Seeders\Starter\Artwork;
 use Sunrice\Commerce\Database\Seeders\Starter\Catalog;
@@ -567,8 +569,8 @@ class StarterStoreSeeder extends Seeder
         $this->page($pages, $this->t('bantuan', 'help'), $this->t('Bantuan', 'Help'), [
             'intro' => $this->t('Pertanyaan tentang pesanan, pengiriman, pembayaran atau ukuran? Mulai dari sini.', 'Questions about orders, delivery, payment or sizes? Start here.'),
             'body' => $this->t(
-                '<h2>Pengiriman</h2><p>Pesanan dikirim dalam 1 hari kerja. Reguler 2–3 hari di Jawa & Bali, 3–6 hari di luar Jawa. Gratis ongkir di atas Rp500.000 (Jawa & Bali) dan Rp750.000 (seluruh Indonesia).</p><h2>Pembayaran</h2><p>Transfer bank BCA atau Mandiri, QRIS, atau bayar di tempat untuk Jabodetabek. Sudah transfer? Konfirmasi di halaman pesanan Anda.</p><h2>Tukar dan kembalikan</h2><p>Tukar ukuran gratis dalam 30 hari dengan label masih terpasang. Hubungi halo@example.com.</p><h2>Lacak pesanan</h2><p>Masuk ke Akun Saya, atau gunakan halaman Lacak pesanan dengan nomor pesanan dan email Anda.</p>',
-                '<h2>Delivery</h2><p>Orders ship within 1 working day. Regular takes 2–3 days in Java & Bali and 3–6 days elsewhere. Free shipping over Rp500,000 (Java & Bali) and Rp750,000 (all of Indonesia).</p><h2>Payment</h2><p>Bank transfer to BCA or Mandiri, QRIS, or cash on delivery in Greater Jakarta. Already paid? Confirm it from your order page.</p><h2>Exchanges and returns</h2><p>Free size exchanges within 30 days with the tags still on. Email halo@example.com.</p><h2>Track your order</h2><p>Sign in to My Account, or use Track order with your order number and email.</p>',
+                '<h2>Pengiriman</h2><p>Pesanan dikirim dalam 1 hari kerja. Reguler 2–3 hari di Jawa & Bali, 3–6 hari di luar Jawa. Gratis ongkir di atas Rp500.000 (Jawa & Bali) dan Rp750.000 (seluruh Indonesia).</p><h2>Pembayaran</h2><p>Transfer bank BCA atau Mandiri, QRIS, atau bayar di tempat untuk Jabodetabek. Sudah transfer? Konfirmasi di halaman pesanan Anda.</p><h2>Tukar dan kembalikan</h2><p>Tukar ukuran gratis dalam 30 hari dengan label masih terpasang. Hubungi halo@example.com.</p><h2>Lacak pesanan</h2><p>Masuk ke Akun Saya, atau gunakan halaman Lihat status pesanan di Akun Saya → Pesanan.</p>',
+                '<h2>Delivery</h2><p>Orders ship within 1 working day. Regular takes 2–3 days in Java & Bali and 3–6 days elsewhere. Free shipping over Rp500,000 (Java & Bali) and Rp750,000 (all of Indonesia).</p><h2>Payment</h2><p>Bank transfer to BCA or Mandiri, QRIS, or cash on delivery in Greater Jakarta. Already paid? Confirm it from your order page.</p><h2>Exchanges and returns</h2><p>Free size exchanges within 30 days with the tags still on. Email halo@example.com.</p><h2>Track your order</h2><p>Sign in to My Account, or use See the status of an order in My Account → Orders.</p>',
             ),
         ]);
         // The legal pages commerce:scaffold made as drafts: publish them, and ask for the terms at checkout.
@@ -609,8 +611,8 @@ class StarterStoreSeeder extends Seeder
         $footer = [
             ['url' => '#', 'labels' => $labels('Bantuan', 'Help'), 'children' => [
                 ['entry' => $page('bantuan', 'help'), 'labels' => $labels('Pusat bantuan', 'Help centre')],
-                ['url' => $path('track_order'), 'labels' => $labels('Lacak pesanan', 'Track order')],
-                ['url' => $path('confirm_payment'), 'labels' => $labels('Konfirmasi pembayaran', 'Confirm payment')],
+                // An order's pages are its account's: one link, which asks a visitor to sign in first.
+                ['url' => '/'.AccountRoutes::prefix().'/orders', 'labels' => $labels('Pesanan saya', 'My orders')],
                 ['entry' => $page('kebijakan-pengiriman', 'shipping-policy'), 'labels' => $labels('Pengiriman', 'Shipping')],
                 ['entry' => $page('pengembalian-dan-refund', 'returns-and-refunds'), 'labels' => $labels('Pengembalian', 'Returns')],
             ]],
@@ -646,7 +648,7 @@ class StarterStoreSeeder extends Seeder
         }
         /** @var Model&Authenticatable $user */
         $user = $model::query()->forceCreate(['name' => 'Dewi Lestari', 'email' => self::CUSTOMER_EMAIL, 'password' => Hash::make(self::CUSTOMER_PASSWORD), 'email_verified_at' => now()]);
-        app(AssignCustomerRole::class)->handle($user);
+        app(AssignDefaultRoles::class)->handle($user);
         $customer = Customer::forUser($user);
         $customer->forceFill(['locale' => $this->locale, 'phone' => '+6281234560026', 'accepts_marketing' => true, 'marketing_consent_at' => now()])->save();
 
@@ -763,7 +765,7 @@ class StarterStoreSeeder extends Seeder
      */
     protected function order(Authenticatable $user, array $lines, string $payment, ?array $address, ?string $rate): Order
     {
-        Auth::guard((string) config('commerce.auth.guard', 'commerce'))->setUser($user);
+        Auth::guard(CurrentCustomer::guard())->setUser($user);
         app()->forgetScopedInstances();
         $customer = Customer::forUser($user);
         $cart = Cart::query()->create(['token' => Str::random(64), 'status' => 'active', 'currency' => 'IDR', 'customer_id' => $customer->id, 'last_activity_at' => now()]);

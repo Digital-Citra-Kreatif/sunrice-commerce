@@ -5,14 +5,10 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Console;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Schema;
-use Spatie\OneTimePasswords\Models\Concerns\HasOneTimePasswords;
 use Sunrice\Admin\Panel;
 use Sunrice\Commerce\CommercePlugin;
 use Sunrice\Commerce\Database\Seeders\DemoStoreSeeder;
 use Sunrice\Commerce\Database\Seeders\StarterStoreSeeder;
-use Sunrice\Commerce\Support\Staff;
-use Sunrice\Commerce\Support\UserModelTraits;
 
 /**
  * commerce:install — sets up the store after `composer require` (EXECUTION_PLAN.md C16.1):
@@ -46,13 +42,7 @@ class InstallCommand extends Command
             return $this->callSilently('commerce:publish-assets') === self::SUCCESS;
         });
 
-        if (! Schema::hasTable('one_time_passwords')) {
-            $this->components->task('Sign-in code table (spatie/laravel-one-time-passwords)', fn () => $this->callSilently('vendor:publish', ['--tag' => 'one-time-passwords-migrations']) === self::SUCCESS);
-        }
-
         $this->components->task('Migrations', fn () => $this->callSilently('migrate', ['--force' => true]) === self::SUCCESS);
-
-        $this->userModel();
 
         $this->components->task('Store structure (products, categories, brands, pages)', fn () => $this->callSilently('commerce:scaffold') === self::SUCCESS);
         $this->components->task('Permissions and roles', fn () => $this->callSilently('sunrice:sync-permissions') === self::SUCCESS
@@ -107,17 +97,6 @@ class InstallCommand extends Command
         ]);
 
         return false;
-    }
-
-    /** Sign-in with an emailed code needs HasOneTimePasswords on the user model. */
-    protected function userModel(): void
-    {
-        $model = Staff::userModel();
-        match (UserModelTraits::ensure($model, HasOneTimePasswords::class)) {
-            true => $this->components->twoColumnDetail('User model', "HasOneTimePasswords trait added to {$model}"),
-            null => null,
-            false => $this->components->warn('Add `use \\'.HasOneTimePasswords::class."`; to {$model} for sign-in with an emailed code."),
-        };
     }
 
     protected function nextSteps(): void

@@ -71,15 +71,13 @@ Settings → Store → **Features** lists the modules by group. You need the per
 Switching a module off that others need asks you to confirm and lists what becomes inactive. After
 the change, the message names the modules that went off with it.
 
-Three switches are refused:
+Two switches are refused:
 
 - switching off a core module (Products, prices and product pages);
 - a switch that leaves the current selling mode without a module it can't work without. Online
   store mode needs Cart, Orders, Checkout and Payment methods; Quotation and WhatsApp order need
   Cart, Orders and Checkout; Catalog mode needs nothing. The message names the root cause, for
-  example the switched-off module further down the chain;
-- switching on Sign in with an emailed code while the user model lacks the `HasOneTimePasswords`
-  trait (`commerce:install` adds it).
+  example the switched-off module further down the chain.
 
 Every switch is recorded in Sunrice's activity log, and `Sunrice\Commerce\Events\FeatureToggled`
 is dispatched with `$feature`, `$on`, `$deactivated` and `$activated` (the keys whose active state
@@ -99,7 +97,7 @@ changed).
 | Catalog | `inventory` | Stock tracking | `catalog` | all | on |
 | Selling | `cart` | Cart and mini cart | `catalog` | shop, quote, whatsapp | on |
 | Selling | `orders` | Orders | `catalog` | all | on |
-| Selling | `checkout` | Checkout | `cart`, `orders`; in `shop` mode also `payments` | shop, quote, whatsapp | on |
+| Selling | `checkout` | Checkout | `cart`, `orders`, `accounts`; in `shop` mode also `payments` | shop, quote, whatsapp | on |
 | Selling | `documents` | Invoices and packing slips | `orders` | all | on |
 | Selling | `taxes` | Taxes | `catalog` | all | **off** |
 | Payments | `payments` | Payment methods | `orders` | shop, quote | on |
@@ -110,8 +108,6 @@ changed).
 | Promotions | `vouchers` | Vouchers | `cart` | shop, quote, whatsapp | on |
 | Customers | `accounts` | Customer accounts | `catalog` | all | on |
 | Customers | `loyalty` | Loyalty points | `accounts`, `checkout` | shop | **off** |
-| Customers | `passwordless_login` | Sign in with an emailed code | `accounts` | all | **off** |
-| Customers | `google_login` | Sign in with Google | `accounts` | all | **off** |
 | Customers | `wishlist` | Wishlist | `catalog` | all | on |
 | Customers | `compare` | Product comparison | `catalog` | all | on |
 | Customers | `marketing` | Marketing emails: campaigns, automations, open and click tracking ([marketing.md](marketing.md)) | `catalog` | all | off |
@@ -154,7 +150,7 @@ now off still shows its saved instructions.
 | `brands` | The brands index (`/brands`) and brand pages answer 404, published brand templates included; the brand filter and its `brand` parameter are ignored. |
 | `inventory` | Stock is not counted: only each variant's manual stock status matters, and orders don't take stock. Shop → Inventory is hidden. Stock quantities are kept. |
 | `cart` | Cart pages and the cart JSON endpoints answer 404; `<x-commerce::cart>` and `<x-commerce::mini-cart>` render nothing. Nothing can be added to a cart, and product buttons show the store's call to action instead. Checkout and Vouchers become inactive. |
-| `orders` | Shop → Orders is hidden; the order, pay, quote and track-order pages and My Account → Orders answer 404. Checkout, Documents, Payments, Shipping and Digital products become inactive. |
+| `orders` | Shop → Orders is hidden; the order, pay and quote pages and My Account → Orders answer 404. Checkout, Documents, Payments, Shipping and Digital products become inactive. |
 | `checkout` | `/checkout` answers 404 and the Checkout settings section is hidden. |
 | `documents` | Invoice and packing slip downloads answer 404 and their links are hidden; the Documents settings section is hidden. |
 | `taxes` | Tax is zero; the Taxes settings and Tax rates pages are hidden; prices show no tax note. |
@@ -164,10 +160,8 @@ now off still shows its saved instructions.
 | `pricing_rules` | Pricing rules and products' own bulk prices stop applying, and the tier table is not shown. Shop → Pricing rules is hidden. |
 | `flash_sales` | Sale prices stop applying; `/flash-sale` and sale pages answer 404; `<x-commerce::flash-sale>` renders nothing. Shop → Flash sales is hidden. |
 | `vouchers` | The voucher endpoints answer 404, codes already on a cart are reported as not found, and automatic discounts stop. Shop → Vouchers is hidden. |
-| `accounts` | My Account and the sign-in and register pages answer 404; checkout doesn't offer an account. |
+| `accounts` | The store's My Account pages (orders, quotes, downloads, points, addresses) answer 404, and the store treats every visitor as signed out. Checkout and Loyalty points become inactive, because every order belongs to an account. The Accounts plugin's own sign-in and profile pages are not the store's to switch off. |
 | `loyalty` | Orders stop earning, checkout stops offering payment with points, My Account → Points and Shop → Loyalty points answer 404; balances are kept. |
-| `passwordless_login` | The sign-in code pages answer 404. They also answer 404 while the user model lacks the `HasOneTimePasswords` trait; the store health check reports it. |
-| `google_login` | The Google sign-in routes answer 404. They also answer 404 until `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set. |
 | `wishlist` | Wishlist pages answer 404 and `<x-commerce::wishlist-button>` renders nothing. |
 | `compare` | Compare pages answer 404 and `<x-commerce::compare-button>` renders nothing. |
 | `marketing` | Shop → Marketing is hidden and its pages answer 404; scheduled campaigns and automations wait. Tracking and unsubscribe links in emails already sent keep working. |

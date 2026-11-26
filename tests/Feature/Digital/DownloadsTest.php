@@ -10,7 +10,6 @@ use Sunrice\Commerce\Catalog\Models\DownloadFile;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
 use Sunrice\Commerce\Checkout\CheckoutData;
-use Sunrice\Commerce\Customers\Actions\LinkGuestOrders;
 use Sunrice\Commerce\Digital\Events\DownloadsGranted;
 use Sunrice\Commerce\Digital\Listeners\GrantDownloads;
 use Sunrice\Commerce\Digital\Models\DownloadGrant;
@@ -60,7 +59,7 @@ it('grants once when paid and counts downloads to the limit', function () {
     $this->get("/downloads/{$grant->token}")->assertStatus(410);
     expect($grant->fresh()->download_count)->toBe(2)->and($grant->fresh()->downloads_remaining)->toBe(0)
         ->and(DownloadLog::query()->count())->toBe(2);
-    authorizeGuestOrders($order);
+    actAsOwnerOf($order);
     $this->get($order->url())->assertSee('E-book');
 });
 
@@ -102,9 +101,8 @@ it('refuses a link that is not http(s) without counting a download', function ()
 
 it('lists downloads in My Account and lets staff manage grants', function () {
     $order = paidEbookOrder($this->ebook);
-    $user = User::query()->create(['name' => 'Rina', 'email' => 'rina@example.com', 'password' => bcrypt('x'), 'email_verified_at' => now()]);
-    app(LinkGuestOrders::class)->handle($user);
-    Auth::guard('commerce')->login($user);
+    $user = User::query()->findOrFail($order->user_id);
+    Auth::guard('account')->login($user);
     $downloads = $this->get('/account/downloads')->assertOk()->assertSee('E-book')->assertSee(DownloadGrant::query()->sole()->token);
     $document = HTMLDocument::createFromString($downloads->getContent(), LIBXML_NOERROR);
     expect($document->querySelector('table.commerce-account__orders .commerce-downloads__action:last-child a'))->not->toBeNull();

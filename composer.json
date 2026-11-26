@@ -15,9 +15,8 @@
         "illuminate/contracts": "^13.0",
         "illuminate/support": "^13.0",
         "intervention/image": "^3.0",
-        "laravel/socialite": "^5.31",
-        "spatie/laravel-one-time-passwords": "^1.1",
         "spatie/laravel-package-tools": "^1.93",
+        "sunrice/account": "^0.2.1",
         "sunrice/admin": "^0.8",
         "sunrice/cms": "^0.8"
     },

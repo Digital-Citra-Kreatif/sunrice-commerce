@@ -32,8 +32,6 @@ class LoyaltyTransaction extends Model
 {
     public const UPDATED_AT = null;
 
-    public const KINDS = ['earn', 'redeem', 'release', 'refund', 'revoke', 'adjust', 'expire'];
-
     protected $table = 'commerce_loyalty_transactions';
 
     protected $guarded = ['id'];

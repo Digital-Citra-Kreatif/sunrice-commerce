@@ -1,9 +1,6 @@
-{{-- $data, $guest, $termsUrl, $termsContent, $captcha, $submitLabel, $quoteOffered ("Request a quote" beside it). Runs inside the checkout form. --}}
+{{-- $data, $termsUrl, $termsContent, $captcha, $submitLabel, $quoteOffered ("Request a quote" beside it). Runs inside the checkout form. --}}
 @php($L = \Sunrice\Commerce\Storefront\Layout::class)
 <div class="commerce-checkout__place">
-    @if (commerce_feature('accounts') && $guest)
-        <label class="commerce-check"><input type="checkbox" name="accepts_marketing" value="1" @checked($data->get('accepts_marketing'))> {{ __('commerce::checkout.marketing') }}</label>
-    @endif
     @if ($termsUrl)
         @php($termsTrigger = ($termsContent ?? null) ? ' data-commerce-open-terms aria-haspopup="dialog" aria-controls="checkout-terms-dialog"' : '')
         <label class="commerce-check"><input type="checkbox" name="terms" value="1" @checked($data->get('terms')) required>

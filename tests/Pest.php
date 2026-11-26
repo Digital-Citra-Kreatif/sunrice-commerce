@@ -25,6 +25,7 @@ use Sunrice\Commerce\Catalog\Actions\ScaffoldStore;
 use Sunrice\Commerce\Catalog\Models\Variant;
 use Sunrice\Commerce\Checkout\CheckoutData;
 use Sunrice\Commerce\Commerce;
+use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Regions\RegionImporter;
 use Sunrice\Commerce\Settings\StoreSettings;
@@ -154,19 +155,46 @@ function checkoutStore(array $mug = []): Variant
 }
 
 /** Simulate access earned by a guest through checkout or email verification. */
-function authorizeGuestOrders(Order ...$orders): void
+/**
+ * Signs in on the site as a customer with this address (made on first use, verified): every
+ * order belongs to an account, so the storefront's tests shop as one.
+ */
+function buyer(string $email = 'rina@example.com', string $name = 'Rina'): User
 {
-    $grants = [];
+    $email = mb_strtolower($email);
+    $user = User::query()->where('email', $email)->first()
+        ?? User::query()->create(['name' => $name, 'email' => $email, 'password' => 'secret-pass', 'email_verified_at' => now()]);
+    // Signed in on the site's guard only, as a visitor is: the default guard stays the admin's (actingAs() would switch it).
+    auth('account')->setUser($user);
+
+    return $user;
+}
+
+/** Signs in as the account these orders belong to (giving them one, by their email, when they have none). */
+function actAsOwnerOf(Order ...$orders): User
+{
+    $first = $orders[0];
+    $user = $first->user_id !== null ? User::query()->findOrFail($first->user_id) : null;
+    $user ??= User::query()->where('email', mb_strtolower((string) $first->email))->first()
+        ?? User::query()->create(['name' => $first->customer_name ?? 'Buyer', 'email' => mb_strtolower((string) $first->email), 'password' => 'secret-pass', 'email_verified_at' => now()]);
     foreach ($orders as $order) {
-        $grants[$order->id] = ['key' => $order->order_key, 'until' => now()->addHour()->timestamp];
+        $order->forceFill(['user_id' => $user->id, 'customer_id' => Customer::forUser($user)->id])->save();
     }
-    test()->withSession(['commerce.orders' => $grants]);
+    auth('account')->setUser($user);
+
+    return $user;
 }
 
 /** Checkout input for a Bandung address with the flat rate and the test transfer. @return array<string, mixed> */
 function checkoutInput(array $overrides = []): array
 {
     $method = ShippingMethod::query()->where('type', 'flat')->value('id');
+
+    // The order goes to the signed-in account: shop as the address the input names.
+    $email = mb_strtolower((string) ($overrides['email'] ?? 'rina@example.com'));
+    if (auth('account')->user()?->email !== $email) {
+        buyer($email, (string) ($overrides['name'] ?? 'Rina'));
+    }
 
     return array_replace_recursive([
         'name' => 'Rina', 'email' => 'rina@example.com', 'phone' => '0812 3456 7890',
@@ -178,7 +206,7 @@ function checkoutInput(array $overrides = []): array
     ], $overrides);
 }
 
-/** A guest cart with these lines, sent as the visitor's cookie on the next requests. */
+/** A visitor's cart with these lines, sent as their cookie on the next requests. Checking out needs an account: checkoutInput() signs in, or call buyer(). */
 function cartWith(array $lines): Cart
 {
     $cart = Cart::query()->create(['token' => Str::random(64), 'status' => 'active', 'currency' => 'IDR', 'last_activity_at' => now()]);

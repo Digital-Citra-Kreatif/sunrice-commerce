@@ -1,28 +1,16 @@
 {{--
-    My Account pages: the account menu beside the page. Extension pages
-    (Commerce::registerAccountPage) can extend this layout without passing
-    $navigation or $current: the menu comes from the registry and the
-    current item from the route.
+    The store's pages in My Account (orders, addresses, points…): the account
+    package's layout (its menu, messages and announcement) around the page,
+    with the store's styles and messages. Pages extend this view and fill
+    @section('commerce-account'); extensions' pages (Commerce::registerAccountPage)
+    do the same.
 --}}
-@extends(\Sunrice\Commerce\Storefront\Layout::name())
-@php($navigation ??= app(\Sunrice\Commerce\Customers\AccountNavigation::class)->items())
-@php($announcement ??= app(\Sunrice\Commerce\Customers\AccountAnnouncement::class))
-@php($announcementPosition = $announcement->position())
-@php($current ??= collect($navigation)->first(fn ($item) => request()->routeIs($item['route'].'*'))['key'] ?? null)
+@extends(\Sunrice\Account\View\Layout::view('layout'))
 
-@section('content')
+@section('account')
     @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
-    <section class="commerce-account">
-        @include(\Sunrice\Commerce\Storefront\Layout::view('account.navigation'))
-        <div class="commerce-account__page">
-            @include(\Sunrice\Commerce\Storefront\Layout::view('partials.messages'))
-            @if ($announcementPosition === 'above')
-                @include(\Sunrice\Commerce\Storefront\Layout::view('account.announcement-banner'))
-            @endif
-            @yield('account')
-            @if ($announcementPosition === 'below')
-                @include(\Sunrice\Commerce\Storefront\Layout::view('account.announcement-banner'))
-            @endif
-        </div>
-    </section>
+    <div class="commerce-account__page">
+        @include(\Sunrice\Commerce\Storefront\Layout::view('partials.messages'))
+        @yield('commerce-account')
+    </div>
 @endsection

@@ -1,7 +1,6 @@
 {{--
     The one-page checkout. $cart (CartView), $state (CalculationState), $data (CheckoutData), $mode (CheckoutMode), $settings,
-    $needsAddress, $paymentMethods, $savedAddresses, $loyaltyPoints, $guest, $offerAccount,
-    $accountRequired, $extraFields, $termsUrl, $termsContent, $submitLabel.
+    $needsAddress, $paymentMethods, $savedAddresses, $loyaltyPoints, $extraFields, $termsUrl, $termsContent, $submitLabel.
 --}}
 @extends(\Sunrice\Commerce\Storefront\Layout::name())
 

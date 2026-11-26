@@ -12,7 +12,7 @@ it('saves and selects an opted-in address immediately without placing an order',
     $this->withoutMiddleware(ValidateCsrfToken::class);
     $mug = checkoutStore();
     $user = User::query()->create(['name' => 'Rina', 'email' => 'rina@example.com', 'password' => 'secret-pass', 'email_verified_at' => now()]);
-    $this->actingAs($user, 'commerce');
+    $this->actingAs($user, 'account');
     $customer = Customer::forUser($user);
     $cart = cartWith([[$mug, 1]]);
     $input = [
@@ -43,22 +43,11 @@ it('saves and selects an opted-in address immediately without placing an order',
     $this->get('/account/addresses')->assertOk()->assertSee('Jl. Sarijadi No. 2');
 });
 
-it('requires a signed-in customer before saving an address to an account', function () {
-    $this->withoutMiddleware(ValidateCsrfToken::class);
-    cartWith([[checkoutStore(), 1]]);
-
-    $this->withCredentials()->postJson('/checkout/refresh', [
-        'action' => 'apply_address',
-        'save_address' => true,
-        'shipping_address' => checkoutInput()['shipping_address'],
-    ])->assertForbidden();
-});
-
 it('renders the saved address with canonical region codes and saves a sparse replacement', function () {
     $this->withoutMiddleware(ValidateCsrfToken::class);
     $mug = checkoutStore();
     $user = User::query()->create(['name' => 'Rina', 'email' => 'rina@example.com', 'password' => 'secret-pass', 'email_verified_at' => now()]);
-    $this->actingAs($user, 'commerce');
+    $this->actingAs($user, 'account');
     $customer = Customer::forUser($user);
     $address = checkoutInput()['shipping_address'];
     $save = app(SaveAddress::class);
@@ -109,7 +98,7 @@ it('keeps the title when a checkout address is renamed and saved to the account'
     config(['honeypot.enabled' => false]);
     $mug = checkoutStore();
     $user = User::query()->create(['name' => 'Rina', 'email' => 'rina@example.com', 'password' => 'secret-pass', 'email_verified_at' => now()]);
-    $this->actingAs($user, 'commerce');
+    $this->actingAs($user, 'account');
     $customer = Customer::forUser($user);
     $input = checkoutInput(['address_id' => '', 'save_address' => 1, 'shipping_address' => ['label' => 'Rumah']]);
     app(SaveAddress::class)->handle($customer, [...checkoutInput()['shipping_address'], 'label' => 'Alamat lama']);
@@ -141,7 +130,7 @@ it('names an address saved at checkout from the street when the title is blank',
     config(['honeypot.enabled' => false]);
     $mug = checkoutStore();
     $user = User::query()->create(['name' => 'Rina', 'email' => 'rina@example.com', 'password' => 'secret-pass', 'email_verified_at' => now()]);
-    $this->actingAs($user, 'commerce');
+    $this->actingAs($user, 'account');
     $customer = Customer::forUser($user);
     $input = checkoutInput(['address_id' => '', 'save_address' => 1, 'shipping_address' => [
         'label' => ' ', 'line1' => 'Jl. Sarijadi No. 2',

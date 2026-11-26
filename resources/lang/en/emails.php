@@ -167,12 +167,6 @@ return [
         'intro' => 'This product is out of stock:',
         'action' => '',
     ],
-    'staff_deletion_request' => [
-        'subject' => 'Account deletion request',
-        'heading' => 'Account deletion request',
-        'intro' => 'A customer asked to delete their account:',
-        'action' => '',
-    ],
     'staff_paid_after_cancel' => [
         'subject' => 'Payment received for cancelled order :number',
         'heading' => 'Payment for a cancelled order',

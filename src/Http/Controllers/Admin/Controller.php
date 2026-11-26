@@ -35,16 +35,6 @@ abstract class Controller extends BaseController
             ->contains(fn (string $action) => Access::entries($user, $action, $c))), 403);
     }
 
-    /**
-     * 403 unless the user has at least one of these permissions.
-     *
-     * @param  array<int, string>  $abilities
-     */
-    protected function authorizeAny(?Authenticatable $user, array $abilities): void
-    {
-        abort_unless($user instanceof Authorizable && collect($abilities)->contains(fn (string $a) => $user->can($a)), 403);
-    }
-
     /** 404 while the module is inactive (its pages don't exist then). */
     protected function authorizeFeature(string $feature): void
     {

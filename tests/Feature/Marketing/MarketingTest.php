@@ -203,7 +203,7 @@ it('sends scheduled campaigns when they are due', function () {
     Mail::assertSent(MarketingMail::class, 1);
 });
 
-it('emails abandoned carts once, to customers and to guests who agreed at checkout', function () {
+it('emails abandoned carts once, to the accounts they belong to', function () {
     publishProduct(['variants' => [['id' => 'mug', 'sku' => 'MUG', 'price' => 50000]]], title: 'Mug');
     $mug = Variant::query()->where('sku', 'MUG')->firstOrFail();
     $ana = marketingCustomer('ana@example.com');
@@ -214,8 +214,7 @@ it('emails abandoned carts once, to customers and to guests who agreed at checko
         return $cart;
     };
     $customerCart = $cart(['customer_id' => $ana->id]);
-    $cart(['checkout' => ['email' => 'guest@example.com', 'accepts_marketing' => true]]);
-    $cart(['checkout' => ['email' => 'quiet@example.com', 'accepts_marketing' => false]]);
+    $cart([]); // a visitor's cart: nobody to write to
     $cart(['customer_id' => $ana->id, 'last_activity_at' => now()->subMinutes(30)]); // not yet
 
     $automation = Campaign::query()->create(['type' => 'automation', 'name' => 'Abandoned cart', 'status' => 'active', 'trigger' => 'abandoned_cart',
@@ -225,20 +224,18 @@ it('emails abandoned carts once, to customers and to guests who agreed at checko
     RunAutomations::dispatchSync();
     RunAutomations::dispatchSync();
 
-    Mail::assertSent(MarketingMail::class, 2);
+    Mail::assertSent(MarketingMail::class, 1);
     Mail::assertSent(MarketingMail::class, function (MarketingMail $mail) {
         $mail->build();
 
         return $mail->hasTo('ana@example.com') && str_contains($mail->render(), '2 × Mug');
     });
-    Mail::assertSent(MarketingMail::class, fn (MarketingMail $mail) => $mail->hasTo('guest@example.com'));
-    expect($automation->fresh()->sent_count)->toBe(2);
+    expect($automation->fresh()->sent_count)->toBe(1);
 
-    // {cart_url} brings a guest's cart back on their browser.
-    $guestSend = CampaignSend::query()->where('email', 'guest@example.com')->firstOrFail();
-    $guestCart = Cart::query()->findOrFail($guestSend->context['cart_id']);
-    get("/cart/restore/{$guestSend->token}")->assertRedirect()->assertCookie('commerce_cart', $guestCart->token);
-    expect($customerCart->id)->not->toBe($guestCart->id);
+    // {cart_url} never hands the cart to whoever holds the link: a visitor signs in, and finds their cart.
+    $send = CampaignSend::query()->where('email', 'ana@example.com')->firstOrFail();
+    get("/cart/restore/{$send->token}")->assertRedirect('/account/login')->assertCookieMissing('commerce_cart');
+    expect(session('account.intended'))->toEndWith('/cart')->and($customerCart->fresh()->customer_id)->toBe($ana->id);
 });
 
 it('emails customers who stopped ordering, once per last order, within the automation\'s audience', function () {

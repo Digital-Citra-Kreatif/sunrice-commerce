@@ -167,12 +167,6 @@ return [
         'intro' => 'Stok produk ini habis:',
         'action' => '',
     ],
-    'staff_deletion_request' => [
-        'subject' => 'Permintaan hapus akun',
-        'heading' => 'Permintaan hapus akun',
-        'intro' => 'Seorang pelanggan meminta akunnya dihapus:',
-        'action' => '',
-    ],
     'staff_paid_after_cancel' => [
         'subject' => 'Pembayaran diterima untuk pesanan batal :number',
         'heading' => 'Pembayaran untuk pesanan yang dibatalkan',

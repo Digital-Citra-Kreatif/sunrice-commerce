@@ -196,17 +196,18 @@ payment link" on the order page.
 A gateway that sends the customer back uses `/order/{key}/payment/return`
 (`commerce.order.payment-return`); methods that implement `HandlesReturn` read the result there.
 The result is recorded whoever returns, so a `handleReturn()` should ask the gateway rather than
-trust the query string. A customer who may open the order goes to it. Otherwise (a guest whose
-one-hour access lapsed while paying, or who came back in another browser from an e-wallet app)
-the return sends a guest order to Track order with its number filled in, and an account order to
-sign in, then to the order. Nothing about the order is shown before that.
+trust the query string. The order's signed-in account goes to the order. A visitor who isn't
+signed in (back in another browser from an e-wallet app, for example) is sent to sign in, then to
+the order. Someone signed in to another account gets 404. Nothing about the order is shown before
+that.
 
 ## Payment confirmations
 
 For bank transfer and payment instructions with confirmation `required` or `optional`.
 
 **1. The customer confirms** at `/confirm-payment` (`commerce.confirm-payment`), reached from the
-order page or My Account (with the order key), or by order number and email.
+order page or My Account (`/confirm-payment?order={key}`). The page is for the order's signed-in
+account; without an order key it goes to My Account → Orders.
 
 | Field | Rules |
 | --- | --- |

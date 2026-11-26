@@ -40,6 +40,16 @@
 }
 @media (min-width: 1024px) { :root { --commerce-gutter: 32px; --commerce-header: 68px; } }
 
+/* The account pages (sign in, register, profile, My Account's menu: the Accounts plugin's) in the store's colours.
+   The plugin's own styles read these; it only sets them in its minimal layout, not in a theme's. */
+:root {
+    --account-fg: var(--commerce-fg); --account-muted: var(--commerce-muted); --account-bg: var(--commerce-bg); --account-card: var(--commerce-bg);
+    --account-line: var(--commerce-line); --account-field-line: #8a8a93; --account-accent: var(--commerce-fg); --account-on-accent: var(--commerce-bg);
+    --account-danger: var(--commerce-accent); --account-success: var(--commerce-ok);
+}
+.account, .account-auth { box-sizing: border-box; }
+.account *, .account-auth *, .account *::before, .account-auth *::before, .account *::after, .account-auth *::after { box-sizing: border-box; }
+
 /* 2. Base (starter layout) -------------------------------------------- */
 .commerce-site, .commerce-site *, .commerce-site *::before, .commerce-site *::after { box-sizing: border-box; }
 .commerce-site body { margin: 0; background: var(--commerce-bg); color: var(--commerce-fg); font: 400 15px/1.55 var(--commerce-font); -webkit-font-smoothing: antialiased; overflow-x: clip; }
@@ -530,17 +540,10 @@ form.commerce-checkout > :not(.commerce-checkout__main):not(.commerce-checkout__
 .commerce-checkout__section legend { counter-increment: section; float: left; width: 100%; padding: 0; margin: 0 0 16px; font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: .06em; }
 .commerce-checkout__section legend::before { content: counter(section) ". "; }
 .commerce-checkout__section legend + * { clear: both; }
-.commerce-checkout__signin { font-size: 14px; }
 .commerce-checkout-address { display: grid; gap: 4px; margin: 0 0 4px; }
 .commerce-checkout-address[hidden], .commerce-checkout-address-dialog__error[hidden], [data-commerce-address-fallback][hidden] { display: none; }
 .commerce-checkout-address address { margin: 0; color: var(--commerce-muted); font-style: normal; font-size: 14px; white-space: pre-line; overflow-wrap: anywhere; }
 .commerce-checkout-address .commerce-checkout-address__add { justify-self: start; min-height: 44px; font-size: 13px; font-weight: 700; }
-.commerce-checkout-address__hint { display: none; margin: 0; color: var(--commerce-muted); font-size: 14px; }
-.commerce-checkout-address--guest:has(address[hidden]) { gap: 10px; margin-bottom: 14px; }
-.commerce-checkout-address--guest:has(address[hidden]) .commerce-checkout-address__hint { display: block; }
-.commerce-checkout__pickup-note:not([hidden]) ~ .commerce-checkout-address .commerce-checkout-address__hint { display: none; }
-.commerce-checkout-address--guest:has(address[hidden]) .commerce-checkout-address__add { padding: 8px 14px; border: 1px solid var(--commerce-fg); background: var(--commerce-bg); color: var(--commerce-fg); text-decoration: none; }
-.commerce-checkout-address--guest:has(address[hidden]) .commerce-checkout-address__add:hover { background: var(--commerce-surface); }
 .commerce-accordion.commerce-checkout__notes { border-block: 0; }
 .commerce-checkout__notes > summary { min-height: 44px; padding-block: 10px; font-size: 14px; font-weight: 700; text-transform: none; letter-spacing: normal; }
 .commerce-checkout__notes > summary:focus-visible { outline-offset: -2px; }
@@ -670,16 +673,7 @@ form.commerce-checkout > :not(.commerce-checkout__main):not(.commerce-checkout__
 /* 13. My Account and sign-in ---------------------------------------------- */
 section.commerce-account { display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 900px) { section.commerce-account { grid-template-columns: 220px minmax(0, 1fr); gap: 56px; } }
-.commerce-account__nav ul { list-style: none; padding: 0; margin: 0 0 16px; display: flex; gap: 0; overflow-x: auto; border-bottom: 1px solid var(--commerce-line); scrollbar-width: none; }
-.commerce-account__nav a { display: block; padding: 12px 14px; color: inherit; text-decoration: none; font-size: 14px; white-space: nowrap; border-bottom: 2px solid transparent; }
-.commerce-account__nav a[aria-current] { font-weight: 800; border-bottom-color: var(--commerce-fg); }
-.commerce-account__nav form { margin: 0; font-size: 13px; }
 @media (min-width: 900px) {
-    .commerce-account__nav { position: sticky; top: calc(var(--commerce-header) + 24px); align-self: start; }
-    .commerce-account__nav ul { display: block; border-bottom: 0; border-left: 1px solid var(--commerce-line); }
-    .commerce-account__nav a { padding: 10px 16px; border-bottom: 0; border-left: 2px solid transparent; margin-left: -1px; }
-    .commerce-account__nav a[aria-current] { border-left-color: var(--commerce-fg); }
-    .commerce-account__nav form { padding-left: 16px; }
 }
 .commerce-account__page { min-width: 0; }
 .commerce-account__page > h1, .commerce-address-book__header h1 { font-size: clamp(22px, 3vw, 30px); text-transform: uppercase; margin: 0 0 24px; }
@@ -782,22 +776,6 @@ section.commerce-account { display: grid; gap: 24px; grid-template-columns: minm
 .commerce-address-card__actions form { margin: 0; }
 .commerce-account__danger { margin-top: 40px; padding: 20px; border: 1px solid var(--commerce-accent); }
 .commerce-account__danger h2 { margin-top: 0; color: var(--commerce-accent); }
-.commerce-auth { max-width: 480px; margin: 16px auto 0; }
-.commerce-auth h1 { font-size: clamp(22px, 3vw, 28px); text-transform: uppercase; margin: 0 0 24px; }
-.commerce-auth .commerce-form { max-width: none; }
-.commerce-auth--split { max-width: 960px; display: grid; gap: 32px; }
-.commerce-auth__panel { min-width: 0; }
-.commerce-auth__panel--aside { padding: 28px; background: var(--commerce-surface); align-self: start; }
-.commerce-auth__panel--aside h2 { font-size: 18px; text-transform: uppercase; margin: 0 0 12px; }
-@media (min-width: 768px) { .commerce-auth--split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; } }
-.commerce-auth__benefits { margin: 0 0 20px; padding-left: 20px; font-size: 14px; display: grid; gap: 6px; }
-.commerce-auth__forgot { display: inline-block; margin-top: 14px; font-size: 13px; }
-.commerce-auth__or { display: flex; align-items: center; gap: 12px; margin: 24px 0; color: var(--commerce-muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
-.commerce-auth__or::before, .commerce-auth__or::after { content: ""; flex: 1; border-top: 1px solid var(--commerce-line); }
-.commerce-auth__google { width: 100%; margin-top: 12px; }
-.commerce-checkout-access__panel > p { margin: 0 0 20px; color: var(--commerce-muted); }
-.commerce-checkout-access__actions { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 16px; font-size: 14px; }
-.commerce-checkout-access__actions form { margin: 0; }
 
 /* 14. Wishlist, compare, brands, flash sales -------------------------------- */
 .commerce-wishlist-button, .commerce-compare-button { display: inline; margin: 0; }

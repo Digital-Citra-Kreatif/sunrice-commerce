@@ -29,7 +29,6 @@ use Sunrice\Commerce\Checkout\CheckoutRefused;
 use Sunrice\Commerce\Checkout\CheckoutValidator;
 use Sunrice\Commerce\Checkout\Events\CheckoutStarted;
 use Sunrice\Commerce\Checkout\TermsPage;
-use Sunrice\Commerce\Checkout\VerifiedAccountCheckout;
 use Sunrice\Commerce\Customers\Actions\SaveAddress;
 use Sunrice\Commerce\Customers\Models\Address;
 use Sunrice\Commerce\Customers\Models\Customer;
@@ -82,8 +81,8 @@ class CheckoutController
             $previous = null;
         }
         $draft = $previous ?? ($cart !== null ? $sessions->draft($cart) : null);
-        if ($draft !== null && $draft->user_id !== null && ! app(OrderAccess::class)->allows($request, $draft)) {
-            return redirect(StorefrontRoutes::url('commerce.account.login'));
+        if ($draft !== null && ! app(OrderAccess::class)->allows($request, $draft)) {
+            $draft = null;
         }
         if ($draft !== null) {
             try {
@@ -104,11 +103,6 @@ class CheckoutController
         }
         if ($cart === null || $cart->items()->doesntExist()) {
             return redirect(StorefrontRoutes::url('commerce.cart'))->with('commerce.error', __('commerce::checkout.errors.empty'));
-        }
-        if (commerce_customer() === null && ! app(VerifiedAccountCheckout::class)->guestAllowed() && commerce_feature('accounts')) {
-            $request->session()->put('url.intended', StorefrontRoutes::url('commerce.checkout'));
-
-            return redirect(StorefrontRoutes::url('commerce.account.login'))->with('commerce.error', __('commerce::checkout.errors.sign_in'));
         }
         $data = $this->prefill($cart);
         if (! isset($cart->checkout['started_at'])) {
@@ -169,13 +163,12 @@ class CheckoutController
             return redirect(StorefrontRoutes::url('commerce.checkout').'#checkout-captcha')
                 ->withErrors(['captcha' => __('commerce::payments.confirm.captcha')]);
         }
-        $guestCheckout = commerce_customer() === null;
         try {
             // A quote has no payment: no method, fee or points, and staff set the prices, so the totals seen aren't binding.
             $placed = $quote
-                ? $place->handle($cart, $data->merge(['payment_method' => null, 'use_points' => false]), null, $request->only('password'),
+                ? $place->handle($cart, $data->merge(['payment_method' => null, 'use_points' => false]), null, [],
                     ['ip_address' => $request->ip(), 'user_agent' => $request->userAgent()])
-                : $place->handle($cart, $data, (string) $request->input('totals_hash'), $request->only('password'),
+                : $place->handle($cart, $data, (string) $request->input('totals_hash'), [],
                     ['ip_address' => $request->ip(), 'user_agent' => $request->userAgent()]);
         } catch (CheckoutChanged $e) {
             return redirect(StorefrontRoutes::url('commerce.checkout'))->with('commerce.changes', $e->changes)->with('commerce.error', $e->getMessage());
@@ -183,10 +176,7 @@ class CheckoutController
             return redirect(StorefrontRoutes::url('commerce.checkout'))->with('commerce.error', $e->getMessage());
         } catch (ValidationException $e) {
             return redirect(StorefrontRoutes::url('commerce.checkout'))->withErrors($e->errors())
-                ->withInput($request->except(['password', $captcha->field()]));
-        }
-        if ($guestCheckout) {
-            app(OrderAccess::class)->grantGuest($request, $placed->order);
+                ->withInput($request->except([$captcha->field()]));
         }
         if ($placed->order->type === ResolveCheckoutSession::TYPE) {
             $request->session()->put(ResolveCheckoutSession::SESSION_KEY, $placed->order->order_key);
@@ -299,7 +289,7 @@ class CheckoutController
 
     private function postedData(Request $request, Cart $cart, bool $fullForm = false): CheckoutData
     {
-        $input = $request->except(['password', 'totals_hash', 'action']);
+        $input = $request->except(['totals_hash', 'action']);
         if ($fullForm) {
             $input['_form'] = 'checkout';
         }
@@ -316,13 +306,10 @@ class CheckoutController
         $data = CheckoutData::fromCart($cart);
         $user = commerce_customer();
         if ($user === null) {
-            // A guest who confirmed their email with a code checks out with that email.
-            $confirmed = app(VerifiedAccountCheckout::class)->verifiedEmail();
-
-            return $confirmed !== null ? $data->merge(['email' => $confirmed]) : $data;
+            return $data;
         }
         $customer = Customer::forUser($user);
-        $defaults = $data->email() === null ? ['email' => $customer->email, 'name' => $customer->name, 'phone' => $customer->phone] : [];
+        $defaults = $data->get('name') === null ? ['name' => $customer->name, 'phone' => $customer->phone] : [];
         if ($data->shippingAddress() === null) {
             $address = $customer->addresses()->orderByDesc('default_shipping')->orderBy('id')->first();
             if ($address !== null) {
@@ -330,10 +317,8 @@ class CheckoutController
                 $defaults['address_id'] = $address->id;
             }
         }
-        $policy = app(VerifiedAccountCheckout::class);
-        if ($policy->codeRequired()) {
-            $defaults['email'] = $policy->verifiedEmail();
-        }
+        // The order goes to the account's address, whatever an earlier visit left in the cart.
+        $defaults['email'] = $customer->email;
 
         return $data->merge(array_filter($defaults));
     }
@@ -394,11 +379,6 @@ class CheckoutController
             'paymentMethods' => $this->payments()->displayOptions($this->availablePayments($state)),
             'savedAddresses' => $customer?->addresses()->orderByDesc('default_shipping')->orderBy('id')->get() ?? collect(),
             'loyaltyPoints' => commerce_feature('loyalty') ? (int) ($customer->loyalty_points ?? 0) : 0,
-            'guest' => $user === null,
-            'verifiedCheckoutEmail' => app(VerifiedAccountCheckout::class)->codeRequired() ? $data->email() : null,
-            'offerAccount' => $user === null && commerce_feature('accounts') && $this->settings()->get('accounts.registration', true)
-                && $this->settings()->get('checkout.create_account', 'offer') !== 'never',
-            'accountRequired' => $user === null && $validator->createsAccount($data->merge(['create_account' => true])) && $this->settings()->get('checkout.create_account') === 'always',
             'extraFields' => app(CheckoutFields::class)->for($data, $state),
             'submitLabel' => __('commerce::checkout.submit.'.$this->mode()->completion()),
             // Already a quote request (a price on request): no second button.

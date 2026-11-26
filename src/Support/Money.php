@@ -20,11 +20,6 @@ final class Money implements JsonSerializable, Stringable
         return new self($amount);
     }
 
-    public static function zero(): self
-    {
-        return new self(0);
-    }
-
     public function add(self|int $other): self
     {
         return new self($this->amount + ($other instanceof self ? $other->amount : $other));
@@ -53,16 +48,6 @@ final class Money implements JsonSerializable, Stringable
         $rounded = intdiv(abs($product) + 5000, 10000);
 
         return $product < 0 ? -$rounded : $rounded;
-    }
-
-    public function isZero(): bool
-    {
-        return $this->amount === 0;
-    }
-
-    public function isNegative(): bool
-    {
-        return $this->amount < 0;
     }
 
     public function max(self|int $other): self

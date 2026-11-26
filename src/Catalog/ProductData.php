@@ -40,11 +40,6 @@ final class ProductData implements ArrayAccess, JsonSerializable
         return $this->value['type'] === 'bundle';
     }
 
-    public function purchaseMode(): string
-    {
-        return $this->value['purchase_mode'];
-    }
-
     /** @return array<int, array<string, mixed>> */
     public function options(): array
     {

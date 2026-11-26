@@ -1,8 +1,8 @@
 # Installation
 
 Sunrice Commerce turns a Sunrice CMS site into a store. It needs PHP 8.4+, Laravel 13, Sunrice
-0.8 (`sunrice/admin` and `sunrice/cms`, which Composer installs with it) and SQLite, MySQL or
-PostgreSQL. The admin bundle is prebuilt: you don't need Node.
+0.8 (`sunrice/admin` and `sunrice/cms`) and the Accounts plugin (`sunrice/account`), all of which
+Composer installs with it, and SQLite, MySQL or PostgreSQL. The admin bundle is prebuilt: you don't need Node.
 
 ## Contents
 
@@ -10,7 +10,7 @@ PostgreSQL. The admin bundle is prebuilt: you don't need Node.
 - [What the installer does](#what-the-installer-does)
 - [Run the scheduler and a queue worker](#run-the-scheduler-and-a-queue-worker)
 - [Mail](#mail)
-- [Sign in with Google](#sign-in-with-google)
+- [Customer accounts](#customer-accounts)
 - [Set up the store](#set-up-the-store)
 - [Check the setup](#check-the-setup)
 
@@ -19,18 +19,27 @@ PostgreSQL. The admin bundle is prebuilt: you don't need Node.
 ```bash
 composer require sunrice/commerce
 php artisan sunrice:install --plugins
+php artisan account:install
 php artisan commerce:install
 ```
 
-Commerce is a plugin of the Sunrice panel. `sunrice:install` creates the app's panel provider
-when there is none and adds `CommercePlugin` to it (`--plugins` without asking). On a site that
-already has the panel, it only adds the plugin; you can also add it by hand:
+Commerce is a plugin of the Sunrice panel, and it requires the Accounts plugin: customers sign in
+with `sunrice/account`, and every order belongs to an account. `sunrice:install` creates the
+app's panel provider when there is none and adds the plugins to it (`--plugins` without asking).
+On a site that already has the panel, it only adds the plugins; you can also add them by hand:
 
 ```php
-$panel->plugin(CmsPlugin::make())->plugin(CommercePlugin::make());
+use Sunrice\Account\AccountPlugin;
+use Sunrice\Account\Admin\AccountUserResource;
+
+$panel->userResource(AccountUserResource::class)
+    ->plugin(CmsPlugin::make())->plugin(AccountPlugin::make())->plugin(CommercePlugin::make());
 ```
 
-`commerce:install` stops with these instructions when the plugin isn't on the panel.
+`userResource(AccountUserResource::class)` keeps the panel's Users screen to staff; add that line
+yourself. `account:install` runs the migrations, creates the default role of new accounts and
+checks what accounts need. `commerce:install` stops with instructions when `CommercePlugin` isn't
+on the panel.
 
 Try it with sample data first:
 
@@ -97,19 +106,15 @@ See [commands.md](commands.md#commerceinstall) for every option. The installer i
 ## What the installer does
 
 1. Publishes `config/commerce.php` and the admin assets (`public/vendor/commerce`).
-2. Publishes the sign-in code migration of `spatie/laravel-one-time-passwords` when its table is
-   missing.
-3. Runs the migrations.
-4. Adds the `HasOneTimePasswords` trait to your user model (for sign-in with an emailed code). If
-   it can't edit the file, it tells you what to add.
-5. Creates the store structure in Sunrice: the Products collection with its blueprint, product
+2. Runs the migrations.
+3. Creates the store structure in Sunrice: the Products collection with its blueprint, product
    categories, tags and brands, the product inquiry form, legal pages (when a `pages` collection
    exists) and the `shop` menu (`commerce:scaffold`).
-6. Syncs permissions and creates the **Shop Manager** and **Customer** roles.
-7. Imports Indonesian regions for addresses and shipping zones (it asks; `--no-regions` skips it).
-8. With `--templates`, publishes the storefront templates; with `--starter`, the starter theme.
-9. With `--demo`, adds the demo store (the starter store with `--starter`).
-10. Prints the next steps.
+4. Syncs permissions and creates the **Shop Manager** and **Customer** roles.
+5. Imports Indonesian regions for addresses and shipping zones (it asks; `--no-regions` skips it).
+6. With `--templates`, publishes the storefront templates; with `--starter`, the starter theme.
+7. With `--demo`, adds the demo store (the starter store with `--starter`).
+8. Prints the next steps.
 
 ## Run the scheduler and a queue worker
 
@@ -138,21 +143,17 @@ available. Set `APP_DEBUG=false` on public deployments.
 
 ## Mail
 
-Customers get order emails and sign-in codes by email, so configure a real mailer in `.env`
-(`MAIL_MAILER`, `MAIL_HOST`…). With the `log` mailer the dashboard shows a warning. See
-[emails.md](emails.md).
+Customers get order emails and sign-in codes by email, and nobody can check out without signing
+in, so configure a real mailer in `.env` (`MAIL_MAILER`, `MAIL_HOST`…). With the `log` mailer the
+dashboard shows a warning. See [emails.md](emails.md).
 
-## Sign in with Google
+## Customer accounts
 
-Optional. Create an OAuth client in Google Cloud and set:
-
-```env
-GOOGLE_CLIENT_ID=…
-GOOGLE_CLIENT_SECRET=…
-```
-
-The redirect URL is `https://your-site/account/login/google/callback`. Then switch on **Sign in with
-Google** in Settings → Store → Features. See [accounts.md](accounts.md).
+Sign-in, registration, the emailed code, Google and the account emails are set up in **Settings →
+Accounts**, which belongs to the Accounts plugin. The emailed code is on by default: a visitor
+who opens checkout enters their email, types the code back, and is signed in (a new address gets
+an account). `php artisan account:check` checks the setup. See [accounts.md](accounts.md) and the
+[account package's documentation](https://github.com/Digital-Citra-Kreatif/sunrice-account/blob/main/docs/index.md).
 
 ## Set up the store
 
@@ -193,4 +194,4 @@ php artisan commerce:doctor
 ```
 
 It runs the same health checks as the dashboard (payments, shipping, mail, queue, scheduler,
-regions, sign-in, full-page cache) and fails when something is broken.
+regions, full-page cache) and fails when something is broken.

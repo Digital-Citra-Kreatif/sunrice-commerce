@@ -2,6 +2,99 @@
 
 ## Unreleased
 
+- **Breaking: customer accounts are built on `sunrice/account`, and guest checkout is gone.**
+  This project is not in production use, so there is no data migration: set accounts up again
+  after updating.
+
+  **What an app must do**
+
+  1. Nothing new to require: commerce requires `sunrice/account` (^0.2), and no longer requires
+     `laravel/socialite` or `spatie/laravel-one-time-passwords`.
+  2. In the panel provider, add the account plugin before commerce and use its Users screen
+     (`Sunrice\Commerce\Admin\StaffUserResource` is removed):
+
+     ```php
+     $panel->userResource(\Sunrice\Account\Admin\AccountUserResource::class)
+         ->plugin(CmsPlugin::make())->plugin(AccountPlugin::make())->plugin(CommercePlugin::make());
+     ```
+
+     `CommercePlugin::requires()` now includes the account plugin.
+  3. Run `php artisan migrate` and `php artisan account:install`.
+  4. Remove the `HasOneTimePasswords` trait from the user model; `commerce:install` no longer adds
+     it or publishes the `one_time_passwords` migration.
+  5. Set up sign-in in **Settings → Accounts** (the account package's): registration, email
+     verification, the emailed code (on by default), Google, the default roles of new accounts
+     and the account emails.
+
+  **Accounts (1)**
+
+  - Removed from commerce, now the account package's: the sign-in, registration, forgot and reset
+    password, emailed-code and Google controllers, routes and views; the profile, password,
+    deletion-request and announcement pages; the account navigation registry; the welcome,
+    verification, password reset, sign-in code and deletion-request emails (`account_welcome`,
+    `verify_email`, `login_code`, `password_reset`, `staff_deletion_request`); the accounts health
+    check; `Customers\Events\AccountDeletionRequested`.
+  - Removed config: `commerce.auth` (the `commerce` guard and password broker), `commerce.google`,
+    and the storefront paths `account` and `track_order`. The signed-in customer is the account
+    package's guard (`Sunrice\Account\Auth\SiteGuard::name()`, `account` by default);
+    `commerce_customer()` and `CurrentCustomer::guard()` return it. The `commerce.auth` middleware
+    is removed: use `sunrice.account.auth`.
+  - Removed settings: the Settings → Store → Accounts section (`accounts.registration`,
+    `accounts.verify_email`, `accounts.require_phone`, `accounts.customer_roles`,
+    `accounts.code_minutes` and the announcement settings). New customers get the account
+    package's default roles, not `accounts.customer_roles`.
+  - Removed features: `passwordless_login` and `google_login`.
+  - Commerce's My Account pages (orders, quotes, downloads, points, addresses, and the wishlist
+    link) are registered with the account package's `Account::routes()` and `Account::page()`.
+    `/account` opens Orders. `Commerce::registerAccountPage()` still exists and forwards to
+    `Account::page()`.
+  - Route name `commerce.account.order` is now `commerce.account.orders.show`. The routes
+    `commerce.account`, `commerce.account.login`, `.register`, `.profile`, `.announcement` and
+    the password and code routes are gone; link to sign-in with
+    `\Sunrice\Account\Facades\Account::signInUrl()`.
+  - Cart and wishlist merging and the customer record hang on the account package's `SignedIn`
+    and `Registered` events. Removing an account's personal data (the account package's
+    `AnonymizeAccount`) clears the store's records through `AnonymizeCustomer`; Shop → Customers'
+    anonymize, password link and "mark verified" actions call the account package.
+
+  **Every order belongs to an account (2)**
+
+  - Checkout is behind `sunrice.account.auth` and `sunrice.account.verified`. A visitor who opens
+    `/checkout` is sent to sign in and comes back with their cart; with the emailed code, one
+    email field signs in or creates the account. Browsing, the cart, the wishlist and comparing
+    still work without an account. The feature `checkout` now requires `accounts`.
+  - Removed checkout settings: "Who can check out" (`checkout.access`, and the older
+    `checkout.guest_checkout` and `checkout.require_verified_account`) and "Accounts at checkout"
+    (`checkout.create_account`). Removed: the checkout email-code pages (`/checkout/access`),
+    `VerifiedAccountCheckout`, `SignInWithCheckoutCode`, and the marketing-consent checkbox and
+    the password and "create an account" fields at checkout. The contact section shows the
+    account's email read-only, and the order always goes to that email.
+  - Removed: the track-order page and its emailed code (`/track-order`, `OrderAccessChallenge`,
+    `GuestOrderCode`), the confirm-payment lookup form, `LinkGuestOrders`,
+    `Order::wasPlacedAsGuest()` and the `placed_as_guest` and `checkout_account_requested` order
+    meta.
+  - `/order/{key}`, its pay, invoice, cancel and quote pages and `/confirm-payment?order={key}`
+    open only for the order's signed-in account (`Orders\OrderAccess`): a visitor is sent to sign
+    in and comes back, anyone else gets 404. The gateway return (`/order/{key}/payment/return`)
+    still checks the payment for anyone, then sends a visitor to sign in and on to the order.
+  - Order emails link to the account's order page (`/account/orders/{id}`).
+  - A customer without an account now exists only when staff create a manual order for an email
+    (Orders → New). Those orders join the account once someone signs in with that address
+    verified.
+
+  **Published storefront templates**
+
+  - The account sign-in templates are gone: `account/login`, `register`, `code`,
+    `forgot-password`, `reset-password`, `profile`, `navigation`, `announcement`,
+    `announcement-banner`, and `checkout-access` and `track-order`. Delete your copies; the
+    account package's views are published with `--tag=sunrice-account-views`.
+  - Account pages fill `@section('commerce-account')` instead of `@section('account')`;
+    `account/layout` now extends the account package's layout.
+  - The checkout partials no longer get `$guest`, `$offerAccount`, `$accountRequired` or
+    `$verifiedCheckoutEmail` (`checkout`, `checkout/contact`, `checkout/shipping-address`,
+    `checkout/submit`). `confirm-payment` has no lookup form, and `order` no longer gets
+    `$invite` or `$registerUrl`.
+
 - Security: a download that is an external link only redirects to an http(s) address. Links are
   already checked when a product is saved; `/downloads/{token}` now also answers 404 for any
   other scheme (a link stored before that check, or written to the database directly), before

@@ -6,8 +6,9 @@
 --}}
 @include(\Sunrice\Commerce\Storefront\Layout::view('partials.assets'))
 <nav class="commerce-header-links" aria-label="{{ __('commerce::storefront.header.label') }}">
-    @if (commerce_feature('accounts') && \Illuminate\Support\Facades\Route::has('commerce.account'))
-        <a class="commerce-header-links__link" href="{{ commerce_url('commerce.account') }}">
+    @if (commerce_feature('accounts'))
+        {{-- A visitor signs in and comes back to the page they were on; a customer opens My Account. --}}
+        <a class="commerce-header-links__link" href="{{ commerce_customer() ? \Sunrice\Account\Facades\Account::url('sunrice.account.dashboard') : \Sunrice\Account\Facades\Account::signInUrl() }}">
             @include(\Sunrice\Commerce\Storefront\Layout::view('partials.icon'), ['name' => 'user'])
             <span class="commerce-header-links__label">{{ commerce_customer() ? __('commerce::account.overview.title') : __('commerce::account.login.title') }}</span>
         </a>

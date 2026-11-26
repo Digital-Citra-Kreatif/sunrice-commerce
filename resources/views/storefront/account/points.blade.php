@@ -5,7 +5,7 @@
 @extends(\Sunrice\Commerce\Storefront\Layout::view('account.layout'))
 @php($money = app(\Sunrice\Commerce\Support\MoneyFormatter::class))
 
-@section('account')
+@section('commerce-account')
     <h1>{{ __('commerce::account.points.title') }}</h1>
     <div class="commerce-points__summary">
         <div class="commerce-points__card">
@@ -45,7 +45,7 @@
                 @foreach ($history as $row)
                     <tr>
                         <td data-label="{{ __('commerce::account.points.date') }}">{{ $row->created_at?->isoFormat('D MMM YYYY') }}</td>
-                        <td data-label="{{ __('commerce::account.points.what') }}">{{ __('commerce::account.points.kinds.'.$row->kind) }}@if ($row->order) · <a href="{{ commerce_url('commerce.account.order', ['order' => $row->order->id]) }}">{{ $row->order->displayNumber() }}</a>@endif</td>
+                        <td data-label="{{ __('commerce::account.points.what') }}">{{ __('commerce::account.points.kinds.'.$row->kind) }}@if ($row->order) · <a href="{{ commerce_url('commerce.account.orders.show', ['order' => $row->order->id]) }}">{{ $row->order->displayNumber() }}</a>@endif</td>
                         <td class="commerce-num" data-label="{{ __('commerce::account.points.points') }}">{{ $row->points > 0 ? '+' : '' }}{{ number_format($row->points, 0, ',', '.') }}</td>
                     </tr>
                 @endforeach

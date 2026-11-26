@@ -28,8 +28,6 @@ use Illuminate\Support\Carbon;
  */
 class WebhookDelivery extends Model
 {
-    public const STATUSES = ['pending', 'delivered', 'failed'];
-
     protected $table = 'commerce_webhook_deliveries';
 
     protected $guarded = ['id'];

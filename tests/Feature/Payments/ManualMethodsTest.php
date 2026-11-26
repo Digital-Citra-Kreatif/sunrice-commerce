@@ -54,7 +54,7 @@ it('keeps the instructions as they were when the order was placed', function () 
     expect($snapshot['accounts'][0])->toMatchArray(['bank' => 'BCA', 'number' => '1234567890', 'holder' => 'PT Toko'])
         ->and($snapshot['confirmation'])->toBe('required')
         ->and($snapshot['instructions'])->toBe('Transfer ke rekening berikut.');
-    authorizeGuestOrders($order);
+    actAsOwnerOf($order);
     $this->get($order->url())->assertSee('1234567890')->assertDontSee('999');
 });
 

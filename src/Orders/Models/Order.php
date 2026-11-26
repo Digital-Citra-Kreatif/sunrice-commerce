@@ -252,11 +252,6 @@ class Order extends Model
         return $this->billing_address === null ? null : Address::fromArray($this->billing_address);
     }
 
-    public function wasPlacedAsGuest(): bool
-    {
-        return $this->meta('placed_as_guest') === true;
-    }
-
     public function meta(string $key, mixed $default = null): mixed
     {
         return data_get($this->meta ?? [], $key, $default);

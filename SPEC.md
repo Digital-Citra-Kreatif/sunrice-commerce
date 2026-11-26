@@ -14,8 +14,8 @@ disagree, follow this file and record the conflict in the pull request.
 ## Stack
 
 - Laravel 13, PHP 8.4 or newer, SQLite, MySQL or PostgreSQL.
-  - Sunrice itself runs on PHP 8.3; commerce needs 8.4 because `spatie/laravel-one-time-passwords`
-    (passwordless sign-in) requires it.
+  - Sunrice itself runs on PHP 8.3; commerce needs 8.4 because `sunrice/account` (customer
+    accounts) requires it.
   - PHP 8.4 also allows Sunrice's optional full-page cache (`spatie/laravel-responsecache`).
 - Sunrice CMS 1.x: content, admin shell (Inertia, React 19, Tailwind 4, shadcn), roles and
   permissions (`spatie/laravel-permission`), assets, forms, activity log and MCP server.
@@ -58,11 +58,9 @@ disagree, follow this file and record the conflict in the pull request.
   store structure in Sunrice (below). It also creates the **Shop Manager** and **Customer** roles,
   syncs permissions and imports the Indonesian regions. The regions step asks first; it defaults to
   provinces, cities and districts when the store country is Indonesia.
-- It also publishes `spatie/laravel-one-time-passwords`' migration when its table is missing, and
-  adds that package's `HasOneTimePasswords` trait to the user model, the way `sunrice:install` adds
-  `HasRoles`.
-  - It only edits a writable model file inside the app; otherwise it prints what to add.
-  - Without the trait, passwordless sign-in can't be switched on.
+- Customer accounts are the Accounts plugin's (`sunrice/account`, installed with commerce). The
+  app's panel provider has `AccountPlugin` beside `CommercePlugin` and uses
+  `AccountUserResource` for the Users screen; `php artisan account:install` sets accounts up.
 - `--templates` also publishes the storefront templates; `--demo` adds demo products, vouchers and
   shipping zones.
 - The command is safe to run again. It only adds what is missing and never overwrites structure the
@@ -179,8 +177,6 @@ switch them on and off.
 | Promotions | `vouchers` | Vouchers and automatic discounts | cart | shop, quote, whatsapp | on |
 | Customers | `loyalty` | Loyalty points | accounts, checkout | shop | **off** |
 | Customers | `accounts` | Customer accounts and My Account | catalog | all | on |
-| Customers | `passwordless_login` | Sign in with an emailed one-time code | accounts | all | off |
-| Customers | `google_login` | Sign in with Google | accounts | all | off |
 | Customers | `wishlist` | Wishlist | catalog | all | on |
 | Customers | `compare` | Product comparison | catalog | all | on |
 | Customers | `marketing` | Marketing emails | catalog | all | off |
@@ -407,7 +403,7 @@ and totals are sums of lines.
     only;
   - payment methods;
   - shipping destinations (countries, provinces) and shipping methods.
-- **Limits**: total uses; uses per customer (by account, or by email or phone for guests); maximum
+- **Limits**: total uses; uses per customer (by account, or by email or phone for a customer without one); maximum
   discount.
 - **Combining**:
   - One code per order, unless every applied code is marked combinable.
@@ -445,7 +441,7 @@ and totals are sums of lines.
 
 - **Storage**: each visitor has one cart, stored in the database and identified by a cookie holding
   a long random token. Signed-in customers keep their cart across devices.
-- **Signing in**: a guest cart merges into the customer's cart. Quantities of the same line are
+- **Signing in**: a visitor's cart merges into the customer's cart. Quantities of the same line are
   added together, within stock and quantity rules.
 - **Lines** are a variant, a quantity and optional meta set by an extension (a rental's dates, for
   example). The same variant with other meta is another line; stock and quantity rules count every
@@ -469,8 +465,7 @@ and totals are sums of lines.
 **Page**
 
 One page, in sections:
-- contact: email, phone, name;
-- account: sign in, create an account, or continue as a guest (per settings);
+- contact: the signed-in account's email (shown, not asked), phone, name;
 - shipping address, when something in the cart needs shipping;
 - billing address: the same as shipping by default, optionally separate;
 - shipping method;
@@ -481,16 +476,18 @@ One page, in sections:
 - terms acceptance, linking the Terms page (setting);
 - order summary.
 
+**Who can check out**
+
+- Every order belongs to an account; there is no guest checkout. Browsing, the cart, the wishlist
+  and comparing work without an account.
+- Checkout is for signed-in accounts with a verified email (while the Accounts plugin requires
+  verification). A visitor who opens checkout is sent to the sign-in page and comes back to
+  checkout with their cart. With the emailed code (on by default), one email field signs in or
+  creates the account.
+- The order goes to the signed-in account's email, whatever the form posts.
+
 **Settings**
 
-- Guest checkout allowed (default yes).
-- Require a verified account at checkout (default off). When enabled, verified shoppers
-  continue directly. Other shoppers enter an emailed code or sign in with an existing
-  password. A valid checkout code verifies the email and creates the account if needed.
-  The cart survives sign-in, and order ownership and contact email come from the verified
-  account. This mode takes priority over guest checkout and account creation on the order
-  form. Older guest orders keep their existing ownership and remain trackable by order number.
-- Create an account at checkout: offer / always / never.
 - Require a phone number (default yes).
 - Ask for company and tax ID.
 - Ask for address line 2.
@@ -541,14 +538,15 @@ an "Update shipping" button does the same.
     and the deadline;
   - an "I have paid" confirmation link;
   - downloads, once paid;
-  - the WhatsApp button (WhatsApp mode);
-  - an invitation to create an account (guests).
-- A random URL key identifies the order. The signed-in owner or an authorized guest session can open it. The response is private and `noindex`.
-- Guests can recover access at `/track-order` with the order number and an eight-digit code sent
-  to the order email. A guest checkout can open its own new order and payment page in the
-  same browser for one hour, even when the order joins an existing verified account. That order
-  can also use email recovery if the order email still matches the verified account email.
-  Orders placed while signed in require the signed-in owner.
+  - the WhatsApp button (WhatsApp mode).
+- A random URL key names the order; it never opens it by itself. The order page and its pay,
+  invoice, cancel, quote and payment confirmation pages are for the order's signed-in account
+  only. A visitor is sent to sign in and comes back; anyone else gets 404. The response is
+  private and `noindex`.
+- There is no order lookup or tracking page for visitors. Order emails link to the order in My
+  Account.
+- The gateway return checks the payment whoever returns, then sends a visitor to sign in and on
+  to the order.
 
 ### Orders (`orders`)
 
@@ -732,85 +730,63 @@ webhooks through the payment method contract. The core records the results.
 
 **Who customers are**
 
-- Customers are users of the site's user model (Sunrice's `sunrice.auth.user_model`) with the
-  **Customer** role, plus a commerce customer record holding phone, addresses, statistics and
-  marketing consent.
-- Guests who order get a customer record without a user account.
+- Customer accounts are built on the Accounts plugin (`sunrice/account`). It owns sign-in,
+  registration, the emailed code, Google, email verification, password reset, the profile page,
+  the My Account menu and announcement, the account emails, Settings → Accounts and
+  Administration → Accounts. Its documentation specifies them.
+- Customers are users of the site's user model (Sunrice's `sunrice.auth.user_model`) plus a
+  commerce customer record holding phone, addresses, statistics and marketing consent. An account
+  gets its customer record when it is created.
+- New accounts get the Accounts plugin's default roles (Settings → Accounts).
+- Every order placed at checkout belongs to an account. A customer record without an account
+  exists only when staff create a manual order for an email that has none.
 
 **Kept apart from the Sunrice admin**
 
-- Customers sign in on the storefront, with their own pages and the site's layout, never in the
+- Customers sign in on the site, with their own pages and the site's layout, never in the
   Sunrice admin.
-- The storefront uses its own session guard (`commerce`, on the same user table). A storefront
-  sign-in never opens `/cms`, and the Customer role has no admin permissions.
+- The signed-in customer is the Accounts plugin's session guard (`account` by default, on the same
+  user table). A storefront sign-in never opens the admin.
 - Staff accounts can shop too; they sign in on the storefront separately.
-- If a site configures the storefront to share the admin's guard, sign-ins by code or Google are
-  refused for accounts that can open the admin.
 
-**Signing in**
+**At sign-in and registration**
 
-- Methods:
-  - email and password, whenever accounts are on;
-  - an emailed one-time code (`passwordless_login`, using `spatie/laravel-one-time-passwords`);
-  - Google (`google_login`; needs `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`).
-- Throttling works like the admin login: per email and IP, per IP, and per account.
-- **One-time codes**:
-  - 6 digits, valid for 10 minutes (setting), usable once, and deleted when used;
-  - requesting a new code cancels the previous one;
-  - a code works only in the browser that asked for it (same IP and user agent);
-  - at most 5 tries per minute;
-  - a code can be requested once a minute per email.
-- Messages never reveal whether an email has an account.
-
-**Registration**
-
-- Registration can be switched on or off.
-- Fields: name, email, phone (optional or required), password.
-- With passwordless sign-in on, customers can register without a password. The emailed code then
-  verifies the email and signs them in.
-- Email verification can be required (on by default); a terms checkbox can be shown.
-- Protected by a honeypot, a rate limit, and a captcha when one is configured.
-- New accounts get the Customer role and a welcome email.
-
-**Linking guest orders**: when a customer verifies an email (verification link, sign-in code or
-Google), earlier guest orders with that email join the account unless verified-account checkout
-is enabled. In that mode, existing orders keep their ownership.
+- At every sign-in, the visitor's cart and wishlist merge into the customer's.
+- Orders staff made for an email before it had an account join the account once someone signs in
+  with that address verified. An unverified address never claims them.
 
 **My Account (`/account`)**
 
-- Orders is the default account page. If Orders is disabled, the account opens Profile.
-- Staff can enable an account announcement under Settings → Store → Accounts and choose the
-  first tab, above page content, or below page content. The first-tab placement becomes the
-  default account page. Announcements have a localized title and message.
+- The Accounts plugin draws My Account (menu, overview, profile, sign out). Commerce adds the
+  store's pages to it. `/account` opens Orders while orders are on.
 - Orders: the customer's orders, searchable by order number or product name and filterable by
   status and date, 10 per page. The date fields expand on demand. Each order's details include:
   - a link back to the full order list;
   - timeline, payment instructions and payment confirmation;
   - tracking and invoice download;
   - buy again, and cancel (if allowed).
+- Quotes (Quotation mode, or when customers can also request a quote).
 - Downloads: the digital library.
+- Points (loyalty).
+- Wishlist.
 - Addresses: expandable summaries for saved addresses, an add form opened by the customer, edit
   and delete actions, and defaults for shipping and billing.
-- Profile:
-  - name and phone;
-  - email, with re-verification when changed;
-  - set or change the password;
-  - marketing consent and the linked Google account.
-- Wishlist.
-- Quotes (Quotation mode).
-- Sign out.
-- Request account deletion. Staff are notified and can anonymize: personal data is removed from the
-  account, the customer record and the orders, while financial data is kept.
+
+**Removing personal data**
+
+- Removing an account's personal data (in Administration → Accounts or Shop → Customers) also
+  removes it from the store's records: the customer record, addresses, wishlists and the orders'
+  personal fields, while financial data is kept.
 
 **Admin**
 
 - **Shop → Customers** has a list and a page per customer:
   - list filters: has an account, role, number of orders, total spent, sign-up date;
-  - customer page: profile, addresses, orders, statistics, roles (from the list of customer roles),
-    notes;
-  - actions: send a password reset link, mark the email verified, anonymize.
-- Sunrice's Users screen lists staff only, that is accounts that can open the admin. Customers are
-  managed in Shop → Customers.
+  - customer page: profile, addresses, orders, statistics, roles, notes;
+  - actions: send a password reset link, mark the email verified, anonymize. These call the
+    Accounts plugin.
+- Sunrice's Users screen lists staff only (the Accounts plugin's `AccountUserResource`). Customers
+  are managed in Shop → Customers.
 
 ### Digital products (`digital`)
 
@@ -820,8 +796,7 @@ is enabled. In that mode, existing orders keep their ownership.
   - **Email attachment**: files up to the per-file limit (default 10 MB) are attached to the
     "your downloads" email. Larger files are sent as links.
   - **Email link**: personal download links.
-  - **My Account library**: downloads are listed under Account → Downloads. Guests are invited to
-    create an account; their email links keep working.
+  - **My Account library**: downloads are listed under Account → Downloads.
 - **Access** starts when the order is paid (setting: or when it is completed).
 - **Limits**: downloads per file (default unlimited) and expiry in days (default never). Per order,
   staff can resend, extend, reset counts or revoke.
@@ -873,8 +848,10 @@ is enabled. In that mode, existing orders keep their ownership.
   - order completed, order cancelled, order refunded;
   - a note from the store;
   - downloads ready;
-  - quote received, and quote ready (prices plus an accept link);
-  - account emails: welcome, verify email, sign-in code, password reset.
+  - quote received, and quote ready (prices plus an accept link).
+  - Emails about an order link to its page in My Account.
+  - The account emails (welcome, verify email, sign-in code, password reset) are the Accounts
+    plugin's.
 - To staff:
   - new order;
   - payment confirmation submitted (with a link to the proof);
@@ -953,7 +930,6 @@ is enabled. In that mode, existing orders keep their ownership.
   - mail not delivering;
   - queue or scheduler not running;
   - regions not imported;
-  - Google sign-in on without keys;
   - product data errors;
   - full-page cache on.
 - To do: orders awaiting payment confirmation, orders to ship, quotes to answer, low stock.
@@ -1003,11 +979,10 @@ Reports take a date range and a comparison period, and export to CSV (`commerce.
   | General | Store identity, address, contact, WhatsApp, currency format, units, selling mode, pause orders |
   | Features | Modules |
   | Catalog | Price visibility, call-to-action, stock display, badges, attribute taxonomies, compare fields |
-  | Checkout | Fields, guest/account, terms, minimums, order numbers |
+  | Checkout | Fields, terms, minimums, order numbers |
   | Payments | Methods |
   | Shipping | Zones and methods, courier presets |
   | Taxes | — |
-  | Accounts | Registration, sign-in methods, verification, customer roles |
   | Emails | Each notification, recipients, attachments, texts |
   | Documents | Invoice details and numbering |
 - **Product editing** stays in Sunrice's entry editor, through the Product data field.
@@ -1032,9 +1007,10 @@ Reports take a date range and a comparison period, and export to CSV (`commerce.
 - Shop (product listing with filters, sorting and pagination), product page, category page, brand
   page, brands index, tag page and product search results.
 - Cart, mini cart (a header partial), checkout, order page (thank you), pay page, payment
-  confirmation, track order and quote page.
+  confirmation and quote page.
 - Flash sale page, wishlist (and shared wishlist), compare.
-- My Account, and the sign-in, register, forgot password, reset, link and code pages.
+- The store's pages in My Account (orders, quotes, downloads, points, addresses). The sign-in,
+  register, password and profile pages are the Accounts plugin's.
 - Legal pages, which are Sunrice pages.
 
 **Filters and sorting**
@@ -1144,14 +1120,14 @@ Details are in `ARCHITECTURE.md` § Extension contracts.
 **Storefront protection**
 
 - Every storefront form has CSRF protection.
-- Public forms have a honeypot and rate limits: register, sign-in, link/code requests, payment
-  confirmation, inquiry, voucher codes and add to cart.
+- Public forms have a honeypot and rate limits: payment confirmation, inquiry, voucher codes and
+  add to cart. The sign-in and registration forms are the Accounts plugin's, with its own.
 - A captcha is added when one is configured in Sunrice.
 
 **Orders and money**
 
-- Guests reach order pages only with the long random key. Lookups need the order number plus email.
-  Nothing personal appears in URLs.
+- Order pages open only for the order's signed-in account; the long random key alone opens
+  nothing. Nothing personal appears in URLs.
 - Payment proofs and digital files are stored on private disks and served only to authorized users.
   Uploads are checked for type (jpg, png, webp, pdf) and size.
 - Prices and totals are never accepted from the browser.
@@ -1159,10 +1135,8 @@ Details are in `ARCHITECTURE.md` § Extension contracts.
 
 **Credentials**
 
-- Customer passwords are hashed.
-- One-time sign-in codes expire within minutes, are deleted once used, and are checked in constant
-  time. Other tokens (download and order keys) are long random strings.
-- Remember-me cookies are per guard.
+- Passwords, sign-in codes and sessions are the Accounts plugin's.
+- Download tokens and order keys are long random strings.
 
 **Personal data**
 
@@ -1211,7 +1185,7 @@ groups (registered with `Sunrice::registerPermission()`):
 | `commerce.flash-sales.manage` | Flash sales |
 | `commerce.pricing-rules.manage` | Pricing rules |
 | `commerce.reports.view`, `.export` | Reports; exporting them |
-| `commerce.settings.general`, `.features`, `.catalog`, `.checkout`, `.payments`, `.shipping`, `.taxes`, `.accounts`, `.emails`, `.documents` | One per Settings → Store section; `.features` switches modules |
+| `commerce.settings.general`, `.features`, `.catalog`, `.checkout`, `.payments`, `.shipping`, `.taxes`, `.emails`, `.documents` | One per Settings → Store section; `.features` switches modules |
 
 Product content uses Sunrice's own permissions: the entry permissions of the products collection
 (`sunrice.entries.{id}.*`) and the term permissions of the product taxonomies.
@@ -1221,7 +1195,7 @@ Product content uses Sunrice's own permissions: the entry permissions of the pro
 | Role | Gets |
 | --- | --- |
 | Shop Manager | `sunrice.access`, `cms.entries.view-drafts`, every entry permission of the products collection, the term permissions of the product categories, tags, brands and attribute taxonomies, `sunrice.assets.view`/`upload`/`edit`, the inquiry form's submission permissions, and every `commerce.*` permission |
-| Customer | No admin permissions. It is the storefront role, used by price visibility and pricing rules |
+| Customer | No admin permissions. A storefront role for price visibility and pricing rules. New accounts get the Accounts plugin's default roles; add Customer to them to give it to everyone |
 | Administrator (Sunrice's) | Every `commerce.*` permission as well |
 
 - `php artisan commerce:seed-roles` creates or updates these roles. It only adds permissions, so run
@@ -1235,8 +1209,7 @@ Product content uses Sunrice's own permissions: the entry permissions of the pro
 
 | Need | Package |
 | --- | --- |
-| Google sign-in | `laravel/socialite` |
-| Passwordless sign-in (emailed codes) | `spatie/laravel-one-time-passwords` (requires PHP 8.4) |
+| Customer accounts (sign-in, registration, emailed codes, Google, My Account) | `sunrice/account` (requires PHP 8.4) |
 | PDF documents | `barryvdh/laravel-dompdf` (dompdf, pure PHP), behind a renderer contract |
 | Indonesian regions | Data from `cahyadsn/wilayah` and `cahyadsn/wilayah_kodepos` (MIT), vendored as files |
 | CSV export | `spatie/simple-excel` (already used by Sunrice) |
@@ -1250,8 +1223,6 @@ Deliberately not used:
   libraries also treat IDR as having two decimals.
 - `laravolt/indonesia`: older decree, about 140 truncated names, and a cache clear that flushes the
   whole application cache.
-- Magic-link packages: a code works only in the browser that asked for it, which is safer than a
-  link that works anywhere. So sign-in is by code only.
 - Payment and shipping SDKs: they belong in the separate gateway and carrier packages.
 
 ## Out of scope for v1

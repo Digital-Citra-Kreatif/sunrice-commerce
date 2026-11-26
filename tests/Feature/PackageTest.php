@@ -19,7 +19,6 @@ it('loads next to the panel and the CMS', function () {
 
 it('loads its config defaults', function () {
     expect(config('commerce.catalog.collections'))->toBe(['products'])
-        ->and(config('commerce.auth.guard'))->toBe('commerce')
         ->and(config('commerce.defaults.general.currency.code'))->toBe('IDR');
 });
 

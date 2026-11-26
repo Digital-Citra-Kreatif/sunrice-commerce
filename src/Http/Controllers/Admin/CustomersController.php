@@ -9,17 +9,22 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
+use Sunrice\Account\Admin\Accounts;
+use Sunrice\Account\Auth\Actions\SendPasswordResetLink;
+use Sunrice\Account\Auth\Actions\SignInWithGoogle;
+use Sunrice\Account\Auth\Actions\VerifyEmail;
+use Sunrice\Account\Profiles\Actions\AnonymizeAccount;
+use Sunrice\Account\Settings\AccountSettings;
 use Sunrice\Admin\Users\PermissionRank;
+use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Admin\Tables\Column;
 use Sunrice\Commerce\Admin\Tables\TableQuery;
 use Sunrice\Commerce\Customers\Actions\AnonymizeCustomer;
 use Sunrice\Commerce\Customers\Models\Customer;
-use Sunrice\Commerce\Customers\Notifications\CustomerResetPassword;
 use Sunrice\Commerce\Orders\AdminOrderScopes;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\OrderStatus;
@@ -63,13 +68,13 @@ class CustomersController extends Controller
                 'orders_count' => $c->orders_count,
                 'total_spent' => $money->format($c->total_spent),
                 'last_order_at' => $c->last_order_at?->isoFormat('D MMM YYYY'),
-                'account' => $c->deletion_requested_at ? 'Deletion requested' : ($c->user_id ? 'Registered' : 'Guest'),
+                'account' => $c->deletion_requested_at ? 'Deletion requested' : ($c->user_id ? 'Registered' : 'No account yet'),
                 'account_tone' => $c->deletion_requested_at ? 'warning' : ($c->user_id ? 'ok' : 'neutral'),
             ] : []), [
-                ['key' => 'account', 'label' => 'Account', 'type' => 'select', 'options' => [['value' => 'registered', 'label' => 'Registered'], ['value' => 'guest', 'label' => 'Guests']]],
+                ['key' => 'account', 'label' => 'Account', 'type' => 'select', 'options' => [['value' => 'registered', 'label' => 'Registered'], ['value' => 'guest', 'label' => 'No account yet']]],
                 ['key' => 'marketing', 'label' => 'Marketing', 'type' => 'select', 'options' => [['value' => 'yes', 'label' => 'Accepts marketing'], ['value' => 'no', 'label' => "Doesn't"]]],
                 ['key' => 'role', 'label' => 'Role', 'type' => 'select', 'options' => array_map(fn (string $r) => ['value' => $r, 'label' => $r],
-                    (array) app(StoreSettings::class)->get('accounts.customer_roles', ['Customer']))],
+                    app(AccountSettings::class)->roles())],
                 ['key' => 'orders', 'label' => 'Orders', 'type' => 'select', 'options' => [
                     ['value' => 'none', 'label' => 'No orders'], ['value' => 'one', 'label' => '1 order'], ['value' => 'repeat', 'label' => '2 or more'], ['value' => 'loyal', 'label' => '5 or more'],
                 ]],
@@ -183,7 +188,7 @@ class CustomersController extends Controller
     {
         $this->authorize('commerce.customers.view');
         $user = $customer->user();
-        $customerRoles = (array) app(StoreSettings::class)->get('accounts.customer_roles', ['Customer']);
+        $customerRoles = app(AccountSettings::class)->roles();
 
         return Inertia::render('Commerce/Customers/Show', [
             'customer' => [
@@ -200,7 +205,7 @@ class CustomersController extends Controller
             'account' => $user === null ? null : [
                 'email_verified' => $user->getAttribute('email_verified_at') !== null,
                 'roles' => method_exists($user, 'getRoleNames') ? $user->getRoleNames()->all() : [],
-                'google' => DB::table('commerce_social_accounts')->where('user_id', $user->getAuthIdentifier())->value('email'),
+                'google' => DB::table(SignInWithGoogle::TABLE)->where('user_id', $user->getAuthIdentifier())->value('email'),
             ],
             'roleOptions' => array_values(array_unique([...$customerRoles, ...self::givableRoles($request->user())])),
             'orders' => app(AdminOrderScopes::class)->apply(Order::query())->where('customer_id', $customer->id)->latest('placed_at')->limit(20)->get()
@@ -259,8 +264,7 @@ class CustomersController extends Controller
     {
         $this->authorize('commerce.customers.edit');
         abort_if($customer->user_id === null, 404);
-        Password::broker((string) config('commerce.auth.passwords', 'users'))->sendResetLink(['email' => $customer->email],
-            fn ($user, string $token) => $user->notify(new CustomerResetPassword($token, $customer->locale ?? 'id')));
+        app(SendPasswordResetLink::class)->handle($customer->email, $customer->locale ?? Locales::default());
 
         return back()->with('success', 'Password reset link sent.');
     }
@@ -270,7 +274,7 @@ class CustomersController extends Controller
         $this->authorize('commerce.customers.edit');
         $user = $customer->user();
         abort_if($user === null, 404);
-        $user->forceFill(['email_verified_at' => $user->getAttribute('email_verified_at') ?? now()])->save();
+        app(VerifyEmail::class)->handle($user, $customer->locale ?? Locales::default());
         app(ActivityRecorder::class)->record('verified email', "Customer: {$customer->email}", [], 'customer');
 
         return back()->with('success', 'Email marked as verified.');
@@ -280,8 +284,10 @@ class CustomersController extends Controller
     {
         $this->authorize('commerce.customers.delete');
         $user = $customer->user();
-        abort_if($user !== null && method_exists($user, 'can') && $user->can('sunrice.access'), 403, 'Staff accounts are managed in Users.');
-        $anonymize->handle($customer);
+        abort_if($user !== null && Accounts::isStaff($user), 403, 'Staff accounts are managed in Users.');
+        // An account's personal data goes with the account (the Accounts plugin), which has the store clear its own
+        // records (the Anonymized listener); a customer without an account has only the store's.
+        $user !== null ? app(AnonymizeAccount::class)->handle($user) : $anonymize->handle($customer);
 
         return redirect()->route('sunrice.admin.commerce.customers')->with('success', 'Personal data removed.');
     }

@@ -99,7 +99,7 @@ it('issues no code for a gift card given away in full', function () {
 
 it('redeems a code for points once, with its own expiry, in My Account', function () {
     $card = app(GiftCards::class)->make(250000);
-    $this->actingAs($this->user, 'commerce');
+    $this->actingAs($this->user, 'account');
     $this->get('/account/points')->assertOk()->assertSee(__('commerce::account.points.gift_card.title'));
 
     // Typed loosely: lower case, with spaces.
@@ -150,7 +150,7 @@ it('lets staff make, see and disable codes', function () {
 
     $this->put("/admin/commerce/gift-cards/{$card->id}", ['values' => ['disabled' => true, 'note' => 'Lost']])->assertRedirect();
     expect($card->fresh()->status)->toBe(GiftCard::DISABLED);
-    $this->from('/account/points')->actingAs($this->user, 'commerce')->post('/account/points/gift-card', ['code' => $card->code])
+    $this->from('/account/points')->actingAs($this->user, 'account')->post('/account/points/gift-card', ['code' => $card->code])
         ->assertSessionHasErrors(['code' => __('commerce::account.points.gift_card.disabled')]);
 });
 

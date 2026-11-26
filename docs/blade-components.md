@@ -296,10 +296,8 @@ Shows a block only while a store module is on (Settings → Store → Features, 
     <a href="{{ commerce_url('commerce.wishlist') }}">Wishlist</a>
 @endcommerceFeature
 
-@commerceFeature('accounts')
-    <a href="{{ commerce_url('commerce.account') }}">My account</a>
-@else
-    <a href="{{ commerce_url('commerce.track-order') }}">Track your order</a>
+@commerceFeature('orders')
+    <a href="{{ commerce_url('commerce.account.orders') }}">My orders</a>
 @endcommerceFeature
 ```
 

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Sunrice\Commerce\Customers;
 
 use Illuminate\Contracts\Auth\Authenticatable;
+use Sunrice\Account\Auth\SiteGuard;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Features\Features;
-use Sunrice\Commerce\Support\Staff;
 
 /** The customer signed in to the storefront (null for guests, or while accounts are off). */
 class CurrentCustomer
@@ -62,12 +62,6 @@ class CurrentCustomer
 
     public static function guard(): string
     {
-        return (string) config('commerce.auth.guard', 'commerce');
-    }
-
-    /** Whether the storefront shares the admin's guard (sign-ins by code or Google refuse staff then). */
-    public static function sharesAdminGuard(): bool
-    {
-        return self::guard() === Staff::guard();
+        return SiteGuard::name();
     }
 }

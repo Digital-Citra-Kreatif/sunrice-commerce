@@ -63,7 +63,6 @@ final class CommercePermissions
             'commerce.settings.payments' => ['Edit store settings: Payments', 'Store: Settings'],
             'commerce.settings.shipping' => ['Edit store settings: Shipping', 'Store: Settings'],
             'commerce.settings.taxes' => ['Edit store settings: Taxes', 'Store: Settings'],
-            'commerce.settings.accounts' => ['Edit store settings: Accounts', 'Store: Settings'],
             'commerce.settings.emails' => ['Edit store settings: Emails', 'Store: Settings'],
             'commerce.settings.documents' => ['Edit store settings: Documents', 'Store: Settings'],
         ];
@@ -90,15 +89,5 @@ final class CommercePermissions
             ...(is_string($form) && $form !== '' ? ["cms.submissions.{$form}.*"] : []),
             'commerce.*',
         ];
-    }
-
-    /**
-     * Any commerce settings permission (who may open Settings → Store).
-     *
-     * @return list<string>
-     */
-    public static function settings(): array
-    {
-        return array_values(array_filter(array_keys(self::all()), fn (string $n) => str_starts_with($n, 'commerce.settings.')));
     }
 }

@@ -40,7 +40,6 @@ it('renders and saves every built-in section', function (string $section, array 
         'currency' => ['code' => 'IDR', 'symbol' => 'Rp', 'decimals' => 0], 'address' => ['line1' => 'Jl. Merdeka 1', 'region' => ['country' => 'SG']]], 'address.region.country', 'SG'],
     'catalog' => ['catalog', ['price_visibility' => 'signed_in', 'low_stock_threshold' => 3], 'price_visibility', 'signed_in'],
     'checkout' => ['checkout', ['guest_checkout' => false, 'minimum_order' => 50000, 'order_number_format' => 'SO-{seq:5}', 'quote_number_format' => 'Q-{seq}'], 'minimum_order', 50000],
-    'accounts' => ['accounts', ['registration' => false, 'customer_roles' => ['Customer']], 'registration', false],
     'documents' => ['documents', ['invoice_number_format' => 'INV-{Y}-{seq:4}'], 'invoice_number_format', 'INV-{Y}-{seq:4}'],
 ]);
 

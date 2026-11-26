@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Sunrice\Commerce\Cart\Models\Cart;
 use Sunrice\Commerce\Checkout\CheckoutRefused;
-use Sunrice\Commerce\Checkout\VerifiedAccountCheckout;
 use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Orders\Events\OrderPlaced;
 use Sunrice\Commerce\Orders\Listeners\ReleaseReservations;
@@ -20,7 +19,6 @@ use Sunrice\Commerce\Payments\Contracts\StartsCheckoutSession;
 use Sunrice\Commerce\Payments\Models\Payment;
 use Sunrice\Commerce\Payments\PaymentManager;
 use Sunrice\Commerce\Payments\PaymentResult;
-use Sunrice\Commerce\Support\Staff;
 use Throwable;
 
 class ResolveCheckoutSession
@@ -108,10 +106,6 @@ class ResolveCheckoutSession
                     ->update(['status' => 'converted', 'order_id' => $draft->id]);
                 app(Timeline::class)->record($draft, 'status', Timeline::text('commerce::orders.timeline.placed'),
                     ['to' => $draft->status, 'channel' => 'storefront'], Actor::customer());
-                if ($draft->user_id !== null && filled($draft->customer_name) && app(VerifiedAccountCheckout::class)->required()) {
-                    $userModel = Staff::userModel();
-                    $userModel::query()->whereKey($draft->user_id)->where('name', '')->update(['name' => $draft->customer_name]);
-                }
                 DB::afterCommit(fn () => OrderPlaced::dispatch($draft->refresh()));
             }
             app(RecordPaymentResult::class)->handle($payment, $result, Actor::gateway($payment->method));

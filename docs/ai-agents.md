@@ -64,7 +64,7 @@ All 23, in the order agents see them (`Mcp\StoreTools`):
 | `commerce_list_products` | Products: entry id, title, type, price or range, in stock, featured, status. `search` (title or SKU), `stock` (`in`, `out`, `low`), `featured` | `catalog` | Viewing the products collection |
 | `commerce_get_product` | One product by entry id or SKU: the Product data field, variants with ids, live stock and prices, and editing notes | `catalog` | Viewing the products collection |
 | `commerce_adjust_stock` | Add or remove units of a variant (by SKU or id), or set the count (`set: true`), with a reason (`manual`, `correction`, `import`) and a note | `inventory` | `commerce.inventory.adjust` |
-| `commerce_list_customers` | Customers: name, email, phone, account or guest, orders, amount spent. `search`, `sort` (`recent`, `spent`, `orders`) | — | `commerce.customers.view` |
+| `commerce_list_customers` | Customers: name, email, phone, account or guest (a customer staff made for a manual order), orders, amount spent. `search`, `sort` (`recent`, `spent`, `orders`) | — | `commerce.customers.view` |
 | `commerce_get_customer` | One customer by id or email: contact details, addresses, marketing consent, staff note, 10 latest orders | — | `commerce.customers.view` |
 | `commerce_list_vouchers` | Vouchers and automatic discounts: code, name, type, value, dates, uses, active | `vouchers` | `commerce.vouchers.manage` |
 | `commerce_save_voucher` | Create or change a voucher or automatic discount | `vouchers` | `commerce.vouchers.manage` |
@@ -88,7 +88,7 @@ Notes:
   `values`, they return the form's fields and the current values; then send only what changes (it
   is merged over the current values). Leave out `id` to create.
 - **Settings tools** cover the form sections (General, Catalog, Digital products, Checkout, Taxes,
-  Accounts, Documents, and extensions' sections) the user may edit. Payments, shipping zones and emails have their own admin
+  Documents, and extensions' sections) the user may edit. Payments, shipping zones and emails have their own admin
   pages and aren't here; features are switched with `commerce_set_store_feature`. Password fields are never
   returned.
 - **`commerce_sales_report`** answers with the report's columns and kinds, rows (without links), totals and

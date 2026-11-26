@@ -9,6 +9,9 @@ use Sunrice\Commerce\Notifications\StoreEmail;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Settings\StoreSettings;
 
+// Checkout is for accounts: these tests shop signed in (as Rina, unless a test signs someone else in).
+beforeEach(fn () => buyer());
+
 beforeEach(function () {
     $this->withoutMiddleware([ValidateCsrfToken::class, ProtectAgainstSpam::class]);
     config(['honeypot.enabled' => false]);
@@ -48,7 +51,7 @@ it('turns a cart with a product without a price into a quote request that staff 
     $item = $quote->items->sole();
     expect([$quote->type, $quote->status, $item->unit_price, $item->meta['on_request'] ?? null])->toBe(['quote', 'requested', 0, true])
         ->and($quote->awaitsPrices())->toBeTrue();
-    authorizeGuestOrders($quote);
+    actAsOwnerOf($quote);
     $this->get($quote->url())->assertOk()->assertSee(__('commerce::storefront.quote.to_be_quoted'))->assertDontSee('Rp0');
     Notification::assertSentOnDemand(StoreEmail::class, function (StoreEmail $n) {
         if ($n->key !== 'quote_received') {
@@ -85,7 +88,7 @@ it('lets customers who can\'t see prices request a quote, without showing them p
     $input = checkoutInput(['payment_method' => null, 'shipping_rate' => null]);
     $this->post('/checkout', [...$input, 'totals_hash' => seenHash($cart, $input), 'action' => 'place'])->assertRedirectContains('/quote/');
     $quote = Order::query()->sole();
-    authorizeGuestOrders($quote);
+    actAsOwnerOf($quote);
     $this->get($quote->url())->assertSee(__('commerce::storefront.quote.to_be_quoted'))->assertDontSee('Rp50.000');
 
     // Staff start from the catalog price (the product has one); nothing to fill in first.

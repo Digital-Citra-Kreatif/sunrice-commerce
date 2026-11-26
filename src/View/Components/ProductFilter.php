@@ -49,17 +49,6 @@ class ProductFilter extends Component
     }
 
     /**
-     * Load ancestors in batches, including parents with no products of their own.
-     *
-     * @param  Collection<int, Term>  $categories
-     * @return array<int, string>
-     */
-    public function categoryLabels(Collection $categories): array
-    {
-        return array_map(fn (array $path): string => implode(' › ', $path), app(StorefrontStructure::class)->categoryPaths($categories));
-    }
-
-    /**
      * @param  Collection<int, Term>  $categories
      * @param  array<int, array{id: int, name: string, count: int, selected: bool}>  $facets
      * @return array<int, mixed>

@@ -9,6 +9,9 @@ use Sunrice\Commerce\Checkout\Actions\PlaceOrder;
 use Sunrice\Commerce\Checkout\CheckoutData;
 use Sunrice\Commerce\Commerce;
 
+// Checkout is for accounts: these tests shop signed in (as Rina, unless a test signs someone else in).
+beforeEach(fn () => buyer());
+
 beforeEach(function () {
     $this->mug = checkoutStore();
     app(Commerce::class)->describeLinesUsing(fn (array $meta) => isset($meta['engraving']) ? ['Engraving: '.$meta['engraving']] : []);
@@ -26,7 +29,7 @@ it('shows what a line\'s meta means in the cart, at checkout and on the order', 
     $order = app(PlaceOrder::class)->handle($cart, CheckoutData::fromCart($cart)->merge(checkoutInput()), null)->order;
     $item = $order->items->sole();
     expect($item->details())->toBe(['Engraving: Rina']);
-    authorizeGuestOrders($order);
+    actAsOwnerOf($order);
     $this->get($order->url())->assertSee('Engraving: Rina');
 
     actingAsSuperAdmin();

@@ -100,8 +100,7 @@ pin to that major version.
 | `spatie/laravel-honeypot` `^4.7` | Public forms (same as Sunrice) | C6.2 |
 | `spatie/simple-excel` `^3.10` | CSV exports (same as Sunrice) | C8.6 |
 | `intervention/image` `^3.0` | Re-encoding payment proof images (the version the panel requires) | C9.3 |
-| `spatie/laravel-one-time-passwords` `^1.1` | Emailed one-time sign-in codes (requires PHP 8.4) | C7.3 |
-| `laravel/socialite` `^5.31` | Google sign-in | C7.4 |
+| `sunrice/account` `^0.2` | Customer accounts: sign-in, registration, emailed codes, Google, My Account (requires PHP 8.4) | C7.1 |
 | `barryvdh/laravel-dompdf` `^3.1` | PDF invoices, packing slips, quotations | C11.1 |
 
 **Composer — require-dev**: `orchestra/testbench` `^11.0`, `pestphp/pest` `^4.0`,
@@ -382,7 +381,6 @@ commerce's providers are loaded and `Commerce::version()` returns a string.
 | Group | Keys |
 | --- | --- |
 | `catalog` | `collections` (`['products']`), `field` (`'product'`), `category_taxonomy`, `tag_taxonomy`, `brand_taxonomy`, `attribute_taxonomies` (`[]`), `max_options` (3), `max_variants` (100) |
-| `auth` | `guard` (`'commerce'`), `passwords` (`'users'`) |
 | `storefront` | `paths` (every path in `ARCHITECTURE.md` §22.1), `layout` (`'sunrice.layouts.app'`) |
 | `cart` | `cookie`, `lifetime_days` (30), `prune_days` (30) |
 | `downloads` | `disk` (`'local'`), `attachment_max_mb` (10) |
@@ -411,7 +409,7 @@ defaults load in tests.
   `actingAsCustomer()`, `product()`, `withFeatures()`, `withoutFeatures()`,
   `setSellingMode()`. Later tasks fill in the bodies.
 - `testbench.yaml`.
-- `workbench/app/Models/User.php` (`HasRoles`; `HasOneTimePasswords` added in C7.3).
+- `workbench/app/Models/User.php` (`HasRoles`).
 - `workbench/database/migrations` (users, permission tables).
 - `workbench/database/seeders/DatabaseSeeder.php`: super admin `admin@example.com` / `password`,
   plus Sunrice's sample content; store data is filled in later.
@@ -523,7 +521,6 @@ cross-check refusal.
 - `src/Features/Http/EnsureFeatureActive.php` (route middleware alias `commerce.feature`, 404 when
   inactive).
 - Blade `@commerceFeature`.
-- `src/Features/FeatureGatedPolicy.php`.
 - `src/Listeners/Concerns/RunsWhenActive.php`.
 - `src/Features/BindsFeatureImplementations.php`: helper binding a contract to its active or null
   implementation (`ARCHITECTURE.md` §4.4).
@@ -683,9 +680,8 @@ inactive module's item disappears.
     cross-checks, pause orders and its message;
   - **Catalog**: price visibility, catalog call-to-action, stock display, new badge days,
     attribute taxonomies, compare fields;
-  - **Checkout**: fields and requirements, guest/account options, terms page, minimum order,
+  - **Checkout**: fields and requirements, terms page, minimum order,
     order number format;
-  - **Accounts**: registration, verification, customer roles, code minutes;
   - **Documents**: invoice details, numbering, when invoice numbers are assigned.
 
   Sections owned by later modules are added by their tasks.
@@ -1087,94 +1083,50 @@ hidden prices respected.
 
 ## Phase 7 — Customers and accounts
 
-### C7.1 Customer guard, customers and addresses
+Accounts are built on `sunrice/account`: sign-in, registration, the emailed code, Google,
+verification, password reset, the profile and the My Account menu are that package's
+(`ARCHITECTURE.md` §16). Commerce has no guard, sign-in controllers or account emails of its own,
+and every order belongs to an account. The former tasks C7.2 (password accounts), C7.3 (one-time
+code sign-in) and C7.4 (Google sign-in) are replaced by it.
+
+### C7.1 Customers and addresses
 **Depends on:** C2.4, C2.7, C6.1
 
 **Files:**
-- Guard registration in `register()` (`ARCHITECTURE.md` §16.1).
-- Migrations `create_commerce_customers_table`, `create_commerce_addresses_table`,
-  `create_commerce_social_accounts_table`.
+- Require `sunrice/account`; `CommercePlugin::requires()` includes `AccountPlugin::ID`.
+- Migrations `create_commerce_customers_table`, `create_commerce_addresses_table`.
 - Models `Customer` and `CustomerAddress`.
-- `src/Customers/CurrentCustomer.php`, bound by `accounts`.
-- Middleware `commerce.auth`.
-- `src/Customers/Actions/AssignCustomerRole.php`.
-- `LinkGuestOrders` (filled in once orders exist, C8.4).
-- Sign-in listeners merging carts and wishlists.
+- `src/Customers/CurrentCustomer.php`, bound by `accounts`; its guard is the account package's
+  (`SiteGuard::name()`).
+- Listeners on the account package's `Registered` (customer record), `SignedIn`
+  (`MergeOnSignIn`: carts, wishlists, orders staff made for the address) and `Anonymized`.
 
-**Done when:** tests show the customer guard signing in without opening `/cms` (403 or redirect), an
-admin sign-in not signing in the storefront, roles working with `can()` under the commerce guard,
-and the merges happening on sign-in.
-
-### C7.2 Password accounts
-**Depends on:** C7.1, C2.8; uses U13 when merged.
-
-**Files:**
-- `src/Http/Controllers/Account/{Register,Login,Logout,ForgotPassword,ResetPassword,VerifyEmail}Controller.php`.
-- Actions; throttles `commerce-login` and `commerce-register`; honeypot; captcha (U13).
-- Notifications `CustomerResetPassword`, `VerifyCustomerEmail` and `WelcomeCustomer` (basic
-  templates; C11.2 adds settings).
-- Views `storefront/account/{login,register,forgot-password,reset-password}`.
-- Logout regenerating the session without invalidating it.
-
-**Done when:** tests cover registration on and off, verification required, throttling, reset by
-email, no account enumeration, and that logging out of the storefront keeps the admin session.
-
-### C7.3 One-time code sign-in
-**Depends on:** C7.2
-
-**Files:**
-- Add `spatie/laravel-one-time-passwords`.
-- `src/Customers/Auth/EnsureUserModelTraits.php`: adds `HasOneTimePasswords` to the host user
-  model like `sunrice:install` adds `HasRoles`; used by `commerce:install` (C16.1).
-- Actions `RequestLoginCode` and `ConsumeLoginCode` (`ARCHITECTURE.md` §16.2: `consumeOneTimePassword()`
-  plus `Auth::guard('commerce')->login()`, never `attemptLoginUsingOneTimePassword()`).
-- Passwordless registration.
-- Notification `CustomerLoginCode`.
-- Result messages in Indonesian and English.
-- Throttle `commerce-login-code`.
-- Refusing staff in shared-guard mode.
-- View `storefront/account/code`.
-- Health check for the missing trait.
-
-**Done when:** tests show a code signing in on the commerce guard only, a wrong / expired /
-different-origin / rate-limited code each giving its message, a new request cancelling the old
-code, unknown emails answered like known ones, and staff refused when the guard is shared.
-
-### C7.4 Google sign-in
-**Depends on:** C7.2
-
-**Files:**
-- Add `laravel/socialite`.
-- `src/Customers/Auth/GoogleController.php` (redirect, callback) and `SocialAccount` linking rules
-  (`ARCHITECTURE.md` §16.2).
-- Accounts settings toggles, disabled without `services.google.*`.
-- Health check.
-
-**Done when:** tests with Socialite's fake show an existing link signing in, a verified email
-linking, a new user created only when registration is open, and staff refused in shared-guard mode.
+**Done when:** tests show a site sign-in not opening the admin, an admin sign-in not signing in
+the storefront, roles working with `can()` under the account guard, and the merges happening on
+sign-in.
 
 ### C7.5 My Account
-**Depends on:** C7.2
+**Depends on:** C7.1
 
 **Files:**
-- `src/Customers/AccountNavigation.php` (`Commerce::registerAccountPage()`).
-- Views `storefront/account/{overview,addresses,profile}` and partial `account-nav`.
-- Actions `SaveAddress`, `DeleteAddress`, `UpdateProfile` (email change re-verifies),
-  `SetPassword`, `RequestAccountDeletion` (staff email in C11.3).
+- `routes/account.php`, registered with `Account::routes()`; menu entries with `Account::page()`
+  (`Commerce::registerAccountPage()` forwards to it).
+- Views `storefront/account/{layout,addresses}`; the layout extends the account package's.
+- Actions `SaveAddress`, `DeleteAddress`.
 
-**Done when:** tests cover address CRUD with region validation and defaults, profile changes,
-email re-verification, a registered extension page in the navigation, and that another customer's
-address can't be edited.
+**Done when:** tests cover address CRUD with region validation and defaults, a registered
+extension page in the navigation, and that another customer's address can't be edited.
 
 ### C7.6 Customers admin and Users scope
 **Depends on:** C7.1, C3.1, U3
 
 **Files:**
-- `Sunrice::usersQueryUsing()` registration (hides customer-role-only users).
+- The panel provider uses the account package's `AccountUserResource` (Users lists staff only).
 - `src/Http/Controllers/Admin/CustomersController.php` and pages `Commerce/Customers/Index` and
   `Show`.
-- Actions `UpdateCustomer`, `SendPasswordResetLink`, `MarkEmailVerified`, `AnonymizeCustomer`.
-- The customer roles setting used by the role editor on the customer page.
+- Actions `UpdateCustomer`, `AnonymizeCustomer`; the password link, "mark verified" and
+  anonymizing an account call the account package.
+- The account package's default roles used by the role editor on the customer page.
 
 **Done when:** tests show Users listing staff only, filters, permissions, and anonymization
 removing personal data (orders checked once C8.1 exists, add that assertion there).
@@ -1208,7 +1160,7 @@ record the actor and source, numbers follow the formats, and the currency lock i
 **Files:**
 - Migrations `create_commerce_shipping_zones_table`, `create_commerce_shipping_zone_regions_table`,
   `create_commerce_shipping_methods_table`.
-- Contract `ShippingMethodType` (plus `TracksShipments`, `BooksShipments`).
+- Contract `ShippingMethodType` (plus `TracksShipments`).
 - `ShippingRequest`, `Package`, `ShippingRate`.
 - Built-ins `FreeShipping`, `FlatRate`, `WeightBased`, `LocalPickup`.
 - `ZoneMatcher` and `ShippingManager`; the Calculator's `Shipping` stage becomes real.
@@ -1235,7 +1187,7 @@ local pickup skipping the address, and a fake carrier type registered by a test.
 - `commerce.js`: region cascade and shipping refresh.
 
 **Done when:** tests cover each settings toggle, Indonesian address validation, rates refreshing
-on address change (form post and JSON), guest vs account rules, and the hidden steps when
+on address change (form post and JSON), the sign-in requirement, and the hidden steps when
 `shipping` is inactive or nothing needs shipping.
 
 ### C8.4 Placing orders
@@ -1247,8 +1199,8 @@ on address change (form post and JSON), guest vs account rules, and the hidden s
 - Contract `CheckoutCompletion` and `OrderCompletion`, `QuoteCompletion`, `WhatsAppCompletion`;
   `WhatsAppMessage`.
 - Event `OrderPlaced` (and `QuoteRequested`).
-- Routes and views `storefront/order` (thank-you) and `track-order`.
-- `LinkGuestOrders` implementation.
+- Routes and views `storefront/order` (thank-you), for the order's signed-in account
+  (`Orders\OrderAccess`).
 - Pause orders.
 - `Commerce::registerCheckoutCompletion()`.
 
@@ -1342,7 +1294,7 @@ as quoted, an expired quote refusing acceptance, and the order number assigned o
 **Files:** views `storefront/account/{orders,order}`, buy again (adds available lines to the
 cart, reporting the ones that aren't), cancel (setting), and quotes in Quotation mode.
 
-**Done when:** tests show customers seeing only their own orders, linked guest orders appearing
+**Done when:** tests show customers seeing only their own orders, orders staff made for their address appearing
 after verification, buy again respecting availability, and the cancel rules.
 
 ---
@@ -1639,16 +1591,14 @@ loyalty points.
 
 **Files:** `src/Console/InstallCommand.php` (`commerce:install {--templates} {--demo} {--no-regions} {--force}`):
 1. publish the config and assets;
-2. publish the `spatie/laravel-one-time-passwords` migration if its table is missing;
-3. migrate;
-4. add `HasOneTimePasswords` to the user model (`EnsureUserModelTraits`);
-5. scaffold (C4.4);
-6. sync permissions and seed roles;
-7. import regions (asks; default level from the store country);
-8. publish templates (`--templates`);
-9. demo store (`--demo`: products with variants, a bundle, a digital product, vouchers, a flash
+2. migrate;
+3. scaffold (C4.4);
+4. sync permissions and seed roles;
+5. import regions (asks; default level from the store country);
+6. publish templates (`--templates`);
+7. demo store (`--demo`: products with variants, a bundle, a digital product, vouchers, a flash
    sale, Indonesian zones);
-10. print next steps (scheduler, queue, mail, Google keys).
+8. print next steps (scheduler, queue, mail).
 
 It is safe to rerun. `docs/upgrading.md` lists the upgrade steps (`commerce:publish-assets`,
 `migrate`, `sunrice:sync-permissions`, `commerce:seed-roles`).

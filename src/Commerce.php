@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Sunrice\Account\Account;
 use Sunrice\Commerce\Analytics\Reports\Report;
 use Sunrice\Commerce\Analytics\Reports\Reports;
 use Sunrice\Commerce\Features\Feature;
@@ -173,13 +174,14 @@ class Commerce
     }
 
     /**
-     * A page in My Account's menu (a storefront route of yours, under commerce.auth).
+     * A page in My Account's menu (a route of yours, behind `sunrice.account.auth`), shown while
+     * the module `$feature` is on. The same as the account package's `Account::page()`.
      *
      * @param  string|Closure(): string  $label
      */
     public function registerAccountPage(string $key, string|Closure $label, string $route, ?string $feature = null, int $position = 100): void
     {
-        app(Customers\AccountNavigation::class)->register($key, $label, $route, $feature, $position);
+        app(Account::class)->page($key, $label, $route, $feature === null ? null : fn (): bool => commerce_feature($feature), $position);
     }
 
     // ---- Checkout -------------------------------------------------------------

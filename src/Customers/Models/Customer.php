@@ -78,10 +78,11 @@ class Customer extends Model
         return $this->hasMany(Address::class);
     }
 
-    public function user(): ?Authenticatable
+    /** The account behind the customer, or null for one staff made for an order, who hasn't signed in yet. */
+    public function user(): (Model&Authenticatable)|null
     {
-        $model = Staff::userModel();
+        $user = $this->user_id === null ? null : Staff::userModel()::query()->find($this->user_id);
 
-        return $this->user_id === null ? null : $model::query()->find($this->user_id);
+        return $user instanceof Authenticatable ? $user : null;
     }
 }

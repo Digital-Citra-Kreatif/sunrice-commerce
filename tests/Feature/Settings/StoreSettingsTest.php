@@ -11,7 +11,7 @@ use Sunrice\Commerce\Settings\StoreSettings;
 
 it('lays saved values over the config defaults', function () {
     $settings = app(StoreSettings::class);
-    expect($settings->get('checkout.guest_checkout'))->toBeTrue()
+    expect($settings->get('checkout.require_phone'))->toBeTrue()
         ->and($settings->get('general.currency.symbol'))->toBe('Rp');
 
     $settings->saveSection('checkout', ['guest_checkout' => false]);

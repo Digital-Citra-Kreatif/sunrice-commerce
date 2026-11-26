@@ -21,6 +21,9 @@ use Sunrice\Commerce\Payments\Actions\RecordPaymentResult;
 use Sunrice\Commerce\Payments\PaymentResult;
 use Workbench\App\Commerce\TestDeposit;
 
+// Checkout is for accounts: these tests shop signed in (as Rina, unless a test signs someone else in).
+beforeEach(fn () => buyer());
+
 beforeEach(function () {
     $this->mug = checkoutStore(['initial_stock' => 50]);
     TestDeposit::$percent = 30;
@@ -66,7 +69,7 @@ it('is partially paid after the deposit, paid after the balance', function () {
     // The balance, on the pay page.
     $pay = app(PayWithMethod::class);
     expect($pay->payable($order))->toBeTrue();
-    authorizeGuestOrders($order);
+    actAsOwnerOf($order);
     $this->get($order->url())->assertSee(__('commerce::payments.pay_balance'))->assertSee('42.000');
     $pay->handle($order, 'test_transfer');
     $balance = $order->payments()->get()->last();

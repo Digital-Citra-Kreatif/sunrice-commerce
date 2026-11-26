@@ -56,11 +56,13 @@ it('keeps the product page under budget', function () {
 });
 
 it('keeps the cart and checkout flat in the number of lines', function () {
+    buyer(); // the same visitor for every measure: signed in, as checkout needs
     $measure = function (int $lines): array {
         $cart = cartWith(Variant::query()->limit($lines)->get()->map(fn ($v) => [$v, 1])->all());
         $this->get('/cart')->assertOk(); // first view stores the prices seen
         $cartQueries = queriesFor(fn () => $this->get('/cart')->assertOk());
         $cart->update(['checkout' => checkoutInput()]);
+        $this->get('/checkout')->assertOk(); // first view makes the account's customer record
         $checkoutQueries = queriesFor(fn () => $this->get('/checkout')->assertOk());
         $cart->items()->delete();
         $cart->delete();
@@ -72,7 +74,8 @@ it('keeps the cart and checkout flat in the number of lines', function () {
     [$cartTen, $checkoutTen] = $measure(10);
 
     expect($cartTen)->toBe($cartTwo)->toBeLessThanOrEqual(26)
-        ->and($checkoutTen)->toBe($checkoutTwo)->toBeLessThanOrEqual(28);
+        // Checkout is signed in: the account, its customer record, saved addresses and points are read too.
+        ->and($checkoutTen)->toBe($checkoutTwo)->toBeLessThanOrEqual(33);
 });
 
 it('reads variant option values only where the picker shows them', function () {
@@ -155,6 +158,7 @@ it('keeps a category page flat in the number of subcategories', function () {
 });
 
 it('keeps the cart and checkout flat with bundles, category pricing rules and a flash sale', function () {
+    buyer(); // the same visitor for every measure: signed in, as checkout needs
     largeStoreMix(8);
     $measure = function (int $lines): array {
         $variants = Variant::query()->whereIn('sku', [...array_map(fn ($i) => "SET{$i}", range(1, $lines / 2)), ...array_map(fn ($i) => 'P'.($i + 4), range(1, $lines / 2))])->get();
@@ -162,6 +166,7 @@ it('keeps the cart and checkout flat with bundles, category pricing rules and a 
         $this->get('/cart')->assertOk();
         $cartQueries = queriesFor(fn () => $this->get('/cart')->assertOk());
         $cart->update(['checkout' => checkoutInput()]);
+        $this->get('/checkout')->assertOk(); // first view makes the account's customer record
         $checkoutQueries = queriesFor(fn () => $this->get('/checkout')->assertOk());
         $cart->items()->delete();
         $cart->delete();

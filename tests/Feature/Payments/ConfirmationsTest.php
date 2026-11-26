@@ -26,7 +26,7 @@ beforeEach(function () {
     app()->forgetScopedInstances();
     $cart = cartWith([[$this->mug, 1]]);
     $this->order = app(PlaceOrder::class)->handle($cart, CheckoutData::fromCart($cart)->merge(checkoutInput(['payment_method' => 'bank_transfer'])), null)->order;
-    authorizeGuestOrders($this->order);
+    actAsOwnerOf($this->order);
 });
 
 function confirmPayment(Order $order, array $overrides = [], ?UploadedFile $proof = null): TestResponse
@@ -90,7 +90,7 @@ it('needs "approve anyway" for less than expected, and rejecting resumes the dea
         ->and($confirmation->fresh()->review_note)->toBe('Belum masuk');
 
     // A new confirmation, approved anyway.
-    authorizeGuestOrders($this->order);
+    actAsOwnerOf($this->order);
     confirmPayment($this->order, ['amount' => 10000]);
     $again = PaymentConfirmation::query()->latest('id')->first();
     $this->post("/admin/commerce/confirmations/{$again->id}/approve", ['anyway' => true])->assertSessionHas('success');
@@ -115,9 +115,6 @@ it('validates the confirmation and refuses orders not waiting for one', function
     confirmPayment($this->order, ['sender_name' => '', 'proof' => UploadedFile::fake()->create('x.exe', 10)])->assertSessionHasErrors(['sender_name', 'proof']);
     $this->post('/confirm-payment', ['order' => $this->order->order_key, 'sender_name' => 'Rina', 'amount' => 1, 'transferred_at' => now()->toDateString(), 'account' => 0])
         ->assertSessionHasErrors('proof');  // required by the setting
-
-    $this->post('/confirm-payment/lookup', ['number' => $this->order->number, 'email' => 'rina@example.com'])
-        ->assertRedirect('/confirm-payment?order='.$this->order->order_key);
 });
 
 it('re-encodes images, dropping what they carried', function () {

@@ -25,8 +25,6 @@ use Illuminate\Support\Carbon;
  */
 class StockMovement extends Model
 {
-    public const REASONS = ['initial', 'order', 'cancel', 'expire', 'refund', 'manual', 'import', 'correction'];
-
     public const UPDATED_AT = null;
 
     protected $table = 'commerce_stock_movements';

@@ -64,9 +64,6 @@ class ProductCsv
         }
     }
 
-    /** Columns a new product's rows may add (with $create): option names the variant column, category a product category. */
-    public const CREATE_COLUMNS = ['option', 'category'];
-
     /**
      * What a CSV would change, row by row, without changing anything. With
      * $create, a row whose SKU no product has and that names a product is a
@@ -141,12 +138,6 @@ class ProductCsv
         }
 
         return ['rows' => $create ? app(ProductCsvCreator::class)->check($rows) : $rows, 'error' => null];
-    }
-
-    /** @param  list<Row>  $rows */
-    public function apply(array $rows, Authorizable $user): int
-    {
-        return $this->applyWithReport($rows, $user)['updated'];
     }
 
     /**

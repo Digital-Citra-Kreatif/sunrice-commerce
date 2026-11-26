@@ -45,10 +45,6 @@ table) is on and the email is switched on.
 | `gift_card_received` | Gift card for a recipient | `loyalty` | To the person a gift card was bought for: the code, from whom, the message |
 | `quote_received` | Quote request received | `orders` | A quote request is placed (Quotation mode, or **Request a quote instead** at an Online store checkout) |
 | `quote_ready` | Quote ready | `orders` | Staff send the priced quote, with the accept link |
-| `account_welcome` | Welcome | `accounts` | An account's email is verified (by the link, the first emailed code or Google sign-up), or right after registering when verification is off |
-| `verify_email` | Verify email | `accounts` | Registration, a sign-in attempt before verifying, an email change ([accounts.md](accounts.md#email-verification)) |
-| `login_code` | Sign-in code | `passwordless_login` | The customer asks for a sign-in code |
-| `password_reset` | Password reset | `accounts` | The customer (or staff, from Shop → Customers) asks for a reset link |
 
 **To staff**
 
@@ -63,10 +59,16 @@ table) is on and the email is switched on.
 | `staff_low_stock` | Low stock | `inventory` | A variant reaches its low-stock level |
 | `staff_out_of_stock` | Out of stock | `inventory` | A variant runs out |
 | `staff_return_requested` | Return requested | `returns` | A customer asks to return items |
-| `staff_deletion_request` | Account deletion request | `accounts` | A customer asks for their account to be deleted |
 
-`verify_email`, `login_code` and `password_reset` are **locked**: they are always sent, because
-customers can't sign in without them. All other emails are on by default.
+All of these are on by default.
+
+The account emails (welcome, verification link, sign-in code, password reset, and the staff emails
+about new accounts and deletion requests) are the account package's: they are set up in Settings →
+Accounts → Emails, not here. See the
+[account package's documentation](https://github.com/Digital-Citra-Kreatif/sunrice-account/blob/main/docs/index.md#emails).
+
+Emails about an order link to its page in My Account (`/account/orders/{id}`), where the customer
+signs in first.
 
 Emails about an order have a button: the order page for customers (the pay page for
 `payment_link` and `payment_failed`, the confirmation page for `payment_rejected`) and the admin order page for staff.
@@ -96,9 +98,6 @@ Leave a text empty to use the default. Texts can use placeholders:
 | `:name` | The customer's name |
 | `:balance`, `:due_date` | For an order paid with a deposit: what is left to pay and when it is due |
 
-The account emails (`account_welcome`, `verify_email`, `login_code`, `password_reset`) keep their own
-layout: only the switch and the subject can be changed, and they have no preview or test.
-
 **Preview** opens the email rendered with the latest order (or a sample order when there is none),
 in the main language; add `?lang=en` to the preview URL for another language.
 
@@ -127,9 +126,7 @@ goes to those users only. Each address gets the email once.
 ## Copies of customer emails
 
 Customer emails have **Also send a copy to**: addresses (type one and press Enter) that get a hidden copy
-(BCC) of every one sent, for example the owner's inbox for order confirmations. The emails with a
-sign-in code, a verification link or a password reset link have no copies: those stay the
-customer's alone.
+(BCC) of every one sent, for example the owner's inbox for order confirmations.
 
 ## Attachments
 
@@ -162,8 +159,7 @@ After payment, **Payment received** sends it again as the receipt.
 - Customer emails are sent in the order's language, else the customer's language, else the main
   language.
 - Staff emails are in the main language.
-- Default texts ship in Indonesian and English (`resources/lang/{id,en}/emails.php`, and
-  `account.php` for the account emails). Publish them to change the defaults for every store:
+- Default texts ship in Indonesian and English (`resources/lang/{id,en}/emails.php`). Publish them to change the defaults for every store:
 
   ```bash
   php artisan vendor:publish --tag=commerce-translations
@@ -178,8 +174,7 @@ Store emails are Laravel notifications:
 - `Notifications\Notifier` checks the module and the switch, finds the recipients, and sends one
   `Notifications\StoreEmail` per address, in that recipient's language.
 - `StoreEmail` is **queued** (`ShouldQueue`), so run a queue worker
-  ([installation.md](installation.md#run-the-scheduler-and-a-queue-worker)). The account emails
-  (welcome, verify, password reset) are queued too; the sign-in code is sent straight away.
+  ([installation.md](installation.md#run-the-scheduler-and-a-queue-worker)).
 - Each email about an order is noted on the order's timeline ("Order received email sent"),
   visible to the customer for customer emails and internal for staff emails.
 - Customer emails have the store email as Reply-To.
@@ -238,16 +233,11 @@ use Sunrice\Commerce\Facades\Commerce;
 
 Commerce::emailTemplate('emails.order-shipped', 'order_shipped'); // one email's body
 Commerce::emailTemplate('emails.store-frame');                     // the frame of every store email
-Commerce::emailTemplate('emails.welcome', 'account_welcome');      // a whole account email
 Commerce::emailTheme('emails.theme');                              // the CSS emails are inlined with
 ```
 
 A store email's body view gets the frame's variables (`$order`, `$customer`, `$context`, `$lang`,
-`$store`, `$heading`, `$intro`, `$action`). A replaced account email (`account_welcome`,
-`verify_email`, `login_code`, `password_reset`) is a whole markdown mail view
-(`<x-mail::message>…</x-mail::message>`) and gets `$lang`, `$store`, `$brand` and its own values:
-`$name` and `$url` (welcome), `$url` (verify, reset), `$code` and `$minutes` (sign-in code).
-Subjects still come from Settings → Store → Emails. For invoices, packing slips and quotations see
+`$store`, `$heading`, `$intro`, `$action`). Subjects come from Settings → Store → Emails. For invoices, packing slips and quotations see
 [documents.md](documents.md#customizing-the-templates).
 
 `php artisan vendor:publish --tag=commerce-views` copies all of commerce's views at once. Prefer

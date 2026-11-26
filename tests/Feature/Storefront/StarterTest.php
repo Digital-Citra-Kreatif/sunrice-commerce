@@ -105,24 +105,23 @@ it('fills the load test fixtures on top of the starter store and can be rerun', 
 it('renders every starter page with the demo data', function () {
     starterStore();
     $order = makeOrder();
-    authorizeGuestOrders($order);
+    actAsOwnerOf($order);
     $sale = FlashSale::query()->firstOrFail();
 
     foreach (['/', '/products', '/products?q=kaus', '/products?q=tidak-ada-apa-apa', '/products/category/women', '/products/category/women-t-shirts?sort=price',
         '/brands', '/brands/arah-outdoor', '/products/tag/best-sellers', '/products/supima-cotton-crew-neck-t-shirt', '/products/paket-kaus-harian-isi-3',
         '/products/kain-lookbook', '/products/kartu-hadiah-digital', '/search?q=merino', '/tentang-kami', '/bantuan', '/cart', '/compare', '/wishlist',
-        '/flash-sale', '/flash-sale/'.$sale->slug, '/track-order', '/confirm-payment', $order->url(), $order->url().'/pay',
-        '/account/login', '/account/register', '/account/forgot-password'] as $path) {
+        '/flash-sale', '/flash-sale/'.$sale->slug, '/confirm-payment?order='.$order->order_key, $order->url(), $order->url().'/pay'] as $path) {
         $this->get($path)->assertOk()->assertSee('commerce-header', false)->assertSee('commerce-footer', false);
     }
     $this->get('/tidak-ada')->assertNotFound()->assertSee('commerce-empty', false);
     $this->get('/')->assertSee('commerce-hero', false)->assertSee('data-commerce-countdown', false);
     $this->get('/products/category/women')->assertSee('data-commerce-filters', false)->assertSee('commerce-swatch', false);
 
-    $this->actingAs(User::query()->where('email', StarterStoreSeeder::CUSTOMER_EMAIL)->firstOrFail(), (string) config('commerce.auth.guard', 'commerce'));
+    $this->actingAs(User::query()->where('email', StarterStoreSeeder::CUSTOMER_EMAIL)->firstOrFail(), 'account');
     $this->get('/account')->assertRedirect('/account/orders');
     foreach (['/account/orders', '/account/orders/'.Order::query()->where('status', 'completed')->value('id'), '/account/downloads',
-        '/account/addresses', '/account/profile'] as $path) {
+        '/account/addresses'] as $path) {
         $this->get($path)->assertOk()->assertSee('commerce-account', false);
     }
     $this->get('/wishlist')->assertOk()->assertSee('commerce-wishlist__item', false);

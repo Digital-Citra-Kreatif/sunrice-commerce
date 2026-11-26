@@ -10,6 +10,7 @@ use Sunrice\Cms\Events\ContentChanged;
 use Sunrice\Cms\Site\Page;
 use Sunrice\Cms\Site\PageCache as SitePageCache;
 use Sunrice\Commerce\Cart\CompareList;
+use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Feeds\ProductFeed;
 use Sunrice\Commerce\Wishlist\WishlistManager;
 
@@ -58,7 +59,7 @@ final class PageCache
             return true;
         }
 
-        return auth()->guard((string) config('commerce.auth.guard', 'commerce'))->check();
+        return auth()->guard(CurrentCustomer::guard())->check();
     }
 
     /** Product, shop and product term pages, and any page that showed a product. */

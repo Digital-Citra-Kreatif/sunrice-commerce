@@ -9,6 +9,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
+use Sunrice\Account\Settings\AccountSettings;
 use Sunrice\Cms\Support\Locales;
 use Sunrice\Commerce\Customers\Models\Customer;
 use Sunrice\Commerce\Marketing\Models\Campaign;
@@ -49,10 +50,10 @@ class Audience
             'signed_up_within_days' => ['label' => 'Became a customer in the last (days)', 'group' => 'Customer', 'input' => 'days'],
             'signed_up_before_days' => ['label' => 'Customer for more than (days)', 'group' => 'Customer', 'input' => 'days'],
             'account' => ['label' => 'Account', 'group' => 'Customer', 'input' => 'select', 'options' => [
-                ['value' => 'registered', 'label' => 'Registered'], ['value' => 'guest', 'label' => 'Guest (ordered without an account)'],
+                ['value' => 'registered', 'label' => 'Registered'], ['value' => 'guest', 'label' => 'No account yet (staff made their order)'],
             ]],
             'role' => ['label' => 'Has the role', 'group' => 'Customer', 'input' => 'select', 'options' => array_map(fn (string $r) => ['value' => $r, 'label' => $r],
-                Role::query()->whereIn('name', (array) app(StoreSettings::class)->get('accounts.customer_roles', ['Customer']))->pluck('name')->all() ?: ['Customer'])],
+                Role::query()->whereIn('name', app(AccountSettings::class)->roles())->pluck('name')->all())],
             'language' => ['label' => 'Language', 'group' => 'Customer', 'input' => 'select', 'options' => array_map(fn (string $l) => ['value' => $l, 'label' => Locales::name($l)], Locales::all())],
             'province' => ['label' => 'Province (address)', 'group' => 'Customer', 'input' => 'text'],
             'city' => ['label' => 'City (address)', 'group' => 'Customer', 'input' => 'text'],

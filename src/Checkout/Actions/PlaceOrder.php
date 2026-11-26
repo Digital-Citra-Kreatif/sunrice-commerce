@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce\Checkout\Actions;
 
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -27,12 +25,9 @@ use Sunrice\Commerce\Checkout\Completion\CheckoutCompletion;
 use Sunrice\Commerce\Checkout\Completion\CompletionResponse;
 use Sunrice\Commerce\Checkout\Completion\Completions;
 use Sunrice\Commerce\Checkout\PlacedOrder;
-use Sunrice\Commerce\Checkout\VerifiedAccountCheckout;
 use Sunrice\Commerce\Contracts\Inventory;
-use Sunrice\Commerce\Customers\Actions\AssignCustomerRole;
 use Sunrice\Commerce\Customers\Actions\SaveAddress;
 use Sunrice\Commerce\Customers\Models\Customer;
-use Sunrice\Commerce\Customers\Notifications\VerifyCustomerEmail;
 use Sunrice\Commerce\Inventory\OutOfStock;
 use Sunrice\Commerce\Loyalty\Loyalty;
 use Sunrice\Commerce\Orders\Actor;
@@ -74,12 +69,7 @@ use Sunrice\Commerce\Support\Staff;
  */
 class PlaceOrder
 {
-    /** @var array<int, Order> */
-    protected array $placed = [];
-
     /** The account made by this checkout (verification off), which the order joins. */
-    protected ?int $createdAccountId = null;
-
     public function __construct(
         protected StoreSettings $settings,
         protected CheckoutMode $mode,
@@ -99,32 +89,25 @@ class PlaceOrder
      */
     public function handle(Cart $cart, CheckoutData $data, ?string $totalsHash, array $extra = [], array $client = []): PlacedOrder
     {
-        $policy = app(VerifiedAccountCheckout::class);
-        $verifiedUser = $policy->required()
-            ? ($policy->user() ?? throw new CheckoutRefused(__('commerce::checkout-access.required')))
-            : null;
-        if ($verifiedUser !== null) {
-            $data = $data->merge(['email' => $verifiedUser->getAttribute('email'), 'create_account' => false]);
-        } elseif ($policy->codeRequired()) {
-            // A guest's order goes to the email they confirmed with the code.
-            $data = $data->merge(['email' => $policy->verifiedEmail() ?? throw new CheckoutRefused(__('commerce::checkout-access.required'))]);
-        }
+        // Every order belongs to an account: checkout is behind sign-in, and the order goes to that account's email.
+        $account = commerce_customer() ?? throw new CheckoutRefused(__('commerce::checkout.errors.sign_in'));
+        $data = $data->merge(['email' => $account->getAttribute('email')]);
 
         $completion = $this->completions->get($this->mode->completion());
         $created = false;
 
-        $order = DB::transaction(function () use ($cart, $data, $totalsHash, $extra, $client, $completion, $verifiedUser, &$created): Order {
+        $order = DB::transaction(function () use ($cart, $data, $totalsHash, $extra, $client, $completion, $account, &$created): Order {
             // 1. One order per cart.
             /** @var Cart $locked */
             $locked = Cart::query()->whereKey($cart->id)->lockForUpdate()->firstOrFail();
-            if ($verifiedUser !== null && $locked->customer_id !== null
-                && ! Customer::query()->whereKey($locked->customer_id)->where('user_id', $verifiedUser->getAuthIdentifier())->exists()) {
-                throw new CheckoutRefused(__('commerce::checkout-access.cart_account'));
+            if ($locked->customer_id !== null
+                && ! Customer::query()->whereKey($locked->customer_id)->where('user_id', $account->getAuthIdentifier())->exists()) {
+                throw new CheckoutRefused(__('commerce::checkout.errors.cart_account'));
             }
             $existing = $this->existing($locked);
             if ($existing !== null) {
-                if ($verifiedUser !== null && (string) $existing->user_id !== (string) $verifiedUser->getAuthIdentifier()) {
-                    throw new CheckoutRefused(__('commerce::checkout-access.cart_account'));
+                if ((string) $existing->user_id !== (string) $account->getAuthIdentifier()) {
+                    throw new CheckoutRefused(__('commerce::checkout.errors.cart_account'));
                 }
 
                 return $existing;
@@ -193,9 +176,6 @@ class PlaceOrder
         // 13. After commit.
         if ($created) {
             $order->refresh();
-            if ($verifiedUser !== null && $verifiedUser->getAttribute('name') === '' && filled($order->customer_name)) {
-                $verifiedUser->newQuery()->whereKey($verifiedUser->getKey())->where('name', '')->update(['name' => $order->customer_name]);
-            }
             $order->isQuote() ? QuoteRequested::dispatch($order) : OrderPlaced::dispatch($order);
             if ($order->payment_status === OrderStatus::PAID) {
                 OrderPaid::dispatch($order);
@@ -222,74 +202,21 @@ class PlaceOrder
     /** @param  array<string, mixed>  $extra */
     protected function customer(CheckoutData $data, array $extra): Customer
     {
-        $user = commerce_customer();
-        $email = (string) $data->email();
-        $this->createdAccountId = null;
-        if ($user === null && $this->validator->createsAccount($data) && ! empty($extra['password'])) {
-            $user = $this->createAccount($data, (string) $extra['password']);
-            $this->createdAccountId = $user !== null ? (int) $user->getAuthIdentifier() : null;
-        }
-        $customer = $user !== null ? Customer::forUser($user) : Customer::query()->firstOrCreate(['email' => $email], ['name' => $data->get('name')]);
+        $user = commerce_customer() ?? throw new CheckoutRefused(__('commerce::checkout.errors.sign_in'));
+        $customer = Customer::forUser($user);
         $country = (string) ($data->shippingAddress()['country'] ?? 'ID');
         $customer->forceFill([
             'name' => $customer->name ?: $data->get('name'),
             'phone' => $customer->phone ?: Phone::normalize($data->phone(), $country),
             'locale' => $customer->locale ?? app()->getLocale(),
         ]);
-        if ($data->get('accepts_marketing') && ! $customer->accepts_marketing) {
-            $customer->forceFill(['accepts_marketing' => true, 'marketing_consent_at' => now()]);
-        }
         $customer->save();
 
-        if ($user !== null && $data->get('save_address') && $data->shippingAddress() !== null && ! $data->isPickup()) {
+        if ($data->get('save_address') && $data->shippingAddress() !== null && ! $data->isPickup()) {
             app(SaveAddress::class)->fromCheckout($customer, $data);
         }
 
         return $customer;
-    }
-
-    /**
-     * A customer account made at checkout. An email that already has an
-     * account gets no new one (the order stays a guest order, linked once
-     * that email is verified).
-     */
-    protected function createAccount(CheckoutData $data, string $password): ?Authenticatable
-    {
-        $model = Staff::userModel();
-        $email = (string) $data->email();
-        if ($model::query()->where('email', $email)->exists()) {
-            return null;
-        }
-        $user = $model::query()->create(['name' => $data->get('name'), 'email' => $email, 'password' => Hash::make($password)]);
-        app(AssignCustomerRole::class)->handle($user);
-        // Confirmed with the checkout code already: verified now, no link to follow.
-        $confirmed = app(VerifiedAccountCheckout::class)->verifiedEmail() === $email;
-        if ($confirmed) {
-            $user->forceFill(['email_verified_at' => now()])->save();
-        }
-        $verify = $this->settings->get('accounts.verify_email', true) && ! $confirmed;
-        DB::afterCommit(function () use ($user, $verify): void {
-            event(new Registered($user));
-            if ($verify) {
-                $user->notify(new VerifyCustomerEmail(app()->getLocale()));
-            } else {
-                auth()->guard((string) config('commerce.auth.guard', 'commerce'))->login($user);
-            }
-        });
-
-        return $verify ? null : $user;
-    }
-
-    /**
-     * The account a guest order joins: only one whose email is verified,
-     * so registering someone else's address doesn't collect their orders
-     * (LinkGuestOrders adds them once the email is verified).
-     */
-    protected function verifiedAccountId(Customer $customer): ?int
-    {
-        $user = $customer->user();
-
-        return $user !== null && $user->getAttribute('email_verified_at') !== null ? (int) $user->getAuthIdentifier() : null;
     }
 
     /** @param  array<string, string|null>  $client */
@@ -322,7 +249,7 @@ class PlaceOrder
             'channel' => 'storefront',
             'selling_mode' => $this->mode->mode(),
             'customer_id' => $customer->id,
-            'user_id' => $user?->getAuthIdentifier() ?? $this->createdAccountId ?? $this->verifiedAccountId($customer),
+            'user_id' => $user?->getAuthIdentifier(),
             'email' => $data->email(),
             'phone' => Phone::normalize($data->phone(), $country) ?? $data->phone(),
             'customer_name' => $data->get('name'),
@@ -344,7 +271,7 @@ class PlaceOrder
             'customer_note' => $this->settings->get('checkout.order_notes', true) ? $data->get('notes') : null,
             'dropship' => $this->settings->get('checkout.dropshipper', false) && $data->dropship()['enabled'] ? $data->dropship() : null,
             'fields' => $data->fields() ?: null,
-            'meta' => ['placed_as_guest' => $user === null, 'checkout_account_requested' => $user === null && $this->validator->createsAccount($data), ...array_filter(['checkout_cart_id' => $draft ? $cart->id : null, 'codes' => $state->appliedCodes ?: null, 'pickup' => $data->isPickup() ? ($rate['meta']['location'] ?? null) : null,
+            'meta' => [...array_filter(['checkout_cart_id' => $draft ? $cart->id : null, 'codes' => $state->appliedCodes ?: null, 'pickup' => $data->isPickup() ? ($rate['meta']['location'] ?? null) : null,
                 // Shipped from somewhere else than the store (an extension's origin): carriers book it from there.
                 'shipping_origin' => $state->shipping['needed'] && ! $data->isPickup() ? app(ShippingOrigins::class)->custom($state)?->toArray() : null])],
             'ip_address' => $client['ip_address'] ?? null,

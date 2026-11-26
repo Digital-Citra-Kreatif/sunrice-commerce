@@ -44,7 +44,6 @@ class ProductViewFactory
         protected CallToAction $cta,
         protected MoneyFormatter $money,
         protected Inventory $inventory,
-        protected Catalog $catalog,
     ) {}
 
     /**

@@ -13,9 +13,6 @@ namespace Sunrice\Commerce\Database\Seeders\Starter;
  */
 final class Artwork
 {
-    /** The garment shapes, drawn on a 600 × 750 canvas. */
-    public const SHAPES = ['tee', 'knit', 'shirt', 'jacket', 'trousers', 'shorts', 'skirt', 'cap', 'tote', 'socks', 'book', 'stack', 'card'];
-
     /** A product shot: the garment centred. */
     public static function product(string $shape, string $fill): string
     {

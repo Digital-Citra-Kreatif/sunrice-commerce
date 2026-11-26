@@ -36,7 +36,7 @@ it('treats visitors with a cart, wishlist, comparison or account as personal', f
     $comparing->session()->put('commerce.compare', [$this->mug->product_id]);
     expect(PageCache::personal($comparing))->toBeTrue();
 
-    $this->actingAs(User::query()->create(['name' => 'Ana', 'email' => 'ana@example.com', 'password' => bcrypt('secret-pass')]), 'commerce');
+    $this->actingAs(User::query()->create(['name' => 'Ana', 'email' => 'ana@example.com', 'password' => bcrypt('secret-pass')]), 'account');
     expect(PageCache::personal($request()))->toBeTrue();
 });
 

@@ -13,7 +13,6 @@ use Sunrice\Cms\Models\Term;
 use Sunrice\Commerce\Admin\SchemaForm;
 use Sunrice\Commerce\Catalog\ProductContentFields;
 use Sunrice\Commerce\Catalog\ProductDefaults;
-use Sunrice\Commerce\Checkout\VerifiedAccountCheckout;
 use Sunrice\Commerce\Features\Actions\ToggleFeature;
 use Sunrice\Commerce\Settings\SettingsRegistry;
 use Sunrice\Commerce\Settings\SettingsSection;
@@ -37,7 +36,6 @@ final class BuiltinSections
             'quote_number_format' => [self::formatRule()],
         ]));
         $registry->register(new SettingsSection('taxes', 'Taxes', fn () => self::taxes(), feature: 'taxes', position: 50));
-        $registry->register(new SettingsSection('accounts', 'Accounts', fn () => self::accounts(), feature: 'accounts', position: 60));
         $registry->register(new SettingsSection('loyalty', 'Loyalty', fn () => self::loyalty(), feature: 'loyalty', position: 65));
         $registry->register(new SettingsSection('digital', 'Digital products', fn () => self::digital(), feature: 'digital', permission: 'commerce.settings.catalog', position: 25));
         $registry->register(new SettingsSection('documents', 'Documents', fn () => self::documents(), feature: 'documents', position: 80, rules: [
@@ -228,19 +226,6 @@ final class BuiltinSections
         $resets = self::options(['never' => 'Never', 'yearly' => 'Every year', 'monthly' => 'Every month', 'daily' => 'Every day']);
 
         return [
-            ['handle' => 'access', 'type' => 'select', 'label' => 'Who can check out',
-                'instructions' => 'A confirmed email needs a working mail setup: shoppers get an eight-digit code by email.',
-                'config' => ['default' => app(VerifiedAccountCheckout::class)->mode(), 'options' => self::options([
-                    'guest' => 'Anyone, as a guest or signed in',
-                    'guest_verified' => 'Anyone, after confirming their email with a code (no account needed)',
-                    'account' => 'Only customers who sign in to an account',
-                    'verified_account' => 'Only verified accounts: the code signs in or creates an account for every buyer',
-                ])]],
-            ['handle' => 'create_account', 'type' => 'select', 'label' => 'Accounts at checkout', 'instructions' => 'For shoppers who aren\'t signed in.',
-                'condition' => ['match' => 'any', 'rules' => [['field' => 'access', 'operator' => 'equals', 'value' => 'guest'], ['field' => 'access', 'operator' => 'equals', 'value' => 'guest_verified']]],
-                'config' => ['options' => self::options([
-                    'never' => "Don't offer", 'offer' => 'Offer to create one', 'always' => 'Always create one',
-                ])]],
             ['handle' => 'quote_requests', 'type' => 'select', 'label' => 'Customers can also request a quote',
                 'instructions' => 'In Online store mode: checkout shows "Request a quote" beside Place order, sending the cart as a quote request you price and send. In Quotation mode every checkout is one.',
                 'config' => ['default' => 'off', 'options' => self::options(['off' => 'No', 'everyone' => 'Everyone', 'roles' => 'Customers with certain roles'])]],
@@ -303,28 +288,6 @@ final class BuiltinSections
                 'instructions' => 'From when a code is made. 0: any time.', 'config' => ['min' => 0, 'max' => 3650], 'validation' => ['integer', 'min:0', 'max:3650']],
             ['handle' => 'gift_card_points_expiry_days', 'section' => 'Gift cards', 'type' => 'number', 'label' => 'Points from a gift card expire after (days)',
                 'instructions' => 'From when the code is redeemed; separate from the points customers earn. 0: never.', 'config' => ['min' => 0, 'max' => 3650], 'validation' => ['integer', 'min:0', 'max:3650']],
-        ];
-    }
-
-    /** @return array<int, array<string, mixed>> */
-    protected static function accounts(): array
-    {
-        $roles = Role::query()->orderBy('name')->pluck('name')->map(fn (string $r) => ['value' => $r, 'label' => $r])->all();
-
-        return [
-            ['handle' => 'registration', 'type' => 'toggle', 'label' => 'Customers can register'],
-            ['handle' => 'verify_email', 'type' => 'toggle', 'label' => 'Verify email addresses'],
-            ['handle' => 'require_phone', 'type' => 'toggle', 'label' => 'Ask for a phone number at registration'],
-            ['handle' => 'customer_roles', 'type' => 'select', 'label' => 'Customer roles', 'required' => true,
-                'instructions' => 'Roles given to new customers, and counted as customers in Shop → Customers.', 'config' => ['options' => $roles, 'multiple' => true]],
-            ['handle' => 'code_minutes', 'type' => 'number', 'label' => 'Sign-in codes are valid for (minutes)', 'config' => ['min' => 5, 'max' => 60], 'validation' => ['integer']],
-            ['handle' => 'announcement_enabled', 'section' => 'Account announcement', 'type' => 'toggle', 'label' => 'Show an announcement in My Account'],
-            ['handle' => 'announcement_position', 'section' => 'Account announcement', 'type' => 'select', 'label' => 'Placement',
-                'instructions' => 'The first tab becomes the page customers land on. The other placements show on account pages.',
-                'config' => ['options' => self::options(['tab' => 'First tab (default page)', 'above' => 'Above page content', 'below' => 'Below page content'])]],
-            SchemaForm::perLanguage('announcement_title', 'Title', 'text', 120, ['section' => 'Account announcement']),
-            SchemaForm::perLanguage('announcement_message', 'Message', 'textarea', 3000, ['section' => 'Account announcement',
-                'instructions' => 'Enter the announcement in the main language. Other languages can use their own version.']),
         ];
     }
 

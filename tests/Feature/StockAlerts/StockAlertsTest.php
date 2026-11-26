@@ -63,7 +63,7 @@ it('emails everyone waiting once the variant can be ordered again, and only once
 
 it('takes alerts from signed-in customers without asking their email, and shows staff who waits', function () {
     $user = User::query()->create(['name' => 'Ana', 'email' => 'ana@example.com', 'password' => 'secret-pass', 'email_verified_at' => now()]);
-    $this->actingAs($user, 'commerce');
+    $this->actingAs($user, 'account');
     $this->get('/products/mug')->assertDontSee('name="email"', false);
     $this->post('/stock-alerts', ['variant' => $this->mug->id])->assertSessionHasNoErrors();
     expect(StockAlert::query()->sole())->email->toBe('ana@example.com')->customer_id->toBe(Customer::forUser($user)->id);

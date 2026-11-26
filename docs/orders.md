@@ -178,7 +178,7 @@ The order page shows, by panel:
   bundle components.
 - **Totals**: subtotal, discount, shipping, fees, tax (included or added), total, paid, refunded,
   and every adjustment with its label and code.
-- **Customer**: name, email, phone, guest or account, link to the customer.
+- **Customer**: name, email, phone, account or not (a manual order for an email without one), link to the customer.
 - **Addresses**, shipping method, pickup location, customer note, dropshipper and extra fields.
 - **Payments** and **payment confirmations** (with the proof for `commerce.payments.verify`).
 - **Shipments**, **refunds**, **downloads** (digital access, which staff can manage).
@@ -206,7 +206,9 @@ Actions, each with its permission:
 Staff create an order for a customer, for example from a chat (`commerce.orders.create`,
 `Orders\Actions\CreateManualOrder`):
 
-- the customer: an existing one, or an email (and name, phone);
+- the customer: an existing one, or an email (and name, phone). An email without an account gets a
+  customer record without one; the order joins the account once someone signs in with that
+  address verified, and its pages can't be opened by the customer before then;
 - lines: variants and quantities; a unit price per line needs `commerce.orders.override-prices`;
 - addresses, a hand-set shipping label and cost, and a discount;
 - the payment status: `unpaid` (optionally with a payment method and "send the payment link") or
@@ -311,17 +313,13 @@ refused for orders that received a payment, so the books stay complete.
 ## The customer's side
 
 - **Order page** `/order/{key}` (`commerce.order`) and the pay, invoice, payment confirmation,
-  cancellation and quote routes require the signed-in order owner or an authorized guest session.
-  The key in the URL identifies the order. The response uses private, no-store caching.
-- **Track order** `/track-order` (`commerce.track-order`): a guest enters the order number and
-  email, then the eight-digit code sent to that email. The code expires after 10 minutes and
-  authorizes that browser for the selected order for one hour. A guest checkout can open
-  its new order and payment page immediately in the same browser, including when the order
-  joins an existing verified account. Email recovery for that linked order requires the order
-  email to still match the verified account email. The store uses the tracking page in emails
-  for guest checkouts.
-- **My Account** → Orders and Quotes: the signed-in customer's own orders (guest orders join once
-  the email is verified), the same order page, "buy again" (adds the lines to the cart) and cancel.
+  cancellation and quote routes are for the order's account, signed in (`Orders\OrderAccess`).
+  The key in the URL names the order; it never opens it by itself. A visitor is sent to sign in
+  and comes back; anyone else gets 404. The response uses private, no-store caching.
+- **Emails** about an order link to its page in My Account (`/account/orders/{id}`).
+- **My Account** → Orders and Quotes: the signed-in customer's own orders, the same order page,
+  "buy again" (adds the lines to the cart) and cancel. An order staff made for an email without
+  an account joins the account once someone signs in with that address verified.
   Orders can be searched by order number or product name and filtered by order status and date.
   Filters stay on when paging through the results. See [My Account](accounts.md#my-account).
 - **Cancelling**: with `checkout.customer_cancel` on (default), a customer can cancel an order

@@ -186,7 +186,7 @@ How it works:
   left, the line is priced at the regular price, with a notice. When the cap is used up, the item is
   back at its regular price, on listings too.
 - **Per customer.** Units already bought at the sale price are counted from the customer's orders
-  (by account, or by email or phone for guests; cancelled and expired orders don't count). If a line
+  (by account, or by email or phone for a customer without one; cancelled and expired orders don't count). If a line
   would go over the limit, the line is priced at the regular price, with a notice.
 - **Reservation.** Sale units are counted when the order is placed, in one atomic step, so a cap
   can't be oversold: if the cap filled up meanwhile, checkout refuses the order. A cancelled or

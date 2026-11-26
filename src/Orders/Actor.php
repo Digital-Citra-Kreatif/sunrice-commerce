@@ -10,8 +10,6 @@ use Sunrice\Commerce\Support\Staff;
 /** Who changed an order, for the timeline: staff, the customer, the system, a gateway or AI. */
 final class Actor
 {
-    public const SOURCES = ['admin', 'storefront', 'system', 'ai', 'gateway'];
-
     public function __construct(
         public readonly string $source = 'system',
         public readonly ?int $userId = null,
@@ -45,10 +43,5 @@ final class Actor
     public static function ai(?Authenticatable $user = null, ?string $via = null): self
     {
         return new self('ai', $user === null ? null : (int) $user->getAuthIdentifier(), $via ?? $user?->getAttribute('name'));
-    }
-
-    public function isStaff(): bool
-    {
-        return in_array($this->source, ['admin', 'ai'], true);
     }
 }

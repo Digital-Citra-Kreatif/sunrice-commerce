@@ -226,7 +226,6 @@ Access is **gated** at runtime:
 | --- | --- |
 | Storefront and admin routes | Middleware `commerce.feature:vouchers` → 404 when inactive |
 | Admin navigation items | `can: fn ($user) => Features::active('orders') && $user->can('commerce.orders.view')` |
-| Policies | Commerce policies extend `FeatureGatedPolicy`; its `before()` returns `false` when the module is inactive |
 | Blade | `@commerceFeature('wishlist') … @endcommerceFeature`; components render nothing when inactive |
 | Listeners | `Listeners\Concerns\RunsWhenActive` (`protected string $feature`) skips the handler |
 | Schedules | `->when(fn () => Features::active('flash_sales'))` |
@@ -251,7 +250,7 @@ binds the active implementation or a null implementation:
 | `Payments\PaymentManager` | registered methods | Offers no methods (only when the selling mode doesn't need them) |
 | `Documents\Documents` | dompdf renderer | Document links hidden; email attachments skipped |
 | `Digital\Delivery` | grants and deliveries | Nothing granted (existing grants keep working) |
-| `Customers\CurrentCustomer` | the `commerce` guard user | Always a guest |
+| `Customers\CurrentCustomer` | the account package's guard user (`SiteGuard::name()`) | Always a guest |
 | `Analytics\Tracking` | daily counters | Does nothing |
 
 Bindings are scoped (resolved per request through a factory that consults `Features`). Queue
@@ -279,10 +278,10 @@ workers reset them for each job, like Sunrice does for settings.
 
 - Stored as one row in `sunrice_settings` with key `commerce`, read through `Setting::get()` once per
   request and cached in the app cache under `commerce:settings` until saved.
-- `StoreSettings` is a typed accessor: `StoreSettings::current()->get('checkout.guest_checkout')`.
+- `StoreSettings` is a typed accessor: `StoreSettings::current()->get('checkout.minimum_order')`.
   Defaults come from `config/commerce.php`, so config and `.env` act as defaults, the same as
   Sunrice's site settings.
-- **Secrets never go in settings.** Google client secret, gateway keys and carrier keys stay in
+- **Secrets never go in settings.** Gateway keys and carrier keys stay in
   `.env` and config.
 - **Sections**:
   - Each section is a `SettingsSection` with a key, label, permission (`commerce.settings.<key>`),
@@ -474,9 +473,7 @@ Index `(variant_id)`, `(product_id)`.
 `district`, `village` (names), `state` (non-ID), `postal_code`, `line1`, `line2`, `notes`,
 `default_shipping`, `default_billing`.
 
-One-time sign-in codes use `spatie/laravel-one-time-passwords`' own `one_time_passwords` table
-(`password`, `origin_properties`, `expires_at`, morphs `authenticatable`), published and migrated
-by `commerce:install`.
+Sign-in codes, Google links and account profiles are `sunrice/account`'s tables.
 
 **`commerce_social_accounts`**: `user_id` (indexed), `provider`, `provider_id`, `email`, `avatar`.
 Unique `(provider, provider_id)`.
@@ -1259,7 +1256,6 @@ interface ShippingMethodType
 }
 
 interface TracksShipments { public function track(Shipment $shipment): TrackingInfo; }
-interface BooksShipments  { public function book(Order $order, Shipment $shipment): BookingResult; }
 ```
 
 - **`ShippingRequest`** carries:
@@ -1303,77 +1299,45 @@ interface BooksShipments  { public function book(Order $order, Shipment $shipmen
 
 ## 16. Customers and authentication
 
-### 16.1 The `commerce` guard
+### 16.1 Accounts come from `sunrice/account`
 
-- In `register()`, if `auth.guards.{commerce.auth.guard}` (default `commerce`) is not defined, the
-  provider adds `['driver' => 'session', 'provider' => <the provider of sunrice.auth.guard>]`. The
-  storefront therefore uses the same user table as the admin but a different session key and
-  remember cookie.
-- Roles stay on Sunrice's guard. The Customer role is created with
-  `guard_name = sunrice.auth.guard`, and spatie checks permissions by the model's default guard,
-  so `$user->can()` works whichever guard signed the user in.
-- `CurrentCustomer` resolves `Auth::guard('commerce')->user()` to a `Customer`, creating the
-  customer row on first use. Guests resolve to `null`.
-- Middleware `commerce.auth` redirects guests to `/account/login`.
-- **Shared-guard mode** (`commerce.auth.guard` = `sunrice.auth.guard`): `EnsureNotStaff` refuses
-  code and Google sign-ins for users who `can('sunrice.access')`.
-- **Signing out** of the storefront regenerates the session id and logs out the `commerce` guard
-  only. It doesn't invalidate the whole session, so the admin sign-in and the cart cookie survive.
+- Commerce requires the Accounts plugin (`CommercePlugin::requires()` includes
+  `AccountPlugin::ID`). Sign-in, registration, the emailed code, Google, verification, password
+  reset, the profile, the My Account menu, the account emails and Settings → Accounts are that
+  package's.
+- The signed-in customer is its session guard (`Sunrice\Account\Auth\SiteGuard::name()`, default
+  `account`), on the same user table as the admin with a different session.
+  `CurrentCustomer::guard()` returns it, and `commerce_customer()` reads it.
+- Roles stay on Sunrice's guard, and spatie checks permissions by the model's default guard, so
+  `$user->can()` works whichever guard signed the user in. New accounts get the account package's
+  default roles.
+- `CurrentCustomer` resolves the guard's user to a `Customer`, creating the customer row on first
+  use. Visitors resolve to `null`.
+- Customer pages use the account package's middleware: `sunrice.account.auth` (and
+  `sunrice.account.verified` for checkout).
 
-### 16.2 Sign-in flows
+### 16.2 What commerce hangs on the account package
 
-- **Password**: `LoginCustomer` uses the `commerce-login` throttle, keyed like Sunrice's
-  `LoginThrottle` (email+IP, IP, account).
-- **Password reset**: Laravel's broker (`auth.passwords.users`) with commerce's own notification
-  and storefront URL:
-  `Password::broker()->sendResetLink([...], fn ($user, $token) => $user->notify(new CustomerResetPassword($token)))`.
-- **Email verification**: commerce's own signed route (`/account/verify/{id}/{hash}`), setting
-  `email_verified_at` on the user. The host model doesn't need `MustVerifyEmail`.
-- **One-time code** (`passwordless_login`), with `spatie/laravel-one-time-passwords` (PHP 8.4). The
-  host user model uses its `HasOneTimePasswords` trait; `commerce:install` adds it, and store health
-  reports it when missing.
-  1. **Request** (`RequestLoginCode`, throttled `commerce-login-code`: 1/min per email, 10/hour per
-     IP):
-     - finds the user by email;
-     - calls `$user->createOneTimePassword(minutes: settings 'accounts.code_minutes', default 10)`
-       (only one active code per user);
-     - sends commerce's own `CustomerLoginCode` notification (storefront branding, the customer's
-       language).
-
-     Commerce does not change the package's global `notification` config, so a host app can keep
-     using the package for its own purposes. Unknown emails get the same response, with a "Create
-     an account" link.
-  2. **Consume** (`ConsumeLoginCode`):
-     - calls `$user->consumeOneTimePassword($code)`, which compares in constant time, enforces the
-       same IP and user agent, allows 5 tries per minute, and deletes the code when used;
-     - on `Ok`, signs in with `Auth::guard('commerce')->login($user, $remember)`, marks the email
-       verified and runs `LinkGuestOrders`;
-     - maps other results (`IncorrectOneTimePassword`, `OneTimePasswordExpired`, `DifferentOrigin`,
-       `RateLimitExceeded`, `NoOneTimePasswordsFound`) to commerce's own Indonesian and English
-       messages.
-
-     **Never** call the package's `attemptLoginUsingOneTimePassword()`: it uses `auth()->login()`,
-     the default guard, which is the admin's guard.
-  3. **Passwordless registration**: name and email (plus phone if required) create an unverified
-     user with the Customer role; the code from step 1 then verifies and signs in.
-- **Google** (`google_login`, `laravel/socialite`):
-  1. `/account/login/google` redirects to Google; the callback (one fixed URL, without a language
-     prefix) reads the Google user.
-  2. A link in `commerce_social_accounts` signs that user in.
-  3. Otherwise, a verified Google email matching a user links and signs in; otherwise a user is
-     created (if registration is open) with the Customer role and `email_verified_at`.
-- `LinkGuestOrders` runs after any verified-email event and sets `customer_id` / `user_id` on past
-  guest orders with that email.
+- **`Registered`**: the account gets its `Customer` record.
+- **`SignedIn`** (`Customers\Listeners\MergeOnSignIn`): the visitor's cart and wishlist merge into
+  the customer's, and orders staff made for the address before it had an account get its
+  `user_id` once the address is verified.
+- **`Anonymized`**: `AnonymizeCustomer` clears the store's records.
+- **My Account**: `Account::routes()` registers `routes/account.php` under the account prefix,
+  `Account::page()` adds the menu entries, and `Account::landingUsing()` opens Orders.
+- **Every order belongs to an account**: checkout is behind `sunrice.account.auth` and
+  `sunrice.account.verified`, and `Orders\OrderAccess` opens an order's pages for its signed-in
+  account only. There are no guest orders, no order lookup and no checkout codes.
 
 ### 16.3 Customers in the admin
 
-- With **U3**, the provider registers `Sunrice::usersQueryUsing()`. It hides users whose roles are
-  all customer roles (`accounts.customer_roles`, default `[Customer]`), so Users lists staff only.
+- The app's panel provider uses the account package's `AccountUserResource`, so Users lists staff
+  only.
 - Shop → Customers works on `commerce_customers` joined to users.
 - `AnonymizeCustomer` does the following, logged:
-  - replaces name, email and phone with placeholders on the customer, the user (if any, also
-    disabling sign-in) and the orders' snapshots;
-  - deletes addresses, wishlists, tokens and social links;
+  - replaces name, email and phone with placeholders on the customer and the orders' snapshots
+    (the user is the account package's `AnonymizeAccount`, whose `Anonymized` event runs this);
+  - deletes addresses and wishlists;
   - keeps money columns and items.
 
 ## 17. Digital delivery
@@ -1390,7 +1354,7 @@ interface BooksShipments  { public function book(Order $order, Shipment $shipmen
   - the account library lists the grants of the signed-in customer's orders.
 - **`DownloadController`**:
   - checks the token, revocation, expiry and remaining count. Possession of a valid token is
-    sufficient for access, including for guests;
+    sufficient for access, without signing in;
   - updates the count atomically and logs the request before serving the file or redirecting;
   - streams from the disk (`Storage::download`, or a 5-minute `temporaryUrl()` redirect when the
     disk supports it);
@@ -1430,14 +1394,13 @@ interface BooksShipments  { public function book(Order $order, Shipment $shipmen
   `Commerce::registerEmail()`):
   - customer: `order_received`, `payment_confirmation_received`, `payment_rejected`,
     `payment_received`, `order_shipped`, `order_completed`, `order_cancelled`, `order_refunded`,
-    `customer_note`, `downloads_ready`, `quote_received`, `quote_ready`, `account_welcome`,
-    `verify_email`, `login_code`, `password_reset`;
+    `customer_note`, `downloads_ready`, `quote_received`, `quote_ready`;
   - staff: `staff_new_order`, `staff_payment_confirmation`, `staff_order_cancelled`,
-    `staff_new_quote`, `staff_low_stock`, `staff_out_of_stock`, `staff_deletion_request`.
+    `staff_new_quote`, `staff_low_stock`, `staff_out_of_stock`.
 - **Settings → Emails** shows each email: switch, recipients (staff), subject and heading per
   language, attachments, a preview rendered with the latest order (or a sample) and "send test".
-- Account security emails (`verify_email`, `login_code`, `password_reset`) can't be switched off
-  while their feature is active.
+- The account emails (welcome, verification, sign-in code, password reset) are the account
+  package's, set up in Settings → Accounts.
 
 ## 20. Analytics
 
@@ -1560,7 +1523,7 @@ interface BooksShipments  { public function book(Order $order, Shipment $shipmen
 | File | Contents |
 | --- | --- |
 | `routes/storefront.php` | Store pages; localized; `web` + `SetFrontendLocale` |
-| `routes/account.php` | `/account/*`; localized; `commerce.auth` where needed |
+| `routes/account.php` | The store's My Account pages, registered with `Account::routes()` under the account prefix; localized; signed-in accounts |
 | `routes/api.php` | JSON for `commerce.js`: `/commerce/api/*`; `web` group (session + CSRF); throttled |
 | `routes/webhooks.php` | `/commerce/webhooks/{method}`; stateless (§13.3) |
 
@@ -1571,9 +1534,8 @@ interface BooksShipments  { public function book(Order $order, Shipment $shipmen
   current language.
 - The routes are registered in `boot()`, so they win over Sunrice's `Route::fallback`. Paths come
   from `commerce.storefront.paths` and can be changed per site:
-  - `cart`, `checkout`, `order/{key}`, `order/{key}/pay`, `confirm-payment`, `track-order`,
-    `quote/{key}`;
-  - `account/…`, `wishlist`, `wishlist/shared/{token}`, `compare`, `brands`, `flash-sale` and
+  - `cart`, `checkout`, `order/{key}`, `order/{key}/pay`, `confirm-payment`, `quote/{key}`;
+  - `wishlist`, `wishlist/shared/{token}`, `compare`, `brands`, `flash-sale` and
     `flash-sale/{sale}`;
   - `downloads/{token}`, `go/{type}/{entry}`.
 
@@ -1615,12 +1577,11 @@ resources/views/sunrice/products/index.blade.php           Shop page (collection
 resources/views/sunrice/taxonomies/product_categories/show.blade.php
 resources/views/sunrice/taxonomies/brands/show.blade.php
 resources/views/sunrice/taxonomies/product_tags/show.blade.php
-resources/views/commerce/{cart,checkout,order,pay,confirm-payment,track-order,brands,
+resources/views/commerce/{cart,checkout,order,pay,confirm-payment,brands,
                           flash-sale,flash-sales,wishlist,compare}.blade.php
                           (quotes use order.blade.php)
-resources/views/commerce/account/{layout,overview,orders,quotes,order,downloads,addresses,
-                                  profile,login,register,code,forgot-password,
-                                  reset-password}.blade.php
+resources/views/commerce/account/{layout,orders,quotes,order,downloads,addresses,
+                                  points}.blade.php
 resources/views/commerce/partials/{product-card,products,price,buy,variant-picker,stock,
                                    badges,cta,inquiry-form,mini-cart,cart,totals,filters,
                                    address-fields,checkout-field,checkout-summary,
@@ -1702,7 +1663,7 @@ Read-side helpers are public too: `Commerce::features()`, `Commerce::settings()`
 | Contract | For |
 | --- | --- |
 | `Payments\Contracts\PaymentMethod` (+ `HandlesReturn`, `HandlesWebhooks`, `SupportsRefunds`, `SupportsCancel`, `SupportsStatusCheck`) | Gateways (§13.1) |
-| `Shipping\Contracts\ShippingMethodType` (+ `TracksShipments`, `BooksShipments`) | Couriers (§14.1) |
+| `Shipping\Contracts\ShippingMethodType` (+ `TracksShipments`) | Couriers (§14.1) |
 | `Pricing\Contracts\PriceCandidateProvider` | Member prices, price lists |
 | `Pricing\Contracts\DiscountProvider` (+ `ReservesDiscounts`) | Loyalty points, gift cards, cashback |
 | `Pricing\Contracts\CalculationStage` | Extra fees, rounding rules |
@@ -1764,7 +1725,7 @@ small value objects):
 | Orders | `OrderPlaced`, `OrderStatusChanged`, `OrderPaid`, `OrderOnHold`, `OrderCancelled`, `OrderCompleted`, `OrderRefunded`, `OrderEdited`, `OrderNoteAdded`, `ShipmentCreated`, `ShipmentDelivered` |
 | Quotes | `QuoteRequested`, `QuoteSent`, `QuoteAccepted`, `QuoteDeclined`, `QuoteExpired` |
 | Payments | `PaymentStarted`, `PaymentSucceeded`, `PaymentFailed`, `PaymentExpired`, `PaymentConfirmationSubmitted`, `PaymentConfirmationApproved`, `PaymentConfirmationRejected` |
-| Customers | `CustomerRegistered`, `CustomerSignedIn` (method), `CustomerEmailVerified`, `CustomerUpdated`, `AccountDeletionRequested`, `CustomerAnonymized` |
+| Customers | The account package's `Registered`, `SignedIn`, `Verified`, `Anonymized`… |
 | Digital | `DownloadsGranted`, `DownloadAccessed` |
 | Promotions | `VoucherRedeemed`, `VoucherReleased`, `FlashSaleStarted`, `FlashSaleEnded` |
 | Settings | `StoreSettingsSaved`, `FeatureToggled` |
@@ -1799,10 +1760,9 @@ small value objects):
 
 - **Authorization**: every admin route and MCP tool authorizes with commerce permissions.
   Policies cover models: orders, customers, vouchers, flash sales, rules, confirmations, downloads,
-  documents. All extend `FeatureGatedPolicy`.
-- **Customers' own data**: account routes check `customer_id` ownership. Guests can reach an order
-  only through `order_key` (40 random characters; lookups need the number plus email, and are
-  rate-limited).
+  documents.
+- **Customers' own data**: account routes check ownership. An order's pages (`order_key`, 40
+  random characters) open only for the order's signed-in account.
 - **Input**:
   - Form requests whitelist fields, and models use `$fillable`.
   - Prices, totals and discounts are never read from input. Staff overrides are separate, permission
@@ -1812,9 +1772,8 @@ small value objects):
     stored as-is and served with `Content-Disposition: attachment`.
   - Digital files are admin uploads on private disks, served only through tokens.
   - Nothing user-uploaded is ever served from a public disk.
-- **Rate limits**: `commerce-login`, `commerce-login-code`, `commerce-register`,
-  `commerce-voucher`, `commerce-cart` (60/min), `commerce-checkout` (10/min), `commerce-confirm`
-  (5/min), `commerce-lookup` (5/min), `commerce-webhooks`.
+- **Rate limits**: `commerce-voucher`, `commerce-cart` (60/min), `commerce-checkout` (10/min), `commerce-confirm`
+  (5/min), `commerce-webhooks`. Sign-in and registration limits are the account package's.
 - **Honeypot** (`spatie/laravel-honeypot`) on public forms, plus captcha (U13) when configured.
 - **Redirects**: `/go/*` only redirects to the product's stored links or `wa.me` with configured
   numbers. Return URLs after sign-in must be relative.
@@ -1875,7 +1834,6 @@ small value objects):
 | Queue | `QUEUE_CONNECTION=sync` (warning) or the heartbeat job hasn't run for 10 minutes |
 | Scheduler | `commerce:tick` hasn't run for 5 minutes |
 | Regions | Store country is ID but no regions are imported |
-| Sign-in | `google_login` active without client id or secret; `passwordless_login` active but the user model lacks `HasOneTimePasswords` |
 | Products | `sync_status = failed` count |
 | Cache | `sunrice.cache.full_page` on without U11 |
 | Upstream | A Sunrice version without the required U-items for an active feature |
@@ -1915,8 +1873,8 @@ have fallbacks.
 | Where products live | Sunrice entries + commerce projection tables | Commerce-only product tables with their own admin | SEO, translations, revisions, templates, sitemap, search and editor features come free; matches Sunrice's packages guide |
 | Where product data is edited | A field in the entry (drafted, published) projected on publish | Immediate commerce endpoints from a panel | One Save/Publish model in one editor; works for new entries; previewable; revisions cover price mistakes. Stock stays immediate |
 | Purchasability | Always read from Sunrice | Mirroring status into commerce tables | Deleted collections, schedules and trash have no per-entry events; mirroring would drift |
-| Customer identity | Host users + Customer role + commerce customer record; guests get records too | A separate customers table and model | The user asked for roles; one identity for staff who shop; roles drive pricing and price visibility |
-| Customer sessions | Separate `commerce` guard on the same users provider | Sharing the admin guard | Link/code/Google sign-in on the storefront must never open the admin or bypass its two-factor login |
+| Customer identity | Host users (accounts of `sunrice/account`) + commerce customer record; every order belongs to an account | A separate customers table and model | The user asked for roles; one identity for staff who shop; roles drive pricing and price visibility |
+| Customer sessions | The account package's guard on the same users provider | Sharing the admin guard | Code and Google sign-in on the storefront must never open the admin or bypass its two-factor login |
 | Order states | Three dimensions (status, payment, fulfilment) | A single WooCommerce-style status | Each dimension has one meaning; fewer combined states; clearer UI and reports |
 | Stock timing | Reserve at placement, release on cancel/expiry with payment deadlines | Reserve at payment | Prevents overselling with manual transfers; one rule for every method |
 | Price conflicts | Best price wins, no stacking between unit-price sources; discounts after | Priority-ordered stacking | Predictable for staff and customers; easy to explain |
@@ -1924,6 +1882,6 @@ have fallbacks.
 | Money | Integers in minor units, own formatter | brick/money, moneyphp, intl | Exact arithmetic is simple here; avoids 0.x API churn and IDR's two-decimal ISO default |
 | Regions | Vendored cahyadsn data (2025 decree), our own table | laravolt/indonesia | Newer decree, clean names, no cache flush side effects; one table keyed by official codes |
 | PDF | dompdf behind a contract | Browsershot/Chrome, mPDF (GPL) | Pure PHP, installs anywhere; swappable |
-| Passwordless | `spatie/laravel-one-time-passwords` (codes only), commerce raises its PHP floor to 8.4 | Built in (signed URL + hashed code), magic-link packages | Maintained, reputable, constant-time checks, same-origin enforcement and rate limiting built in. 8.4 is within Laravel 13's range and also enables Sunrice's full-page cache. Codes only: a link would work on any device |
+| Accounts | `sunrice/account` (sign-in, emailed codes, Google, My Account), commerce's PHP floor is 8.4 | Commerce's own sign-in, guard and account pages | One account system for the site and the store; commerce keeps only the store's records and pages |
 | Settings storage | One `commerce` row in `sunrice_settings` | A commerce settings table | Same mechanism and caching as Sunrice's site settings |
 | MCP | Tools on Sunrice's server | A second MCP server | One token, one permission model, one activity log |

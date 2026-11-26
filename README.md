@@ -1,19 +1,30 @@
 # Sunrice Commerce
 
-An e-commerce package for [Sunrice CMS](https://github.com/Digital-Citra-Kreatif/sunrice-cms): catalog (simple, variable, bundle, physical, digital products), cart and checkout, orders, payments (bank transfer with confirmation, QRIS, COD, gateway packages), shipping (zones, Indonesian regions), promotions (pricing rules, flash sales, vouchers), customer accounts (password, one-time codes, Google), invoices and packing slips, store analytics and MCP tools — with every feature switchable from Settings → Store.
+An e-commerce package for [Sunrice CMS](https://github.com/Digital-Citra-Kreatif/sunrice-cms): catalog (simple, variable, bundle, physical, digital products), cart and checkout, orders, payments (bank transfer with confirmation, QRIS, COD, gateway packages), shipping (zones, Indonesian regions), promotions (pricing rules, flash sales, vouchers), customer accounts (built on [`sunrice/account`](https://github.com/Digital-Citra-Kreatif/sunrice-account): password, emailed codes, Google), invoices and packing slips, store analytics and MCP tools — with every feature switchable from Settings → Store.
 
 ## Quick start
 
 ```bash
 composer require sunrice/commerce
-php artisan sunrice:install --plugins   # the Sunrice panel, with the Commerce plugin on it
+php artisan sunrice:install --plugins   # the Sunrice panel, with the Accounts and Commerce plugins on it
+php artisan account:install             # customer accounts (sunrice/account, installed with commerce)
 php artisan commerce:install --demo
 ```
+
+Your panel provider ends up with both plugins; add the Users screen that lists staff only:
+
+```php
+$panel->userResource(AccountUserResource::class)
+    ->plugin(CmsPlugin::make())->plugin(AccountPlugin::make())->plugin(CommercePlugin::make());
+```
+
+Every order belongs to a customer account: visitors browse and fill a cart freely, and sign in
+(one email field, with an emailed code) when they check out.
 
 Then run the scheduler and a queue worker, set up mail, and open the admin → **Shop → Dashboard**:
 a checklist leads you through the rest. Details in [docs/installation.md](docs/installation.md).
 
-Requirements: PHP 8.4+, Laravel 13, Sunrice 0.8 (`sunrice/admin` and `sunrice/cms`), SQLite, MySQL or PostgreSQL. No Node needed:
+Requirements: PHP 8.4+, Laravel 13, Sunrice 0.8 (`sunrice/admin`, `sunrice/cms`) and `sunrice/account` 0.2, SQLite, MySQL or PostgreSQL. No Node needed:
 the admin bundle is prebuilt.
 
 ## Documentation

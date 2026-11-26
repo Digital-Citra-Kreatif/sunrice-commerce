@@ -2,8 +2,8 @@
 
 Commerce has two kinds of settings:
 
-- **Config** (`config/commerce.php`): how the package is wired into your app — paths, guards,
-  disks, limits. Developers set these; they live in the code.
+- **Config** (`config/commerce.php`): how the package is wired into your app — paths, disks,
+  limits. Developers set these; they live in the code.
 - **Store settings** (Settings → Store in the admin): how the store behaves — name, currency,
   checkout, taxes, payments, shipping, emails. The owner changes them; they live in the database.
   `defaults` in the config file gives their starting values.
@@ -34,25 +34,11 @@ Publish the file with `php artisan vendor:publish --tag=commerce-config` (the in
 | `catalog.max_options` | `3` | Options per variable product |
 | `catalog.max_variants` | `100` | Variants per product |
 
-### google
-
-| Key | Default | |
-| --- | --- | --- |
-| `google.client_id` | `env('GOOGLE_CLIENT_ID')` | Sign in with Google; copied to `services.google` unless your app sets it there |
-| `google.client_secret` | `env('GOOGLE_CLIENT_SECRET')` | |
-
-### auth
-
-| Key | Default | |
-| --- | --- | --- |
-| `auth.guard` | `commerce` | The guard customers sign in with (registered by commerce, session based) |
-| `auth.passwords` | `users` | The password broker for customer password resets |
-
 ### storefront
 
 | Key | Default | |
 | --- | --- | --- |
-| `storefront.paths.*` | `cart`, `checkout`, `order`, `confirm-payment`, `track-order`, `quote`, `account`, `wishlist`, `compare`, `brands`, `flash-sale`, `downloads`, `go`, `commerce/api`, `commerce/webhooks` | URL segments of the store's pages (translated paths per language come from Sunrice) |
+| `storefront.paths.*` | `cart`, `checkout`, `order`, `confirm-payment`, `quote`, `wishlist`, `compare`, `brands`, `flash-sale`, `downloads`, `go`, `commerce/api`, `commerce/webhooks` | URL segments of the store's pages (translated paths per language come from Sunrice). The account address is the account package's (`sunrice-account.paths.prefix`, or Settings → Accounts) |
 | `storefront.layout` | `cms.layout` | The layout store pages extend. If missing, Commerce uses the published minimal layout or its bundled copy. |
 | `storefront.skin` | `null` | Optional CSS file relative to `public/`. Loads after the base storefront stylesheet. |
 
@@ -168,11 +154,10 @@ CSV's `weight` column stays in grams.
 | `features` (Features) | One switch per module — see [features.md](features.md) |
 | `catalog` (Catalog) | `price_visibility`, `price_visibility_roles`, `call_to_action`, `show_stock`, `low_stock_threshold`, `hide_out_of_stock`, `new_badge_days`, `price_range`, `attribute_taxonomies`, `compare_max`, `compare_fields` |
 | `digital` (Digital products; catalog permission) | `delivery`, `grant_on`, `download_limit`, `expiry_days` |
-| `checkout` (Checkout) | `access`, `create_account`, `quote_requests`, `quote_request_roles`, `require_phone`, `company_fields`, `address_line2`, `require_postal_code`, `village_level`, `order_notes`, `dropshipper`, `minimum_order`, `terms_page`, `free_shipping_combines`, `customer_cancel`, `order_number_format`, `order_number_reset`, `quote_number_format`, `quote_number_reset`, `quote_valid_days`, `auto_complete_shipped`, `auto_complete_digital` |
+| `checkout` (Checkout) | `quote_requests`, `quote_request_roles`, `require_phone`, `company_fields`, `address_line2`, `require_postal_code`, `village_level`, `order_notes`, `dropshipper`, `minimum_order`, `terms_page`, `free_shipping_combines`, `customer_cancel`, `order_number_format`, `order_number_reset`, `quote_number_format`, `quote_number_reset`, `quote_valid_days`, `auto_complete_shipped`, `auto_complete_digital` |
 | `payments` (Payments page) | `methods.<key>` (each method's settings, `active`, `title`…), `order` — see [payments.md](payments.md) |
 | `shipping` (Shipping page) | Zones and methods are database records — see [shipping.md](shipping.md) |
 | `taxes` (Taxes) | `prices_include_tax`, `display_prices`, `based_on`, `classes`; rates on their own page |
-| `accounts` (Accounts) | `registration`, `verify_email`, `require_phone`, `customer_roles`, `code_minutes` |
 | `emails` (Emails page) | `<key>` per email: enabled, subject, text — see [emails.md](emails.md) |
 | `documents` (Documents) | `invoice_number_format`, `invoice_number_reset`, `invoice_assigned_on`, `customer_invoice_download`, `footer` |
 | `analytics` | `track_views` (overrides the config key) |

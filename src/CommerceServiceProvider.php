@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sunrice\Commerce;
 
-use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Http\Events\RequestHandled;
@@ -18,13 +17,17 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Sunrice\Admin\Panel;
+use Sunrice\Account\Account;
+use Sunrice\Account\Events\Anonymized;
+use Sunrice\Account\Events\DeletionRequested;
+use Sunrice\Account\Events\ProfileUpdated;
+use Sunrice\Account\Events\Registered;
+use Sunrice\Account\Events\SignedIn;
 use Sunrice\Cms\Content;
 use Sunrice\Cms\Events\ContentChanged;
 use Sunrice\Cms\Events\EntryDeleted;
 use Sunrice\Cms\Events\EntryPublished;
 use Sunrice\Cms\Site\Page;
-use Sunrice\Commerce\Http\Middleware\SetStoreLocale;
 
 class CommerceServiceProvider extends PackageServiceProvider
 {
@@ -41,7 +44,6 @@ class CommerceServiceProvider extends PackageServiceProvider
 
     public function packageRegistered(): void
     {
-        $this->registerCustomerGuard();
         $this->app->singleton(Commerce::class);
         $this->app->singleton(Features\FeatureRegistry::class);
         $this->app->singleton(Settings\SettingsRegistry::class);
@@ -83,7 +85,6 @@ class CommerceServiceProvider extends PackageServiceProvider
         $this->app->scoped(Promotions\TargetMatcher::class);
         $this->app->scoped(Cart\CartManager::class);
         $this->app->scoped(Customers\CurrentCustomer::class);
-        $this->app->singleton(Customers\AccountNavigation::class);
         $this->app->scoped(Wishlist\WishlistManager::class);
         $this->app->scoped(Cart\CompareList::class);
         // Optional connections, replaced when their module is built (C4.8, C5.3, C13).
@@ -118,7 +119,6 @@ class CommerceServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
-        self::mapGoogleConfig();
         $this->registerCommands();
         $this->registerAdminAssets();
         $this->registerFeatureGates();
@@ -146,7 +146,6 @@ class CommerceServiceProvider extends PackageServiceProvider
     {
         $router = $this->app['router'];
         $router->aliasMiddleware('commerce.noindex', Http\Middleware\NoIndex::class);
-        $router->aliasMiddleware('commerce.auth', Http\Middleware\AuthenticateCustomer::class);
 
         $this->app->booted(function (): void {
             if ($this->app->routesAreCached()) {
@@ -155,11 +154,9 @@ class CommerceServiceProvider extends PackageServiceProvider
             Storefront\StorefrontRoutes::localized(function (string $suffix): void {
                 require __DIR__.'/../routes/api.php';
                 require __DIR__.'/../routes/storefront.php';
-                require __DIR__.'/../routes/account.php';
             });
             Route::group([], __DIR__.'/../routes/webhooks.php');
             Route::group([], __DIR__.'/../routes/marketing.php');
-            Route::middleware(['web', SetStoreLocale::class])->group(__DIR__.'/../routes/oauth.php');
         });
 
         Blade::component(View\Components\Slot::class, 'commerce::slot');
@@ -179,41 +176,39 @@ class CommerceServiceProvider extends PackageServiceProvider
 
     }
 
-    /**
-     * The storefront's own session guard (customers), on the same user
-     * provider as the admin, so signing in to the shop never opens the admin.
-     * The admin's guard is the panel's (`$panel->guard()`), known once the
-     * app's panel provider has set the panel up.
-     */
-    protected function registerCustomerGuard(): void
-    {
-        $this->app->afterResolving(Panel::class, function (Panel $panel): void {
-            $guard = (string) config('commerce.auth.guard', 'commerce');
-            if (config("auth.guards.{$guard}") === null) {
-                $provider = config('auth.guards.'.$panel->getGuard().'.provider', 'users');
-                config(["auth.guards.{$guard}" => ['driver' => 'session', 'provider' => $provider]]);
-            }
-        });
-    }
-
     /** Customer accounts: sign-in merges, My Account pages, the Users list scope. */
     protected function registerCustomers(): void
     {
-        Event::listen(Login::class, Customers\Listeners\MergeOnSignIn::class);
-        $nav = $this->app->make(Customers\AccountNavigation::class);
-        $nav->register('announcement', fn () => __('commerce::account.announcement.title'), 'commerce.account.announcement',
-            fn (): bool => $this->app->make(Customers\AccountAnnouncement::class)->position() === 'tab', position: 10);
-        $nav->register('profile', fn () => __('commerce::account.profile.title'), 'commerce.account.profile', position: 80);
-        $nav->register('orders', fn () => __('commerce::account.orders.title'), 'commerce.account.orders', 'orders', position: 20);
-        $nav->register('quotes', fn () => __('commerce::account.orders.quotes'), 'commerce.account.quotes',
-            fn (): bool => commerce_feature('orders') && $this->app->make(Checkout\CheckoutMode::class)->quotesPossible(), position: 25);
-        $nav->register('downloads', fn () => __('commerce::digital.title'), 'commerce.account.downloads',
-            fn (): bool => Digital\Models\DownloadGrant::query()->whereHas('order', fn ($q) => $q->where('user_id', commerce_customer()?->getAuthIdentifier()))->exists(), position: 30);
-        $nav->register('wishlist', fn () => __('commerce::storefront.wishlist.title'), 'commerce.wishlist', 'wishlist', position: 60);
-        $nav->register('points', fn () => __('commerce::account.points.title'), 'commerce.account.points', 'loyalty', position: 35);
-        $nav->register('addresses', fn () => __('commerce::account.addresses.title'), 'commerce.account.addresses', position: 70);
+        Event::listen(SignedIn::class, Customers\Listeners\MergeOnSignIn::class);
+        // An account is a customer from the start, and its record follows the account's profile.
+        Event::listen([Registered::class, ProfileUpdated::class,
+            SignedIn::class, DeletionRequested::class], Customers\Listeners\SyncCustomerFromAccount::class);
 
-        $this->app->make(Commerce::class)->registerHealthCheck(Health\Checks\AccountsCheck::class);
+        // Staff removed an account's personal data (Administration → Accounts, or Shop → Customers): the store's records follow.
+        Event::listen(Anonymized::class, function (Anonymized $event): void {
+            $customer = Customers\Models\Customer::query()->where('user_id', $event->user->getAuthIdentifier())->first();
+            if ($customer !== null && $customer->anonymized_at === null) {
+                $this->app->make(Customers\Actions\AnonymizeCustomer::class)->handle($customer);
+            }
+        });
+
+        // The store's pages in My Account (the account package draws the menu, the profile and the sign-in pages).
+        $account = $this->app->make(Account::class);
+        $account->routes(function (string $suffix): void {
+            require __DIR__.'/../routes/account.php';
+        });
+        $account->landingUsing(fn (): ?string => commerce_feature('orders') ? commerce_url('commerce.account.orders') : null);
+        $page = fn (string $key, \Closure $label, string $route, string|\Closure|null $feature, int $position) => $account->page($key, $label, $route,
+            $feature === null ? null : ($feature instanceof \Closure ? $feature : fn (): bool => commerce_feature($feature)), $position);
+        $page('orders', fn () => __('commerce::account.orders.title'), 'commerce.account.orders', 'orders', 20);
+        $page('quotes', fn () => __('commerce::account.orders.quotes'), 'commerce.account.quotes',
+            fn (): bool => commerce_feature('orders') && $this->app->make(Checkout\CheckoutMode::class)->quotesPossible(), 25);
+        $page('downloads', fn () => __('commerce::digital.title'), 'commerce.account.downloads',
+            fn (): bool => Digital\Models\DownloadGrant::query()->whereHas('order', fn ($q) => $q->where('user_id', commerce_customer()?->getAuthIdentifier()))->exists(), 30);
+        $page('points', fn () => __('commerce::account.points.title'), 'commerce.account.points', 'loyalty', 35);
+        $page('wishlist', fn () => __('commerce::storefront.wishlist.title'), 'commerce.wishlist', 'wishlist', 60);
+        $page('addresses', fn () => __('commerce::account.addresses.title'), 'commerce.account.addresses', null, 70);
+
     }
 
     /** Orders: the currency lock, lifecycle listeners and scheduled expiry. */
@@ -296,8 +291,7 @@ class CommerceServiceProvider extends PackageServiceProvider
         RateLimiter::for('commerce-webhooks', fn (Request $request) => Limit::perMinute(300)->by($request->ip()));
         RateLimiter::for('commerce-checkout', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));
         // Guessing gift card codes: 10 tries an hour per account (and per IP).
-        RateLimiter::for('commerce-gift-card', fn (Request $request) => [Limit::perHour(10)->by('gift-card:'.($request->user(config('commerce.auth.guard', 'commerce'))?->getAuthIdentifier() ?? $request->ip())), Limit::perHour(30)->by('gift-card-ip:'.$request->ip())]);
-        RateLimiter::for('commerce-checkout-code', fn (Request $request) => Limit::perMinutes(10, 10)->by($request->ip()));
+        RateLimiter::for('commerce-gift-card', fn (Request $request) => [Limit::perHour(10)->by('gift-card:'.($request->user(Customers\CurrentCustomer::guard())?->getAuthIdentifier() ?? $request->ip())), Limit::perHour(30)->by('gift-card-ip:'.$request->ip())]);
         Settings\Actions\SaveStoreSettings::guardUsing(function (string $section, array $values, Settings\StoreSettings $settings): array {
             $code = $values['currency']['code'] ?? null;
             if ($section !== 'general' || $code === null || $code === $settings->get('general.currency.code')) {
@@ -454,15 +448,6 @@ class CommerceServiceProvider extends PackageServiceProvider
             Console\StatsCommand::class,
             Console\InstallCommand::class,
         ]);
-    }
-
-    /** Socialite reads services.google (and needs a redirect key; the controller sets the real URL); the app's own values win. */
-    public static function mapGoogleConfig(): void
-    {
-        config(['services.google' => [
-            'client_id' => config('commerce.google.client_id'), 'client_secret' => config('commerce.google.client_secret'), 'redirect' => null,
-            ...array_filter((array) config('services.google', []), fn ($v) => $v !== null && $v !== ''),
-        ]]);
     }
 
     protected function registerAdminAssets(): void

@@ -7,6 +7,7 @@ namespace Sunrice\Commerce\Http\Controllers\Storefront;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Sunrice\Account\Account;
 use Sunrice\Commerce\Cart\CartManager;
 use Sunrice\Commerce\Checkout\Actions\ResolveCheckoutSession;
 use Sunrice\Commerce\Checkout\CheckoutRefused;
@@ -52,9 +53,8 @@ class PayController
      * The customer is back from a gateway. The payment is checked whoever
      * returns (a HandlesReturn method asks its gateway, not the query string),
      * so a guest whose access lapsed while paying, or who comes back in
-     * another browser (an e-wallet app), isn't left on a "not found" page:
-     * they are sent to sign in or verify the order instead, and shown
-     * nothing about it until then.
+     * another browser (an e-wallet app), has the payment checked all the same, then signs in and
+     * lands on the order.
      */
     public function return(Request $request, string $key, OrderAccess $access, PaymentManager $payments, RecordPaymentResult $record): RedirectResponse
     {
@@ -96,13 +96,12 @@ class PayController
 
             return redirect($order->url());
         }
-        $message = __('commerce::payments.return_verify', ['number' => $order->displayNumber()]);
-        if ($order->user_id !== null && ! $order->wasPlacedAsGuest()) {
-            redirect()->setIntendedUrl($order->url());
-
-            return redirect(StorefrontRoutes::url('commerce.account.login'))->with('commerce.success', $message);
+        // Not signed in (another browser, an e-wallet app): sign in, then on to the order. Nothing about it is shown until then.
+        if (commerce_customer() === null) {
+            return app(Account::class)->redirectToSignIn($order->url())
+                ->with('account.status', __('commerce::payments.return_verify', ['number' => $order->displayNumber()]));
         }
-
-        return redirect(StorefrontRoutes::url('commerce.track-order', ['number' => $order->number]))->with('commerce.success', $message);
+        // Signed in as someone else: the order isn't theirs to see.
+        abort(404);
     }
 }

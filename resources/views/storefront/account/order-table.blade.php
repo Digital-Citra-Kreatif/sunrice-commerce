@@ -9,7 +9,7 @@
     <tbody>
         @foreach ($orders as $order)
             <tr>
-                <td data-label="{{ __('commerce::account.orders.number') }}"><a href="{{ commerce_url('commerce.account.order', ['order' => $order->id]) }}">{{ $order->displayNumber() }}</a></td>
+                <td data-label="{{ __('commerce::account.orders.number') }}"><a href="{{ commerce_url('commerce.account.orders.show', ['order' => $order->id]) }}">{{ $order->displayNumber() }}</a></td>
                 <td data-label="{{ __('commerce::checkout.order.date') }}">{{ $order->placed_at?->translatedFormat('j M Y') }}</td>
                 <td data-label="{{ __('commerce::checkout.order.status') }}"><span class="commerce-status commerce-status--{{ $order->status }}">{{ $S::label($order->status) }}</span></td>
                 <td data-label="{{ __('commerce::storefront.cart.total') }}">{{ $money->format($order->total) }}</td>

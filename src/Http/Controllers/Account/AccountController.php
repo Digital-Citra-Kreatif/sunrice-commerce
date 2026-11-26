@@ -7,16 +7,7 @@ namespace Sunrice\Commerce\Http\Controllers\Account;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rules\Password as PasswordRule;
-use Illuminate\Validation\ValidationException;
-use Sunrice\Commerce\Customers\AccountAnnouncement;
-use Sunrice\Commerce\Customers\AccountNavigation;
-use Sunrice\Commerce\Customers\Actions\RequestAccountDeletion;
 use Sunrice\Commerce\Customers\Actions\SaveAddress;
-use Sunrice\Commerce\Customers\Actions\UpdateProfile;
 use Sunrice\Commerce\Customers\CurrentCustomer;
 use Sunrice\Commerce\Customers\Models\Address;
 use Sunrice\Commerce\Storefront\Layout;
@@ -28,54 +19,6 @@ class AccountController
     protected function current(): CurrentCustomer
     {
         return app(CurrentCustomer::class);
-    }
-
-    public function landing(AccountAnnouncement $announcement): RedirectResponse
-    {
-        $route = match (true) {
-            $announcement->position() === 'tab' => 'commerce.account.announcement',
-            commerce_feature('orders') => 'commerce.account.orders',
-            default => 'commerce.account.profile',
-        };
-
-        return redirect()->to(commerce_url($route));
-    }
-
-    public function announcement(AccountAnnouncement $announcement): View
-    {
-        abort_unless($announcement->position() === 'tab', 404);
-
-        return $this->page('announcement', $announcement->title(), ['announcement' => $announcement]);
-    }
-
-    public function profile(): View
-    {
-        return $this->page('profile', __('commerce::account.profile.title'), ['google' => DB::table('commerce_social_accounts')
-            ->where('user_id', $this->current()->user()?->getAuthIdentifier())->where('provider', 'google')->value('email')]);
-    }
-
-    public function updateProfile(Request $request, UpdateProfile $update): RedirectResponse
-    {
-        $sent = $update->handle($this->current()->user(), $this->current()->get(), $request->only(['name', 'email', 'phone', 'accepts_marketing', 'current_password']));
-
-        return back()->with('commerce.success', __($sent ? 'commerce::account.profile.verify_new_email' : 'commerce::account.profile.saved'));
-    }
-
-    public function updatePassword(Request $request): RedirectResponse
-    {
-        $user = $this->current()->user();
-        $customer = $this->current()->get();
-        $data = $request->validate(['current_password' => ['nullable', 'string'], 'password' => ['required', 'confirmed', PasswordRule::min(8)]]);
-        // Accounts made by code or Google set their first password without an old one.
-        if (($customer->meta['password_set'] ?? true) !== false && ! Hash::check((string) ($data['current_password'] ?? ''), (string) $user->getAuthPassword())) {
-            throw ValidationException::withMessages(['current_password' => __('commerce::account.password.current_wrong')]);
-        }
-        // A new remember token signs out "remember me" on other devices.
-        $user->forceFill(['password' => Hash::make($data['password']), 'remember_token' => Str::random(60)])->save();
-        $customer->forceFill(['meta' => [...(array) $customer->meta, 'password_set' => true]])->save();
-        $request->session()->regenerate();
-
-        return back()->with('commerce.success', __('commerce::account.password.saved'));
     }
 
     public function addresses(Request $request): View
@@ -112,14 +55,6 @@ class AccountController
         return back()->with('commerce.success', __('commerce::account.addresses.deleted'));
     }
 
-    public function requestDeletion(Request $request, RequestAccountDeletion $request_): RedirectResponse
-    {
-        $request->validate(['confirm' => ['accepted']]);
-        $request_->handle($this->current()->get());
-
-        return back()->with('commerce.success', __('commerce::account.delete.requested'));
-    }
-
     /** @param  array<string, mixed>  $data */
     public function page(string $name, string $title, array $data = []): View
     {
@@ -127,8 +62,6 @@ class AccountController
             ...$data,
             'customer' => $this->current()->get(),
             'user' => $this->current()->user(),
-            'navigation' => app(AccountNavigation::class)->items(),
-            'current' => $data['current'] ?? $name,
             'seoTitle' => $title,
         ]);
     }

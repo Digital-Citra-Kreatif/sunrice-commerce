@@ -13,6 +13,9 @@ use Sunrice\Commerce\Mcp\StoreTools;
 use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Settings\StoreSettings;
 
+// Checkout is for accounts: these tests shop signed in (as Rina, unless a test signs someone else in).
+beforeEach(fn () => buyer());
+
 /*
  * The feature matrix (ARCHITECTURE.md §4.6): each optional module switched
  * off takes its routes, menu items and AI tools with it, and what is
@@ -27,7 +30,7 @@ const MODULE_SURFACES = [
     'brands' => [['/brands'], []],
     'inventory' => [['/admin/commerce/inventory'], ['Inventory']],
     'cart' => [['/cart', '/checkout'], []],
-    'orders' => [['/admin/commerce/orders', '/track-order'], ['Orders']],
+    'orders' => [['/admin/commerce/orders'], ['Orders']],
     'checkout' => [['/checkout'], []],
     'documents' => [[], []],
     'taxes' => [['/admin/commerce/settings/tax-rates'], []],
@@ -37,9 +40,7 @@ const MODULE_SURFACES = [
     'pricing_rules' => [['/admin/commerce/pricing-rules'], ['Pricing rules']],
     'flash_sales' => [['/flash-sale', '/admin/commerce/flash-sales'], ['Flash sales']],
     'vouchers' => [['/admin/commerce/vouchers'], ['Vouchers']],
-    'accounts' => [['/account/login'], []],
-    'passwordless_login' => [[], []],
-    'google_login' => [['/account/login/google'], []],
+    'accounts' => [[], []],
     'wishlist' => [['/wishlist'], []],
     'compare' => [['/compare'], []],
     'reviews' => [['/admin/commerce/reviews'], ['Reviews']],

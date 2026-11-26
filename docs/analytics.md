@@ -33,7 +33,6 @@ checks run in `php artisan commerce:doctor` ([commands.md](commands.md)):
 | Queue worker | The queue is `sync`, or no queued job ran in the last 10 minutes |
 | Scheduler | `commerce:tick` hasn't run in the last 5 minutes |
 | Full-page cache | Sunrice's full-page cache is on |
-| Customer sign-in | Emailed codes are on without the `HasOneTimePasswords` trait, or Google sign-in is on without its keys |
 | Ordering | The online store has no active payment method, WhatsApp mode has no number, or there are products to ship but no active shipping method (errors) |
 | Products and regions | Product data couldn't be synced, regions aren't imported, or checkout asks for the village without village data |
 

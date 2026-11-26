@@ -45,24 +45,18 @@ class AbandonedCart implements Trigger
 
     public function recipients(int $delay, CarbonInterface $from, CarbonInterface $to): iterable
     {
-        $carts = Cart::query()->where('status', 'active')
+        // A cart with someone to write to is an account's: a visitor's cart has no address until they sign in.
+        $carts = Cart::query()->where('status', 'active')->whereNotNull('customer_id')
             ->where('last_activity_at', '>', $from->copy()->subHours($delay))
             ->where('last_activity_at', '<=', $to->copy()->subHours($delay))
             ->whereHas('items')
             ->with('customer')->orderBy('id');
         foreach ($carts->lazyById(200) as $cart) {
-            $checkout = (array) $cart->checkout;
             $customer = $cart->customer;
-            $email = $customer->email ?? (is_string($checkout['email'] ?? null) ? mb_strtolower(trim($checkout['email'])) : null);
-            if ($email === null || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            if ($customer === null || ! filter_var($customer->email, FILTER_VALIDATE_EMAIL) || ! Consent::allows($customer, false)) {
                 continue;
             }
-            $customer ??= Customer::query()->where('email', $email)->first();
-            $ticked = (bool) filter_var($checkout['accepts_marketing'] ?? false, FILTER_VALIDATE_BOOLEAN);
-            if (! Consent::allows($customer, $ticked)) {
-                continue;
-            }
-            yield new Recipient($customer, $email, (string) ($cart->locale ?? $customer->locale ?? Locales::default()), 'cart:'.$cart->id, ['cart_id' => $cart->id, 'ticked' => $ticked]);
+            yield new Recipient($customer, $customer->email, (string) ($cart->locale ?? $customer->locale ?? Locales::default()), 'cart:'.$cart->id, ['cart_id' => $cart->id]);
         }
     }
 }

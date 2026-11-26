@@ -12,7 +12,7 @@ it('lists the modules grouped, with requirements and dependents', function () {
         $groups = collect($page->toArray()['props']['groups']);
         expect($groups->pluck('key')->take(3)->all())->toBe(['catalog', 'selling', 'payments']);
         $checkout = collect($groups->firstWhere('key', 'selling')['features'])->firstWhere('key', 'checkout');
-        expect($checkout['requires'])->toBe(['Cart and mini cart', 'Orders', 'Payment methods'])
+        expect($checkout['requires'])->toBe(['Cart and mini cart', 'Orders', 'Customer accounts', 'Payment methods'])
             ->and($checkout['essential'])->toBeTrue();
         $cart = collect($groups->firstWhere('key', 'selling')['features'])->firstWhere('key', 'cart');
         expect(array_column($cart['dependents'], 'key'))->toContain('checkout');
@@ -26,8 +26,8 @@ it('switches modules and refuses switches the selling mode needs', function () {
         ->assertSessionHasNoErrors()->assertSessionHas('success', 'Wishlist switched off.');
     expect(app(Features::class)->active('wishlist'))->toBeFalse();
 
-    $this->put('/admin/commerce/settings/features/accounts', ['on' => false])
-        ->assertSessionHas('success', fn (string $m) => str_contains($m, 'Also off now: Sign in with an emailed code') === false);
+    // Every order belongs to an account: accounts can't be switched off.
+    $this->put('/admin/commerce/settings/features/accounts', ['on' => false])->assertSessionHasErrors('feature');
 
     $this->put('/admin/commerce/settings/features/payments', ['on' => false])->assertSessionHasErrors('feature');
     expect(app(Features::class)->active('payments'))->toBeTrue();
