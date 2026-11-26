@@ -40,6 +40,16 @@
 }
 @media (min-width: 1024px) { :root { --commerce-gutter: 32px; --commerce-header: 68px; } }
 
+/* The account pages (sign in, register, profile, My Account's menu: the Accounts plugin's) in the store's colours.
+   The plugin's own styles read these; it only sets them in its minimal layout, not in a theme's. */
+:root {
+    --account-fg: var(--commerce-fg); --account-muted: var(--commerce-muted); --account-bg: var(--commerce-bg); --account-card: var(--commerce-bg);
+    --account-line: var(--commerce-line); --account-field-line: #8a8a93; --account-accent: var(--commerce-fg); --account-on-accent: var(--commerce-bg);
+    --account-danger: var(--commerce-accent); --account-success: var(--commerce-ok);
+}
+.account, .account-auth { box-sizing: border-box; }
+.account *, .account-auth *, .account *::before, .account-auth *::before, .account *::after, .account-auth *::after { box-sizing: border-box; }
+
 /* 2. Base (starter layout) -------------------------------------------- */
 .commerce-site, .commerce-site *, .commerce-site *::before, .commerce-site *::after { box-sizing: border-box; }
 .commerce-site body { margin: 0; background: var(--commerce-bg); color: var(--commerce-fg); font: 400 15px/1.55 var(--commerce-font); -webkit-font-smoothing: antialiased; overflow-x: clip; }

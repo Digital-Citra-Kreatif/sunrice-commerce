@@ -16,7 +16,7 @@
         "illuminate/support": "^13.0",
         "intervention/image": "^3.0",
         "spatie/laravel-package-tools": "^1.93",
-        "sunrice/account": "^0.2",
+        "sunrice/account": "^0.2.1",
         "sunrice/admin": "^0.8",
         "sunrice/cms": "^0.8"
     },
