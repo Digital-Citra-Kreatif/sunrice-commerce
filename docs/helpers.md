@@ -14,6 +14,7 @@ Global functions for templates, defined in `src/helpers.php`. Each is wrapped in
 - [`commerce_product`](#commerce_product)
 - [`commerce_store_name`](#commerce_store_name)
 - [`commerce_values`](#commerce_values)
+- [`commerce_rich_text`](#commerce_rich_text)
 - [`commerce_body_classes`](#commerce_body_classes)
 - [ProductView](#productview)
 - [The Commerce facade](#the-commerce-facade)
@@ -29,6 +30,7 @@ Global functions for templates, defined in `src/helpers.php`. Each is wrapped in
 | `commerce_product(EntryTranslation\|Entry\|int $entry)` | `?ProductView`: what templates show for a product |
 | `commerce_store_name()` | `string`: the store's name |
 | `commerce_values(EntryTranslation\|Term\|TermTranslation $item)` | `array`: an entry's or term's fields as templates get them |
+| `commerce_rich_text(?string $html)` | `string`: rich text safe to print raw |
 | `commerce_body_classes()` | `list<string>`: the store's `<body>` classes on its own pages |
 
 ## commerce_money
@@ -154,6 +156,21 @@ missing: read it with `?? null`.
 ```blade
 @php($values = commerce_values($entry))
 @if (filled($values['excerpt'] ?? null))<p>{{ $values['excerpt'] }}</p>@endif
+```
+
+## commerce_rich_text
+
+```php
+commerce_rich_text(?string $html): string
+```
+
+Rich text safe to print raw: sanitized with the CMS's `HtmlSanitizer` again at render time, so
+content that bypassed the save-time cleaning (an import, an older row) can't run a script. Use it
+for every `{!! !!}` of rich text — product, category and brand descriptions, size guides, page
+bodies.
+
+```blade
+<div class="commerce-prose">{!! commerce_rich_text($values['description'] ?? null) !!}</div>
 ```
 
 ## commerce_body_classes
