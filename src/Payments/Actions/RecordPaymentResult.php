@@ -41,7 +41,8 @@ class RecordPaymentResult
         'awaiting_confirmation' => ['paid', 'pending', 'failed', 'cancelled'],
         'failed' => ['paid', 'pending', 'awaiting_confirmation', 'expired', 'cancelled'],
         'expired' => ['paid'],
-        'cancelled' => [],
+        // Cancelling here doesn't close the gateway's page: the customer can still pay there.
+        'cancelled' => ['paid'],
         'paid' => ['refunded'],
         'partially_refunded' => ['refunded'],
         'refunded' => [],
@@ -75,6 +76,8 @@ class RecordPaymentResult
                 return false;
             }
             $afterCancellation = $result->status === 'paid' && $order->status === OrderStatus::CANCELLED;
+            // Paid on a payment set aside here (the customer chose another method, or the order was cancelled).
+            $revived = $result->status === 'paid' && $locked->status === 'cancelled';
 
             $this->apply($locked, $order, $result);
             $this->partly($order, $result);
@@ -88,6 +91,16 @@ class RecordPaymentResult
                 'amount' => $money->format($result->status === 'refunded' ? (int) $result->amount : ($result->amount ?? $locked->amount)),
             ]), array_filter(['payment_id' => $locked->id, 'method' => $locked->method, 'status' => $result->status, 'reference' => $result->reference]), $actor);
 
+            if ($revived && ! $afterCancellation) {
+                // The order is still open: the money counts. What the newer payment was waiting for is no longer due.
+                $this->timeline->record($order, 'note', Timeline::text('commerce::orders.timeline.paid_on_cancelled_payment', [
+                    'method' => $locked->method_title ?? $locked->method, 'amount' => $money->format($result->amount ?? $locked->amount),
+                ]), ['payment_id' => $locked->id], $actor);
+                if ($order->paid_total >= $order->total) {
+                    Payment::query()->where('order_id', $order->id)->whereKeyNot($locked->id)->whereIn('status', ['pending', 'failed'])
+                        ->update(['status' => 'cancelled', 'updated_at' => now()]);
+                }
+            }
             if ($afterCancellation) {
                 // Its stock, sale quantities and vouchers were released: nothing is fulfilled until staff decide.
                 $this->timeline->record($order, 'note', Timeline::text('commerce::orders.timeline.paid_after_cancel', [

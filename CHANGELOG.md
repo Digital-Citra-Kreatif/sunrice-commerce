@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- A payment made at the gateway after its payment was cancelled here is no longer ignored. A
+  customer who chose another method on the pay page and then paid on the gateway page they had
+  left open, or who paid after the order was cancelled by them or by staff, had their money taken
+  with nothing recorded. A `cancelled` payment now accepts `paid`: on an open order it counts
+  towards the order (timeline note, other open payments cancelled once paid in full); on a
+  cancelled order it goes the "paid after cancellation" way (`PaymentAfterCancellation`,
+  `staff_paid_after_cancel`). New translation `orders.timeline.paid_on_cancelled_payment`.
+
 - Security: creating a manual order as already paid (Orders → New, and the `commerce_create_order`
   AI tool) now needs `commerce.payments.verify`, the permission "Mark as paid" takes. Staff with
   only `commerce.orders.create` could record a payment that way; they now create the order unpaid.

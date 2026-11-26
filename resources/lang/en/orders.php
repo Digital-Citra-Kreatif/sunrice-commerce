@@ -53,6 +53,7 @@ return [
         'edited' => 'Order edited',
         'addresses' => 'Addresses updated',
         'expired' => 'Payment deadline passed',
+        'paid_on_cancelled_payment' => 'Payment of :amount received with :method, on a payment that had been set aside (another method was chosen): it counts towards the order',
         'paid_after_cancel' => 'Payment of :amount received after the order was cancelled: refund it or reinstate the order',
         'amount_mismatch' => ':method reported :amount paid, not the :expected due: not recorded as paid. Check the payment in the gateway\'s dashboard',
         'underpaid' => ':method reported :amount paid, less than the :expected due: not recorded as paid',

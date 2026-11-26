@@ -308,6 +308,44 @@ it('flags a payment that arrives after the deadline cancelled the order, without
     Notification::assertSentOnDemand(StoreEmail::class, fn (StoreEmail $n, array $c, $notifiable) => $n->key === 'staff_paid_after_cancel' && $notifiable->routes['mail'] === 'toko@example.com');
 });
 
+it('counts a payment made at the gateway after the customer chose another method', function () {
+    $order = placeWithGateway($this->mug);
+    $ref = fakeReference($order);
+    authorizeGuestOrders($order);
+    // The gateway's page stays open in another tab: choosing a transfer only sets the payment aside here.
+    $this->post("/order/{$order->order_key}/pay", ['payment_method' => 'test_transfer'])->assertRedirect($order->url());
+    expect($order->payments->pluck('status', 'method')->all())->toBe(['fake_gateway' => 'cancelled', 'test_transfer' => 'pending']);
+
+    Event::fake([OrderPaid::class]);
+    webhook(['event_id' => 'evt-other-tab', 'reference' => $ref, 'status' => 'paid', 'amount' => 61200])->assertOk();
+
+    $order->refresh();
+    expect([$order->status, $order->payment_status, $order->paid_total])->toBe(['processing', 'paid', 61200])
+        ->and($order->payments()->pluck('status', 'method')->all())->toBe(['fake_gateway' => 'paid', 'test_transfer' => 'cancelled'])
+        ->and(WebhookCall::query()->sole()->status)->toBe('processed')
+        ->and($order->events()->where('type', 'note')->latest('id')->value('message'))->toContain('dikesampingkan')
+        ->and($this->mug->fresh()->stock_quantity)->toBe(4);
+    Event::assertDispatched(OrderPaid::class);
+});
+
+it('flags a payment that arrives after the customer cancelled the order', function () {
+    app(StoreSettings::class)->saveSection('general', ['name' => 'Toko Sunrice', 'email' => 'toko@example.com']);
+    $order = placeWithGateway($this->mug);
+    $ref = fakeReference($order);
+    app(OrderStateMachine::class)->transition($order, 'cancelled', Actor::system());
+    expect($order->payments()->sole()->status)->toBe('cancelled');
+
+    Notification::fake();
+    Event::fake([OrderPaid::class]);
+    webhook(['event_id' => 'evt-cancelled', 'reference' => $ref, 'status' => 'paid', 'amount' => 61200])->assertOk();
+
+    $order->refresh();
+    expect([$order->status, $order->payment_status, $order->paid_total])->toBe(['cancelled', 'paid', 61200])
+        ->and($order->events()->where('type', 'note')->latest('id')->value('message'))->toContain('setelah pesanan dibatalkan');
+    Event::assertNotDispatched(OrderPaid::class);
+    Notification::assertSentOnDemand(StoreEmail::class, fn (StoreEmail $n) => $n->key === 'staff_paid_after_cancel');
+});
+
 it('keeps expiring other payments when one of them fails', function () {
     $orders = [];
     foreach (['a@example.com', 'b@example.com'] as $email) {
