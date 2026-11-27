@@ -1,8 +1,8 @@
 # Installation
 
-Sunrice Commerce turns a Sunrice CMS site into a store. It needs PHP 8.4+, Laravel 13, Sunrice
-0.8 (`sunrice/admin` and `sunrice/cms`) and the Accounts plugin (`sunrice/account`), all of which
-Composer installs with it, and SQLite, MySQL or PostgreSQL. The admin bundle is prebuilt: you don't need Node.
+Sunrice Commerce turns a Sunrice CMS site into a store. It needs PHP 8.4+, Laravel 13 and
+SQLite, MySQL or PostgreSQL. Composer installs Sunrice Admin and CMS 0.8.1+ and
+`sunrice/account` 0.2.1+ with Commerce. The admin bundle is prebuilt.
 
 ## Contents
 
@@ -23,6 +23,11 @@ php artisan account:install
 php artisan commerce:install
 ```
 
+On a fresh Laravel app with a database-backed cache, set `CACHE_STORE=file` in `.env` before
+running these commands, or run the app's migrations before requiring Commerce. Account and
+extension routes read Sunrice settings during package discovery, which needs the cache table
+when using the database cache. You can switch back after migrating.
+
 Commerce is a plugin of the Sunrice panel, and it requires the Accounts plugin: customers sign in
 with `sunrice/account`, and every order belongs to an account. `sunrice:install` creates the
 app's panel provider when there is none and adds the plugins to it (`--plugins` without asking).
@@ -40,6 +45,10 @@ $panel->userResource(AccountUserResource::class)
 yourself. `account:install` runs the migrations, creates the default role of new accounts and
 checks what accounts need. `commerce:install` stops with instructions when `CommercePlugin` isn't
 on the panel.
+
+If you install Biteship 0.3, add
+`->plugin(\Sunrice\CommerceBiteship\BiteshipPlugin::make())` after Commerce in the panel provider
+to enable its order admin tools.
 
 Try it with sample data first:
 
@@ -64,6 +73,9 @@ For a complete, ready-to-use shop, install the **starter theme** with its demo d
 php artisan commerce:install --starter --demo
 php artisan storage:link        # product images are Sunrice assets on the public disk
 ```
+
+The starter demo uses Indonesian districts for its saved addresses and orders. Keep the default
+region import, or import through district level before running it with `--no-regions`.
 
 Keep uploaded digital products on the private downloads disk. See
 [Digital products](catalog.md#digital-products) for how customers receive those files.

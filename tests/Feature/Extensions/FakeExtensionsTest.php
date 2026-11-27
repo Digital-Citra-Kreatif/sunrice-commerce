@@ -52,6 +52,9 @@ it('ships with a courier extension: live rates, then tracking until delivered', 
     $item = $order->items()->sole();
     $parcel = app(CreateShipment::class)->handle($order->refresh(), ['courier_name' => 'Fake courier', 'tracking_number' => 'FC1'], [['order_item_id' => $item->id, 'quantity' => 2]], Actor::system());
 
+    $courier = app(FakeCourier::class);
+    expect($courier->book($order, $parcel)->trackingNumber)->toBe('FC'.$parcel->id);
+
     expect(app(ShipmentTracker::class)())->toBe(1);
     expect($parcel->refresh()->status)->toBe('in_transit')->and($parcel->meta['tracking']['history'])->toHaveCount(1)
         ->and(app(ShipmentTracker::class)())->toBe(0);         // checked less than an hour ago

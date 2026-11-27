@@ -221,6 +221,9 @@ the package (`weight()`, `volumetricWeight()`, `quantity()`), the subtotal and w
 delivery. Return `ShippingRate::for($method, $cost, $service, $label, $etd)`. Rates of extension
 types are cached for ten minutes per request.
 
+- `BooksShipments::book(Order, Shipment): BookingResult` is the contract for a carrier's pickup
+  booking. The result contains the tracking number, an optional tracking URL and provider metadata.
+  An extension can call it from its own booking workflow.
 - `TracksShipments::track(Shipment): TrackingInfo` — `commerce:tick` checks open shipments with a
   tracking number at most once an hour; `TrackingInfo(..., delivered: true)` marks the parcel
   delivered (`ShipmentDelivered`).
