@@ -24,8 +24,8 @@ Every order belongs to a customer account: visitors browse and fill a cart freel
 Then run the scheduler and a queue worker, set up mail, and open the admin → **Shop → Dashboard**:
 a checklist leads you through the rest. Details in [docs/installation.md](docs/installation.md).
 
-Requirements: PHP 8.4+, Laravel 13, Sunrice 0.8 (`sunrice/admin`, `sunrice/cms`) and `sunrice/account` 0.2, SQLite, MySQL or PostgreSQL. No Node needed:
-the admin bundle is prebuilt.
+Requirements are PHP 8.4+, Laravel 13, Sunrice Admin and CMS 0.8.1+,
+`sunrice/account` 0.2.1+ and SQLite, MySQL or PostgreSQL. The admin bundle is prebuilt.
 
 ## Documentation
 

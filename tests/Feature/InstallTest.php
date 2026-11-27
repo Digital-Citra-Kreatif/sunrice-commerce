@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Support\Facades\Artisan;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Role;
 use Sunrice\Admin\Panel;
@@ -15,7 +16,11 @@ use Sunrice\Commerce\Promotions\Vouchers\Voucher;
 use Sunrice\Commerce\Regions\RegionImporter;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Shipping\Models\ShippingMethod;
+use Sunrice\Commerce\Tests\TestCase;
 use Workbench\App\Models\User;
+
+beforeAll(fn () => TestCase::isolateAppFolder());
+afterAll(fn () => TestCase::removeIsolatedAppFolder());
 
 afterEach(function () {
     // vendor:publish writes into the Testbench skeleton; keep it clean for other tests.
@@ -64,10 +69,17 @@ it('stops with instructions when the app has no Sunrice panel', function () {
     // As after `composer require` on an app that hasn't run sunrice:install.
     $this->app->offsetUnset(Panel::class);
 
-    $this->artisan('commerce:install', ['--no-regions' => true, '--no-interaction' => true])
-        ->expectsOutputToContain('no Sunrice panel')
-        ->expectsOutputToContain('sunrice:install --plugins')
-        ->assertFailed();
+    expect(Artisan::call('commerce:install', ['--no-regions' => true, '--no-interaction' => true]))->toBe(1)
+        ->and(Artisan::output())->toContain('no Sunrice panel', 'sunrice:install --plugins', 'AccountPlugin', 'account:install');
 
     expect(Collection::query()->where('handle', 'products')->exists())->toBeFalse();
+});
+
+it('installs the basic demo when the region import is skipped on a fresh store', function () {
+    $this->artisan('commerce:install', ['--demo' => true, '--no-regions' => true, '--no-interaction' => true])
+        ->assertSuccessful();
+
+    expect(app(StoreSettings::class)->get('general.address.region.country'))->toBe('ID')
+        ->and(app(StoreSettings::class)->get('general.address.region.city_code'))->toBeNull()
+        ->and(Order::query()->sole()->shipping_address['country'] ?? null)->toBe('ID');
 });

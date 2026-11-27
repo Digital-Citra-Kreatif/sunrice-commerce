@@ -15,6 +15,7 @@ use Sunrice\Commerce\Orders\Actions\CreateManualOrder;
 use Sunrice\Commerce\Orders\Actor;
 use Sunrice\Commerce\Promotions\Actions\SaveFlashSale;
 use Sunrice\Commerce\Promotions\Actions\SaveVoucher;
+use Sunrice\Commerce\Regions\Region;
 use Sunrice\Commerce\Settings\Actions\SaveStoreSettings;
 use Sunrice\Commerce\Settings\StoreSettings;
 use Sunrice\Commerce\Shipping\Models\ShippingZone;
@@ -35,10 +36,16 @@ class DemoStoreSeeder extends Seeder
         }
         app(ScaffoldStore::class)->handle();
         $settings = app(StoreSettings::class);
+        $region = ['country' => 'ID'];
+        $bandung = Region::query()->whereKey(['32', '32.73'])->where('active', true)->get()->keyBy('code');
+        if ($bandung->has('32') && $bandung->get('32.73')?->parent_code === '32') {
+            $region += ['province_code' => '32', 'city_code' => '32.73'];
+        }
+
         if (blank($settings->get('general.name'))) {
             app(SaveStoreSettings::class)->handle('general', [...$settings->section('general'),
                 'name' => 'Toko Kopi Contoh', 'email' => 'halo@example.com', 'phone' => '0812 0000 0000',
-                'address' => ['line1' => 'Jl. Dago 1', 'region' => ['country' => 'ID', 'province_code' => '32', 'city_code' => '32.73'], 'postal_code' => '40135'],
+                'address' => ['line1' => 'Jl. Dago 1', 'region' => $region, 'postal_code' => '40135'],
             ]);
         }
 
@@ -84,7 +91,7 @@ class DemoStoreSeeder extends Seeder
         app(CreateManualOrder::class)->handle([
             'email' => 'rina@example.com', 'name' => 'Rina', 'phone' => '0812 3456 7890',
             'lines' => [['variant_id' => $this->variant('DEMO-MUG'), 'quantity' => 2], ['variant_id' => $this->variant('DEMO-KAOS-M'), 'quantity' => 1]],
-            'shipping_address' => ['name' => 'Rina', 'phone' => '0812 3456 7890', 'country' => 'ID', 'province_code' => '32', 'city_code' => '32.73', 'line1' => 'Jl. Sarijadi 1'],
+            'shipping_address' => ['name' => 'Rina', 'phone' => '0812 3456 7890', ...$region, 'line1' => 'Jl. Sarijadi 1'],
             'shipping' => ['label' => 'Reguler', 'cost' => 12000], 'payment_status' => 'unpaid',
         ], Actor::system(), null);
     }

@@ -12,9 +12,8 @@ use Sunrice\Commerce\Database\Seeders\StarterStoreSeeder;
 
 /**
  * commerce:install — sets up the store after `composer require` (EXECUTION_PLAN.md C16.1):
- * config and assets, the sign-in code table, migrations, the user model
- * trait, the store structure, permissions and roles, regions, and on
- * request the templates and a demo store. Safe to run again.
+ * config and assets, migrations, store structure, permissions and roles,
+ * regions and, on request, the templates and a demo store. Safe to run again.
  */
 class InstallCommand extends Command
 {
@@ -92,8 +91,9 @@ class InstallCommand extends Command
             : 'This app has no Sunrice panel yet: Commerce is a plugin of it.');
         $this->components->bulletList([
             'Run php artisan sunrice:install --plugins (it creates the panel provider and adds '.CommercePlugin::class.' to it),',
-            'or add ->plugin(CommercePlugin::make()) after ->plugin(CmsPlugin::make()) in your panel provider,',
-            'then run php artisan commerce:install again.',
+            'or add CmsPlugin, AccountPlugin and CommercePlugin in your panel provider,',
+            'Run php artisan account:install to set up customer accounts.',
+            'Run php artisan commerce:install again.',
         ]);
 
         return false;

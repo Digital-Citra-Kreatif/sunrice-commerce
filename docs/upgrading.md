@@ -46,9 +46,20 @@ php artisan commerce:stats --rebuild
 ## Customer accounts on `sunrice/account`
 
 From this release, customer accounts are the Accounts plugin's and there is no guest checkout.
-Composer installs `sunrice/account` with commerce. After updating:
+Composer installs `sunrice/account` 0.2.1 or newer in the 0.2 series with Commerce.
+Prepare the app before updating:
 
-1. In your panel provider, add the account plugin and its Users screen:
+1. Remove `HasOneTimePasswords` and its import from your user model if you added it for
+   Commerce. Composer can remove the package during the update, and its package-discovery
+   script loads the user model. If the panel provider uses
+   `Sunrice\Commerce\Admin\StaffUserResource`, remove that registration before the update
+   and add the new Users resource in step 3.
+2. Set your app's Composer constraints for the Commerce release and for Account 0.2 if you list
+   Account directly. Then run `composer update sunrice/commerce --with-all-dependencies`.
+   If your app uses Content Restriction, set its constraint to a release that supports Account 0.2
+   and include `sunrice/content-restriction` in the same command. Content Restriction 0.1.0
+   requires Account 0.1.
+3. In your panel provider, add the account plugin and its Users screen:
 
    ```php
    use Sunrice\Account\AccountPlugin;
@@ -58,15 +69,14 @@ Composer installs `sunrice/account` with commerce. After updating:
        ->plugin(CmsPlugin::make())->plugin(AccountPlugin::make())->plugin(CommercePlugin::make());
    ```
 
-   Remove `Sunrice\Commerce\Admin\StaffUserResource`: it no longer exists.
-2. Run `php artisan migrate` and `php artisan account:install`.
-3. Remove the `HasOneTimePasswords` trait (and its import) from your user model; you can also
-   remove `spatie/laravel-one-time-passwords` and `laravel/socialite` if your app required them
-   only for commerce.
-4. Set up sign-in in **Settings → Accounts** (registration, email verification, the emailed code,
+4. Clear cached routes with `php artisan route:clear`. Run `php artisan account:install` and the
+   Artisan commands under [Every upgrade](#every-upgrade).
+   You can remove the app's direct requirements on `spatie/laravel-one-time-passwords` and
+   `laravel/socialite` if it added them only for Commerce.
+5. Set up sign-in in **Settings → Accounts** (registration, email verification, the emailed code,
    Google, default roles, the account emails). The old Settings → Store → Accounts values are
    not carried over.
-5. If you published the storefront templates, follow the template notes in `CHANGELOG.md`:
+6. If you published the storefront templates, follow the template notes in `CHANGELOG.md`:
    the account sign-in templates are gone, account pages fill `@section('commerce-account')`, and
    the checkout partials lost their guest variables.
 

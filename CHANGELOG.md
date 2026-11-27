@@ -2,14 +2,19 @@
 
 ## Unreleased
 
+- Keep the `BooksShipments` and `BookingResult` shipping APIs used by Biteship 0.3.
+- Install the basic demo store when region import is skipped on a fresh app.
+
 - **Breaking: customer accounts are built on `sunrice/account`, and guest checkout is gone.**
   This project is not in production use, so there is no data migration: set accounts up again
   after updating.
 
   **What an app must do**
 
-  1. Nothing new to require: commerce requires `sunrice/account` (^0.2), and no longer requires
-     `laravel/socialite` or `spatie/laravel-one-time-passwords`.
+  1. Before updating Composer, remove the `HasOneTimePasswords` trait and its import from the user
+     model if they were added for Commerce, and remove any reference to the old Users resource.
+     Commerce requires `sunrice/account` (^0.2.1). See [Upgrading](docs/upgrading.md#customer-accounts-on-sunriceaccount)
+     for the dependency update.
   2. In the panel provider, add the account plugin before commerce and use its Users screen
      (`Sunrice\Commerce\Admin\StaffUserResource` is removed):
 
@@ -20,9 +25,7 @@
 
      `CommercePlugin::requires()` now includes the account plugin.
   3. Run `php artisan migrate` and `php artisan account:install`.
-  4. Remove the `HasOneTimePasswords` trait from the user model; `commerce:install` no longer adds
-     it or publishes the `one_time_passwords` migration.
-  5. Set up sign-in in **Settings → Accounts** (the account package's): registration, email
+  4. Set up sign-in in **Settings → Accounts** (the account package's): registration, email
      verification, the emailed code (on by default), Google, the default roles of new accounts
      and the account emails.
 

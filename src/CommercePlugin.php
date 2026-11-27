@@ -25,9 +25,9 @@ use Sunrice\Commerce\Permissions\CommercePermissions;
 use Sunrice\Commerce\Settings\StoreSettings;
 
 /**
- * The store, added to the panel after the CMS in the app's panel provider:
+ * The store, added to the panel after the CMS and Accounts:
  *
- *     $panel->plugin(CmsPlugin::make())->plugin(CommercePlugin::make());
+ *     $panel->plugin(CmsPlugin::make())->plugin(AccountPlugin::make())->plugin(CommercePlugin::make());
  *
  * Everything commerce adds to the admin: the Shop sidebar group, the
  * commerce permissions and roles, the admin pages and their bundle, the

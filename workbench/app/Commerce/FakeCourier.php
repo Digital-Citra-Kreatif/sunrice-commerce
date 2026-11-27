@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Workbench\App\Commerce;
 
+use Sunrice\Commerce\Orders\Models\Order;
 use Sunrice\Commerce\Orders\Models\Shipment;
+use Sunrice\Commerce\Shipping\BookingResult;
+use Sunrice\Commerce\Shipping\Contracts\BooksShipments;
 use Sunrice\Commerce\Shipping\Contracts\ShippingMethodType;
 use Sunrice\Commerce\Shipping\Contracts\TracksShipments;
 use Sunrice\Commerce\Shipping\Models\ShippingMethod;
@@ -17,7 +20,7 @@ use Sunrice\Commerce\Shipping\TrackingInfo;
  * and YES at twice the price), only within Indonesia; tracking numbers
  * ending in "-DLV" read as delivered, others as in transit.
  */
-class FakeCourier implements ShippingMethodType, TracksShipments
+class FakeCourier implements BooksShipments, ShippingMethodType, TracksShipments
 {
     public static function key(): string
     {
@@ -51,6 +54,11 @@ class FakeCourier implements ShippingMethodType, TracksShipments
             ShippingRate::for($method, $cost, 'REG', 'Fake courier REG', '2–3 days'),
             ShippingRate::for($method, $cost * 2, 'YES', 'Fake courier YES', '1 day'),
         ];
+    }
+
+    public function book(Order $order, Shipment $shipment): BookingResult
+    {
+        return new BookingResult('FC'.$shipment->id);
     }
 
     public function track(Shipment $shipment): TrackingInfo
