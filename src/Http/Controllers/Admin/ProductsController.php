@@ -166,8 +166,11 @@ class ProductsController extends Controller
      */
     protected function collections(Request $request): \Illuminate\Support\Collection
     {
-        return Collection::query()->whereIn('handle', (array) config('commerce.catalog.collections', ['products']))->get()
-            ->filter(fn (Collection $c) => Access::entries($request->user(), 'view', $c))->values();
+        $handles = (array) config('commerce.catalog.collections', ['products']);
+
+        return Collection::query()->whereIn('handle', $handles)->get()
+            ->filter(fn (Collection $c) => Access::entries($request->user(), 'view', $c))
+            ->sortBy(fn (Collection $c) => array_search($c->handle, $handles, true))->values();
     }
 
     /** @return array<int, array{value: string, label: string}> */

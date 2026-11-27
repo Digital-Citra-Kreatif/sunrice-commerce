@@ -73,11 +73,11 @@ it('needs entry permissions for bulk changes', function () {
 
 it('offers New product in every product collection the user may add to, as Content no longer lists them', function () {
     Collection::create(['handle' => 'wholesale', 'title' => 'Wholesale', 'blueprint' => 'product']);
-    config(['commerce.catalog.collections' => ['products', 'wholesale']]);
+    config(['commerce.catalog.collections' => ['wholesale', 'products']]);
 
     $this->get('/admin/commerce/products')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
         ->where('create', [
-            ['label' => 'Products', 'url' => 'cms/collections/products/entries/create'],
             ['label' => 'Wholesale', 'url' => 'cms/collections/wholesale/entries/create'],
+            ['label' => 'Products', 'url' => 'cms/collections/products/entries/create'],
         ]));
 });
